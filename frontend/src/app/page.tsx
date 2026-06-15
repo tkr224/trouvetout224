@@ -1,11 +1,12 @@
 'use client';
 export const dynamic = 'force-dynamic';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import AnnonceGrid from '@/components/annonces/AnnonceGrid';
 import { useAnnonces } from '@/hooks/useAnnonces';
+import { useCategories } from '@/hooks/useCategories';
 import Link from 'next/link';
 import {
   Search, ShieldCheck, Zap, MapPin, ArrowRight, TrendingUp, Clock,
@@ -60,16 +61,35 @@ const FEATURED_CATS = [
   { slug: 'hotels',       icon: Hotel,          label: 'Hôtels',      bg: 'from-fuchsia-500 to-fuchsia-600' },
 ];
 
-const POPULAR_CATS = [
-  { slug: 'telephones',  icon: Smartphone,     label: 'Téléphones',  count: '1 200+', color: 'text-blue-700   bg-blue-50   border-blue-100' },
-  { slug: 'vehicules',   icon: Car,            label: 'Véhicules',   count: '850+',   color: 'text-amber-700  bg-amber-50  border-amber-100' },
-  { slug: 'immobilier',  icon: Home,           label: 'Immobilier',  count: '640+',   color: 'text-emerald-700 bg-emerald-50 border-emerald-100' },
-  { slug: 'emplois',     icon: Briefcase,      label: 'Emplois',     count: '420+',   color: 'text-sky-700    bg-sky-50    border-sky-100' },
-  { slug: 'services',    icon: Wrench,         label: 'Services',    count: '390+',   color: 'text-orange-700 bg-orange-50 border-orange-100' },
-  { slug: 'mode',        icon: Shirt,          label: 'Mode',        count: '310+',   color: 'text-pink-700   bg-pink-50   border-pink-100' },
-  { slug: 'maison',      icon: Sofa,           label: 'Maison',      count: '280+',   color: 'text-lime-700   bg-lime-50   border-lime-100' },
-  { slug: 'restaurants', icon: UtensilsCrossed,label: 'Restaurants', count: '190+',   color: 'text-red-700    bg-red-50    border-red-100' },
-];
+/* Métadonnées statiques : icône + couleur par slug (les compteurs viennent de l'API) */
+const CAT_META: Record<string, { icon: React.ElementType; color: string }> = {
+  telephones:   { icon: Smartphone,      color: 'text-blue-700 bg-blue-50 border-blue-100' },
+  informatique: { icon: Laptop,          color: 'text-violet-700 bg-violet-50 border-violet-100' },
+  electronique: { icon: Cpu,             color: 'text-pink-700 bg-pink-50 border-pink-100' },
+  vehicules:    { icon: Car,             color: 'text-amber-700 bg-amber-50 border-amber-100' },
+  immobilier:   { icon: Home,            color: 'text-emerald-700 bg-emerald-50 border-emerald-100' },
+  terrains:     { icon: Trees,           color: 'text-lime-700 bg-lime-50 border-lime-100' },
+  emplois:      { icon: Briefcase,       color: 'text-sky-700 bg-sky-50 border-sky-100' },
+  services:     { icon: Wrench,          color: 'text-orange-700 bg-orange-50 border-orange-100' },
+  restaurants:  { icon: UtensilsCrossed, color: 'text-red-700 bg-red-50 border-red-100' },
+  hotels:       { icon: Hotel,           color: 'text-fuchsia-700 bg-fuchsia-50 border-fuchsia-100' },
+  mode:         { icon: Shirt,           color: 'text-pink-700 bg-pink-50 border-pink-100' },
+  chaussures:   { icon: Footprints,      color: 'text-teal-700 bg-teal-50 border-teal-100' },
+  beaute:       { icon: Sparkles,        color: 'text-rose-700 bg-rose-50 border-rose-100' },
+  sante:        { icon: HeartPulse,      color: 'text-green-700 bg-green-50 border-green-100' },
+  formation:    { icon: GraduationCap,   color: 'text-indigo-700 bg-indigo-50 border-indigo-100' },
+  evenements:   { icon: PartyPopper,     color: 'text-amber-700 bg-amber-50 border-amber-100' },
+  maison:       { icon: Sofa,            color: 'text-lime-700 bg-lime-50 border-lime-100' },
+  agriculture:  { icon: Wheat,           color: 'text-green-700 bg-green-50 border-green-100' },
+  animaux:      { icon: PawPrint,        color: 'text-orange-700 bg-orange-50 border-orange-100' },
+  sports:       { icon: Dumbbell,        color: 'text-cyan-700 bg-cyan-50 border-cyan-100' },
+  divers:       { icon: Package,         color: 'text-dark-600 bg-dark-50 border-dark-200' },
+};
+
+function formatCount(n: number): string {
+  if (n === 0) return '0';
+  return n.toLocaleString('fr-FR');
+}
 
 /* ── Composant ─────────────────────────────────────────────────── */
 
@@ -81,6 +101,21 @@ export default function HomePage() {
 
   const { data: annonces,        isLoading }         = useAnnonces({ sort, limit: 12 });
   const { data: popularAnnonces, isLoading: loadingPopular } = useAnnonces({ sort: 'popular', limit: 4 });
+  const { data: categories, isLoading: loadingCats } = useCategories();
+
+  const popularCats = useMemo(() => {
+    if (!categories) return [];
+    return [...categories]
+      .sort((a, b) => b._count.annonces - a._count.annonces)
+      .slice(0, 8)
+      .map(c => ({
+        slug: c.slug,
+        label: c.nameFr || c.name,
+        count: c._count.annonces,
+        icon: CAT_META[c.slug]?.icon ?? Package,
+        color: CAT_META[c.slug]?.color ?? 'text-dark-600 bg-dark-50 border-dark-200',
+      }));
+  }, [categories]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -342,25 +377,30 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {POPULAR_CATS.map(cat => {
-              const Icon = cat.icon;
-              return (
-                <Link
-                  key={cat.slug}
-                  href={`/categories/${cat.slug}`}
-                  className={`group flex items-center gap-3 p-4 rounded-2xl border bg-white hover:-translate-y-0.5 hover:shadow-card-hover transition-all duration-200 ${cat.color}`}
-                >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cat.color}`}>
-                    <Icon size={20} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-bold text-sm truncate">{cat.label}</p>
-                    <p className="text-xs font-medium opacity-70">{cat.count} offres</p>
-                  </div>
-                  <ArrowRight size={14} className="shrink-0 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all" />
-                </Link>
-              );
-            })}
+            {loadingCats
+              ? Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="skeleton h-[68px] rounded-2xl" />
+                ))
+              : popularCats.map(cat => {
+                  const Icon = cat.icon;
+                  return (
+                    <Link
+                      key={cat.slug}
+                      href={`/categories/${cat.slug}`}
+                      className={`group flex items-center gap-3 p-4 rounded-2xl border bg-white hover:-translate-y-0.5 hover:shadow-card-hover transition-all duration-200 ${cat.color}`}
+                    >
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cat.color}`}>
+                        <Icon size={20} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-sm truncate">{cat.label}</p>
+                        <p className="text-xs font-medium opacity-70">{formatCount(cat.count)} offre{cat.count !== 1 ? 's' : ''}</p>
+                      </div>
+                      <ArrowRight size={14} className="shrink-0 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all" />
+                    </Link>
+                  );
+                })
+            }
           </div>
         </section>
 

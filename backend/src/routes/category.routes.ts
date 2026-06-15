@@ -3,7 +3,7 @@ import { prisma } from '../config/database';
 
 const router = Router();
 
-// Liste des catégories principales (avec leurs sous-catégories)
+// Liste des catégories principales (avec leurs sous-catégories et compteur d'annonces actives)
 router.get('/', async (req, res) => {
   try {
     const categories = await prisma.category.findMany({
@@ -13,6 +13,11 @@ router.get('/', async (req, res) => {
         children: {
           where: { isActive: true },
           orderBy: { order: 'asc' },
+        },
+        _count: {
+          select: {
+            annonces: { where: { status: 'ACTIVE' } },
+          },
         },
       },
     });
