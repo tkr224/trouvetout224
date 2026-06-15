@@ -1,0 +1,488 @@
+// backend/prisma/schema.prisma
+// Base de données complète de TrouveTout224
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================
+// UTILISATEURS
+// =============================================
+
+model User {
+  id            String   @id @default(cuid())
+  email         String?  @unique
+  phone         String?  @unique
+  password      String?
+  firstName     String
+  lastName      String
+  dateOfBirth   DateTime?
+  gender        Gender?
+  avatar        String?
+  banner        String?
+  bio           String?
+  cityId        String?
+  city          City?    @relation(fields: [cityId], references: [id])
+  role          Role     @default(USER)
+  isVerified    Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  isSuspended   Boolean  @default(false)
+  googleId      String?  @unique
+  facebookId    String?  @unique
+  shopName      String?
+  shopLogo      String?
+  shopBanner    String?
+  shopDescription String?
+  shopWhatsapp  String?
+  shopActive    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  annonces        Annonce[]
+  sentMessages    Message[]       @relation("SentMessages")
+  conversations   Conversation[]  @relation("ConversationParticipants")
+  ratingsGiven    Rating[]        @relation("RatingsGiven")
+  ratingsReceived Rating[]        @relation("RatingsReceived")
+  notifications   Notification[]
+  jobApplications JobApplication[]
+  savedAnnonces   SavedAnnonce[]
+  reports         Report[]        @relation("ReportedBy")
+  reportedUsers   Report[]        @relation("ReportedUser")
+  blockedUsers    Block[]         @relation("BlockedBy")
+  blockedByUsers  Block[]         @relation("BlockedUser")
+  payments        Payment[]
+  refreshTokens   RefreshToken[]
+
+  @@map("users")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum Role {
+  USER
+  VENDOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+// =============================================
+// VILLES & GÉOGRAPHIE
+// =============================================
+
+model City {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  nameEn    String?
+  nameAr    String?
+  latitude  Float?
+  longitude Float?
+  isActive  Boolean   @default(true)
+  users     User[]
+  annonces  Annonce[]
+  jobs      Job[]
+
+  @@map("cities")
+}
+
+// =============================================
+// CATÉGORIES
+// =============================================
+
+model Category {
+  id          String      @id @default(cuid())
+  name        String
+  nameFr      String
+  nameEn      String?
+  nameAr      String?
+  slug        String      @unique
+  icon        String
+  color       String?
+  parentId    String?
+  parent      Category?   @relation("SubCategories", fields: [parentId], references: [id])
+  children    Category[]  @relation("SubCategories")
+  annonces    Annonce[]
+  isActive    Boolean     @default(true)
+  order       Int         @default(0)
+
+  @@map("categories")
+}
+
+// =============================================
+// ANNONCES
+// =============================================
+
+model Annonce {
+  id          String        @id @default(cuid())
+  title       String
+  description String
+  price       Float?
+  currency    String        @default("GNF")
+  isNegotiable Boolean      @default(false)
+  categoryId  String
+  category    Category      @relation(fields: [categoryId], references: [id])
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  cityId      String
+  city        City          @relation(fields: [cityId], references: [id])
+ neighborhood String?
+  phone       String?
+  whatsapp    String?
+  quantity    Int?
+  condition   String?
+  listingType String?
+  bedrooms    Int?
+  surface     Float?
+  contractType String?
+  salary      String?
+  experience  String?
+  images      AnnonceImage[]
+  status      AnnonceStatus @default(ACTIVE)
+  expiresAt   DateTime
+  viewCount   Int           @default(0)
+  isPremium   Boolean       @default(false)
+  isFeatured  Boolean       @default(false)
+  slug        String        @unique
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  savedBy     SavedAnnonce[]
+  reports     Report[]
+  conversations Conversation[]
+
+  @@map("annonces")
+}
+
+model AnnonceImage {
+  id        String  @id @default(cuid())
+  url       String
+  publicId  String
+  annonceId String
+  annonce   Annonce @relation(fields: [annonceId], references: [id], onDelete: Cascade)
+  order     Int     @default(0)
+
+  @@map("annonce_images")
+}
+
+enum AnnonceStatus {
+  ACTIVE
+  EXPIRED
+  SOLD
+  SUSPENDED
+  PENDING_REVIEW
+}
+
+model SavedAnnonce {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  annonceId String
+  annonce   Annonce @relation(fields: [annonceId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, annonceId])
+  @@map("saved_annonces")
+}
+
+// =============================================
+// MESSAGERIE
+// =============================================
+
+model Conversation {
+  id           String    @id @default(cuid())
+  participants User[]    @relation("ConversationParticipants")
+  annonceId    String?
+  annonce      Annonce?  @relation(fields: [annonceId], references: [id])
+  messages     Message[]
+  lastMessage  String?
+  lastMessageAt DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  content        String?
+  imageUrl       String?
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  senderId       String
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id])
+  isRead         Boolean      @default(false)
+  readAt         DateTime?
+  replyToId      String?
+  replyTo        Message?     @relation("MessageReply", fields: [replyToId], references: [id])
+  replies        Message[]    @relation("MessageReply")
+  deletedForAll  Boolean      @default(false)
+  deletedFor     String[]     @default([])
+  createdAt      DateTime     @default(now())
+
+  @@map("messages")
+}
+
+// =============================================
+// EMPLOIS
+// =============================================
+
+model Job {
+  id           String         @id @default(cuid())
+  title        String
+  description  String
+  company      String
+  salary       Float?
+  salaryMax    Float?
+  currency     String         @default("GNF")
+  schedule     String?
+  cityId       String
+  city         City           @relation(fields: [cityId], references: [id])
+  neighborhood String?
+  type         JobType        @default(FULL_TIME)
+  experience   String?
+  education    String?
+  phone        String?
+  email        String?
+  deadline     DateTime?
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  applications JobApplication[]
+
+  @@map("jobs")
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  FREELANCE
+  INTERNSHIP
+  VOLUNTEER
+}
+
+model JobApplication {
+  id        String            @id @default(cuid())
+  jobId     String
+  job       Job               @relation(fields: [jobId], references: [id])
+  userId    String
+  user      User              @relation(fields: [userId], references: [id])
+  cvUrl     String?
+  coverLetter String?
+  status    ApplicationStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+
+  @@unique([jobId, userId])
+  @@map("job_applications")
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWED
+  ACCEPTED
+  REJECTED
+}
+
+// =============================================
+// RESTAURANTS
+// =============================================
+
+model Restaurant {
+  id          String           @id @default(cuid())
+  name        String
+  description String?
+  address     String
+  phone       String?
+  whatsapp    String?
+  email       String?
+  website     String?
+  images      RestaurantImage[]
+  menu        MenuItem[]
+  schedule    String?
+  latitude    Float?
+  longitude   Float?
+  isVerified  Boolean          @default(false)
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+
+  @@map("restaurants")
+}
+
+model RestaurantImage {
+  id           String     @id @default(cuid())
+  url          String
+  publicId     String
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
+  @@map("restaurant_images")
+}
+
+model MenuItem {
+  id           String     @id @default(cuid())
+  name         String
+  description  String?
+  price        Float
+  currency     String     @default("GNF")
+  imageUrl     String?
+  category     String?
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  isAvailable  Boolean    @default(true)
+
+  @@map("menu_items")
+}
+
+// =============================================
+// NOTES & AVIS
+// =============================================
+
+model Rating {
+  id         String   @id @default(cuid())
+  score      Int      // 1 à 5
+  comment    String?
+  reply      String?  // réponse du vendeur
+  replyAt    DateTime?
+  raterId    String
+  rater      User     @relation("RatingsGiven", fields: [raterId], references: [id])
+  ratedId    String
+  rated      User     @relation("RatingsReceived", fields: [ratedId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@unique([raterId, ratedId])
+  @@map("ratings")
+}
+
+// =============================================
+// SIGNALEMENTS
+// =============================================
+
+model Report {
+  id           String       @id @default(cuid())
+  reason       ReportReason
+  description  String?
+  reportedById String
+  reportedBy   User         @relation("ReportedBy", fields: [reportedById], references: [id])
+  reportedUserId String?
+  reportedUser User?        @relation("ReportedUser", fields: [reportedUserId], references: [id])
+  annonceId    String?
+  annonce      Annonce?     @relation(fields: [annonceId], references: [id])
+  status       ReportStatus @default(PENDING)
+  createdAt    DateTime     @default(now())
+
+  @@map("reports")
+}
+
+enum ReportReason {
+  SPAM
+  SCAM
+  INAPPROPRIATE_CONTENT
+  NUDITY
+  VIOLENCE
+  FAKE_AD
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
+
+// =============================================
+// BLOCAGES
+// =============================================
+
+model Block {
+  id          String   @id @default(cuid())
+  blockedById String
+  blockedBy   User     @relation("BlockedBy", fields: [blockedById], references: [id])
+  blockedId   String
+  blocked     User     @relation("BlockedUser", fields: [blockedId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([blockedById, blockedId])
+  @@map("blocks")
+}
+
+// =============================================
+// NOTIFICATIONS
+// =============================================
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@map("notifications")
+}
+
+enum NotificationType {
+  NEW_MESSAGE
+  NEW_VIEW
+  NEW_RATING
+  NEW_APPLICATION
+  ANNONCE_EXPIRED
+  ANNONCE_APPROVED
+  ACCOUNT_SUSPENDED
+  SYSTEM
+}
+
+// =============================================
+// PAIEMENTS
+// =============================================
+
+model Payment {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  amount      Float
+  currency    String        @default("GNF")
+  method      PaymentMethod
+  reference   String        @unique
+  status      PaymentStatus @default(PENDING)
+  description String?
+  metadata    Json?
+  createdAt   DateTime      @default(now())
+
+  @@map("payments")
+}
+
+enum PaymentMethod {
+  ORANGE_MONEY
+  WAVE
+  MOBILE_MONEY
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}

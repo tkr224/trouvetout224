@@ -1,0 +1,243 @@
+import { Router } from 'express';
+import { authenticate, requireAdmin } from '../middleware/auth';
+import { prisma } from '../config/database';
+
+const router = Router();
+router.use(authenticate, requireAdmin);
+
+// ─── Statistiques globales ────────────────────────────────────────────────────
+
+router.get('/stats', async (req, res) => {
+  try {
+    const [
+      totalUsers, totalAnnonces, totalMessages, totalJobs,
+      activeAnnonces, pendingReports, totalRevenue, recentUsers,
+    ] = await Promise.all([
+      prisma.user.count(),
+      prisma.annonce.count(),
+      prisma.message.count(),
+      prisma.job.count(),
+      prisma.annonce.count({ where: { status: 'ACTIVE' } }),
+      prisma.report.count({ where: { status: 'PENDING' } }),
+      prisma.payment.aggregate({ where: { status: 'SUCCESS' }, _sum: { amount: true } }),
+      prisma.user.count({ where: { createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } } }),
+    ]);
+    res.json({
+      data: {
+        totalUsers, totalAnnonces, totalMessages, totalJobs,
+        activeAnnonces, pendingReports,
+        totalRevenue: totalRevenue._sum.amount || 0,
+        recentUsers,
+      },
+    });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+// Données graphique — 7 derniers jours
+router.get('/stats/chart', async (req, res) => {
+  try {
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      const next = new Date(date);
+      next.setDate(next.getDate() + 1);
+      const [users, annonces] = await Promise.all([
+        prisma.user.count({ where: { createdAt: { gte: date, lt: next } } }),
+        prisma.annonce.count({ where: { createdAt: { gte: date, lt: next } } }),
+      ]);
+      days.push({
+        date: date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+        users,
+        annonces,
+      });
+    }
+    res.json({ data: days });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+// ─── Utilisateurs ─────────────────────────────────────────────────────────────
+
+router.get('/users', async (req, res) => {
+  try {
+    const { page = '1', q } = req.query;
+    const where: any = {};
+    if (q) {
+      where.OR = [
+        { firstName: { contains: q as string, mode: 'insensitive' } },
+        { lastName: { contains: q as string, mode: 'insensitive' } },
+        { email: { contains: q as string, mode: 'insensitive' } },
+        { phone: { contains: q as string, mode: 'insensitive' } },
+      ];
+    }
+    const skip = (parseInt(page as string) - 1) * 20;
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where, skip, take: 20,
+        orderBy: { createdAt: 'desc' },
+        include: { city: true, _count: { select: { annonces: true } } },
+      }),
+      prisma.user.count({ where }),
+    ]);
+    res.json({ data: users, pagination: { total, page: parseInt(page as string), pages: Math.ceil(total / 20) } });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.put('/users/:id/suspend', async (req, res) => {
+  try {
+    const { suspended } = req.body;
+    const user = await prisma.user.update({
+      where: { id: req.params.id },
+      data: { isSuspended: suspended },
+    });
+    res.json({ message: `Compte ${suspended ? 'suspendu' : 'réactivé'}.`, data: user });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.put('/users/:id/verify', async (req, res) => {
+  try {
+    const { verified } = req.body;
+    const user = await prisma.user.update({
+      where: { id: req.params.id },
+      data: { isVerified: verified },
+    });
+    res.json({ message: `Vérification ${verified ? 'activée' : 'désactivée'}.`, data: user });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+// ─── Annonces ─────────────────────────────────────────────────────────────────
+
+router.get('/annonces', async (req, res) => {
+  try {
+    const { page = '1', status, q } = req.query;
+    const where: any = {};
+    if (status) where.status = status;
+    if (q) where.title = { contains: q as string, mode: 'insensitive' };
+    const skip = (parseInt(page as string) - 1) * 20;
+    const [annonces, total] = await Promise.all([
+      prisma.annonce.findMany({
+        where, skip, take: 20,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: { select: { firstName: true, lastName: true } },
+          category: true,
+          city: true,
+          images: { take: 1 },
+        },
+      }),
+      prisma.annonce.count({ where }),
+    ]);
+    res.json({ data: annonces, pagination: { total, pages: Math.ceil(total / 20) } });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.put('/annonces/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    const annonce = await prisma.annonce.update({
+      where: { id: req.params.id },
+      data: { status },
+    });
+    res.json({ message: 'Statut mis à jour.', data: annonce });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.delete('/annonces/:id', async (req, res) => {
+  try {
+    await prisma.annonce.delete({ where: { id: req.params.id } });
+    res.json({ message: 'Annonce supprimée.' });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+// ─── Signalements ─────────────────────────────────────────────────────────────
+
+router.get('/reports', async (req, res) => {
+  try {
+    const { status = 'PENDING' } = req.query;
+    const reports = await prisma.report.findMany({
+      where: { status: status as any },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        reportedBy: { select: { firstName: true, lastName: true } },
+        reportedUser: { select: { id: true, firstName: true, lastName: true } },
+        annonce: { select: { id: true, title: true } },
+      },
+    });
+    res.json({ data: reports });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.put('/reports/:id', async (req, res) => {
+  try {
+    const { status } = req.body;
+    const report = await prisma.report.update({
+      where: { id: req.params.id },
+      data: { status },
+    });
+    res.json({ data: report });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+// ─── Catégories ───────────────────────────────────────────────────────────────
+
+router.get('/categories', async (req, res) => {
+  try {
+    const categories = await prisma.category.findMany({
+      orderBy: { order: 'asc' },
+      include: { _count: { select: { annonces: true } } },
+    });
+    res.json({ data: categories });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.post('/categories', async (req, res) => {
+  try {
+    const { name, nameFr, slug, icon, color, isActive, order } = req.body;
+    const category = await prisma.category.create({
+      data: {
+        name,
+        nameFr,
+        slug,
+        icon,
+        color: color || '#16a34a',
+        isActive: isActive ?? true,
+        order: order || 0,
+      },
+    });
+    res.json({ data: category });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.put('/categories/:id', async (req, res) => {
+  try {
+    const { name, nameFr, icon, color, isActive, order } = req.body;
+    const category = await prisma.category.update({
+      where: { id: req.params.id },
+      data: { name, nameFr, icon, color, isActive, order },
+    });
+    res.json({ data: category });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.delete('/categories/:id', async (req, res) => {
+  try {
+    await prisma.category.delete({ where: { id: req.params.id } });
+    res.json({ message: 'Catégorie supprimée.' });
+  } catch { res.status(500).json({ error: 'Erreur serveur (des annonces y sont peut-être liées).' }); }
+});
+
+// ─── Paiements ────────────────────────────────────────────────────────────────
+
+router.get('/payments', async (req, res) => {
+  try {
+    const payments = await prisma.payment.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      include: { user: { select: { firstName: true, lastName: true, email: true } } },
+    });
+    res.json({ data: payments });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+export default router;

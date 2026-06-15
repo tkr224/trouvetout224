@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\celso\\\\AppData\\\\Local\\\\Programs\\\\Git\\\\bin\\\\git.exe\" -ErrorAction SilentlyContinue; where.exe git 2>$null; [System.IO.Directory]::Exists\\(\"C:\\\\Program Files\\\\Git\"\\))",
+      "PowerShell(New-Item *)",
+      "PowerShell(Get-ChildItem -Recurse \"C:\\\\Users\\\\celso\\\\OneDrive\\\\Desktop\\\\Trouvetout224\\\\frontend\\\\src\" -File | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\Users\\\\celso\\\\OneDrive\\\\Desktop\\\\Trouvetout224\\\\\", \"\"\\) })",
+      "PowerShell(Get-ChildItem -Recurse \"C:\\\\Users\\\\celso\\\\OneDrive\\\\Desktop\\\\Trouvetout224\\\\backend\\\\src\" -File | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\Users\\\\celso\\\\OneDrive\\\\Desktop\\\\Trouvetout224\\\\\", \"\"\\) })"
+    ]
+  }
+}
