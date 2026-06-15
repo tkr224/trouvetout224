@@ -1,127 +1,176 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Logo from '@/components/Logo';
 
 export default function SplashScreen() {
-  const [show, setShow] = useState(true);
+  const [show, setShow] = useState(false);
   const [phase, setPhase] = useState(0);
 
   useEffect(() => {
-    const seen = sessionStorage.getItem('tt224-splash');
-    if (seen) { setShow(false); return; }
-
-    const t1 = setTimeout(() => setPhase(1), 200);
-    const t2 = setTimeout(() => setPhase(2), 1100);
-    const t3 = setTimeout(() => setPhase(3), 2900);
-    const t4 = setTimeout(() => {
-      setShow(false);
-      sessionStorage.setItem('tt224-splash', '1');
-    }, 3600);
-
-    return () => { [t1, t2, t3, t4].forEach(clearTimeout); };
+    if (sessionStorage.getItem('tt224-splash')) return;
+    setShow(true);
+    const timers = [
+      setTimeout(() => setPhase(1), 80),
+      setTimeout(() => setPhase(2), 700),
+      setTimeout(() => setPhase(3), 1350),
+      setTimeout(() => setPhase(4), 2550),
+      setTimeout(() => {
+        setShow(false);
+        sessionStorage.setItem('tt224-splash', '1');
+      }, 3150),
+    ];
+    return () => timers.forEach(clearTimeout);
   }, []);
 
   if (!show) return null;
 
   return (
-    <div className={`splash-root ${phase === 3 ? 'splash-out' : ''}`}>
-      <div className="halo halo-red" />
-      <div className="halo halo-gold" />
-      <div className="halo halo-green" />
+    <div className={`sp-root${phase >= 4 ? ' sp-out' : ''}`}>
+      <div className="sp-glow-c" />
+      <div className="sp-glow-tl" />
+      <div className="sp-glow-br" />
 
-      <div className="splash-center">
-        <div className={`flag ${phase >= 1 ? 'flag-show' : ''} ${phase >= 3 ? 'flag-zoom' : ''}`}>
-          <div className="band band-red" />
-          <div className="band band-gold" />
-          <div className="band band-green" />
-          <div className={`shine ${phase >= 2 ? 'shine-go' : ''}`} />
+      <div className="sp-body">
+        <div className={`sp-logo-wrap${phase >= 1 ? ' sp-logo-in' : ''}`}>
+          <div className={`sp-ring${phase >= 1 ? ' sp-ring-pulse' : ''}`} />
+          <div className="sp-glass">
+            <Logo size={88} />
+            <div className={`sp-shine${phase >= 1 ? ' sp-shine-go' : ''}`} />
+          </div>
         </div>
 
-        {phase >= 1 && (
-          <div className="particles">
-            {[...Array(12)].map((_, i) => (
-              <span key={i} className={`p p${i % 3}`} style={{ '--a': `${i * 30}deg`, '--d': `${0.3 + (i % 4) * 0.1}s` } as any} />
-            ))}
-          </div>
-        )}
+        <h1 className={`sp-brand${phase >= 2 ? ' sp-brand-in' : ''}`}>
+          <span className="sp-rouge">Trouve</span><span className="sp-gold">Tout</span><span className="sp-vert">224</span>
+        </h1>
 
-        <div className={`title ${phase >= 2 ? 'title-show' : ''}`}>
-          <h1>
-            <span className="t-green">TrouveTout</span><span className="t-gold">224</span>
-          </h1>
-          <p className={`tagline ${phase >= 2 ? 'tagline-show' : ''}`}>🇬🇳 La marketplace N°1 de Guinée</p>
+        <p className={`sp-slogan${phase >= 3 ? ' sp-slogan-in' : ''}`}>
+          La plus grande marketplace de Guinée
+        </p>
+
+        <div className={`sp-bar-outer${phase >= 3 ? ' sp-bar-vis' : ''}`}>
+          <div className={`sp-bar-fill${phase >= 3 ? ' sp-bar-go' : ''}`} />
         </div>
       </div>
 
       <style jsx>{`
-        .splash-root {
+        .sp-root {
           position: fixed; inset: 0; z-index: 9999;
           display: flex; align-items: center; justify-content: center;
-          background: #ffffff;
+          background: #07200F;
           overflow: hidden;
-          transition: opacity 0.6s ease, transform 0.6s ease;
+          transition: opacity 0.55s cubic-bezier(0.4,0,0.2,1), transform 0.55s cubic-bezier(0.4,0,0.2,1);
         }
-        .splash-out { opacity: 0; transform: scale(1.1); }
+        .sp-out { opacity: 0; transform: scale(1.05); pointer-events: none; }
 
-        .halo {
-          position: absolute; border-radius: 50%;
-          filter: blur(90px); opacity: 0;
-          animation: haloIn 2.8s ease-out forwards;
+        .sp-glow-c {
+          position: absolute; top: 50%; left: 50%;
+          transform: translate(-50%,-50%);
+          width: 520px; height: 520px;
+          background: radial-gradient(circle, rgba(27,139,59,0.2) 0%, transparent 65%);
+          border-radius: 50%; pointer-events: none;
         }
-        .halo-red { width: 300px; height: 300px; background: #CE112655; top: 20%; left: 15%; animation-delay: 0.1s; }
-        .halo-gold { width: 280px; height: 280px; background: #C9A84C55; bottom: 18%; right: 15%; animation-delay: 0.3s; }
-        .halo-green { width: 320px; height: 320px; background: #1B8B3B44; top: 40%; left: 50%; animation-delay: 0.5s; }
-        @keyframes haloIn { 0% { opacity: 0; transform: scale(0.5); } 50% { opacity: 1; } 100% { opacity: 0.7; transform: scale(1); } }
-
-        .splash-center { position: relative; display: flex; flex-direction: column; align-items: center; z-index: 10; }
-
-        .flag {
-          position: relative;
-          display: flex;
-          width: 0; height: 120px;
-          border-radius: 18px; overflow: hidden;
-          box-shadow: 0 20px 50px rgba(0,0,0,0.18);
-          opacity: 0;
-          transition: width 0.7s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease, transform 0.6s ease;
+        .sp-glow-tl {
+          position: absolute; top: -80px; left: -80px;
+          width: 340px; height: 340px;
+          background: radial-gradient(circle, rgba(206,17,38,0.09) 0%, transparent 70%);
+          border-radius: 50%; pointer-events: none;
         }
-        .flag-show { width: 190px; opacity: 1; }
-        .flag-zoom { transform: scale(0.85) translateY(-10px); }
-
-        .band { flex: 1; transform: scaleX(0); transform-origin: left; }
-        .band-red { background: #CE1126; animation: bandIn 0.5s ease 0.2s forwards; }
-        .band-gold { background: #C9A84C; animation: bandIn 0.5s ease 0.35s forwards; }
-        .band-green { background: #1B8B3B; animation: bandIn 0.5s ease 0.5s forwards; }
-        @keyframes bandIn { to { transform: scaleX(1); } }
-
-        .shine {
-          position: absolute; top: 0; left: -60%;
-          width: 50%; height: 100%;
-          background: linear-gradient(120deg, transparent, rgba(255,255,255,0.7), transparent);
-          transform: skewX(-20deg);
-        }
-        .shine-go { animation: shineMove 0.9s ease forwards; }
-        @keyframes shineMove { from { left: -60%; } to { left: 160%; } }
-
-        .particles { position: absolute; top: 60px; left: 50%; }
-        .p {
-          position: absolute; width: 8px; height: 8px; border-radius: 50%;
-          transform: rotate(var(--a)) translateY(0);
-          animation: scatter var(--d) ease-out forwards;
-        }
-        .p0 { background: #CE1126; }
-        .p1 { background: #C9A84C; }
-        .p2 { background: #1B8B3B; }
-        @keyframes scatter {
-          0% { opacity: 1; transform: rotate(var(--a)) translateY(0) scale(1); }
-          100% { opacity: 0; transform: rotate(var(--a)) translateY(90px) scale(0.3); }
+        .sp-glow-br {
+          position: absolute; bottom: -80px; right: -80px;
+          width: 340px; height: 340px;
+          background: radial-gradient(circle, rgba(201,168,76,0.11) 0%, transparent 70%);
+          border-radius: 50%; pointer-events: none;
         }
 
-        .title { margin-top: 28px; opacity: 0; transform: translateY(20px) scale(0.9); transition: all 0.6s cubic-bezier(0.34,1.56,0.64,1); }
-        .title-show { opacity: 1; transform: translateY(0) scale(1); }
-        .title h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em; text-align: center; font-family: var(--font-poppins), sans-serif; }
-        .t-green { color: #1B8B3B; }
-        .t-gold { color: #C9A84C; }
-        .tagline { text-align: center; color: #94a3b8; font-size: 0.875rem; margin-top: 8px; opacity: 0; transition: opacity 0.5s ease 0.3s; }
-        .tagline-show { opacity: 1; }
+        .sp-body {
+          position: relative; z-index: 1;
+          display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* ── Logo ── */
+        .sp-logo-wrap {
+          position: relative; margin-bottom: 30px;
+          opacity: 0; transform: scale(0.5);
+          transition: opacity 0.5s cubic-bezier(0.34,1.5,0.64,1),
+                      transform 0.5s cubic-bezier(0.34,1.5,0.64,1);
+        }
+        .sp-logo-in { opacity: 1; transform: scale(1); }
+
+        .sp-ring {
+          position: absolute; inset: -14px; border-radius: 50%;
+          border: 1.5px solid transparent;
+          transition: border-color 0.3s ease 0.3s;
+        }
+        .sp-ring-pulse {
+          border-color: rgba(27,139,59,0.4);
+          animation: spRingPulse 2.4s ease-in-out 0.4s infinite;
+        }
+        @keyframes spRingPulse {
+          0%,100% { transform: scale(1); opacity: 0.4; }
+          50%      { transform: scale(1.14); opacity: 0.1; }
+        }
+
+        .sp-glass {
+          position: relative; overflow: hidden;
+          padding: 16px; border-radius: 50%;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.1);
+          backdrop-filter: blur(12px);
+          display: flex; align-items: center; justify-content: center;
+        }
+
+        .sp-shine {
+          position: absolute; top: 0; left: -100%;
+          width: 55%; height: 100%;
+          background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.28) 50%, transparent 70%);
+          transform: skewX(-12deg);
+        }
+        .sp-shine-go { animation: spShine 0.75s ease 0.2s forwards; }
+        @keyframes spShine { from { left: -100%; } to { left: 160%; } }
+
+        /* ── Brand name ── */
+        .sp-brand {
+          font-size: 3rem; font-weight: 800;
+          letter-spacing: -0.03em; line-height: 1;
+          font-family: var(--font-poppins,'Poppins'), sans-serif;
+          margin-bottom: 14px;
+          opacity: 0; transform: translateY(20px);
+          transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.34,1.2,0.64,1);
+          display: flex; gap: 0;
+        }
+        .sp-brand-in { opacity: 1; transform: translateY(0); }
+        .sp-rouge { color: #CE1126; }
+        .sp-gold  { color: #C9A84C; }
+        .sp-vert  { color: #5edb85; }
+
+        /* ── Slogan ── */
+        .sp-slogan {
+          color: rgba(255,255,255,0.42);
+          font-size: 0.76rem;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          font-family: var(--font-inter,'Inter'), sans-serif;
+          font-weight: 500;
+          text-align: center;
+          margin-bottom: 44px;
+          opacity: 0; transform: translateY(8px);
+          transition: opacity 0.45s ease 0.08s, transform 0.45s ease 0.08s;
+        }
+        .sp-slogan-in { opacity: 1; transform: translateY(0); }
+
+        /* ── Loading bar ── */
+        .sp-bar-outer {
+          width: 130px; opacity: 0;
+          transition: opacity 0.35s ease 0.18s;
+        }
+        .sp-bar-vis { opacity: 1; }
+        .sp-bar-fill {
+          height: 2px; width: 0%; border-radius: 9px;
+          background: linear-gradient(90deg, #CE1126 0%, #C9A84C 50%, #1B8B3B 100%);
+          box-shadow: 0 0 8px rgba(27,139,59,0.55);
+          transition: width 1.1s cubic-bezier(0.4,0,0.2,1);
+        }
+        .sp-bar-go { width: 100%; }
       `}</style>
     </div>
   );

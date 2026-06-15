@@ -16,6 +16,8 @@ export default function ProfilPage() {
   const [loading, setLoading] = useState(true);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [localAvatar, setLocalAvatar] = useState<string | null>(null);
+  const [localBanner, setLocalBanner] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
@@ -34,8 +36,10 @@ export default function ProfilPage() {
       const formData = new FormData();
       formData.append('image', file);
       const res = await api.post('/upload/image', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-      await api.put('/users/me', { avatar: res.data.url });
-      setUser({ ...user!, avatar: res.data.url });
+      const url = res.data.url;
+      await api.put('/users/me', { avatar: url });
+      setLocalAvatar(`${url}?t=${Date.now()}`);
+      setUser({ ...user!, avatar: url });
       toast.success('Photo de profil mise à jour ! 📸');
     } catch { toast.error("Erreur lors de l'upload"); }
     finally { setUploadingAvatar(false); }
@@ -49,7 +53,10 @@ export default function ProfilPage() {
       const formData = new FormData();
       formData.append('image', file);
       const res = await api.post('/upload/image', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-      await api.put('/users/me', { banner: res.data.url });
+      const url = res.data.url;
+      await api.put('/users/me', { banner: url });
+      setLocalBanner(`${url}?t=${Date.now()}`);
+      setUser({ ...user!, banner: url } as any);
       toast.success('Bannière mise à jour ! 🖼️');
     } catch { toast.error("Erreur lors de l'upload"); }
     finally { setUploadingBanner(false); }
@@ -77,8 +84,8 @@ export default function ProfilPage() {
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="card overflow-hidden mb-6">
           <div className="h-44 relative group cursor-pointer" onClick={() => bannerInputRef.current?.click()}>
-            {(user as any).banner
-              ? <img src={(user as any).banner} alt="" className="w-full h-full object-cover" />
+            {(localBanner || (user as any).banner)
+              ? <img src={localBanner || (user as any).banner} alt="" className="w-full h-full object-cover" />
               : <div className="w-full h-full bg-gradient-to-r from-primary-700 via-primary-600 to-primary-800" />}
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
               {uploadingBanner ? <Loader2 size={30} className="text-white animate-spin" />
@@ -94,7 +101,7 @@ export default function ProfilPage() {
               <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
                 <div className="w-24 h-24 rounded-2xl border-4 border-white bg-primary-100 flex items-center justify-center shadow-card overflow-hidden">
                   {uploadingAvatar ? <Loader2 size={30} className="text-primary-700 animate-spin" />
-                    : user.avatar ? <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+                    : (localAvatar || user.avatar) ? <img src={localAvatar || user.avatar} alt="" className="w-full h-full object-cover" />
                     : <span className="text-3xl font-bold text-primary-700">{user.firstName[0]}{user.lastName[0]}</span>}
                 </div>
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 rounded-2xl transition-all flex items-center justify-center">
