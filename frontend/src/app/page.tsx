@@ -241,45 +241,66 @@ export default function HomePage() {
           <div className="flex-1 min-w-0">
 
             {/* ── BANNIÈRE HÉRO ── */}
-            <div className="relative bg-gradient-to-br from-primary-700 via-primary-700 to-primary-900 rounded-3xl overflow-hidden mb-6 p-7 md:p-10 min-h-[230px]">
-              {/* Blobs décoratifs */}
-              <div className="pointer-events-none absolute top-0 left-1/2 w-80 h-80 bg-gold-400/10 rounded-full blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-10 left-0 w-52 h-52 bg-primary-500/30 rounded-full blur-2xl" />
+            <div className="relative bg-gradient-to-br from-primary-800 via-primary-700 to-primary-900 rounded-3xl overflow-hidden mb-6 p-7 md:p-10 min-h-[260px] md:min-h-[300px]">
 
-              {/* Images flottantes — visibles à partir de xl */}
-              <div className="absolute right-4 top-3 bottom-3 w-[43%] hidden xl:flex gap-2.5">
-                <div className="flex flex-col gap-2.5 flex-1">
+              {/* Blobs décoratifs */}
+              <div className="pointer-events-none absolute -top-8 -left-8 w-64 h-64 bg-primary-500/25 rounded-full blur-3xl" />
+              <div className="pointer-events-none absolute bottom-0 left-1/3 w-48 h-48 bg-gold-400/10 rounded-full blur-3xl" />
+
+              {/* ── Collage d'images ── visible à partir de md */}
+              <div className="absolute right-3 top-3 bottom-3 w-[45%] hidden md:flex gap-2">
+
+                {/* Fondu sur le bord gauche du collage */}
+                <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-primary-800 to-transparent z-10" />
+
+                {/* Colonne principale — grande carte (voiture) */}
+                <div
+                  className="flex-[1.15] relative rounded-2xl overflow-hidden shadow-2xl ring-2 ring-white/20"
+                  style={{ transform: 'rotate(-1.5deg)' }}
+                >
                   <img
-                    src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=280&q=75"
+                    src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=380&h=340&fit=crop&q=82"
                     alt="Voiture"
-                    className="rounded-2xl object-cover shadow-xl ring-2 ring-white/20"
-                    style={{ flex: '1.1' }}
+                    className="w-full h-full object-cover"
                   />
-                  <img
-                    src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=280&q=75"
-                    alt="Smartphone"
-                    className="rounded-2xl object-cover shadow-xl ring-2 ring-white/20"
-                    style={{ flex: '0.9' }}
-                  />
+                  <span className="absolute bottom-2 left-2 bg-black/55 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-full tracking-wide">
+                    VÉHICULES
+                  </span>
                 </div>
-                <div className="flex flex-col gap-2.5 flex-1 pt-6">
-                  <img
-                    src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=280&q=75"
-                    alt="Appartement"
-                    className="rounded-2xl object-cover shadow-xl ring-2 ring-white/20"
-                    style={{ flex: '0.9' }}
-                  />
-                  <img
-                    src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=280&q=75"
-                    alt="Boutique"
-                    className="rounded-2xl object-cover shadow-xl ring-2 ring-white/20"
-                    style={{ flex: '1.1' }}
-                  />
+
+                {/* Colonne secondaire — 2 cartes empilées */}
+                <div className="flex-[0.9] flex flex-col gap-2 pt-6 pb-1">
+                  <div
+                    className="flex-1 relative rounded-2xl overflow-hidden shadow-xl ring-2 ring-white/20"
+                    style={{ transform: 'rotate(1.2deg)' }}
+                  >
+                    <img
+                      src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=280&h=180&fit=crop&q=82"
+                      alt="Villa"
+                      className="w-full h-full object-cover"
+                    />
+                    <span className="absolute bottom-2 left-2 bg-black/55 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-full tracking-wide">
+                      IMMOBILIER
+                    </span>
+                  </div>
+                  <div
+                    className="flex-1 relative rounded-2xl overflow-hidden shadow-xl ring-2 ring-white/20"
+                    style={{ transform: 'rotate(-0.8deg)' }}
+                  >
+                    <img
+                      src="https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=280&h=150&fit=crop&q=82"
+                      alt="Smartphone"
+                      className="w-full h-full object-cover"
+                    />
+                    <span className="absolute bottom-2 left-2 bg-black/55 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-full tracking-wide">
+                      TÉLÉPHONES
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Texte */}
-              <div className="relative z-10 max-w-full xl:max-w-[54%]">
+              {/* Texte — pleine largeur sur mobile, 55 % sur md+ */}
+              <div className="relative z-20 max-w-full md:max-w-[56%]">
                 <p className="text-primary-200 font-semibold text-xs uppercase tracking-widest mb-2">
                   Bienvenue sur
                 </p>
