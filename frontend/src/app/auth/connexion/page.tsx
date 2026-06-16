@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, ShoppingBag, Lock, Zap } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
@@ -25,7 +25,7 @@ export default function LoginPage() {
       });
       setUser(res.data.user);
       setTokens(res.data.accessToken, res.data.refreshToken);
-      toast.success('Connexion réussie ! 🎉');
+      toast.success('Connexion réussie !');
       router.push('/');
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'Erreur de connexion');
@@ -61,16 +61,16 @@ export default function LoginPage() {
 
           <div className="space-y-3 text-left">
             {[
-              { icon: '🛍️', text: 'Des milliers d\'annonces partout en Guinée' },
-              { icon: '🔒', text: 'Compte sécurisé, données protégées' },
-              { icon: '⚡', text: 'Publiez une annonce en moins de 2 minutes' },
-            ].map((f) => (
+              { Icon: ShoppingBag, text: 'Des milliers d\'annonces partout en Guinée',  cls: 'text-gold-300' },
+              { Icon: Lock,        text: 'Compte sécurisé, données protégées',          cls: 'text-primary-300' },
+              { Icon: Zap,         text: 'Publiez une annonce en moins de 2 minutes',   cls: 'text-guinea-300' },
+            ].map(({ Icon, text, cls }) => (
               <div
-                key={f.icon}
+                key={text}
                 className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3.5"
               >
-                <span className="text-xl leading-none">{f.icon}</span>
-                <span className="text-white text-sm font-medium">{f.text}</span>
+                <Icon size={20} className={cls} />
+                <span className="text-white text-sm font-medium">{text}</span>
               </div>
             ))}
           </div>
@@ -96,7 +96,7 @@ export default function LoginPage() {
           </div>
 
           {/* En-tête */}
-          <h2 className="font-display font-bold text-3xl text-dark-900">Bon retour ! 👋</h2>
+          <h2 className="font-display font-bold text-3xl text-dark-900">Bon retour !</h2>
           <p className="text-dark-500 mt-1.5 mb-8">Connectez-vous à votre compte</p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">

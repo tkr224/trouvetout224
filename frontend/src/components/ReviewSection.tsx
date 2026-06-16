@@ -41,7 +41,7 @@ export default function ReviewSection({ sellerId }: { sellerId: string }) {
     if (score < 1) { toast.error('Choisissez une note'); return; }
     try {
       await api.post('/ratings', { ratedId: sellerId, score, comment });
-      toast.success('Avis publié ! Merci 🙏');
+      toast.success('Avis publié ! Merci !');
       setShowForm(false); setAlreadyRated(true);
       load();
     } catch (e: any) {

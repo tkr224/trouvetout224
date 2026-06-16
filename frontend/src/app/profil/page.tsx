@@ -7,7 +7,7 @@ import { AnnonceCard } from '@/components/annonces/AnnonceGrid';
 import Link from 'next/link';
 import {
   Settings, Plus, Star, Eye, ShoppingBag, LogOut, Share2, Camera, Loader2,
-  Store, BadgeCheck, Lock, ClipboardList, Heart,
+  Store, BadgeCheck, Lock, ClipboardList, Heart, Bookmark, Trash2, Search,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -15,7 +15,8 @@ export default function ProfilPage() {
   const { user, logout, setUser } = useAuthStore();
   const [myAnnonces, setMyAnnonces] = useState<any[]>([]);
   const [favoris, setFavoris] = useState<any[]>([]);
-  const [tab, setTab] = useState<'annonces' | 'favoris'>('annonces');
+  const [savedSearches, setSavedSearches] = useState<any[]>([]);
+  const [tab, setTab] = useState<'annonces' | 'favoris' | 'recherches'>('annonces');
   const [loading, setLoading] = useState(true);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
@@ -28,6 +29,7 @@ export default function ProfilPage() {
     if (user) {
       api.get('/annonces/me').then(r => { setMyAnnonces(r.data.data || []); setLoading(false); }).catch(() => setLoading(false));
       api.get('/annonces/saved').then(r => setFavoris(r.data.data || [])).catch(() => {});
+      api.get('/saved-searches').then(r => setSavedSearches(r.data.data || [])).catch(() => {});
     }
   }, [user]);
 
@@ -178,10 +180,11 @@ export default function ProfilPage() {
         </div>
 
         {/* Onglets */}
-        <div className="flex gap-2 mb-5">
+        <div className="flex gap-2 mb-5 flex-wrap">
           {[
-            { k: 'annonces', l: `Mes annonces (${myAnnonces.length})` },
-            { k: 'favoris',  l: `Mes favoris (${favoris.length})` },
+            { k: 'annonces',   l: `Mes annonces (${myAnnonces.length})` },
+            { k: 'favoris',    l: `Mes favoris (${favoris.length})` },
+            { k: 'recherches', l: `Recherches sauvegardées (${savedSearches.length})` },
           ].map(t => (
             <button key={t.k} onClick={() => setTab(t.k as any)}
               className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all
@@ -237,6 +240,71 @@ export default function ProfilPage() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {favoris.map(a => <AnnonceCard key={a.id} annonce={a} />)}
+            </div>
+          )
+        )}
+
+        {/* Recherches sauvegardées */}
+        {tab === 'recherches' && (
+          savedSearches.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-dark-100 shadow-card p-14 text-center">
+              <div className="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Bookmark size={28} className="text-primary-300" />
+              </div>
+              <p className="font-semibold text-dark-700 text-lg">Aucune recherche sauvegardée</p>
+              <p className="text-dark-500 text-sm mt-1">Sur la page des annonces, cliquez sur "Sauvegarder" pour recevoir des alertes</p>
+              <Link href="/annonces/lister" className="btn-primary inline-flex items-center gap-2 mt-4">
+                <Search size={15} /> Parcourir les annonces
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {savedSearches.map((s: any) => {
+                const tags = [
+                  s.keyword && `"${s.keyword}"`,
+                  s.condition,
+                  s.minPrice && `≥ ${parseInt(s.minPrice).toLocaleString('fr-FR')} GNF`,
+                  s.maxPrice && `≤ ${parseInt(s.maxPrice).toLocaleString('fr-FR')} GNF`,
+                ].filter(Boolean);
+                const params = new URLSearchParams();
+                if (s.keyword) params.set('q', s.keyword);
+                if (s.condition) params.set('condition', s.condition);
+                return (
+                  <div key={s.id} className="bg-white rounded-2xl border border-dark-100 shadow-card p-4 flex items-center gap-4">
+                    <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center shrink-0">
+                      <Bookmark size={18} className="text-primary-700" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-dark-900 text-sm">{s.name || 'Recherche sauvegardée'}</p>
+                      {tags.length > 0 && (
+                        <div className="flex gap-1.5 flex-wrap mt-1">
+                          {tags.map((tag: string, i: number) => (
+                            <span key={i} className="inline-block text-[11px] bg-dark-50 text-dark-500 px-2 py-0.5 rounded-full">{tag}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <Link
+                        href={`/annonces/lister?${params.toString()}`}
+                        className="text-xs font-semibold text-primary-700 border border-primary-200 hover:bg-primary-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                      >
+                        <Search size={12} /> Voir
+                      </Link>
+                      <button
+                        onClick={async () => {
+                          await api.delete(`/saved-searches/${s.id}`).catch(() => {});
+                          setSavedSearches(prev => prev.filter((x: any) => x.id !== s.id));
+                          toast.success('Recherche supprimée');
+                        }}
+                        className="text-xs font-semibold text-guinea-600 border border-guinea-200 hover:bg-guinea-50 px-2 py-1.5 rounded-lg transition-colors"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )
         )}

@@ -5,7 +5,7 @@ import Navbar from '@/components/layout/Navbar';
 import { AnnonceCard } from '@/components/annonces/AnnonceGrid';
 import ReviewSection from '@/components/ReviewSection';
 import { api } from '@/lib/api';
-import { MapPin, Star, MessageCircle, ShoppingBag, Eye, Award, CheckCircle, Calendar, TrendingUp, Store } from 'lucide-react';
+import { MapPin, Star, MessageCircle, ShoppingBag, Eye, Award, CheckCircle, Calendar, TrendingUp, Store, User, Package, Sparkles } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -42,7 +42,10 @@ export default function PublicProfilPage() {
   if (!profile) return (
     <div className="min-h-screen bg-dark-50"><Navbar/>
       <div className="flex items-center justify-center min-h-[60vh] text-center">
-        <div><p className="text-5xl mb-4">👤</p><p className="font-semibold text-dark-700">Profil non trouvé</p></div>
+        <div>
+          <div className="w-14 h-14 bg-dark-100 rounded-2xl flex items-center justify-center mx-auto mb-4"><User size={26} className="text-dark-400" /></div>
+          <p className="font-semibold text-dark-700">Profil non trouvé</p>
+        </div>
       </div>
     </div>
   );
@@ -51,11 +54,16 @@ export default function PublicProfilPage() {
   const memberSince = profile.createdAt ? formatDistanceToNow(new Date(profile.createdAt), { locale: fr }) : '';
   const hasShop = profile.shopActive && profile.shopName;
 
+  const isNewSeller = profile.createdAt
+    ? (Date.now() - new Date(profile.createdAt).getTime()) < 30 * 24 * 60 * 60 * 1000
+    : false;
+
   const badges = [];
-  if (profile.isVerified) badges.push({ icon: CheckCircle, label: 'Vérifié', color: 'bg-blue-100 text-blue-700' });
-  if ((profile._count?.annonces || 0) >= 10) badges.push({ icon: Award, label: 'Top Vendeur', color: 'bg-yellow-100 text-yellow-700' });
+  if (profile.isVerified) badges.push({ icon: CheckCircle, label: 'Vendeur vérifié', color: 'bg-blue-100 text-blue-700' });
+  if ((profile._count?.annonces || 0) >= 10 && avgRating >= 4.0) badges.push({ icon: Award, label: 'Top vendeur', color: 'bg-yellow-100 text-yellow-700' });
   if (avgRating >= 4.5 && ratingsCount >= 3) badges.push({ icon: Star, label: 'Excellent', color: 'bg-green-100 text-green-700' });
   if (totalViews >= 100) badges.push({ icon: TrendingUp, label: 'Populaire', color: 'bg-purple-100 text-purple-700' });
+  if (isNewSeller) badges.push({ icon: Sparkles, label: 'Nouveau', color: 'bg-primary-100 text-primary-700' });
 
   return (
     <div className="min-h-screen bg-dark-50">
@@ -128,7 +136,7 @@ export default function PublicProfilPage() {
 
         {annonces.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-xl font-display font-bold text-dark-900 mb-4">📦 {hasShop ? 'Produits de la boutique' : `Annonces de ${profile.firstName}`} ({annonces.length})</h2>
+            <h2 className="text-xl font-display font-bold text-dark-900 mb-4 flex items-center gap-2"><Package size={18} className="text-dark-400" />{hasShop ? 'Produits de la boutique' : `Annonces de ${profile.firstName}`} ({annonces.length})</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 stagger">
               {annonces.map(a => <AnnonceCard key={a.id} annonce={a}/>)}
             </div>

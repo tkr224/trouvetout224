@@ -9,8 +9,10 @@ import { useAnnonces } from '@/hooks/useAnnonces';
 import { api } from '@/lib/api';
 import {
   Search, Filter, X, ChevronDown, Clock, TrendingUp, ArrowUp, ArrowDown,
-  RotateCcw, Eye, Star, SlidersHorizontal, CheckCircle,
+  RotateCcw, Eye, Star, SlidersHorizontal, CheckCircle, Bookmark,
 } from 'lucide-react';
+import { useAuthStore } from '@/store/auth.store';
+import toast from 'react-hot-toast';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 
@@ -165,6 +167,7 @@ function FilterSidebar({
 /* ── Corps de la liste ─────────────────────────────────────────────── */
 function AnnoncesList() {
   const searchParams = useSearchParams();
+  const { isAuthenticated } = useAuthStore();
   const [categories, setCategories] = useState<any[]>([]);
   const [sort, setSort]               = useState(searchParams.get('sort') || 'recent');
   const [cat, setCat]                 = useState(searchParams.get('cat') || '');
@@ -218,6 +221,21 @@ function AnnoncesList() {
 
   const hasFilters = activeFilters.length > 0;
   const total      = data?.pagination?.total ?? 0;
+
+  const saveSearch = async () => {
+    if (!isAuthenticated) { toast.error('Connectez-vous pour sauvegarder une recherche'); return; }
+    try {
+      await api.post('/saved-searches', {
+        keyword: q || undefined,
+        categoryId: activeCatId || undefined,
+        cityId: selectedCity || undefined,
+        minPrice: minPrice || undefined,
+        maxPrice: maxPrice || undefined,
+        condition: condition || undefined,
+      });
+      toast.success('Recherche sauvegardée !');
+    } catch { toast.error('Erreur lors de la sauvegarde'); }
+  };
   const isEmpty    = !isLoading && data && (!data.data || data.data.length === 0);
 
   const filterProps = {
@@ -340,7 +358,7 @@ function AnnoncesList() {
 
         {/* En-tête résultats + tri */}
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <span className="bg-primary-700 text-white text-xs font-bold px-2.5 py-1 rounded-lg tabular-nums">
               {total.toLocaleString('fr-FR')}
             </span>
@@ -348,6 +366,14 @@ function AnnoncesList() {
               annonce{total !== 1 ? 's' : ''}
               {q && <> pour <span className="text-primary-700 font-semibold">&ldquo;{q}&rdquo;</span></>}
             </span>
+            {(hasFilters || q) && (
+              <button
+                onClick={saveSearch}
+                className="flex items-center gap-1.5 text-xs font-semibold text-primary-700 border border-primary-200 hover:bg-primary-50 px-2.5 py-1.5 rounded-lg transition-colors"
+              >
+                <Bookmark size={12} /> Sauvegarder
+              </button>
+            )}
           </div>
 
           <div className="flex gap-1.5 overflow-x-auto pb-0.5">

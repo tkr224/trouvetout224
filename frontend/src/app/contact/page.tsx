@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import toast from 'react-hot-toast';
-import { Mail, Phone, MapPin, MessageCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, MessageCircle, Send } from 'lucide-react';
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
@@ -16,7 +16,7 @@ export default function ContactPage() {
     const mailtoLink = `mailto:contact.trouvetout224@gmail.com?subject=${encodeURIComponent(form.subject)}&body=${encodeURIComponent(`Nom: ${form.name}\nEmail: ${form.email}\n\n${form.message}`)}`;
     window.location.href = mailtoLink;
     setTimeout(() => {
-      toast.success('Votre application email va s\'ouvrir ! 📬');
+      toast.success('Votre application email va s\'ouvrir !');
       setLoading(false);
     }, 800);
   };
@@ -26,7 +26,7 @@ export default function ContactPage() {
       <Navbar />
       <div className="max-w-5xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-display font-bold text-dark-900 mb-3">📬 Contactez-nous</h1>
+          <h1 className="text-4xl font-display font-bold text-dark-900 mb-3 flex items-center justify-center gap-3"><Mail size={36} className="text-primary-700" /> Contactez-nous</h1>
           <p className="text-dark-500">Notre équipe vous répond dans les 24 heures</p>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -89,8 +89,8 @@ export default function ContactPage() {
                 <label className="block text-sm font-semibold text-dark-700 mb-1.5">Message</label>
                 <textarea value={form.message} onChange={e => setForm({...form, message: e.target.value})} required rows={5} className="input resize-none" placeholder="Décrivez votre demande..." />
               </div>
-              <button type="submit" disabled={loading} className="btn-primary w-full py-3">
-                {loading ? 'Ouverture...' : '📨 Envoyer le message'}
+              <button type="submit" disabled={loading} className="btn-primary w-full py-3 flex items-center justify-center gap-2">
+                {loading ? 'Ouverture...' : <><Send size={15} /> Envoyer le message</>}
               </button>
             </form>
           </div>

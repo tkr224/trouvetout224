@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useQuery } from 'react-query';
-import { Briefcase, MapPin, Clock, Search } from 'lucide-react';
+import { Briefcase, MapPin, Clock, Search, Calendar, Mail, Send } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { api } from '@/lib/api';
@@ -21,7 +21,7 @@ export default function EmploisPage() {
     { keepPreviousData: true });
 
   const apply = async (jobId: string) => {
-    try { await api.post(`/jobs/${jobId}/apply`,{}); toast.success('Candidature envoyée ! 🎉'); }
+    try { await api.post(`/jobs/${jobId}/apply`,{}); toast.success('Candidature envoyée !'); }
     catch(e:any) { toast.error(e.response?.data?.error||'Connectez-vous pour postuler'); }
   };
 
@@ -30,7 +30,7 @@ export default function EmploisPage() {
       <Navbar />
       <section className="bg-gradient-to-br from-sky-700 to-sky-900 py-14 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-4xl font-display font-bold text-white mb-3">💼 Offres d'emploi en Guinée</h1>
+          <h1 className="text-4xl font-display font-bold text-white mb-3 flex items-center justify-center gap-3"><Briefcase size={34} /> Offres d'emploi en Guinée</h1>
           <p className="text-sky-200 mb-8">Des centaines d'opportunités vous attendent</p>
           <div className="flex gap-2 bg-white p-2 rounded-2xl shadow-lg">
             <Search size={18} className="text-dark-400 ml-2 self-center shrink-0"/>
@@ -57,11 +57,11 @@ export default function EmploisPage() {
             {isLoading?Array.from({length:5}).map((_,i)=>(
               <div key={i} className="card p-5 space-y-3"><div className="skeleton h-5 w-2/3"/><div className="skeleton h-4 w-1/2"/></div>
             )):data?.data?.length===0?(
-              <div className="card p-10 text-center"><p className="text-4xl mb-3">🔍</p><p className="text-dark-500">Aucune offre trouvée</p></div>
+              <div className="card p-10 text-center"><Search size={36} className="text-dark-300 mx-auto mb-3"/><p className="text-dark-500">Aucune offre trouvée</p></div>
             ):data?.data?.map((job:any)=>(
               <button key={job.id} onClick={()=>setSelectedJob(job)} className={`card p-5 w-full text-left border-2 transition-all ${selectedJob?.id===job.id?'border-sky-600':'border-transparent'}`}>
                 <div className="flex items-start gap-3">
-                  <div className="w-11 h-11 bg-sky-100 rounded-xl flex items-center justify-center text-xl shrink-0">💼</div>
+                  <div className="w-11 h-11 bg-sky-100 rounded-xl flex items-center justify-center shrink-0"><Briefcase size={18} className="text-sky-700"/></div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-dark-900 text-sm truncate">{job.title}</h3>
                     <p className="text-dark-500 text-xs">{job.company}</p>
@@ -79,7 +79,7 @@ export default function EmploisPage() {
             {selectedJob?(
               <div className="card p-7 sticky top-24">
                 <div className="flex items-start gap-4 mb-6">
-                  <div className="w-14 h-14 bg-sky-100 rounded-2xl flex items-center justify-center text-3xl">💼</div>
+                  <div className="w-14 h-14 bg-sky-100 rounded-2xl flex items-center justify-center"><Briefcase size={26} className="text-sky-700"/></div>
                   <div>
                     <h2 className="text-xl font-display font-bold text-dark-900">{selectedJob.title}</h2>
                     <p className="text-dark-600 font-medium">{selectedJob.company}</p>
@@ -98,9 +98,9 @@ export default function EmploisPage() {
                   <h3 className="font-semibold text-dark-900 mb-3">Description</h3>
                   <p className="text-dark-600 text-sm leading-relaxed whitespace-pre-wrap">{selectedJob.description}</p>
                 </div>
-                {selectedJob.deadline&&<p className="text-sm text-dark-500 mb-4">📅 Date limite: <strong>{new Date(selectedJob.deadline).toLocaleDateString('fr-FR')}</strong></p>}
-                <button onClick={()=>apply(selectedJob.id)} className="btn-primary w-full py-3 text-base">✉️ Postuler maintenant</button>
-                {selectedJob.email&&<a href={`mailto:${selectedJob.email}`} className="btn-outline w-full py-3 mt-2 flex items-center justify-center text-sm">📧 {selectedJob.email}</a>}
+                {selectedJob.deadline&&<p className="text-sm text-dark-500 mb-4 flex items-center gap-1.5"><Calendar size={13}/> Date limite : <strong>{new Date(selectedJob.deadline).toLocaleDateString('fr-FR')}</strong></p>}
+                <button onClick={()=>apply(selectedJob.id)} className="btn-primary w-full py-3 text-base flex items-center justify-center gap-2"><Send size={15}/> Postuler maintenant</button>
+                {selectedJob.email&&<a href={`mailto:${selectedJob.email}`} className="btn-outline w-full py-3 mt-2 flex items-center justify-center gap-2 text-sm"><Mail size={14}/> {selectedJob.email}</a>}
               </div>
             ):(
               <div className="card p-12 text-center"><Briefcase size={60} className="text-dark-200 mx-auto mb-4"/><p className="text-dark-500">Sélectionnez une offre</p></div>

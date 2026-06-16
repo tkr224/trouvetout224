@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/auth.store';
 import Link from 'next/link';
 import {
   Bell, Check, MessageCircle, Star, Eye, Clock,
-  CheckCircle, AlertTriangle, Briefcase,
+  CheckCircle, AlertTriangle, Briefcase, Lock,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -69,7 +69,7 @@ export default function NotificationsPage() {
       <Navbar />
       <div className="flex items-center justify-center min-h-[70vh] text-center">
         <div>
-          <p className="text-6xl mb-4">🔒</p>
+          <div className="w-14 h-14 bg-dark-100 rounded-2xl flex items-center justify-center mx-auto mb-4"><Lock size={26} className="text-dark-400" /></div>
           <p className="font-semibold text-dark-700 text-xl mb-4">Connectez-vous pour voir vos notifications</p>
           <Link href="/auth/connexion" className="btn-primary">Se connecter</Link>
         </div>

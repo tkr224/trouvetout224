@@ -6,7 +6,7 @@ import {
   MapPin, Phone, MessageCircle, Heart, Share2, Eye, Clock,
   ChevronLeft, ChevronRight, Flag, X, Copy, Edit, EyeOff, Trash2,
   Star, BadgeCheck, User, ShieldAlert, ImageIcon, ExternalLink,
-  AlertTriangle, XCircle, AlertCircle, Mail, HelpCircle,
+  AlertTriangle, AlertCircle, HelpCircle, PackageX, DollarSign,
   ArrowRight, Sparkles, History,
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
@@ -21,11 +21,11 @@ import { AnnonceCard } from '@/components/annonces/AnnonceGrid';
 import { useRecentlyViewed, type RecentAnnonce } from '@/hooks/useRecentlyViewed';
 
 const REPORT_REASONS = [
-  { value: 'SCAM',                  label: 'Arnaque / Fraude',       Icon: AlertTriangle },
-  { value: 'FAKE_AD',               label: 'Fausse annonce',         Icon: XCircle },
+  { value: 'SCAM',                  label: 'Contenu frauduleux',     Icon: AlertTriangle },
+  { value: 'FORBIDDEN_PRODUCT',     label: 'Produit interdit',       Icon: PackageX },
+  { value: 'SUSPICIOUS_PRICE',      label: 'Prix suspect',           Icon: DollarSign },
+  { value: 'DUPLICATE',             label: 'Annonce en double',      Icon: Copy },
   { value: 'INAPPROPRIATE_CONTENT', label: 'Contenu inapproprié',    Icon: AlertCircle },
-  { value: 'NUDITY',                label: 'Nudité',                  Icon: EyeOff },
-  { value: 'SPAM',                  label: 'Spam',                    Icon: Mail },
   { value: 'OTHER',                 label: 'Autre',                   Icon: HelpCircle },
 ];
 

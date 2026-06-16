@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useQuery } from 'react-query';
-import { Search, MapPin, Star, Phone } from 'lucide-react';
+import { Search, MapPin, Star, Phone, Building2 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { api } from '@/lib/api';
@@ -26,7 +26,7 @@ export default function HotelsPage() {
       <Navbar />
       <section className="bg-gradient-to-br from-violet-700 to-violet-900 py-14 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-4xl font-display font-bold text-white mb-3">🏨 Hôtels en Guinée</h1>
+          <h1 className="text-4xl font-display font-bold text-white mb-3 flex items-center justify-center gap-3"><Building2 size={34} /> Hôtels en Guinée</h1>
           <p className="text-violet-200 mb-8">Trouvez le meilleur hébergement pour votre séjour</p>
           <div className="flex gap-2 bg-white p-2 rounded-2xl shadow-lg max-w-xl mx-auto">
             <Search size={18} className="text-dark-400 ml-2 self-center" />
@@ -45,7 +45,7 @@ export default function HotelsPage() {
           {filtered.map(h => (
             <div key={h.id} className="card group overflow-hidden">
               <div className="aspect-video bg-violet-50 overflow-hidden">
-                <div className="w-full h-full flex items-center justify-center text-7xl group-hover:scale-110 transition-transform duration-500">🏨</div>
+                <div className="w-full h-full flex items-center justify-center group-hover:scale-110 transition-transform duration-500"><Building2 size={52} className="text-violet-200" /></div>
               </div>
               <div className="p-5">
                 <div className="flex items-start justify-between mb-2">

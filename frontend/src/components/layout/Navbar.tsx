@@ -75,7 +75,7 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
                     onClick={() => handleCitySelect(city)}
                     className={`w-full text-left px-4 py-2 text-sm hover:bg-primary-50 hover:text-primary-700 transition-colors ${city === selectedCity ? 'text-primary-700 font-semibold bg-primary-50' : 'text-dark-600'}`}
                   >
-                    📍 {city}
+                    <span className="flex items-center gap-1.5"><MapPin size={12} className="text-primary-500 shrink-0" />{city}</span>
                   </button>
                 ))}
               </div>

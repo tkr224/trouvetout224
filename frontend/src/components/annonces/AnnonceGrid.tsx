@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { Heart, Eye, MapPin, BadgeCheck, ImageIcon } from 'lucide-react';
+import { Heart, Eye, MapPin, BadgeCheck, ImageIcon, Star, Sparkles } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -8,12 +8,15 @@ interface Annonce {
   id: string; slug: string; title: string; price?: number; currency?: string;
   images: { url: string }[]; city: { name: string }; category: { nameFr: string; icon: string };
   viewCount: number; createdAt: string; isPremium: boolean; neighborhood?: string;
-  user: { firstName: string; lastName: string; isVerified: boolean };
+  user: { firstName: string; lastName: string; isVerified: boolean; createdAt?: string };
 }
 
 export function AnnonceCard({ annonce }: { annonce: Annonce }) {
   const img = annonce.images?.[0]?.url;
   const timeAgo = formatDistanceToNow(new Date(annonce.createdAt), { addSuffix: true, locale: fr });
+  const isNewSeller = annonce.user?.createdAt
+    ? (Date.now() - new Date(annonce.user.createdAt).getTime()) < 30 * 24 * 60 * 60 * 1000
+    : false;
 
   return (
     <Link href={`/annonces/${annonce.slug || annonce.id}`} className="card block group overflow-hidden">
@@ -26,8 +29,8 @@ export function AnnonceCard({ annonce }: { annonce: Annonce }) {
           </div>
         )}
         {annonce.isPremium && (
-          <div className="absolute top-2.5 left-2.5 bg-gold-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md">
-            ⭐ À la une
+          <div className="absolute top-2.5 left-2.5 bg-gold-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+            <Star size={10} className="fill-white text-white" /> À la une
           </div>
         )}
         <button
@@ -49,6 +52,20 @@ export function AnnonceCard({ annonce }: { annonce: Annonce }) {
           <MapPin size={11} />
           <span className="line-clamp-1">{annonce.city?.name}{annonce.neighborhood && `, ${annonce.neighborhood}`}</span>
         </div>
+        {(annonce.user?.isVerified || isNewSeller) && (
+          <div className="flex gap-1 mt-1.5 flex-wrap">
+            {annonce.user?.isVerified && (
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">
+                <BadgeCheck size={9} /> Vérifié
+              </span>
+            )}
+            {isNewSeller && (
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-primary-700 bg-primary-50 px-1.5 py-0.5 rounded-full">
+                <Sparkles size={9} /> Nouveau
+              </span>
+            )}
+          </div>
+        )}
         <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-dark-50">
           <span className="text-dark-400 text-[11px]">{timeAgo}</span>
           <span className="flex items-center gap-1 text-dark-400 text-[11px]"><Eye size={11} /> {annonce.viewCount}</span>

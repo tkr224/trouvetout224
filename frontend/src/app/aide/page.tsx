@@ -1,6 +1,7 @@
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Link from 'next/link';
+import { HelpCircle, Mail } from 'lucide-react';
 
 const FAQS = [
   { q: 'Comment publier une annonce ?', a: 'Cliquez sur "Publier" dans la barre de navigation, remplissez le formulaire avec titre, description, prix, photos et coordonnées.' },
@@ -17,7 +18,7 @@ export default function AidePage() {
       <Navbar />
       <div className="max-w-4xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-display font-bold text-dark-900 mb-3">❓ Centre d'aide</h1>
+          <h1 className="text-4xl font-display font-bold text-dark-900 mb-3 flex items-center justify-center gap-3"><HelpCircle size={36} className="text-primary-700" /> Centre d'aide</h1>
           <p className="text-dark-500">Trouvez rapidement des réponses à vos questions</p>
         </div>
         <h2 className="text-2xl font-display font-bold text-dark-900 mb-6">Questions fréquentes</h2>
@@ -34,7 +35,7 @@ export default function AidePage() {
         </div>
         <div className="card p-8 mt-10 text-center bg-primary-50 border border-primary-200">
           <p className="text-dark-700 font-semibold mb-2">Vous n'avez pas trouvé votre réponse ?</p>
-          <Link href="/contact" className="btn-primary inline-block mt-2">📧 Contacter le support</Link>
+          <Link href="/contact" className="btn-primary inline-flex items-center gap-2 mt-2"><Mail size={15} /> Contacter le support</Link>
         </div>
       </div>
       <Footer />

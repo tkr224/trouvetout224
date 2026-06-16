@@ -65,7 +65,7 @@ export const getAnnonces = async (req: Request, res: Response) => {
         include: {
           images: { orderBy: { order: 'asc' }, take: 3 },
           category: true, city: true,
-          user: { select: { id: true, firstName: true, lastName: true, avatar: true, isVerified: true } },
+          user: { select: { id: true, firstName: true, lastName: true, avatar: true, isVerified: true, createdAt: true } },
         },
       }),
       prisma.annonce.count({ where }),
@@ -173,6 +173,35 @@ export const createAnnonce = async (req: Request, res: Response) => {
     });
 
     res.status(201).json({ message: 'Annonce publiée avec succès !', data: annonce });
+
+    // Notify users whose saved searches match this new annonce
+    setImmediate(async () => {
+      try {
+        const savedSearches = await prisma.savedSearch.findMany({
+          where: { userId: { not: userId } },
+        });
+        const toNotify = savedSearches.filter((s: any) => {
+          if (s.categoryId && s.categoryId !== annonce.categoryId) return false;
+          if (s.cityId && s.cityId !== annonce.cityId) return false;
+          if (s.keyword && !annonce.title.toLowerCase().includes(s.keyword.toLowerCase())) return false;
+          if (s.minPrice !== null && annonce.price !== null && annonce.price < s.minPrice) return false;
+          if (s.maxPrice !== null && annonce.price !== null && annonce.price > s.maxPrice) return false;
+          if (s.condition && annonce.condition !== s.condition) return false;
+          return true;
+        });
+        if (toNotify.length > 0) {
+          await prisma.notification.createMany({
+            data: toNotify.map((s: any) => ({
+              userId: s.userId,
+              type: 'SYSTEM',
+              title: 'Nouvelle annonce correspondante',
+              body: `"${annonce.title}" correspond à votre recherche ${s.name ? `"${s.name}"` : 'sauvegardée'}.`,
+              data: { annonceId: annonce.id },
+            })),
+          });
+        }
+      } catch { /* silent — don't fail the request */ }
+    });
   } catch (error) {
     console.error('Erreur createAnnonce:', error);
     res.status(500).json({ error: "Erreur lors de la création de l'annonce." });

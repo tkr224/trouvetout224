@@ -6,7 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import toast from 'react-hot-toast';
-import { Store, Camera, Loader2, Eye, Save } from 'lucide-react';
+import { Store, Camera, Loader2, Eye, Save, Lock, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function BoutiquePage() {
@@ -55,7 +55,7 @@ export default function BoutiquePage() {
     setLoading(true);
     try {
       await api.put('/users/me/shop', { ...form, shopLogo, shopBanner, shopActive: true });
-      toast.success('Boutique enregistrée ! 🎉');
+      toast.success('Boutique enregistrée !');
       router.push(`/profil/${user?.id}`);
     } catch { toast.error('Erreur'); }
     finally { setLoading(false); }
@@ -64,7 +64,10 @@ export default function BoutiquePage() {
   if (!user) return (
     <div className="min-h-screen bg-dark-50"><Navbar />
       <div className="flex items-center justify-center min-h-[70vh] text-center">
-        <div><p className="text-6xl mb-4">🔒</p>
+        <div>
+          <div className="w-14 h-14 bg-dark-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Lock size={26} className="text-dark-400" />
+          </div>
           <p className="font-semibold text-dark-700 text-xl mb-4">Connectez-vous</p>
           <Link href="/auth/connexion" className="btn-primary">Se connecter</Link>
         </div>
@@ -118,7 +121,7 @@ export default function BoutiquePage() {
                 <textarea value={form.shopDescription} onChange={(e) => setForm({ ...form, shopDescription: e.target.value })} rows={4} placeholder="Présentez votre boutique, vos produits, vos horaires..." className="input resize-none" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-dark-700 mb-1.5">💬 WhatsApp Business</label>
+                <label className="block text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5"><MessageCircle size={14} className="text-green-600" /> WhatsApp Business</label>
                 <div className="flex gap-2">
                   <span className="flex items-center px-3 bg-dark-50 border border-dark-200 rounded-xl text-sm text-dark-600">🇬🇳 +224</span>
                   <input value={form.shopWhatsapp} onChange={(e) => setForm({ ...form, shopWhatsapp: e.target.value })} placeholder="620 00 00 00" className="input flex-1" />

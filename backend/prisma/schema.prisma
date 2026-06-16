@@ -52,6 +52,7 @@ model User {
   notifications   Notification[]
   jobApplications JobApplication[]
   savedAnnonces   SavedAnnonce[]
+  savedSearches   SavedSearch[]
   reports         Report[]        @relation("ReportedBy")
   reportedUsers   Report[]        @relation("ReportedUser")
   blockedUsers    Block[]         @relation("BlockedBy")
@@ -203,6 +204,22 @@ model SavedAnnonce {
 
   @@unique([userId, annonceId])
   @@map("saved_annonces")
+}
+
+model SavedSearch {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String?
+  keyword    String?
+  categoryId String?
+  cityId     String?
+  minPrice   Float?
+  maxPrice   Float?
+  condition  String?
+  createdAt  DateTime @default(now())
+
+  @@map("saved_searches")
 }
 
 // =============================================
@@ -399,6 +416,9 @@ enum ReportReason {
   NUDITY
   VIOLENCE
   FAKE_AD
+  FORBIDDEN_PRODUCT
+  SUSPICIOUS_PRICE
+  DUPLICATE
   OTHER
 }
 

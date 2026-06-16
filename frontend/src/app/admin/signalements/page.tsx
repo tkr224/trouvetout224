@@ -17,11 +17,14 @@ type Report = {
 
 const REASON_LABEL: Record<string, string> = {
   SPAM: 'Spam',
-  SCAM: 'Arnaque',
+  SCAM: 'Contenu frauduleux',
   INAPPROPRIATE_CONTENT: 'Contenu inapproprié',
   NUDITY: 'Nudité',
   VIOLENCE: 'Violence',
   FAKE_AD: 'Fausse annonce',
+  FORBIDDEN_PRODUCT: 'Produit interdit',
+  SUSPICIOUS_PRICE: 'Prix suspect',
+  DUPLICATE: 'Annonce en double',
   OTHER: 'Autre',
 };
 
@@ -32,6 +35,9 @@ const REASON_BADGE: Record<string, string> = {
   NUDITY: 'bg-pink-100 text-pink-700',
   VIOLENCE: 'bg-guinea-100 text-guinea-700',
   FAKE_AD: 'bg-purple-100 text-purple-700',
+  FORBIDDEN_PRODUCT: 'bg-red-100 text-red-700',
+  SUSPICIOUS_PRICE: 'bg-amber-100 text-amber-700',
+  DUPLICATE: 'bg-blue-100 text-blue-700',
   OTHER: 'bg-dark-100 text-dark-600',
 };
 

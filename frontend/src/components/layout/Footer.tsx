@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { MapPin, Heart, Globe, Camera, AtSign, PlayCircle } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -24,9 +25,9 @@ export default function Footer() {
               La plus grande plateforme d'annonces et marketplace de Guinée. Achetez, vendez, trouvez un emploi ou un logement facilement.
             </p>
             <div className="flex gap-3 mt-4">
-              {['📘', '📷', '🐦', '▶️'].map((icon, i) => (
-                <button key={i} className="w-9 h-9 bg-dark-700 rounded-xl flex items-center justify-center hover:bg-primary-700 transition-colors text-sm">
-                  {icon}
+              {[Globe, Camera, AtSign, PlayCircle].map((Icon, i) => (
+                <button key={i} className="w-9 h-9 bg-dark-700 rounded-xl flex items-center justify-center hover:bg-primary-700 transition-colors">
+                  <Icon size={15} className="text-dark-300" />
                 </button>
               ))}
             </div>
@@ -52,8 +53,8 @@ export default function Footer() {
             <ul className="space-y-2 text-dark-400 text-sm">
               {['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'].map((v) => (
                 <li key={v}>
-                  <Link href={`/annonces/lister?city=${v}`} className="hover:text-primary-400 transition-colors">
-                    📍 {v}
+                  <Link href={`/annonces/lister?city=${v}`} className="hover:text-primary-400 transition-colors flex items-center gap-1.5">
+                    <MapPin size={11} className="text-primary-500 shrink-0" /> {v}
                   </Link>
                 </li>
               ))}
@@ -85,7 +86,7 @@ export default function Footer() {
 
         <div className="border-t border-dark-700 mt-10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-dark-500 text-sm">
           <p>© 2026 TrouveTout224 · Conakry, République de Guinée 🇬🇳</p>
-          <p>Fait avec <span className="text-guinea-500">❤️</span> pour la Guinée</p>
+          <p className="flex items-center gap-1">Fait avec <Heart size={13} className="text-guinea-500 fill-guinea-500" /> pour la Guinée</p>
         </div>
       </div>
     </footer>

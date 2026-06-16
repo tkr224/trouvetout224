@@ -24,7 +24,7 @@ export default function RegisterPage() {
       const res = await api.post('/auth/register', data);
       setUser(res.data.user);
       setTokens(res.data.accessToken, res.data.refreshToken);
-      toast.success('Compte créé avec succès ! Bienvenue 🎉');
+      toast.success('Compte créé avec succès ! Bienvenue !');
       router.push('/');
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'Erreur d\'inscription');

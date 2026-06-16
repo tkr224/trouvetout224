@@ -70,7 +70,7 @@ export default function AdminUtilisateurs() {
     try {
       await api.put(`/admin/users/${id}/verify`, { verified });
       setUsers(u => u.map(x => x.id === id ? { ...x, isVerified: verified } : x));
-      toast.success(verified ? 'Compte vérifié ✓' : 'Vérification retirée');
+      toast.success(verified ? 'Compte vérifié' : 'Vérification retirée');
     } catch { toast.error('Erreur lors de la mise à jour'); }
   };
 

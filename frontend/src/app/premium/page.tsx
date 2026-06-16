@@ -16,7 +16,7 @@ export default function PremiumPage() {
             <Zap size={16} /> Pack Premium
           </div>
           <h1 className="text-4xl md:text-5xl font-display font-bold text-dark-900 mb-4">
-            Le <span className="text-gold-500">Pack Premium</span> arrive bientôt ! 🚀
+            Le <span className="text-gold-500">Pack Premium</span> arrive bientôt !
           </h1>
           <p className="text-dark-500 text-lg max-w-xl mx-auto">
             Bientôt, boostez vos annonces et touchez encore plus d'acheteurs partout en Guinée.
@@ -46,7 +46,7 @@ export default function PremiumPage() {
             <div className="w-16 h-16 bg-gold-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Clock size={30} className="text-gold-500" />
             </div>
-            <h3 className="text-xl font-display font-bold text-dark-900 mb-2">Ça arrive très bientôt ! 🚀</h3>
+            <h3 className="text-xl font-display font-bold text-dark-900 mb-2">Ça arrive très bientôt !</h3>
             <p className="text-dark-600 text-sm mb-6">
               Le Pack Premium est en cours de préparation. Nous vous préviendrons dès son lancement. Merci de votre patience !
             </p>

@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { Lock } from 'lucide-react';
 
 export default function ConfidentialitePage() {
   return (
@@ -7,7 +8,7 @@ export default function ConfidentialitePage() {
       <Navbar />
       <div className="max-w-3xl mx-auto px-4 py-16">
         <div className="card p-10">
-          <h1 className="text-3xl font-display font-bold text-dark-900 mb-2">🔒 Politique de confidentialité</h1>
+          <h1 className="text-3xl font-display font-bold text-dark-900 mb-2 flex items-center gap-3"><Lock size={30} className="text-primary-700" /> Politique de confidentialité</h1>
           <p className="text-dark-400 text-sm mb-8">Dernière mise à jour : Janvier 2024</p>
           <div className="space-y-8 text-dark-600">
             {[
