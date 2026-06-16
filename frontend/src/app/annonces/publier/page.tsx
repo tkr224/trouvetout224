@@ -8,7 +8,8 @@ import {
   FileText, LayoutGrid, MapPin, Phone, Cpu, Car, Building2, Briefcase,
   Wrench, Shirt, Home, Leaf, Heart, Utensils, Calendar, GraduationCap,
   PawPrint, Music, ShoppingCart, Package, Sparkles, Map, Baby,
-  MessageCircle, Send, BedDouble, Trophy,
+  MessageCircle, Send, BedDouble, Trophy, Star, Wifi, ParkingCircle,
+  Waves, Dumbbell, Coffee, UtensilsCrossed, FileCheck,
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import { api } from '@/lib/api';
@@ -85,6 +86,10 @@ export default function PublierAnnoncePage() {
     cityId: '', neighborhood: '', phone: '', whatsapp: '', duration: '7',
     quantity: '', condition: '', listingType: '', bedrooms: '', surface: '',
     contractType: '', salary: '', experience: '',
+    stars: 0, amenities: [] as string[], isFurnished: false,
+    cuisineType: '', priceRange: '',
+    plotType: '', hasTitleDeed: false,
+    serviceType: '',
   });
 
   useEffect(() => {
@@ -96,6 +101,10 @@ export default function PublierAnnoncePage() {
   const listingType   = getListingType(selectedCategory);
 
   const set = (k: string, v: any) => setForm((p: any) => ({ ...p, [k]: v }));
+  const toggleAmenity = (a: string) => setForm((p: any) => ({
+    ...p,
+    amenities: p.amenities.includes(a) ? p.amenities.filter((x: string) => x !== a) : [...p.amenities, a],
+  }));
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -132,7 +141,14 @@ export default function PublierAnnoncePage() {
     setLoading(true);
     try {
       const categoryId = selectedSub || selectedCategory;
-      const res = await api.post('/annonces', { ...form, categoryId, listingType, images });
+      const res = await api.post('/annonces', {
+        ...form,
+        categoryId,
+        listingType,
+        images,
+        amenities: form.amenities.length > 0 ? form.amenities.join(', ') : undefined,
+        stars: form.stars || undefined,
+      });
       toast.success('Annonce publiée !');
       router.push(`/annonces/${res.data.data.slug}`);
     } catch (err: any) {
@@ -294,7 +310,7 @@ export default function PublierAnnoncePage() {
                 </div>
               )}
 
-              {listingType === 'immobilier' && (
+              {listingType === 'immobilier' && selectedCategory !== 'terrains' && (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
                     <label className="block text-sm font-semibold text-dark-700 mb-1.5">Type d'offre</label>
@@ -323,6 +339,56 @@ export default function PublierAnnoncePage() {
                     <input value={form.surface} onChange={e => set('surface', e.target.value)}
                       type="number" placeholder="Ex: 120" className="input" />
                   </div>
+                  <label className="col-span-2 flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" checked={form.isFurnished} onChange={e => set('isFurnished', e.target.checked)}
+                      className="accent-primary-700 w-4 h-4" />
+                    <span className="text-sm font-medium text-dark-700">Meublé</span>
+                  </label>
+                </div>
+              )}
+
+              {listingType === 'immobilier' && selectedCategory === 'terrains' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Type d'offre</label>
+                    <div className="flex gap-2">
+                      {['À vendre', 'À louer'].map(t => (
+                        <button key={t} type="button" onClick={() => set('contractType', t)}
+                          className={`px-3 py-2 rounded-xl text-sm font-medium border-2 transition-colors
+                            ${form.contractType === t ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Prix (GNF)</label>
+                    <input value={form.price} onChange={e => set('price', e.target.value)}
+                      type="number" placeholder="Ex: 50000000" className="input" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Surface (m²)</label>
+                    <input value={form.surface} onChange={e => set('surface', e.target.value)}
+                      type="number" placeholder="Ex: 500" className="input" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Type de terrain</label>
+                    <div className="flex gap-2 flex-wrap">
+                      {['Constructible', 'Agricole', 'Commercial', 'Résidentiel', 'Mixte'].map(t => (
+                        <button key={t} type="button" onClick={() => set('plotType', t)}
+                          className={`px-3 py-2 rounded-xl text-sm font-medium border-2 transition-colors
+                            ${form.plotType === t ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <label className="col-span-2 flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" checked={form.hasTitleDeed} onChange={e => set('hasTitleDeed', e.target.checked)}
+                      className="accent-primary-700 w-4 h-4" />
+                    <FileCheck size={15} className="text-primary-600" />
+                    <span className="text-sm font-medium text-dark-700">Titre foncier disponible</span>
+                  </label>
                 </div>
               )}
 
@@ -353,14 +419,114 @@ export default function PublierAnnoncePage() {
                 </div>
               )}
 
-              {listingType === 'service' && (
-                <div>
-                  <label className="block text-sm font-semibold text-dark-700 mb-1.5">
-                    Tarif (GNF) <span className="text-dark-400 font-normal">- optionnel</span>
+              {/* Hôtels */}
+              {listingType === 'service' && selectedCategory === 'hotels' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">
+                      Prix par nuit (GNF) <span className="text-dark-400 font-normal">- optionnel</span>
+                    </label>
+                    <input value={form.price} onChange={e => set('price', e.target.value)}
+                      type="number" placeholder="Ex: 150000" className="input" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-2">Classement étoiles</label>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map(n => (
+                        <button key={n} type="button" onClick={() => set('stars', form.stars === n ? 0 : n)}
+                          className={`flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium border-2 transition-colors
+                            ${form.stars >= n ? 'border-yellow-400 bg-yellow-50 text-yellow-700' : 'border-dark-200 text-dark-400 hover:border-yellow-300'}`}>
+                          <Star size={13} className={form.stars >= n ? 'fill-yellow-400 text-yellow-400' : ''} /> {n}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-2">Commodités</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { label: 'Wi-Fi gratuit', icon: Wifi },
+                        { label: 'Parking', icon: ParkingCircle },
+                        { label: 'Piscine', icon: Waves },
+                        { label: 'Salle de sport', icon: Dumbbell },
+                        { label: 'Petit-déjeuner', icon: Coffee },
+                        { label: 'Restaurant', icon: UtensilsCrossed },
+                      ].map(({ label, icon: Icon }) => (
+                        <label key={label} className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 cursor-pointer transition-colors select-none
+                          ${form.amenities.includes(label) ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
+                          <input type="checkbox" className="sr-only" checked={form.amenities.includes(label)}
+                            onChange={() => toggleAmenity(label)} />
+                          <Icon size={13} /> <span className="text-xs font-medium">{label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" checked={form.isFurnished} onChange={e => set('isFurnished', e.target.checked)}
+                      className="accent-primary-700 w-4 h-4" />
+                    <span className="text-sm font-medium text-dark-700">Résidence meublée / appartement</span>
                   </label>
-                  <input value={form.price} onChange={e => set('price', e.target.value)}
-                    type="number" placeholder="Ex: 50000" className="input" />
-                  <label className="flex items-center gap-2 cursor-pointer mt-3 select-none">
+                </div>
+              )}
+
+              {/* Restaurants */}
+              {listingType === 'service' && selectedCategory === 'restaurants' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-2">Type de cuisine</label>
+                    <div className="flex gap-2 flex-wrap">
+                      {['Guinéenne', 'Africaine', 'Internationale', 'Fast-food', 'Libanaise', 'Française', 'Chinoise'].map(c => (
+                        <button key={c} type="button" onClick={() => set('cuisineType', form.cuisineType === c ? '' : c)}
+                          className={`px-3 py-2 rounded-xl text-sm font-medium border-2 transition-colors
+                            ${form.cuisineType === c ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-2">Gamme de prix</label>
+                    <div className="flex gap-2">
+                      {[
+                        { value: 'Économique', label: 'Économique', desc: '< 50 000 GNF' },
+                        { value: 'Modéré', label: 'Modéré', desc: '50 – 150 000 GNF' },
+                        { value: 'Premium', label: 'Premium', desc: '> 150 000 GNF' },
+                      ].map(p => (
+                        <button key={p.value} type="button" onClick={() => set('priceRange', form.priceRange === p.value ? '' : p.value)}
+                          className={`flex-1 px-3 py-2.5 rounded-xl text-center border-2 transition-colors
+                            ${form.priceRange === p.value ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
+                          <p className="text-sm font-semibold">{p.label}</p>
+                          <p className="text-xs text-dark-400 mt-0.5">{p.desc}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">
+                      Tarif moyen (GNF) <span className="text-dark-400 font-normal">- optionnel</span>
+                    </label>
+                    <input value={form.price} onChange={e => set('price', e.target.value)}
+                      type="number" placeholder="Ex: 80000" className="input" />
+                  </div>
+                </div>
+              )}
+
+              {/* Services génériques */}
+              {listingType === 'service' && !['hotels', 'restaurants'].includes(selectedCategory) && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Type de service</label>
+                    <input value={form.serviceType} onChange={e => set('serviceType', e.target.value)}
+                      placeholder="Ex: Plomberie, Cours particulier, Livraison..." className="input" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">
+                      Tarif (GNF) <span className="text-dark-400 font-normal">- optionnel</span>
+                    </label>
+                    <input value={form.price} onChange={e => set('price', e.target.value)}
+                      type="number" placeholder="Ex: 50000" className="input" />
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
                     <input type="checkbox" checked={form.isNegotiable} onChange={e => set('isNegotiable', e.target.checked)}
                       className="accent-primary-700 w-4 h-4" />
                     <span className="text-sm font-medium text-dark-700">Tarif négociable / sur devis</span>

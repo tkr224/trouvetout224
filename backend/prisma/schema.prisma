@@ -151,13 +151,30 @@ model Annonce {
   whatsapp    String?
   quantity    Int?
   condition   String?
-  listingType String?
-  bedrooms    Int?
-  surface     Float?
+  listingType  String?
+  bedrooms     Int?
+  surface      Float?
   contractType String?
-  salary      String?
-  experience  String?
-  images      AnnonceImage[]
+  salary       String?
+  experience   String?
+
+  // Hébergements (hôtels, résidences)
+  stars        Int?
+  amenities    String?
+  isFurnished  Boolean?
+
+  // Restaurants
+  cuisineType  String?
+  priceRange   String?
+
+  // Terrains
+  plotType     String?
+  hasTitleDeed Boolean?
+
+  // Services
+  serviceType  String?
+
+  images       AnnonceImage[]
   status      AnnonceStatus @default(ACTIVE)
   expiresAt   DateTime
   viewCount   Int           @default(0)

@@ -120,8 +120,11 @@ export const getAnnonceById = async (req: Request, res: Response) => {
 export const createAnnonce = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
-    const { title, description, price, isNegotiable, categoryId, cityId, neighborhood, phone, whatsapp, duration = 7, images = [],
-      quantity, condition, listingType, bedrooms, surface, contractType, salary, experience } = req.body;
+    const {
+      title, description, price, isNegotiable, categoryId, cityId, neighborhood, phone, whatsapp, duration = 7, images = [],
+      quantity, condition, listingType, bedrooms, surface, contractType, salary, experience,
+      stars, amenities, isFurnished, cuisineType, priceRange, plotType, hasTitleDeed, serviceType,
+    } = req.body;
 
     const realCategoryId = await resolveCategoryId(categoryId);
     if (!realCategoryId) {
@@ -167,6 +170,14 @@ export const createAnnonce = async (req: Request, res: Response) => {
         contractType: contractType || null,
         salary: salary || null,
         experience: experience || null,
+        stars: stars ? parseInt(stars) : null,
+        amenities: amenities || null,
+        isFurnished: isFurnished !== undefined && isFurnished !== '' ? Boolean(isFurnished) : null,
+        cuisineType: cuisineType || null,
+        priceRange: priceRange || null,
+        plotType: plotType || null,
+        hasTitleDeed: hasTitleDeed !== undefined && hasTitleDeed !== '' ? Boolean(hasTitleDeed) : null,
+        serviceType: serviceType || null,
         images: { create: images.map((img: any, index: number) => ({ url: img.url, publicId: img.publicId, order: index })) },
       },
       include: { images: true, category: true, city: true },
