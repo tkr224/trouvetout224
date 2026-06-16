@@ -145,6 +145,8 @@ router.put('/annonces/:id/status', async (req, res) => {
 
 router.delete('/annonces/:id', async (req, res) => {
   try {
+    await prisma.savedAnnonce.deleteMany({ where: { annonceId: req.params.id } });
+    await prisma.annonceImage.deleteMany({ where: { annonceId: req.params.id } });
     await prisma.annonce.delete({ where: { id: req.params.id } });
     res.json({ message: 'Annonce supprimée.' });
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }

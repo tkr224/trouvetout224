@@ -25,10 +25,17 @@ export default function Footer() {
               La plus grande plateforme d'annonces et marketplace de Guinée. Achetez, vendez, trouvez un emploi ou un logement facilement.
             </p>
             <div className="flex gap-3 mt-4">
-              {[Globe, Camera, AtSign, PlayCircle].map((Icon, i) => (
-                <button key={i} className="w-9 h-9 bg-dark-700 rounded-xl flex items-center justify-center hover:bg-primary-700 transition-colors">
+              {[
+                { Icon: Globe,       label: 'Site web',  href: '/' },
+                { Icon: Camera,      label: 'Instagram', href: 'https://www.instagram.com' },
+                { Icon: AtSign,      label: 'X (Twitter)', href: 'https://twitter.com' },
+                { Icon: PlayCircle,  label: 'YouTube',   href: 'https://www.youtube.com' },
+              ].map(({ Icon, label, href }) => (
+                <a key={label} href={href} target={href.startsWith('http') ? '_blank' : undefined}
+                  rel="noopener noreferrer" aria-label={label}
+                  className="w-9 h-9 bg-dark-700 rounded-xl flex items-center justify-center hover:bg-primary-700 transition-colors">
                   <Icon size={15} className="text-dark-300" />
-                </button>
+                </a>
               ))}
             </div>
           </div>
@@ -37,10 +44,19 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold text-white mb-4">Catégories</h3>
             <ul className="space-y-2 text-dark-400 text-sm">
-              {['Téléphones', 'Véhicules', 'Immobilier', 'Emplois', 'Restaurants', 'Hôtels', 'Mode', 'Services'].map((cat) => (
-                <li key={cat}>
-                  <Link href={`/categories/${cat.toLowerCase()}`} className="hover:text-primary-400 transition-colors">
-                    {cat}
+              {[
+                { label: 'Téléphones',  slug: 'electronique' },
+                { label: 'Véhicules',   slug: 'vehicules' },
+                { label: 'Immobilier',  slug: 'immobilier' },
+                { label: 'Emplois',     slug: 'emplois' },
+                { label: 'Restaurants', slug: 'restaurants' },
+                { label: 'Hôtels',      slug: 'hotels' },
+                { label: 'Mode',        slug: 'mode' },
+                { label: 'Services',    slug: 'services' },
+              ].map(({ label, slug }) => (
+                <li key={slug}>
+                  <Link href={`/categories/${slug}`} className="hover:text-primary-400 transition-colors">
+                    {label}
                   </Link>
                 </li>
               ))}

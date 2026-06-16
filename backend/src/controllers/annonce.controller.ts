@@ -231,17 +231,47 @@ export const updateAnnonce = async (req: Request, res: Response) => {
     const annonce = await prisma.annonce.findFirst({ where: { id, userId } });
     if (!annonce) return res.status(404).json({ error: 'Annonce non trouvée ou accès refusé.' });
 
+    // Replace images if provided
+    if (updates.images && Array.isArray(updates.images) && updates.images.length > 0) {
+      await prisma.annonceImage.deleteMany({ where: { annonceId: id } });
+      await prisma.annonceImage.createMany({
+        data: updates.images.map((img: any, index: number) => ({
+          url: img.url, publicId: img.publicId, annonceId: id, order: index,
+        })),
+      });
+    }
+
+    const def = (v: any) => v !== undefined ? v : undefined;
+    const num = (v: any) => v !== undefined ? (v ? parseFloat(v) : null) : undefined;
+    const int = (v: any) => v !== undefined ? (v ? parseInt(v) : null) : undefined;
+    const str = (v: any) => v !== undefined ? (v || null) : undefined;
+    const bool = (v: any) => v !== undefined ? (v !== '' ? Boolean(v) : null) : undefined;
+
     const updatedAnnonce = await prisma.annonce.update({
       where: { id },
       data: {
-        title: updates.title,
-        description: updates.description,
-        price: updates.price !== undefined ? (updates.price ? parseFloat(updates.price) : null) : undefined,
-        isNegotiable: updates.isNegotiable,
-        neighborhood: updates.neighborhood,
-        phone: updates.phone,
-        whatsapp: updates.whatsapp,
-        status: updates.status,
+        title:        def(updates.title),
+        description:  def(updates.description),
+        price:        num(updates.price),
+        isNegotiable: updates.isNegotiable !== undefined ? Boolean(updates.isNegotiable) : undefined,
+        neighborhood: str(updates.neighborhood),
+        phone:        str(updates.phone),
+        whatsapp:     str(updates.whatsapp),
+        condition:    str(updates.condition),
+        quantity:     int(updates.quantity),
+        bedrooms:     int(updates.bedrooms),
+        surface:      num(updates.surface),
+        contractType: str(updates.contractType),
+        salary:       str(updates.salary),
+        experience:   str(updates.experience),
+        stars:        int(updates.stars),
+        amenities:    str(updates.amenities),
+        isFurnished:  bool(updates.isFurnished),
+        cuisineType:  str(updates.cuisineType),
+        priceRange:   str(updates.priceRange),
+        plotType:     str(updates.plotType),
+        hasTitleDeed: bool(updates.hasTitleDeed),
+        serviceType:  str(updates.serviceType),
       },
       include: { images: true, category: true, city: true },
     });

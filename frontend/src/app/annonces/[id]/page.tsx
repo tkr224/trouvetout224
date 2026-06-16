@@ -197,20 +197,24 @@ export default function AnnonceDetailPage() {
 
   /* ── Rendu des caractéristiques selon le type d'annonce ───── */
   const a = annonce as any;
+  const isCatHotel    = a.category?.slug === 'hotels';
+  const isCatTerrain  = a.category?.slug === 'terrains';
+  const isListingImmo = a.listingType === 'immobilier';
+
   const specs = [
     a.condition        && { label: 'État',              value: a.condition },
     a.quantity         && { label: 'Quantité',           value: String(a.quantity) },
     a.bedrooms         && { label: 'Chambres',           value: `${a.bedrooms} chambre${a.bedrooms > 1 ? 's' : ''}` },
     a.surface          && { label: 'Surface',            value: `${a.surface} m²` },
-    a.isFurnished != null && { label: 'Meublé',          value: a.isFurnished ? 'Oui' : 'Non' },
+    (isCatHotel || isListingImmo) && a.isFurnished != null && { label: 'Meublé', value: a.isFurnished ? 'Oui' : 'Non' },
     a.contractType     && { label: 'Type de contrat',    value: a.contractType },
     a.salary           && { label: 'Salaire',            value: String(a.salary) },
     a.experience       && { label: 'Expérience',         value: a.experience },
     a.stars            && { label: 'Classement',         value: `${a.stars} étoile${a.stars > 1 ? 's' : ''}` },
     a.cuisineType      && { label: 'Cuisine',            value: a.cuisineType },
     a.priceRange       && { label: 'Gamme de prix',      value: a.priceRange },
-    a.plotType         && { label: 'Type de terrain',    value: a.plotType },
-    a.hasTitleDeed != null && { label: 'Titre foncier',  value: a.hasTitleDeed ? 'Disponible' : 'Non disponible' },
+    isCatTerrain && a.plotType     && { label: 'Type de terrain', value: a.plotType },
+    isCatTerrain && a.hasTitleDeed != null && { label: 'Titre foncier', value: a.hasTitleDeed ? 'Disponible' : 'Non disponible' },
     a.serviceType      && { label: 'Type de service',    value: a.serviceType },
     a.amenities        && { label: 'Commodités',         value: a.amenities },
   ].filter(Boolean) as { label: string; value: string }[];

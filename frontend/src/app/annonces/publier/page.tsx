@@ -1,7 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import {
   X, Loader2, ArrowLeft, ArrowRight, Check, UploadCloud, Camera,
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import { api } from '@/lib/api';
+import { useAuthStore } from '@/store/auth.store';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 const DURATIONS = [
@@ -71,8 +72,11 @@ const STEP_META = [
   { label: 'Photos',       Icon: Camera },
 ];
 
-export default function PublierAnnoncePage() {
+function PublierAnnonceContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
+  const { isAuthenticated } = useAuthStore();
   const [step, setStep] = useState(1);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -80,6 +84,7 @@ export default function PublierAnnoncePage() {
   const [images, setImages] = useState<{ url: string; publicId: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingEdit, setLoadingEdit] = useState(false);
 
   const [form, setForm] = useState<any>({
     title: '', description: '', price: '', isNegotiable: false,
@@ -93,8 +98,68 @@ export default function PublierAnnoncePage() {
   });
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/auth/connexion?redirect=/annonces/publier');
+      return;
+    }
     api.get('/categories').then(r => setCategories(r.data.data || [])).catch(() => {});
-  }, []);
+  }, [isAuthenticated, router]);
+
+  // Load existing annonce when in edit mode
+  useEffect(() => {
+    if (!editId || categories.length === 0) return;
+    setLoadingEdit(true);
+    api.get(`/annonces/${editId}`)
+      .then(r => {
+        const a = r.data.data;
+        if (!a) return;
+        // Resolve category: check if it's a subcategory
+        const catSlug = a.category?.slug || '';
+        const parentCat = categories.find((c: any) => c.children?.some((sub: any) => sub.slug === catSlug));
+        if (parentCat) {
+          setSelectedCategory(parentCat.slug);
+          setSelectedSub(catSlug);
+        } else {
+          setSelectedCategory(catSlug);
+          setSelectedSub('');
+        }
+        // Pre-fill images
+        if (a.images?.length > 0) {
+          setImages(a.images.map((img: any) => ({ url: img.url, publicId: img.publicId })));
+        }
+        // Pre-fill form
+        setForm((prev: any) => ({
+          ...prev,
+          title:        a.title || '',
+          description:  a.description || '',
+          price:        a.price != null ? String(a.price) : '',
+          isNegotiable: a.isNegotiable || false,
+          cityId:       a.city?.name || '',
+          neighborhood: a.neighborhood || '',
+          phone:        a.phone || '',
+          whatsapp:     a.whatsapp || '',
+          quantity:     a.quantity != null ? String(a.quantity) : '',
+          condition:    a.condition || '',
+          bedrooms:     a.bedrooms != null ? String(a.bedrooms) : '',
+          surface:      a.surface != null ? String(a.surface) : '',
+          contractType: a.contractType || '',
+          salary:       a.salary || '',
+          experience:   a.experience || '',
+          stars:        a.stars || 0,
+          amenities:    a.amenities ? a.amenities.split(', ').filter(Boolean) : [],
+          isFurnished:  a.isFurnished || false,
+          cuisineType:  a.cuisineType || '',
+          priceRange:   a.priceRange || '',
+          plotType:     a.plotType || '',
+          hasTitleDeed: a.hasTitleDeed || false,
+          serviceType:  a.serviceType || '',
+        }));
+        setStep(2);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingEdit(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId, categories.length]);
 
   const currentCat    = categories.find((c) => c.slug === selectedCategory);
   const subCategories = currentCat?.children || [];
@@ -141,22 +206,53 @@ export default function PublierAnnoncePage() {
     setLoading(true);
     try {
       const categoryId = selectedSub || selectedCategory;
-      const res = await api.post('/annonces', {
+      const isHotel          = selectedCategory === 'hotels';
+      const isRestaurant     = selectedCategory === 'restaurants';
+      const isTerrain        = selectedCategory === 'terrains';
+      const isImmoNonTerrain = listingType === 'immobilier' && !isTerrain;
+      const isGenericService = listingType === 'service' && !isHotel && !isRestaurant;
+
+      const payload = {
         ...form,
         categoryId,
         listingType,
         images,
-        amenities: form.amenities.length > 0 ? form.amenities.join(', ') : undefined,
-        stars: form.stars || undefined,
-      });
-      toast.success('Annonce publiée !');
-      router.push(`/annonces/${res.data.data.slug}`);
+        amenities:    isHotel       ? (form.amenities.length > 0 ? form.amenities.join(', ') : undefined) : undefined,
+        stars:        isHotel       ? (form.stars || undefined) : undefined,
+        isFurnished:  (isHotel || isImmoNonTerrain) ? form.isFurnished : undefined,
+        cuisineType:  isRestaurant  ? (form.cuisineType  || undefined) : undefined,
+        priceRange:   isRestaurant  ? (form.priceRange   || undefined) : undefined,
+        plotType:     isTerrain     ? (form.plotType     || undefined) : undefined,
+        hasTitleDeed: isTerrain     ? form.hasTitleDeed : undefined,
+        serviceType:  isGenericService ? (form.serviceType || undefined) : undefined,
+      };
+
+      if (editId) {
+        const res = await api.put(`/annonces/${editId}`, payload);
+        toast.success('Annonce modifiée !');
+        router.push(`/annonces/${res.data.data.slug}`);
+      } else {
+        const res = await api.post('/annonces', payload);
+        toast.success('Annonce publiée !');
+        router.push(`/annonces/${res.data.data.slug}`);
+      }
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Erreur lors de la publication');
+      toast.error(err.response?.data?.error || (editId ? 'Erreur lors de la modification' : 'Erreur lors de la publication'));
     } finally { setLoading(false); }
   };
 
   const typeMeta = TYPE_META[listingType] || TYPE_META.vente;
+
+  if (loadingEdit) {
+    return (
+      <div className="min-h-screen bg-dark-50">
+        <Navbar />
+        <div className="max-w-2xl mx-auto px-4 py-12 flex items-center justify-center">
+          <Loader2 size={32} className="animate-spin text-primary-600" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-dark-50">
@@ -170,7 +266,9 @@ export default function PublierAnnoncePage() {
               <FileText size={20} />
             </div>
             <div>
-              <h1 className="text-xl font-display font-bold leading-tight">Publier une annonce</h1>
+              <h1 className="text-xl font-display font-bold leading-tight">
+                {editId ? 'Modifier l\'annonce' : 'Publier une annonce'}
+              </h1>
               <p className="text-primary-100 text-sm">Publication 100% gratuite et sans limite</p>
             </div>
           </div>
@@ -674,13 +772,21 @@ export default function PublierAnnoncePage() {
             <button onClick={onSubmit} disabled={loading}
               className="btn-primary flex-1 flex items-center justify-center gap-2 py-3 disabled:opacity-60 disabled:cursor-not-allowed">
               {loading
-                ? <><Loader2 size={17} className="animate-spin" /> Publication...</>
-                : <><Send size={15} /> Publier l'annonce</>
+                ? <><Loader2 size={17} className="animate-spin" /> {editId ? 'Enregistrement...' : 'Publication...'}</>
+                : <><Send size={15} /> {editId ? 'Enregistrer les modifications' : 'Publier l\'annonce'}</>
               }
             </button>
           )}
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PublierAnnoncePage() {
+  return (
+    <Suspense>
+      <PublierAnnonceContent />
+    </Suspense>
   );
 }

@@ -32,6 +32,10 @@ function getNotifLink(notif: any): string | null {
       return '/profil';
     case 'NEW_APPLICATION':
       return '/annonces/lister';
+    case 'ANNONCE_EXPIRED':
+    case 'ANNONCE_APPROVED':
+    case 'SYSTEM':
+      return data?.annonceId ? `/annonces/${data.annonceId}` : null;
     default:
       return null;
   }

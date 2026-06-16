@@ -6,11 +6,8 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { api } from '@/lib/api';
 
-const CUISINE_FILTERS = ['Tous', 'Guinéenne', 'Africaine', 'Internationale', 'Fast-food', 'Libanaise', 'Française'];
-
 export default function RestaurantsPage() {
   const [q, setQ] = useState('');
-  const [cuisineFilter, setCuisineFilter] = useState('Tous');
 
   const { data, isLoading } = useQuery(
     ['restaurants', q],
@@ -18,10 +15,7 @@ export default function RestaurantsPage() {
     { keepPreviousData: true }
   );
 
-  const allRestaurants: any[] = data?.data ?? [];
-  const restaurants = cuisineFilter === 'Tous'
-    ? allRestaurants
-    : allRestaurants.filter((r: any) => r.cuisineType === cuisineFilter);
+  const restaurants: any[] = data?.data ?? [];
 
   return (
     <div className="min-h-screen bg-dark-50">
@@ -55,22 +49,6 @@ export default function RestaurantsPage() {
       </section>
 
       <div className="max-w-6xl mx-auto px-4 py-10">
-        {/* Filtres cuisine */}
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-6">
-          {CUISINE_FILTERS.map(c => (
-            <button
-              key={c} onClick={() => setCuisineFilter(c)}
-              className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                cuisineFilter === c
-                  ? 'bg-red-600 text-white shadow-sm'
-                  : 'bg-white text-dark-600 hover:bg-red-50 shadow-sm border border-dark-100'
-              }`}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
