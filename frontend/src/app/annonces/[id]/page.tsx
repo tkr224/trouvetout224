@@ -194,22 +194,24 @@ export default function AnnonceDetailPage() {
 
         {/* Bannière propriétaire */}
         {isOwner && (
-          <div className="bg-primary-50 border border-primary-200 rounded-2xl p-4 mb-5 flex items-center justify-between flex-wrap gap-3">
+          <div className="bg-primary-50 border border-primary-200 rounded-2xl p-4 mb-5 flex items-center justify-between flex-wrap gap-3 shadow-sm">
             <p className="text-sm font-semibold text-primary-800 flex items-center gap-2">
-              <User size={15} className="text-primary-700" />
+              <div className="w-7 h-7 bg-primary-100 rounded-lg flex items-center justify-center shrink-0">
+                <User size={14} className="text-primary-700" />
+              </div>
               C&apos;est votre annonce
               {annonce.status === 'SUSPENDED' && (
-                <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs font-medium">Masquée</span>
+                <span className="bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-semibold">Masquée</span>
               )}
             </p>
             <div className="flex gap-2 flex-wrap">
-              <button onClick={handleEdit} className="flex items-center gap-1.5 bg-white border border-dark-200 text-dark-700 text-sm font-medium px-3 py-2 rounded-xl hover:bg-primary-50 hover:border-primary-300 transition-colors">
+              <button onClick={handleEdit} className="flex items-center gap-1.5 bg-white border border-dark-200 text-dark-700 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-primary-50 hover:border-primary-300 transition-all shadow-sm">
                 <Edit size={14} /> Modifier
               </button>
-              <button onClick={handleHide} className="flex items-center gap-1.5 bg-white border border-dark-200 text-dark-700 text-sm font-medium px-3 py-2 rounded-xl hover:bg-dark-50 transition-colors">
+              <button onClick={handleHide} className="flex items-center gap-1.5 bg-white border border-dark-200 text-dark-700 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-dark-50 transition-all shadow-sm">
                 <EyeOff size={14} /> {annonce.status === 'ACTIVE' ? 'Masquer' : 'Réafficher'}
               </button>
-              <button onClick={handleDeleteAnnonce} className="flex items-center gap-1.5 bg-white border border-guinea-200 text-guinea-600 text-sm font-medium px-3 py-2 rounded-xl hover:bg-guinea-50 transition-colors">
+              <button onClick={handleDeleteAnnonce} className="flex items-center gap-1.5 bg-white border border-guinea-200 text-guinea-600 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-guinea-50 transition-all shadow-sm">
                 <Trash2 size={14} /> Supprimer
               </button>
             </div>
@@ -289,19 +291,26 @@ export default function AnnonceDetailPage() {
                     </span>
                   </div>
                 )}
+
+                {/* Compteur d'images */}
+                {images.length > 1 && (
+                  <div className="absolute bottom-3 right-3 bg-black/55 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+                    {imgIndex + 1} / {images.length}
+                  </div>
+                )}
               </div>
 
               {/* Miniatures */}
               {images.length > 1 && (
-                <div className="flex gap-2 p-3 overflow-x-auto border-t border-dark-100">
+                <div className="flex gap-2 p-3 overflow-x-auto border-t border-dark-100 bg-dark-50/50">
                   {images.map((img: any, i: number) => (
                     <button
                       key={i}
                       onClick={() => setImgIndex(i)}
-                      className={`shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${
+                      className={`shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${
                         i === imgIndex
-                          ? 'border-primary-700 opacity-100'
-                          : 'border-transparent opacity-50 hover:opacity-80'
+                          ? 'border-primary-700 opacity-100 shadow-md scale-105'
+                          : 'border-transparent opacity-50 hover:opacity-80 hover:scale-102'
                       }`}
                     >
                       <img src={img.url} alt="" className="w-full h-full object-cover" />
@@ -319,15 +328,15 @@ export default function AnnonceDetailPage() {
               </div>
 
               {/* Prix */}
-              <div className="mb-5">
+              <div className="mb-5 bg-gradient-to-r from-primary-50 to-transparent border border-primary-100 rounded-2xl px-5 py-4">
                 {annonce.price != null ? (
-                  <div className="flex items-baseline gap-2">
+                  <div className="flex items-baseline gap-3 flex-wrap">
                     <p className="text-3xl font-bold text-primary-700">
                       {annonce.price.toLocaleString('fr-GN')}
-                      <span className="text-lg ml-1 font-semibold">GNF</span>
+                      <span className="text-lg ml-1.5 font-semibold text-primary-600">GNF</span>
                     </p>
                     {annonce.isNegotiable && (
-                      <span className="text-sm text-dark-400 bg-dark-50 px-2.5 py-1 rounded-full">Négociable</span>
+                      <span className="text-sm text-primary-700 bg-primary-100 font-semibold px-3 py-1 rounded-full">Négociable</span>
                     )}
                   </div>
                 ) : (
@@ -354,12 +363,12 @@ export default function AnnonceDetailPage() {
               {/* Caractéristiques dynamiques */}
               {specs.length > 0 && (
                 <div className="py-5 border-b border-dark-100">
-                  <h3 className="font-semibold text-dark-900 mb-3 text-sm uppercase tracking-wide text-dark-400">Caractéristiques</h3>
+                  <h3 className="pl-2.5 border-l-2 border-primary-500 text-[10px] font-bold text-dark-600 uppercase tracking-widest mb-3">Caractéristiques</h3>
                   <div className="grid grid-cols-2 gap-2">
                     {specs.map(({ label, value }) => (
-                      <div key={label} className="bg-dark-50 rounded-xl px-4 py-3">
-                        <p className="text-xs text-dark-400 mb-0.5">{label}</p>
-                        <p className="text-sm font-semibold text-dark-900">{value}</p>
+                      <div key={label} className="bg-primary-50/60 border border-primary-100/70 rounded-xl px-4 py-3">
+                        <p className="text-xs text-primary-600 mb-0.5 font-medium">{label}</p>
+                        <p className="text-sm font-bold text-dark-900">{value}</p>
                       </div>
                     ))}
                   </div>
@@ -368,7 +377,7 @@ export default function AnnonceDetailPage() {
 
               {/* Description */}
               <div className="pt-5">
-                <h3 className="font-semibold text-dark-900 mb-3">Description</h3>
+                <h3 className="pl-2.5 border-l-2 border-primary-500 text-[10px] font-bold text-dark-600 uppercase tracking-widest mb-3">Description</h3>
                 <p className="text-dark-600 leading-relaxed whitespace-pre-wrap text-sm">{annonce.description}</p>
               </div>
 
@@ -394,57 +403,63 @@ export default function AnnonceDetailPage() {
 
             {/* Carte vendeur */}
             {!isOwner && (
-              <div className="bg-white rounded-2xl border border-dark-100 p-5">
-                <h3 className="font-semibold text-dark-900 mb-4 text-sm uppercase tracking-wide text-dark-400">Vendeur</h3>
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="relative shrink-0">
-                    {annonce.user.avatar ? (
-                      <img src={annonce.user.avatar} alt="" className="w-14 h-14 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-14 h-14 bg-primary-100 rounded-full flex items-center justify-center">
-                        <span className="text-primary-700 font-bold text-lg">
-                          {annonce.user.firstName[0]}{annonce.user.lastName[0]}
-                        </span>
-                      </div>
+              <div className="bg-white rounded-2xl border border-dark-100 overflow-hidden shadow-card">
+                {/* Barre d'accent vert */}
+                <div className="h-1.5 bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700" />
+                <div className="p-5">
+                  <h3 className="pl-2.5 border-l-2 border-primary-500 text-[10px] font-bold text-dark-600 uppercase tracking-widest mb-4">Vendeur</h3>
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="relative shrink-0">
+                      {annonce.user.avatar ? (
+                        <img src={annonce.user.avatar} alt="" className="w-14 h-14 rounded-full object-cover ring-2 ring-primary-200 ring-offset-1" />
+                      ) : (
+                        <div className="w-14 h-14 bg-primary-100 rounded-full flex items-center justify-center ring-2 ring-primary-200 ring-offset-1">
+                          <span className="text-primary-700 font-bold text-lg">
+                            {annonce.user.firstName[0]}{annonce.user.lastName[0]}
+                          </span>
+                        </div>
+                      )}
+                      {annonce.user.isVerified && (
+                        <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-sm">
+                          <BadgeCheck size={14} className="text-primary-700" />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-bold text-dark-900">
+                        {annonce.user.firstName} {annonce.user.lastName}
+                      </p>
+                      <Link href={`/profil/${annonce.user.id}`} className="text-primary-700 text-sm font-medium hover:underline flex items-center gap-1">
+                        Voir le profil →
+                      </Link>
+                    </div>
+                  </div>
+                  <div className="space-y-2.5">
+                    <button
+                      onClick={handleContact}
+                      className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-sm"
+                    >
+                      <MessageCircle size={17} /> Envoyer un message
+                    </button>
+                    {annonce.phone && (
+                      <a
+                        href={`tel:+224${annonce.phone}`}
+                        className="flex items-center justify-center gap-2 w-full border border-dark-200 text-dark-700 font-semibold py-2.5 rounded-xl hover:bg-dark-50 hover:border-dark-300 transition-colors text-sm"
+                      >
+                        <Phone size={15} /> {annonce.phone}
+                      </a>
+                    )}
+                    {annonce.whatsapp && (
+                      <a
+                        href={`https://wa.me/224${annonce.whatsapp}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 w-full bg-[#25D366] hover:bg-[#1fbb58] text-white font-semibold py-2.5 rounded-xl transition-colors text-sm shadow-sm"
+                      >
+                        <MessageCircle size={15} /> WhatsApp
+                      </a>
                     )}
                   </div>
-                  <div>
-                    <p className="font-semibold text-dark-900 flex items-center gap-1">
-                      {annonce.user.firstName} {annonce.user.lastName}
-                      {annonce.user.isVerified && (
-                        <BadgeCheck size={16} className="text-primary-700 shrink-0" />
-                      )}
-                    </p>
-                    <Link href={`/profil/${annonce.user.id}`} className="text-primary-700 text-sm hover:underline">
-                      Voir le profil →
-                    </Link>
-                  </div>
-                </div>
-                <div className="space-y-2.5">
-                  <button
-                    onClick={handleContact}
-                    className="btn-primary w-full flex items-center justify-center gap-2 py-3"
-                  >
-                    <MessageCircle size={17} /> Envoyer un message
-                  </button>
-                  {annonce.phone && (
-                    <a
-                      href={`tel:+224${annonce.phone}`}
-                      className="flex items-center justify-center gap-2 w-full border border-dark-200 text-dark-700 font-semibold py-2.5 rounded-xl hover:bg-dark-50 hover:border-dark-300 transition-colors text-sm"
-                    >
-                      <Phone size={15} /> {annonce.phone}
-                    </a>
-                  )}
-                  {annonce.whatsapp && (
-                    <a
-                      href={`https://wa.me/224${annonce.whatsapp}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 w-full bg-[#25D366] hover:bg-[#1fbb58] text-white font-semibold py-2.5 rounded-xl transition-colors text-sm"
-                    >
-                      <MessageCircle size={15} /> WhatsApp
-                    </a>
-                  )}
                 </div>
               </div>
             )}
