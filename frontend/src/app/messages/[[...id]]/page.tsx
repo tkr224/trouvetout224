@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic';
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Send, MessageCircle, ArrowLeft, MoreVertical, User, Ban, Flag, Trash2, X, Check, CheckCheck, Reply } from 'lucide-react';
+import { Send, MessageCircle, ArrowLeft, MoreVertical, User, Ban, Flag, Trash2, X, Check, CheckCheck, Reply, Camera, AlertTriangle, Mail, AlertOctagon, HelpCircle } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
@@ -138,7 +138,7 @@ export default function MessagesPage() {
     if (!reportReason) { toast.error('Choisissez une raison'); return; }
     try {
       await api.post('/reports', { reason: reportReason, reportedUserId: otherUser?.id });
-      toast.success('Signalement envoyé. Merci ! 🙏');
+      toast.success('Signalement envoyé. Merci !');
       setShowReport(false); setReportReason(''); setShowMenu(false);
     } catch { toast.error('Erreur'); }
   };
@@ -197,7 +197,10 @@ export default function MessagesPage() {
                       {typing ? (
                         <p className="text-xs text-primary-600 animate-pulse">En train d'écrire...</p>
                       ) : (
-                        <p className={`text-xs ${isOtherOnline ? 'text-green-600' : 'text-dark-400'}`}>{isOtherOnline ? '🟢 En ligne' : '🔴 Hors ligne'}</p>
+                        <p className={`text-xs flex items-center gap-1 ${isOtherOnline ? 'text-green-600' : 'text-dark-400'}`}>
+                          <span className={`inline-block w-2 h-2 rounded-full ${isOtherOnline ? 'bg-green-500' : 'bg-dark-300'}`} />
+                          {isOtherOnline ? 'En ligne' : 'Hors ligne'}
+                        </p>
                       )}
                     </div>
                     <button onClick={() => setShowMenu(!showMenu)} className="p-2 rounded-xl hover:bg-dark-100 transition-colors"><MoreVertical size={20} className="text-dark-600" /></button>
@@ -224,7 +227,7 @@ export default function MessagesPage() {
                               {msg.replyTo && !msg.deletedForAll && (
                                 <div className={`text-xs mb-1.5 px-2 py-1 rounded-lg border-l-2 ${isMe ? 'bg-primary-800/40 border-gold-300' : 'bg-dark-200/60 border-primary-500'}`}>
                                   <p className="font-semibold">{msg.replyTo.sender?.firstName}</p>
-                                  <p className="truncate opacity-80">{msg.replyTo.content || '📷 Photo'}</p>
+                                  <p className="truncate opacity-80">{msg.replyTo.content || '[Image]'}</p>
                                 </div>
                               )}
                               {msg.deletedForAll ? (
@@ -281,7 +284,7 @@ export default function MessagesPage() {
                     <div className="px-4 py-2 border-t border-dark-100 bg-dark-50 flex items-center gap-3">
                       <div className="flex-1 border-l-2 border-primary-500 pl-3">
                         <p className="text-xs font-semibold text-primary-700">Répondre à {replyTo.sender?.firstName}</p>
-                        <p className="text-xs text-dark-500 truncate">{replyTo.content || '📷 Photo'}</p>
+                        <p className="text-xs text-dark-500 truncate">{replyTo.content || '[Image]'}</p>
                       </div>
                       <button onClick={() => setReplyTo(null)} className="text-dark-400 hover:text-dark-700"><X size={18} /></button>
                     </div>
@@ -312,9 +315,15 @@ export default function MessagesPage() {
               <button onClick={() => setShowReport(false)} className="text-dark-400 hover:text-dark-700"><X size={20} /></button>
             </div>
             <div className="space-y-2 mb-4">
-              {[{v:'SCAM',l:'🚨 Arnaque'},{v:'SPAM',l:'📧 Spam / Harcèlement'},{v:'INAPPROPRIATE_CONTENT',l:'⚠️ Contenu inapproprié'},{v:'OTHER',l:'❓ Autre'}].map(r => (
+              {[
+                { v: 'SCAM',                 l: 'Arnaque',               Icon: AlertTriangle },
+                { v: 'SPAM',                 l: 'Spam / Harcèlement',    Icon: Mail },
+                { v: 'INAPPROPRIATE_CONTENT',l: 'Contenu inapproprié',   Icon: AlertOctagon },
+                { v: 'OTHER',                l: 'Autre',                  Icon: HelpCircle },
+              ].map(r => (
                 <label key={r.v} className="flex items-center gap-3 p-3 rounded-xl border border-dark-200 hover:border-guinea-400 cursor-pointer has-[:checked]:border-guinea-500 has-[:checked]:bg-guinea-50 transition-colors">
                   <input type="radio" name="reason" value={r.v} onChange={e => setReportReason(e.target.value)} className="accent-guinea-500" />
+                  <r.Icon size={15} className="text-dark-500 shrink-0" />
                   <span className="text-sm font-medium text-dark-700">{r.l}</span>
                 </label>
               ))}

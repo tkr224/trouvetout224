@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/auth.store';
 import {
   Eye, Heart, MessageCircle, ShoppingBag, Star, Store, TrendingUp,
   Settings, Plus, ArrowRight, CheckCircle, Clock, XCircle, Activity, Tag,
+  Lock, ClipboardList, Package,
 } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -40,10 +41,13 @@ export default function VendeurDashboard() {
   }, [user]);
 
   if (!user) return (
-    <div className="min-h-screen bg-dark-50"><Navbar />
+    <div className="min-h-screen bg-dark-50">
+      <Navbar />
       <div className="flex items-center justify-center min-h-[70vh] text-center">
         <div>
-          <p className="text-6xl mb-4">🔒</p>
+          <div className="w-16 h-16 bg-dark-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <Lock size={28} className="text-dark-400" />
+          </div>
           <p className="font-semibold text-dark-700 text-xl mb-4">Connectez-vous pour accéder à votre espace vendeur</p>
           <Link href="/auth/connexion" className="btn-primary">Se connecter</Link>
         </div>
@@ -240,7 +244,9 @@ export default function VendeurDashboard() {
             </div>
           ) : !stats?.allAnnonces?.length ? (
             <div className="text-center py-10">
-              <p className="text-4xl mb-3">📋</p>
+              <div className="w-12 h-12 bg-dark-50 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <ClipboardList size={22} className="text-dark-300" />
+              </div>
               <p className="text-dark-500 text-sm mb-4">Vous n'avez pas encore d'annonces</p>
               <Link href="/annonces/publier" className="btn-primary inline-flex items-center gap-2">
                 <Plus size={15} /> Publier ma première annonce
@@ -258,7 +264,7 @@ export default function VendeurDashboard() {
                       <div className="w-11 h-11 rounded-lg overflow-hidden bg-dark-100 shrink-0">
                         {a.images?.[0]?.url
                           ? <img src={a.images[0].url} alt="" className="w-full h-full object-cover" />
-                          : <div className="w-full h-full flex items-center justify-center text-base">📦</div>}
+                          : <div className="w-full h-full flex items-center justify-center"><Package size={16} className="text-dark-300" /></div>}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-dark-900 text-sm truncate">{a.title}</p>
@@ -305,7 +311,9 @@ export default function VendeurDashboard() {
             </div>
           ) : !stats?.topAnnonces?.length ? (
             <div className="text-center py-10">
-              <p className="text-4xl mb-3">📋</p>
+              <div className="w-12 h-12 bg-dark-50 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <ClipboardList size={22} className="text-dark-300" />
+              </div>
               <p className="text-dark-500 text-sm mb-4">Publiez des annonces pour les voir ici</p>
               <Link href="/annonces/publier" className="btn-primary inline-flex items-center gap-2">
                 <Plus size={15} /> Publier ma première annonce
@@ -322,7 +330,7 @@ export default function VendeurDashboard() {
                   <div className="w-11 h-11 rounded-lg overflow-hidden bg-dark-100 shrink-0">
                     {a.images?.[0]?.url
                       ? <img src={a.images[0].url} alt="" className="w-full h-full object-cover" />
-                      : <div className="w-full h-full flex items-center justify-center">📦</div>}
+                      : <div className="w-full h-full flex items-center justify-center"><Package size={16} className="text-dark-300" /></div>}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-dark-900 text-sm truncate">{a.title}</p>

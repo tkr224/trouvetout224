@@ -21,6 +21,7 @@ export type RecentAnnonce = {
 
 export function useRecentlyViewed() {
   const [items, setItems] = useState<RecentAnnonce[]>([]);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   // Chargement initial depuis localStorage (uniquement côté client)
   useEffect(() => {
@@ -28,6 +29,7 @@ export function useRecentlyViewed() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) setItems(JSON.parse(stored));
     } catch {}
+    setHasLoaded(true);
   }, []);
 
   const addViewed = (annonce: RecentAnnonce) => {
@@ -41,5 +43,15 @@ export function useRecentlyViewed() {
     });
   };
 
-  return { items, addViewed };
+  const removeById = (id: string) => {
+    setItems(prev => {
+      const next = prev.filter(a => a.id !== id);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  return { items, addViewed, removeById, hasLoaded };
 }

@@ -41,7 +41,8 @@ export default function AnnonceDetailPage() {
   const [similar, setSimilar] = useState<any[]>([]);
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
-  const { items: recentItems, addViewed } = useRecentlyViewed();
+  const { items: recentItems, addViewed, removeById, hasLoaded } = useRecentlyViewed();
+  const [validatedRecent, setValidatedRecent] = useState<any[]>([]);
 
   const annonce = data?.data;
 
@@ -77,12 +78,40 @@ export default function AnnonceDetailPage() {
     };
     addViewed(entry);
 
-    // Charger les annonces similaires
+    // Charger les annonces similaires — filtrer côté client par sécurité
     api.get(`/annonces/${annonce.id}/similaires`)
-      .then(r => setSimilar(r.data.data ?? []))
+      .then(r => setSimilar(
+        (r.data.data ?? []).filter((a: any) => !a.status || a.status === 'ACTIVE')
+      ))
       .catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [annonce?.id]);
+
+  // Valider les annonces récentes contre la BDD et nettoyer le localStorage
+  useEffect(() => {
+    if (!annonce?.id || !hasLoaded) return;
+
+    const toCheck = recentItems.filter(a => a.id !== annonce.id);
+    if (toCheck.length === 0) { setValidatedRecent([]); return; }
+
+    Promise.allSettled(
+      toCheck.map(item => api.get(`/annonces/${item.id}`))
+    ).then(results => {
+      const valid: any[] = [];
+      results.forEach((res, i) => {
+        const active =
+          res.status === 'fulfilled' &&
+          res.value.data?.data?.status === 'ACTIVE';
+        if (active) {
+          valid.push(toCheck[i]);
+        } else {
+          removeById(toCheck[i].id);
+        }
+      });
+      setValidatedRecent(valid);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [annonce?.id, hasLoaded]);
 
   /* ── Loading skeleton ─────────────────────────────────────── */
   if (isLoading) {
@@ -516,8 +545,8 @@ export default function AnnonceDetailPage() {
           </section>
         )}
 
-        {/* ── Vues récemment ──────────────────────────────────── */}
-        {recentItems.filter(a => a.id !== annonce.id).length > 0 && (
+        {/* ── Vues récemment (validées contre la BDD) ─────────── */}
+        {validatedRecent.length > 0 && (
           <section className="mt-10 pb-8">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-9 h-9 bg-dark-100 rounded-xl flex items-center justify-center">
@@ -531,12 +560,9 @@ export default function AnnonceDetailPage() {
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {recentItems
-                .filter(a => a.id !== annonce.id)
-                .slice(0, 6)
-                .map(a => (
-                  <AnnonceCard key={a.id} annonce={a} />
-                ))}
+              {validatedRecent.slice(0, 6).map((a: any) => (
+                <AnnonceCard key={a.id} annonce={a} />
+              ))}
             </div>
           </section>
         )}
