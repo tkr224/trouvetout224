@@ -7,7 +7,9 @@ import toast from 'react-hot-toast';
 import {
   User, Lock, Bell, Shield, Globe, HelpCircle, FileText, Info, LogOut,
   Settings, CheckCircle, ArrowRight, Mail, CreditCard, ShieldCheck, Link2,
+  Palette, Sun, Moon, Monitor,
 } from 'lucide-react';
+import { useTheme } from '@/components/providers/ThemeProvider';
 import Link from 'next/link';
 
 const TABS = [
@@ -15,6 +17,7 @@ const TABS = [
   { key: 'securite',        label: 'Sécurité & Mot de passe',  icon: Lock },
   { key: 'notifications',   label: 'Notifications',             icon: Bell },
   { key: 'confidentialite', label: 'Confidentialité',           icon: Shield },
+  { key: 'apparence',       label: 'Apparence',                 icon: Palette },
   { key: 'langue',          label: 'Langue',                    icon: Globe },
   { key: 'aide',            label: 'Aide & Support',            icon: HelpCircle },
   { key: 'conditions',      label: "Conditions d'utilisation",  icon: FileText },
@@ -36,6 +39,7 @@ const LANGS = [
 
 export default function ParametresPage() {
   const { user, logout } = useAuthStore();
+  const { theme, setTheme } = useTheme();
   const [tab, setTab]         = useState('profil');
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName]   = useState(user?.lastName || '');
@@ -189,6 +193,45 @@ export default function ParametresPage() {
                       </button>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {tab === 'apparence' && (
+              <div>
+                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-2">Apparence</h2>
+                <p className="text-dark-500 text-sm mb-6">Choisissez comment TrouveTout224 s&apos;affiche sur votre appareil.</p>
+                <div className="grid grid-cols-3 gap-3 mb-6">
+                  {([
+                    { value: 'light',  label: 'Clair',       icon: Sun,     desc: 'Toujours clair',    bg: 'bg-white border-dark-200' },
+                    { value: 'dark',   label: 'Sombre',      icon: Moon,    desc: 'Toujours sombre',   bg: 'bg-dark-900 border-dark-700' },
+                    { value: 'system', label: 'Automatique', icon: Monitor, desc: 'Suit votre appareil', bg: 'bg-gradient-to-br from-white to-dark-800 border-dark-300' },
+                  ] as const).map(opt => {
+                    const Icon = opt.icon;
+                    const active = theme === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        onClick={() => setTheme(opt.value)}
+                        className={`flex flex-col items-center gap-2.5 p-4 rounded-2xl border-2 transition-all ${
+                          active ? 'border-primary-700 bg-primary-50' : 'border-dark-200 hover:border-primary-400 hover:bg-dark-50'
+                        }`}
+                      >
+                        <div className={`w-full h-12 rounded-xl border ${opt.bg} flex items-center justify-center`}>
+                          <Icon size={20} className={active ? 'text-primary-700' : 'text-dark-400'} />
+                        </div>
+                        <p className={`font-semibold text-sm ${active ? 'text-primary-700' : 'text-dark-700'}`}>{opt.label}</p>
+                        <p className="text-dark-400 text-xs text-center leading-tight">{opt.desc}</p>
+                        {active && <CheckCircle size={15} className="text-primary-700" />}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="bg-primary-50 border border-primary-100 rounded-2xl p-4 flex items-start gap-3">
+                  <Palette size={16} className="text-primary-700 mt-0.5 shrink-0" />
+                  <p className="text-primary-800 text-sm">
+                    Le mode <strong>Automatique</strong> détecte le réglage de votre téléphone ou navigateur et l&apos;applique automatiquement.
+                  </p>
                 </div>
               </div>
             )}

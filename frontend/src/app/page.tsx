@@ -339,7 +339,7 @@ export default function HomePage() {
                   <Link
                     key={cat.slug}
                     href={`/categories/${cat.slug}`}
-                    className="group flex flex-col items-center gap-2 p-3 bg-[#fdfcf8] rounded-2xl border border-dark-100 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-1 hover:bg-primary-50/40 transition-all duration-200"
+                    className="group flex flex-col items-center gap-2 p-3 bg-[#fdfcf8] dark:bg-dark-800 rounded-2xl border border-dark-100 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-1 hover:bg-primary-50/40 dark:hover:bg-primary-900/30 transition-all duration-200"
                   >
                     <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${cat.bg} flex items-center justify-center shadow-sm`}>
                       <Icon size={20} className="text-white" strokeWidth={1.8} />
@@ -353,7 +353,7 @@ export default function HomePage() {
               {/* Carte "Plus" */}
               <Link
                 href="/annonces/lister"
-                className="group flex flex-col items-center gap-2 p-3 bg-[#fdfcf8] rounded-2xl border border-dark-100 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-1 hover:bg-primary-50/40 transition-all duration-200"
+                className="group flex flex-col items-center gap-2 p-3 bg-[#fdfcf8] dark:bg-dark-800 rounded-2xl border border-dark-100 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-1 hover:bg-primary-50/40 dark:hover:bg-primary-900/30 transition-all duration-200"
               >
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-dark-500 to-dark-700 flex items-center justify-center shadow-sm">
                   <MoreHorizontal size={20} className="text-white" />
@@ -462,7 +462,7 @@ export default function HomePage() {
 
         {/* ══ POURQUOI TROUVETOUT224 ? ════════════════════════════ */}
         <ScrollReveal>
-        <section className="mb-10 bg-gradient-to-br from-amber-50/60 via-[#fbf9f4] to-primary-50/20 rounded-3xl px-6 py-10 border border-amber-100/40">
+        <section className="mb-10 bg-gradient-to-br from-amber-50/60 via-[#fbf9f4] to-primary-50/20 dark:from-amber-900/15 dark:via-dark-900 dark:to-primary-900/15 rounded-3xl px-6 py-10 border border-amber-100/40">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-2">
               <div className="h-px w-10 bg-gradient-to-r from-transparent to-gold-400" />
