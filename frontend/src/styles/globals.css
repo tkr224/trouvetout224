@@ -13,7 +13,7 @@
 
 body {
   font-family: var(--font-inter);
-  background-color: #F8F9FA;
+  background-color: #f5f2eb;
   color: #1e293b;
   -webkit-font-smoothing: antialiased;
 }
@@ -29,7 +29,8 @@ body {
     @apply bg-gold-500 text-white font-semibold px-5 py-2.5 rounded-xl hover:bg-gold-600 transition-all duration-200 active:scale-95;
   }
   .card {
-    @apply bg-white rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden;
+    @apply rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden;
+    background-color: #fdfcf8;
   }
   .input {
     @apply w-full border border-dark-200 rounded-xl px-4 py-3 text-dark-900 placeholder-dark-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200;
@@ -50,13 +51,19 @@ body {
 
 /* Scrollbar custom */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #f1f5f9; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+::-webkit-scrollbar-track { background: #ede9e0; }
+::-webkit-scrollbar-thumb { background: #bfb9a8; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9e9888; }
 
-/* Annonce card animation */
-.annonce-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-.annonce-card:hover { transform: translateY(-2px); }
+/* Annonce card animation — lift + green shadow on hover */
+.annonce-card {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.25s ease;
+}
+.annonce-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 36px rgba(27, 139, 59, 0.12), 0 4px 10px rgba(0, 0, 0, 0.06);
+}
 
 /* Admin fade-in */
 @keyframes fadeIn {
@@ -67,11 +74,11 @@ body {
 
 /* Loading skeleton */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, #ede9e0 25%, #e2ddd4 50%, #ede9e0 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 8px;

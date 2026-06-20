@@ -10,14 +10,14 @@ export default function SplashScreen() {
     if (sessionStorage.getItem('tt224-splash')) return;
     setShow(true);
     const timers = [
-      setTimeout(() => setPhase(1), 80),
-      setTimeout(() => setPhase(2), 700),
-      setTimeout(() => setPhase(3), 1350),
-      setTimeout(() => setPhase(4), 2550),
+      setTimeout(() => setPhase(1),   50),   // logo apparaît
+      setTimeout(() => setPhase(2),  450),   // nom apparaît
+      setTimeout(() => setPhase(3),  900),   // slogan + barre
+      setTimeout(() => setPhase(4), 1500),   // début du fondu de sortie
       setTimeout(() => {
         setShow(false);
         sessionStorage.setItem('tt224-splash', '1');
-      }, 3150),
+      }, 2000),
     ];
     return () => timers.forEach(clearTimeout);
   }, []);
@@ -58,9 +58,9 @@ export default function SplashScreen() {
           display: flex; align-items: center; justify-content: center;
           background: #07200F;
           overflow: hidden;
-          transition: opacity 0.55s cubic-bezier(0.4,0,0.2,1), transform 0.55s cubic-bezier(0.4,0,0.2,1);
+          transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
         }
-        .sp-out { opacity: 0; transform: scale(1.05); pointer-events: none; }
+        .sp-out { opacity: 0; transform: scale(1.04); pointer-events: none; }
 
         .sp-glow-c {
           position: absolute; top: 50%; left: 50%;
@@ -91,19 +91,19 @@ export default function SplashScreen() {
         .sp-logo-wrap {
           position: relative; margin-bottom: 30px;
           opacity: 0; transform: scale(0.5);
-          transition: opacity 0.5s cubic-bezier(0.34,1.5,0.64,1),
-                      transform 0.5s cubic-bezier(0.34,1.5,0.64,1);
+          transition: opacity 0.42s cubic-bezier(0.34,1.5,0.64,1),
+                      transform 0.42s cubic-bezier(0.34,1.5,0.64,1);
         }
         .sp-logo-in { opacity: 1; transform: scale(1); }
 
         .sp-ring {
           position: absolute; inset: -14px; border-radius: 50%;
           border: 1.5px solid transparent;
-          transition: border-color 0.3s ease 0.3s;
+          transition: border-color 0.3s ease 0.2s;
         }
         .sp-ring-pulse {
           border-color: rgba(27,139,59,0.4);
-          animation: spRingPulse 2.4s ease-in-out 0.4s infinite;
+          animation: spRingPulse 1.4s ease-in-out 0.3s infinite;
         }
         @keyframes spRingPulse {
           0%,100% { transform: scale(1); opacity: 0.4; }
@@ -125,7 +125,7 @@ export default function SplashScreen() {
           background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.28) 50%, transparent 70%);
           transform: skewX(-12deg);
         }
-        .sp-shine-go { animation: spShine 0.75s ease 0.2s forwards; }
+        .sp-shine-go { animation: spShine 0.6s ease 0.15s forwards; }
         @keyframes spShine { from { left: -100%; } to { left: 160%; } }
 
         /* ── Brand name ── */
@@ -135,7 +135,7 @@ export default function SplashScreen() {
           font-family: var(--font-poppins,'Poppins'), sans-serif;
           margin-bottom: 14px;
           opacity: 0; transform: translateY(20px);
-          transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.34,1.2,0.64,1);
+          transition: opacity 0.38s ease, transform 0.38s cubic-bezier(0.34,1.2,0.64,1);
           display: flex; gap: 0;
         }
         .sp-brand-in { opacity: 1; transform: translateY(0); }
@@ -154,21 +154,21 @@ export default function SplashScreen() {
           text-align: center;
           margin-bottom: 44px;
           opacity: 0; transform: translateY(8px);
-          transition: opacity 0.45s ease 0.08s, transform 0.45s ease 0.08s;
+          transition: opacity 0.38s ease 0.06s, transform 0.38s ease 0.06s;
         }
         .sp-slogan-in { opacity: 1; transform: translateY(0); }
 
         /* ── Loading bar ── */
         .sp-bar-outer {
           width: 130px; opacity: 0;
-          transition: opacity 0.35s ease 0.18s;
+          transition: opacity 0.3s ease 0.12s;
         }
         .sp-bar-vis { opacity: 1; }
         .sp-bar-fill {
           height: 2px; width: 0%; border-radius: 9px;
           background: linear-gradient(90deg, #CE1126 0%, #C9A84C 50%, #1B8B3B 100%);
           box-shadow: 0 0 8px rgba(27,139,59,0.55);
-          transition: width 1.1s cubic-bezier(0.4,0,0.2,1);
+          transition: width 0.55s cubic-bezier(0.4,0,0.2,1);
         }
         .sp-bar-go { width: 100%; }
       `}</style>

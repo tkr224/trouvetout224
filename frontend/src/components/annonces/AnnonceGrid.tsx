@@ -19,7 +19,7 @@ export function AnnonceCard({ annonce }: { annonce: Annonce }) {
     : false;
 
   return (
-    <Link href={`/annonces/${annonce.slug || annonce.id}`} className="card block group overflow-hidden">
+    <Link href={`/annonces/${annonce.slug || annonce.id}`} className="card annonce-card block group overflow-hidden">
       <div className="relative aspect-[4/3] overflow-hidden bg-dark-100">
         {img ? (
           <img src={img} alt={annonce.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />

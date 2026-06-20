@@ -37,7 +37,7 @@ module.exports = {
           700: '#7d0a17',
         },
         dark: {
-          50:  '#f8fafc',
+          50:  '#f5f2eb',  // Warm cream instead of cold blue-grey
           100: '#f1f5f9',
           200: '#e2e8f0',
           300: '#cbd5e1',
@@ -54,9 +54,10 @@ module.exports = {
         display: ['var(--font-poppins)', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        card: '0 2px 12px rgba(0,0,0,0.08)',
-        'card-hover': '0 8px 30px rgba(0,0,0,0.12)',
-        premium: '0 4px 20px rgba(27, 139, 59, 0.2)',
+        card: '0 2px 12px rgba(0,0,0,0.07)',
+        'card-hover': '0 10px 32px rgba(27,139,59,0.10), 0 4px 12px rgba(0,0,0,0.06)',
+        premium: '0 4px 20px rgba(27, 139, 59, 0.22)',
+        warm: '0 4px 24px rgba(27,139,59,0.08), 0 1px 6px rgba(0,0,0,0.05)',
       },
       borderRadius: {
         xl: '1rem',

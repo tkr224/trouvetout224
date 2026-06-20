@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import AnnonceGrid from '@/components/annonces/AnnonceGrid';
+import ScrollReveal from '@/components/ScrollReveal';
 import { useAnnonces } from '@/hooks/useAnnonces';
 import { useCategories } from '@/hooks/useCategories';
 import Link from 'next/link';
@@ -331,14 +332,14 @@ export default function HomePage() {
             </div>
 
             {/* ── CATÉGORIES EN VEDETTE ── */}
-            <div className="grid grid-cols-4 sm:grid-cols-8 gap-3 mb-8">
+            <ScrollReveal className="grid grid-cols-4 sm:grid-cols-8 gap-3 mb-8">
               {FEATURED_CATS.map(cat => {
                 const Icon = cat.icon;
                 return (
                   <Link
                     key={cat.slug}
                     href={`/categories/${cat.slug}`}
-                    className="group flex flex-col items-center gap-2 p-3 bg-white rounded-2xl border border-dark-100 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200"
+                    className="group flex flex-col items-center gap-2 p-3 bg-[#fdfcf8] rounded-2xl border border-dark-100 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-1 hover:bg-primary-50/40 transition-all duration-200"
                   >
                     <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${cat.bg} flex items-center justify-center shadow-sm`}>
                       <Icon size={20} className="text-white" strokeWidth={1.8} />
@@ -352,7 +353,7 @@ export default function HomePage() {
               {/* Carte "Plus" */}
               <Link
                 href="/annonces/lister"
-                className="group flex flex-col items-center gap-2 p-3 bg-white rounded-2xl border border-dark-100 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200"
+                className="group flex flex-col items-center gap-2 p-3 bg-[#fdfcf8] rounded-2xl border border-dark-100 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-1 hover:bg-primary-50/40 transition-all duration-200"
               >
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-dark-500 to-dark-700 flex items-center justify-center shadow-sm">
                   <MoreHorizontal size={20} className="text-white" />
@@ -361,12 +362,16 @@ export default function HomePage() {
                   Plus
                 </span>
               </Link>
-            </div>
+            </ScrollReveal>
 
             {/* ── ANNONCES RÉCENTES ── */}
+            <ScrollReveal>
             <section>
               <div className="flex items-end justify-between mb-4">
                 <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="h-1 w-6 rounded-full bg-gradient-to-r from-primary-500 to-primary-700" />
+                  </div>
                   <h2 className="text-xl font-display font-bold text-dark-900">Annonces récentes</h2>
                   <p className="text-dark-400 text-xs mt-0.5">Les dernières offres publiées sur la plateforme</p>
                 </div>
@@ -379,14 +384,19 @@ export default function HomePage() {
               </div>
               <AnnonceGrid annonces={annonces?.data} isLoading={isLoading} cols={4} />
             </section>
+            </ScrollReveal>
 
           </div>{/* fin colonne droite */}
         </div>{/* fin 2 colonnes */}
 
         {/* ══ CATÉGORIES POPULAIRES (pleine largeur) ══════════════ */}
-        <section className="mt-12 mb-10">
+        <ScrollReveal>
+        <section className="mt-10 mb-8 bg-gradient-to-b from-primary-50/70 to-transparent rounded-3xl px-6 py-8 border border-primary-100/50">
           <div className="flex items-end justify-between mb-6">
             <div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="h-1 w-6 rounded-full bg-gradient-to-r from-primary-500 to-primary-700" />
+              </div>
               <h2 className="text-2xl font-display font-bold text-dark-900">Catégories populaires</h2>
               <p className="text-dark-400 text-sm mt-0.5">Les catégories les plus actives sur la plateforme</p>
             </div>
@@ -408,7 +418,7 @@ export default function HomePage() {
                     <Link
                       key={cat.slug}
                       href={`/categories/${cat.slug}`}
-                      className={`group flex items-center gap-3 p-4 rounded-2xl border bg-white hover:-translate-y-0.5 hover:shadow-card-hover transition-all duration-200 ${cat.color}`}
+                      className={`group flex items-center gap-3 p-4 rounded-2xl border bg-white hover:-translate-y-1 hover:shadow-card-hover transition-all duration-200 ${cat.color}`}
                     >
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cat.color}`}>
                         <Icon size={20} />
@@ -424,11 +434,16 @@ export default function HomePage() {
             }
           </div>
         </section>
+        </ScrollReveal>
 
         {/* ══ LES PLUS POPULAIRES ═════════════════════════════════ */}
-        <section className="mb-12">
+        <ScrollReveal>
+        <section className="mb-10">
           <div className="flex items-end justify-between mb-5">
             <div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="h-1 w-6 rounded-full bg-gradient-to-r from-gold-400 to-gold-500" />
+              </div>
               <h2 className="text-2xl font-display font-bold text-dark-900 flex items-center gap-2">
                 <TrendingUp size={22} className="text-primary-600" /> Les plus populaires
               </h2>
@@ -443,10 +458,17 @@ export default function HomePage() {
           </div>
           <AnnonceGrid annonces={popularAnnonces?.data} isLoading={loadingPopular} cols={4} />
         </section>
+        </ScrollReveal>
 
         {/* ══ POURQUOI TROUVETOUT224 ? ════════════════════════════ */}
-        <section className="mb-10">
+        <ScrollReveal>
+        <section className="mb-10 bg-gradient-to-br from-amber-50/60 via-[#fbf9f4] to-primary-50/20 rounded-3xl px-6 py-10 border border-amber-100/40">
           <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="h-px w-10 bg-gradient-to-r from-transparent to-gold-400" />
+              <div className="h-1.5 w-1.5 rounded-full bg-gold-500" />
+              <div className="h-px w-10 bg-gradient-to-l from-transparent to-gold-400" />
+            </div>
             <h2 className="text-2xl font-display font-bold text-dark-900 mb-2">
               Pourquoi choisir TrouveTout224 ?
             </h2>
@@ -479,13 +501,13 @@ export default function HomePage() {
                 icon: MapPin,
                 title: '100% Guinée',
                 desc: 'Une plateforme 100% locale, faite par et pour les Guinéens de toutes les régions.',
-                iconCls: 'text-primary-700 bg-primary-50',
-                border: 'border-primary-100',
+                iconCls: 'text-guinea-600 bg-guinea-50',
+                border: 'border-guinea-100',
               },
             ].map((b, i) => (
               <div
                 key={i}
-                className={`bg-white rounded-2xl border p-6 hover:-translate-y-0.5 hover:shadow-card-hover transition-all duration-200 ${b.border}`}
+                className={`bg-white/80 backdrop-blur-sm rounded-2xl border p-6 hover:-translate-y-1 hover:shadow-card-hover hover:bg-white transition-all duration-200 ${b.border}`}
               >
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${b.iconCls}`}>
                   <b.icon size={22} />
@@ -496,6 +518,7 @@ export default function HomePage() {
             ))}
           </div>
         </section>
+        </ScrollReveal>
 
       </div>
 
