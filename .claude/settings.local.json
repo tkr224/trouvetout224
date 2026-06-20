@@ -4,7 +4,17 @@
       "PowerShell(Get-ChildItem \"C:\\\\Users\\\\celso\\\\AppData\\\\Local\\\\Programs\\\\Git\\\\bin\\\\git.exe\" -ErrorAction SilentlyContinue; where.exe git 2>$null; [System.IO.Directory]::Exists\\(\"C:\\\\Program Files\\\\Git\"\\))",
       "PowerShell(New-Item *)",
       "PowerShell(Get-ChildItem -Recurse \"C:\\\\Users\\\\celso\\\\OneDrive\\\\Desktop\\\\Trouvetout224\\\\frontend\\\\src\" -File | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\Users\\\\celso\\\\OneDrive\\\\Desktop\\\\Trouvetout224\\\\\", \"\"\\) })",
-      "PowerShell(Get-ChildItem -Recurse \"C:\\\\Users\\\\celso\\\\OneDrive\\\\Desktop\\\\Trouvetout224\\\\backend\\\\src\" -File | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\Users\\\\celso\\\\OneDrive\\\\Desktop\\\\Trouvetout224\\\\\", \"\"\\) })"
+      "PowerShell(Get-ChildItem -Recurse \"C:\\\\Users\\\\celso\\\\OneDrive\\\\Desktop\\\\Trouvetout224\\\\backend\\\\src\" -File | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\Users\\\\celso\\\\OneDrive\\\\Desktop\\\\Trouvetout224\\\\\", \"\"\\) })",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git checkout *)",
+      "Bash(xargs grep -l \"category\\\\|COUNT\\\\|_count\\\\|aggregate\")",
+      "Bash(node -e \"const p = require\\('./node_modules/prisma/package.json'\\); console.log\\(p.version\\)\")",
+      "PowerShell(cd \"C:\\\\Users\\\\celso\\\\OneDrive\\\\Desktop\\\\Trouvetout224\\\\backend\"; npx tsc --noEmit 2>&1 | Where-Object { $_ -match \"error TS\" } | Select-Object -First 60)",
+      "Bash(git check-ignore *)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(git push *)"
     ]
   }
 }
