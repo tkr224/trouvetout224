@@ -1,6 +1,6 @@
 'use client';
 export const dynamic = 'force-dynamic';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -9,12 +9,14 @@ import ScrollReveal from '@/components/ScrollReveal';
 import { useAnnonces } from '@/hooks/useAnnonces';
 import { useCategories } from '@/hooks/useCategories';
 import Link from 'next/link';
+import { api } from '@/lib/api';
 import {
   Search, ShieldCheck, Zap, MapPin, ArrowRight, TrendingUp, Clock,
   Star, Eye, Smartphone, Laptop, Cpu, Car, Home, Trees, Briefcase,
   Wrench, UtensilsCrossed, Hotel, Shirt, Footprints, Sparkles,
   HeartPulse, GraduationCap, PartyPopper, Sofa, Wheat, PawPrint,
   Dumbbell, Package, ChevronRight, MoreHorizontal,
+  Calendar, ChevronLeft,
 } from 'lucide-react';
 
 /* ── Données statiques ─────────────────────────────────────────── */
@@ -92,17 +94,160 @@ function formatCount(n: number): string {
   return n.toLocaleString('fr-FR');
 }
 
+/* ── Types publications ─────────────────────────────────────────── */
+
+type PubType = 'BANNER' | 'EVENT' | 'FEATURED_VENDOR';
+type Publication = {
+  id: string;
+  type: PubType;
+  title: string;
+  subtitle?: string;
+  image?: string;
+  description?: string;
+  link?: string;
+  eventDate?: string;
+  eventLocation?: string;
+};
+
+const PUB_GRADIENT: Record<PubType, string> = {
+  BANNER:          'from-primary-700 to-primary-800',
+  EVENT:           'from-blue-700 to-blue-900',
+  FEATURED_VENDOR: 'from-amber-500 to-amber-700',
+};
+
+const PUB_BADGE: Record<PubType, string> = {
+  BANNER:          '🎉 Promo officielle',
+  EVENT:           '📅 Événement',
+  FEATURED_VENDOR: '⭐ Vendeur en vedette',
+};
+
+/* ── Carrousel publications ─────────────────────────────────────── */
+
+function PublicationsCarousel({ pubs }: { pubs: Publication[] }) {
+  const [active, setActive] = useState(0);
+
+  const next = useCallback(() => setActive(i => (i + 1) % pubs.length), [pubs.length]);
+  const prev = useCallback(() => setActive(i => (i - 1 + pubs.length) % pubs.length), [pubs.length]);
+
+  useEffect(() => {
+    if (pubs.length <= 1) return;
+    const t = setInterval(next, 4500);
+    return () => clearInterval(t);
+  }, [next, pubs.length]);
+
+  if (!pubs.length) return null;
+
+  const pub = pubs[active];
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 mb-5">
+      <div className="relative rounded-2xl overflow-hidden shadow-card-hover">
+        {pubs.map((p, i) => (
+          <div
+            key={p.id}
+            className={`absolute inset-0 transition-opacity duration-700 ${i === active ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+          />
+        ))}
+
+        {/* Slide actif */}
+        {pub.link ? (
+          <Link href={pub.link}>
+            <SlideContent pub={pub} />
+          </Link>
+        ) : (
+          <SlideContent pub={pub} />
+        )}
+
+        {/* Navigation flèches (si plusieurs slides) */}
+        {pubs.length > 1 && (
+          <>
+            <button
+              onClick={prev}
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              onClick={next}
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </>
+        )}
+
+        {/* Dots */}
+        {pubs.length > 1 && (
+          <div className="absolute bottom-3 left-0 right-0 z-20 flex justify-center gap-1.5">
+            {pubs.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setActive(i)}
+                className={`h-1.5 rounded-full transition-all duration-300 ${i === active ? 'w-5 bg-white' : 'w-1.5 bg-white/50'}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SlideContent({ pub }: { pub: Publication }) {
+  return (
+    <div className={`relative h-44 sm:h-52 bg-gradient-to-r ${PUB_GRADIENT[pub.type]} flex items-center px-6 sm:px-10 overflow-hidden`}>
+      {/* Image en fond à droite */}
+      {pub.image && (
+        <div className="absolute inset-y-0 right-0 w-2/5 sm:w-1/3">
+          <img src={pub.image} alt="" className="w-full h-full object-cover opacity-30 sm:opacity-60" />
+          <div className="absolute inset-0 bg-gradient-to-r from-current to-transparent" style={{ color: 'inherit' }} />
+        </div>
+      )}
+
+      {/* Contenu texte */}
+      <div className="relative z-10 max-w-xs sm:max-w-md">
+        <span className="inline-block px-2.5 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-xs font-semibold mb-3">
+          {PUB_BADGE[pub.type]}
+        </span>
+        <h3 className="text-white font-display font-bold text-xl sm:text-2xl leading-tight mb-1.5">
+          {pub.title}
+        </h3>
+        {pub.subtitle && (
+          <p className="text-white/80 text-sm leading-snug">{pub.subtitle}</p>
+        )}
+        {pub.eventDate && (
+          <p className="text-white/70 text-xs mt-2 flex items-center gap-1">
+            <Calendar size={11} />
+            {new Date(pub.eventDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
+            {pub.eventLocation && ` · ${pub.eventLocation}`}
+          </p>
+        )}
+        {pub.link && (
+          <p className="text-white/70 text-xs mt-3 flex items-center gap-1 hover:text-white transition-colors">
+            En savoir plus <ArrowRight size={11} />
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ── Composant ─────────────────────────────────────────────────── */
 
 export default function HomePage() {
   const [selectedCity, setSelectedCity] = useState('Conakry');
   const [query, setQuery]               = useState('');
   const [sort, setSort]                 = useState('recent');
+  const [publications, setPublications] = useState<Publication[]>([]);
   const router = useRouter();
 
   const { data: annonces,        isLoading }         = useAnnonces({ sort, limit: 12 });
   const { data: popularAnnonces, isLoading: loadingPopular } = useAnnonces({ sort: 'popular', limit: 4 });
   const { data: categories, isLoading: loadingCats } = useCategories();
+
+  useEffect(() => {
+    api.get('/publications').then(r => setPublications(r.data.data || [])).catch(() => {});
+  }, []);
 
   const popularCats = useMemo(() => {
     if (!categories) return [];
@@ -174,6 +319,13 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* ══ CARROUSEL PUBLICATIONS OFFICIELLES ══════════════════════ */}
+      {publications.length > 0 && (
+        <div className="pt-4">
+          <PublicationsCarousel pubs={publications} />
+        </div>
+      )}
 
       {/* ══ CONTENU PRINCIPAL ═══════════════════════════════════════ */}
       <div className="flex-1 max-w-7xl mx-auto px-4 py-6 w-full">

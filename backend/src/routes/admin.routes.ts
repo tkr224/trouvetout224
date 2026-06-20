@@ -250,27 +250,31 @@ router.get('/categories', async (req, res) => {
 router.post('/categories', async (req, res) => {
   try {
     const { name, nameFr, slug, icon, color, isActive, order } = req.body;
+    if (!nameFr || !slug) return res.status(400).json({ error: 'Le nom et le slug sont requis.' });
     const category = await prisma.category.create({
       data: {
-        name,
+        name: name || slug,
         nameFr,
         slug,
-        icon,
+        icon: icon || '📦',
         color: color || '#16a34a',
         isActive: isActive ?? true,
         order: order || 0,
       },
     });
     res.json({ data: category });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e: any) {
+    if (e.code === 'P2002') return res.status(409).json({ error: 'Ce slug existe déjà. Choisissez-en un autre.' });
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
 });
 
 router.put('/categories/:id', async (req, res) => {
   try {
-    const { name, nameFr, icon, color, isActive, order } = req.body;
+    const { name, nameFr, slug, icon, color, isActive, order } = req.body;
     const category = await prisma.category.update({
       where: { id: req.params.id },
-      data: { name, nameFr, icon, color, isActive, order },
+      data: { name, nameFr, slug, icon, color, isActive, order },
     });
     res.json({ data: category });
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
@@ -281,6 +285,72 @@ router.delete('/categories/:id', async (req, res) => {
     await prisma.category.delete({ where: { id: req.params.id } });
     res.json({ message: 'Catégorie supprimée.' });
   } catch { res.status(500).json({ error: 'Erreur serveur (des annonces y sont peut-être liées).' }); }
+});
+
+// ─── Publications officielles ─────────────────────────────────────────────────
+
+router.get('/publications', async (req, res) => {
+  try {
+    const pubs = await prisma.publication.findMany({
+      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+    });
+    res.json({ data: pubs });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.post('/publications', async (req, res) => {
+  try {
+    const { type, title, subtitle, image, imagePublicId, description, link, eventDate, eventLocation, isActive, endsAt, order } = req.body;
+    if (!type || !title) return res.status(400).json({ error: 'Le type et le titre sont requis.' });
+    const pub = await prisma.publication.create({
+      data: {
+        type,
+        title,
+        subtitle: subtitle || null,
+        image: image || null,
+        imagePublicId: imagePublicId || null,
+        description: description || null,
+        link: link || null,
+        eventDate: eventDate ? new Date(eventDate) : null,
+        eventLocation: eventLocation || null,
+        isActive: isActive ?? true,
+        endsAt: endsAt ? new Date(endsAt) : null,
+        order: order ?? 0,
+      },
+    });
+    res.json({ data: pub });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.put('/publications/:id', async (req, res) => {
+  try {
+    const { type, title, subtitle, image, imagePublicId, description, link, eventDate, eventLocation, isActive, endsAt, order } = req.body;
+    const pub = await prisma.publication.update({
+      where: { id: req.params.id },
+      data: {
+        type,
+        title,
+        subtitle: subtitle || null,
+        image: image || null,
+        imagePublicId: imagePublicId || null,
+        description: description || null,
+        link: link || null,
+        eventDate: eventDate ? new Date(eventDate) : null,
+        eventLocation: eventLocation || null,
+        isActive: isActive ?? true,
+        endsAt: endsAt ? new Date(endsAt) : null,
+        order: order ?? 0,
+      },
+    });
+    res.json({ data: pub });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.delete('/publications/:id', async (req, res) => {
+  try {
+    await prisma.publication.delete({ where: { id: req.params.id } });
+    res.json({ message: 'Publication supprimée.' });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // ─── Paiements ────────────────────────────────────────────────────────────────

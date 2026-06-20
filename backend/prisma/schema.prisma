@@ -538,3 +538,33 @@ enum PaymentStatus {
   FAILED
   REFUNDED
 }
+
+// =============================================
+// PUBLICATIONS OFFICIELLES
+// =============================================
+
+model Publication {
+  id              String          @id @default(cuid())
+  type            PublicationType
+  title           String
+  subtitle        String?
+  image           String?
+  imagePublicId   String?
+  description     String?
+  link            String?
+  eventDate       DateTime?
+  eventLocation   String?
+  isActive        Boolean         @default(true)
+  endsAt          DateTime?
+  order           Int             @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@map("publications")
+}
+
+enum PublicationType {
+  BANNER
+  EVENT
+  FEATURED_VENDOR
+}

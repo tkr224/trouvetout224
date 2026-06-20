@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Tag, Plus, Pencil, Trash2, Check, X } from 'lucide-react';
+import { Tag, Plus, Pencil, Trash2, Check, X, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 
@@ -36,12 +36,22 @@ const EMPTY: FormData = {
   order: 0,
 };
 
+const toSlug = (str: string) =>
+  str.toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+
 export default function AdminCategories() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(EMPTY);
+  const [saving, setSaving] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -77,21 +87,29 @@ export default function AdminCategories() {
 
   const save = async () => {
     if (!form.nameFr || !form.slug) {
-      toast.error('Le nom et le slug sont requis');
+      toast.error('Le nom (FR) et le slug sont requis');
       return;
     }
+    setSaving(true);
     try {
+      // Si name est vide, on utilise le slug comme valeur technique
+      const payload = { ...form, name: form.name || form.slug };
       if (editing) {
-        const res = await api.put(`/admin/categories/${editing}`, form);
+        const res = await api.put(`/admin/categories/${editing}`, payload);
         setCategories(c => c.map(x => x.id === editing ? { ...x, ...res.data.data } : x));
         toast.success('Catégorie mise à jour');
       } else {
-        const res = await api.post('/admin/categories', form);
+        const res = await api.post('/admin/categories', payload);
         setCategories(c => [...c, { ...res.data.data, _count: { annonces: 0 } }]);
-        toast.success('Catégorie créée');
+        toast.success('Catégorie créée !');
       }
       setShowForm(false);
-    } catch { toast.error('Erreur lors de la sauvegarde'); }
+    } catch (e: any) {
+      const msg = e.response?.data?.error || 'Erreur lors de la sauvegarde';
+      toast.error(msg);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const remove = async (id: string) => {
@@ -108,6 +126,7 @@ export default function AdminCategories() {
       await api.put(`/admin/categories/${cat.id}`, {
         name: cat.name,
         nameFr: cat.nameFr,
+        slug: cat.slug,
         icon: cat.icon,
         color: cat.color,
         isActive: !cat.isActive,
@@ -117,11 +136,21 @@ export default function AdminCategories() {
     } catch { toast.error('Erreur'); }
   };
 
-  const setField = <K extends keyof FormData>(key: K, val: FormData[K]) =>
-    setForm(prev => ({ ...prev, [key]: val }));
+  const setField = <K extends keyof FormData>(key: K, val: FormData[K]) => {
+    setForm(prev => {
+      const next = { ...prev, [key]: val };
+      // Auto-génère slug et name quand l'utilisateur tape le nom français (création seulement)
+      if (key === 'nameFr' && typeof val === 'string' && !editing) {
+        const auto = toSlug(val);
+        if (!prev.slug || prev.slug === toSlug(prev.nameFr as string)) next.slug = auto;
+        if (!prev.name || prev.name === toSlug(prev.nameFr as string)) next.name = auto;
+      }
+      return next;
+    });
+  };
 
   return (
-    <div className="p-8 space-y-6 animate-fadeIn">
+    <div className="p-6 sm:p-8 space-y-6 animate-fadeIn">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -140,8 +169,8 @@ export default function AdminCategories() {
 
       {/* Modale de formulaire */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 animate-fadeIn">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 animate-fadeIn max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-display font-bold text-dark-900">
                 {editing ? 'Modifier la catégorie' : 'Nouvelle catégorie'}
@@ -155,22 +184,56 @@ export default function AdminCategories() {
             </div>
 
             <div className="space-y-3">
-              {[
-                { label: 'Nom technique', key: 'name' as const, placeholder: 'electronics' },
-                { label: 'Nom en français *', key: 'nameFr' as const, placeholder: 'Électronique' },
-                { label: 'Slug (URL) *', key: 'slug' as const, placeholder: 'electronique' },
-                { label: 'Icône (emoji)', key: 'icon' as const, placeholder: '📦' },
-              ].map(f => (
-                <div key={f.key}>
-                  <label className="block text-xs font-semibold text-dark-600 mb-1">{f.label}</label>
-                  <input
-                    value={form[f.key] as string}
-                    onChange={e => setField(f.key, e.target.value)}
-                    placeholder={f.placeholder}
-                    className="w-full px-3 py-2.5 rounded-xl border border-dark-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
-                  />
-                </div>
-              ))}
+              {/* Nom en français (obligatoire — génère le slug auto) */}
+              <div>
+                <label className="block text-xs font-semibold text-dark-600 mb-1">
+                  Nom en français <span className="text-guinea-500">*</span>
+                </label>
+                <input
+                  value={form.nameFr}
+                  onChange={e => setField('nameFr', e.target.value)}
+                  placeholder="ex : Électronique"
+                  className="w-full px-3 py-2.5 rounded-xl border border-dark-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
+                />
+              </div>
+
+              {/* Slug (auto-généré, modifiable) */}
+              <div>
+                <label className="block text-xs font-semibold text-dark-600 mb-1">
+                  Slug URL <span className="text-guinea-500">*</span>
+                  <span className="ml-2 font-normal text-dark-400">(auto-généré)</span>
+                </label>
+                <input
+                  value={form.slug}
+                  onChange={e => setField('slug', e.target.value)}
+                  placeholder="ex : electronique"
+                  className="w-full px-3 py-2.5 rounded-xl border border-dark-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors font-mono"
+                />
+              </div>
+
+              {/* Nom technique (optionnel) */}
+              <div>
+                <label className="block text-xs font-semibold text-dark-600 mb-1">
+                  Nom technique <span className="text-dark-400 font-normal">(optionnel)</span>
+                </label>
+                <input
+                  value={form.name}
+                  onChange={e => setField('name', e.target.value)}
+                  placeholder="ex : electronics"
+                  className="w-full px-3 py-2.5 rounded-xl border border-dark-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
+                />
+              </div>
+
+              {/* Icône */}
+              <div>
+                <label className="block text-xs font-semibold text-dark-600 mb-1">Icône (emoji)</label>
+                <input
+                  value={form.icon}
+                  onChange={e => setField('icon', e.target.value)}
+                  placeholder="📦"
+                  className="w-full px-3 py-2.5 rounded-xl border border-dark-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors text-2xl"
+                />
+              </div>
 
               <div className="flex gap-4">
                 <div className="flex-1">
@@ -215,15 +278,19 @@ export default function AdminCategories() {
             <div className="flex gap-3 pt-1">
               <button
                 onClick={() => setShowForm(false)}
-                className="flex-1 px-4 py-2.5 bg-dark-100 hover:bg-dark-200 text-dark-700 rounded-xl text-sm font-semibold transition-colors"
+                disabled={saving}
+                className="flex-1 px-4 py-2.5 bg-dark-100 hover:bg-dark-200 text-dark-700 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
               >
                 Annuler
               </button>
               <button
                 onClick={save}
-                className="flex-1 px-4 py-2.5 bg-primary-700 hover:bg-primary-800 text-white rounded-xl text-sm font-semibold transition-colors"
+                disabled={saving}
+                className="flex-1 px-4 py-2.5 bg-primary-700 hover:bg-primary-800 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
               >
-                {editing ? 'Enregistrer' : 'Créer'}
+                {saving
+                  ? <><Loader2 size={15} className="animate-spin" /> En cours…</>
+                  : editing ? 'Enregistrer' : 'Créer'}
               </button>
             </div>
           </div>
@@ -254,7 +321,7 @@ export default function AdminCategories() {
                   </div>
                   <div className="min-w-0">
                     <p className="font-semibold text-dark-900 truncate">{cat.nameFr}</p>
-                    <p className="text-dark-400 text-xs truncate">{cat.slug}</p>
+                    <p className="text-dark-400 text-xs truncate font-mono">{cat.slug}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
