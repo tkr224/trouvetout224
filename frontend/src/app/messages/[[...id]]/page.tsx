@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic';
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Send, MessageCircle, ArrowLeft, MoreVertical, User, Ban, Flag, Trash2, X, Check, CheckCheck, Reply, Camera, AlertTriangle, Mail, AlertOctagon, HelpCircle } from 'lucide-react';
+import { Send, MessageCircle, ArrowLeft, MoreVertical, User, Ban, Flag, Trash2, X, Check, CheckCheck, Reply, Camera, AlertTriangle, Mail, AlertOctagon, HelpCircle, ShoppingBag } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
@@ -213,6 +213,31 @@ export default function MessagesPage() {
                       </div>
                     )}
                   </div>
+
+                  {/* Carte annonce liée à la conversation */}
+                  {activeConv?.annonce && (
+                    <Link
+                      href={`/annonces/${activeConv.annonce.slug || activeConv.annonce.id}`}
+                      className="mx-4 mt-3 mb-1 flex items-center gap-3 bg-primary-50 border border-primary-100 rounded-xl p-3 hover:bg-primary-100 hover:border-primary-300 transition-colors group"
+                    >
+                      {activeConv.annonce.images?.[0]?.url ? (
+                        <img src={activeConv.annonce.images[0].url} alt={activeConv.annonce.title} className="w-12 h-12 rounded-xl object-cover shrink-0" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
+                          <ShoppingBag size={18} className="text-primary-500" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-primary-700 truncate">{activeConv.annonce.title}</p>
+                        {activeConv.annonce.price != null && (
+                          <p className="text-xs text-primary-600 font-semibold mt-0.5">
+                            {activeConv.annonce.price.toLocaleString('fr-GN')} GNF
+                          </p>
+                        )}
+                      </div>
+                      <span className="text-primary-400 group-hover:text-primary-600 text-xs font-medium shrink-0">Voir →</span>
+                    </Link>
+                  )}
 
                   <div className="flex-1 overflow-y-auto p-4 space-y-2" onClick={() => { setShowMenu(false); setMsgMenu(null); }}>
                     {messages.length === 0 ? (

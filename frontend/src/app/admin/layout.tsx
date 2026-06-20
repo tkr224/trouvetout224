@@ -19,17 +19,38 @@ const NAV = [
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, _hasHydrated, logout } = useAuthStore();
+  const { user, _hasHydrated, logout, setUser } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
   const [pendingCount, setPendingCount] = useState(0);
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
+  // Rafraîchit le profil depuis le serveur pour éviter les redirections
+  // causées par un rôle obsolète dans le cache localStorage.
   useEffect(() => {
     if (!_hasHydrated) return;
+    api.get('/users/me')
+      .then(r => {
+        if (r.data?.data) {
+          const u = r.data.data;
+          setUser({
+            id: u.id, firstName: u.firstName, lastName: u.lastName,
+            email: u.email ?? undefined, phone: u.phone ?? undefined,
+            avatar: u.avatar ?? undefined, role: u.role, isVerified: u.isVerified,
+          });
+        }
+      })
+      .catch(() => {})
+      .finally(() => setProfileLoaded(true));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [_hasHydrated]);
+
+  useEffect(() => {
+    if (!_hasHydrated || !profileLoaded) return;
     if (!user || !['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
       router.replace('/');
     }
-  }, [_hasHydrated, user, router]);
+  }, [_hasHydrated, profileLoaded, user, router]);
 
   useEffect(() => {
     if (!user || !['ADMIN', 'SUPER_ADMIN'].includes(user.role)) return;
@@ -40,7 +61,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return () => clearInterval(t);
   }, [user]);
 
-  if (!_hasHydrated || !user || !['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
+  if (!_hasHydrated || !profileLoaded || !user || !['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
     return (
       <div className="min-h-screen bg-dark-900 flex items-center justify-center">
         <div className="text-center">

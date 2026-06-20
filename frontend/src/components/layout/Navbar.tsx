@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Logo from '@/components/Logo';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { MapPin, ChevronDown, Bell, MessageCircle, User, Plus, Menu, X, LogOut } from 'lucide-react';
+import { MapPin, ChevronDown, Bell, MessageCircle, User, Plus, Menu, X, LogOut, Shield } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
@@ -111,6 +111,15 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             >
               <MessageCircle size={18} />
             </Link>
+            {loggedIn && ['ADMIN', 'SUPER_ADMIN'].includes(user.role) && (
+              <Link
+                href="/admin"
+                className="relative w-9 h-9 flex items-center justify-center rounded-xl border border-primary-300 text-primary-700 hover:bg-primary-50 hover:border-primary-500 transition-colors"
+                title="Tableau de bord Admin"
+              >
+                <Shield size={17} />
+              </Link>
+            )}
             <Link
               href="/notifications"
               className="relative w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 hover:border-primary-400 hover:text-primary-700 transition-colors"
@@ -179,6 +188,16 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
                   >
                     Mon profil
                   </Link>
+                  {['ADMIN', 'SUPER_ADMIN'].includes(user.role) && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-primary-700 rounded-xl hover:bg-primary-800 transition-colors"
+                      title="Admin"
+                    >
+                      <Shield size={14} />
+                    </Link>
+                  )}
                   <button
                     onClick={() => { logout(); setMobileOpen(false); }}
                     className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-semibold text-white bg-guinea-600 rounded-xl hover:bg-guinea-700 transition-colors"

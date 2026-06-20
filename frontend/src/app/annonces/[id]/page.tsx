@@ -7,7 +7,7 @@ import {
   ChevronLeft, ChevronRight, Flag, X, Copy, Edit, EyeOff, Trash2,
   Star, BadgeCheck, User, ShieldAlert, ImageIcon, ExternalLink,
   AlertTriangle, AlertCircle, HelpCircle, PackageX, DollarSign,
-  ArrowRight, Sparkles, History,
+  ArrowRight, Sparkles, History, Send, Loader2,
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import { useAnnonce } from '@/hooks/useAnnonces';
@@ -38,6 +38,9 @@ export default function AnnonceDetailPage() {
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportDesc, setReportDesc] = useState('');
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactMessage, setContactMessage] = useState('');
+  const [sendingMsg, setSendingMsg] = useState(false);
   const [similar, setSimilar] = useState<any[]>([]);
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
@@ -146,12 +149,24 @@ export default function AnnonceDetailPage() {
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
   const isOwner = user?.id === annonce.user?.id;
 
-  const handleContact = async () => {
+  const openContactModal = () => {
     if (!isAuthenticated) { router.push('/auth/connexion'); return; }
+    setContactMessage(`Bonjour, je suis intéressé(e) par votre annonce « ${annonce.title} ». Est-elle toujours disponible ?`);
+    setShowContactModal(true);
+  };
+
+  const handleSendInternalMessage = async () => {
+    if (!contactMessage.trim()) return;
+    setSendingMsg(true);
     try {
       const res = await api.post('/messages/conversations', { recipientId: annonce.user.id, annonceId: annonce.id });
-      router.push(`/messages/${res.data.data.id}`);
-    } catch { toast.error('Erreur'); }
+      const convId = res.data.data.id;
+      await api.post(`/messages/conversations/${convId}/messages`, { content: contactMessage.trim() });
+      toast.success('Message envoyé !');
+      setShowContactModal(false);
+      router.push(`/messages/${convId}`);
+    } catch { toast.error("Impossible d'envoyer le message."); }
+    finally { setSendingMsg(false); }
   };
 
   const handleSave = async () => {
@@ -478,7 +493,7 @@ export default function AnnonceDetailPage() {
                   </div>
                   <div className="space-y-2.5">
                     <button
-                      onClick={handleContact}
+                      onClick={openContactModal}
                       className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-sm"
                     >
                       <MessageCircle size={17} /> Envoyer un message
@@ -493,7 +508,7 @@ export default function AnnonceDetailPage() {
                     )}
                     {annonce.whatsapp && (
                       <a
-                        href={`https://wa.me/224${annonce.whatsapp}`}
+                        href={`https://wa.me/224${annonce.whatsapp}?text=${encodeURIComponent(`Bonjour, je suis intéressé(e) par votre annonce « ${annonce.title} ». Est-elle toujours disponible ?`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center justify-center gap-2 w-full bg-[#25D366] hover:bg-[#1fbb58] text-white font-semibold py-2.5 rounded-xl transition-colors text-sm shadow-sm"
@@ -581,6 +596,72 @@ export default function AnnonceDetailPage() {
         )}
 
       </div>
+
+      {/* ── Modal Contacter le vendeur ─────────────────────────── */}
+      {showContactModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4" onClick={() => setShowContactModal(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden" onClick={e => e.stopPropagation()}>
+            {/* En-tête modal */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-dark-100">
+              <h3 className="font-display font-bold text-dark-900 text-base">Contacter le vendeur</h3>
+              <button onClick={() => setShowContactModal(false)} className="w-8 h-8 rounded-full flex items-center justify-center text-dark-400 hover:bg-dark-100 transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Carte produit */}
+            <div className="px-5 pt-4 pb-3">
+              <div className="flex gap-3 bg-dark-50 border border-dark-100 rounded-xl p-3">
+                {images.length > 0 ? (
+                  <img src={images[0].url} alt={annonce.title} className="w-16 h-16 rounded-xl object-cover shrink-0" />
+                ) : (
+                  <div className="w-16 h-16 rounded-xl bg-dark-100 flex items-center justify-center shrink-0">
+                    <ImageIcon size={22} className="text-dark-300" />
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-dark-900 line-clamp-2 leading-snug">{annonce.title}</p>
+                  {annonce.price != null && (
+                    <p className="text-primary-700 font-bold text-sm mt-1">
+                      {annonce.price.toLocaleString('fr-GN')} GNF
+                    </p>
+                  )}
+                  <p className="text-xs text-dark-400 mt-0.5">{annonce.city.name}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Zone de texte */}
+            <div className="px-5 pb-4">
+              <textarea
+                value={contactMessage}
+                onChange={e => setContactMessage(e.target.value)}
+                rows={4}
+                className="input resize-none text-sm w-full"
+                placeholder="Votre message..."
+              />
+            </div>
+
+            {/* Boutons d'action */}
+            <div className="px-5 pb-5 flex gap-2">
+              <button
+                onClick={() => setShowContactModal(false)}
+                className="flex-1 py-2.5 rounded-xl border border-dark-200 text-dark-600 text-sm font-semibold hover:bg-dark-50 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSendInternalMessage}
+                disabled={sendingMsg || !contactMessage.trim()}
+                className="flex-1 btn-primary flex items-center justify-center gap-2 py-2.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {sendingMsg ? <Loader2 size={16} className="animate-spin" /> : <Send size={15} />}
+                {sendingMsg ? 'Envoi...' : 'Envoyer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Modal Partager ──────────────────────────────────────── */}
       {showShare && (

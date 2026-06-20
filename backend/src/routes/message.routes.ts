@@ -29,7 +29,7 @@ router.get('/conversations', authenticate, async (req: any, res) => {
       where: { participants: { some: { id: req.userId } } },
       include: {
         participants: { select: { id: true, firstName: true, lastName: true, avatar: true } },
-        annonce: { select: { id: true, title: true, images: { take: 1 } } },
+        annonce: { select: { id: true, slug: true, title: true, price: true, currency: true, images: { take: 1 } } },
         messages: { orderBy: { createdAt: 'desc' }, take: 1 },
       },
       orderBy: { lastMessageAt: 'desc' },
@@ -109,7 +109,10 @@ router.post('/conversations', authenticate, async (req: any, res) => {
         annonceId: annonceId || undefined,
         participants: { connect: [{ id: req.userId }, { id: recipientId }] },
       },
-      include: { participants: { select: { id: true, firstName: true, lastName: true, avatar: true } } },
+      include: {
+        participants: { select: { id: true, firstName: true, lastName: true, avatar: true } },
+        annonce: { select: { id: true, slug: true, title: true, price: true, currency: true, images: { take: 1 } } },
+      },
     });
     res.status(201).json({ data: conversation });
   } catch (e) {
