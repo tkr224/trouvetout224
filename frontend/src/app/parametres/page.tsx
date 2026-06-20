@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { useAuthStore } from '@/store/auth.store';
+import { useEffect } from 'react';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 import {
@@ -37,10 +38,21 @@ const LANGS = [
   { code: 'ar', label: 'العربية',   badge: 'AR', note: '' },
 ];
 
+const PROTECTED_TABS = ['profil', 'securite', 'notifications', 'confidentialite'];
+
 export default function ParametresPage() {
-  const { user, logout } = useAuthStore();
+  const { user, logout, isAuthenticated, _hasHydrated } = useAuthStore();
+  const loggedIn = _hasHydrated && isAuthenticated && !!user;
   const { theme, setTheme } = useTheme();
-  const [tab, setTab]         = useState('profil');
+  const [tab, setTab] = useState('profil');
+
+  // Si l'utilisateur non connecté arrive sur un onglet protégé, rediriger vers Apparence
+  useEffect(() => {
+    if (_hasHydrated && !loggedIn && PROTECTED_TABS.includes(tab)) {
+      setTab('apparence');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [_hasHydrated, loggedIn]);
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName]   = useState(user?.lastName || '');
   const [bio, setBio]             = useState('');
@@ -49,6 +61,7 @@ export default function ParametresPage() {
   const [notifMsg, setNotifMsg]         = useState(true);
   const [notifAnnonce, setNotifAnnonce] = useState(true);
   const [notifVue, setNotifVue]         = useState(false);
+  const showGate = PROTECTED_TABS.includes(tab) && _hasHydrated && !loggedIn;
 
   const saveProfile = async () => {
     try { await api.put('/users/me', { firstName, lastName, bio }); toast.success('Profil mis à jour !'); }
@@ -85,25 +98,59 @@ export default function ParametresPage() {
 
           {/* Sidebar navigation */}
           <div className="bg-white rounded-2xl border border-dark-100 shadow-card p-2 h-fit space-y-0.5">
-            {TABS.map(t => (
-              <button key={t.key} onClick={() => setTab(t.key)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors
-                  ${tab === t.key ? 'bg-primary-700 text-white shadow-sm' : 'text-dark-600 hover:bg-dark-50'}`}>
-                <t.icon size={15} className="shrink-0" /> {t.label}
-              </button>
-            ))}
+            {TABS.map(t => {
+              const isProtected = PROTECTED_TABS.includes(t.key);
+              return (
+                <button key={t.key} onClick={() => setTab(t.key)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors
+                    ${tab === t.key ? 'bg-primary-700 text-white shadow-sm' : 'text-dark-600 hover:bg-dark-50'}`}>
+                  <t.icon size={15} className="shrink-0" />
+                  <span className="flex-1 text-left">{t.label}</span>
+                  {isProtected && !loggedIn && (
+                    <Lock size={11} className="shrink-0 opacity-40" />
+                  )}
+                </button>
+              );
+            })}
             <div className="pt-2 border-t border-dark-100 mt-2">
-              <button onClick={logout}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
-                <LogOut size={15} className="shrink-0" /> Déconnexion
-              </button>
+              {loggedIn ? (
+                <button onClick={logout}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+                  <LogOut size={15} className="shrink-0" /> Déconnexion
+                </button>
+              ) : (
+                <Link href="/auth/connexion"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-primary-700 hover:bg-primary-50 transition-colors">
+                  <User size={15} className="shrink-0" /> Se connecter
+                </Link>
+              )}
             </div>
           </div>
 
           {/* Content */}
           <div className="lg:col-span-3 bg-white rounded-2xl border border-dark-100 shadow-card p-6">
 
-            {tab === 'profil' && (
+            {/* Gate : onglets protégés sans compte */}
+            {showGate ? (
+              <div className="flex flex-col items-center justify-center py-14 text-center">
+                <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mb-4">
+                  <Lock size={26} className="text-primary-700" />
+                </div>
+                <h3 className="font-bold text-dark-900 text-lg mb-2">Connexion requise</h3>
+                <p className="text-dark-500 text-sm mb-6 max-w-xs leading-relaxed">
+                  Ce réglage est lié à votre compte. Connectez-vous pour y accéder.
+                </p>
+                <div className="flex gap-3 flex-wrap justify-center">
+                  <Link href="/auth/connexion" className="btn-primary">Se connecter</Link>
+                  <Link href="/auth/inscription" className="btn-outline">Créer un compte</Link>
+                </div>
+                <p className="text-dark-400 text-xs mt-5">
+                  Le réglage <strong>Apparence</strong> (thème clair/sombre) est accessible sans compte.
+                </p>
+              </div>
+            ) : null}
+
+            {!showGate && tab === 'profil' && (
               <div className="space-y-4">
                 <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">Modifier le profil</h2>
                 <div className="flex items-center gap-4 p-4 bg-dark-50 rounded-2xl mb-2">
@@ -136,7 +183,7 @@ export default function ParametresPage() {
               </div>
             )}
 
-            {tab === 'securite' && (
+            {!showGate && tab === 'securite' && (
               <div className="space-y-5">
                 <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">Sécurité du compte</h2>
                 <div className="flex items-center gap-3 p-4 bg-primary-50 rounded-2xl border border-primary-200 mb-4">
@@ -155,7 +202,7 @@ export default function ParametresPage() {
               </div>
             )}
 
-            {tab === 'notifications' && (
+            {!showGate && tab === 'notifications' && (
               <div className="space-y-4">
                 <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">Préférences de notifications</h2>
                 {[
@@ -174,7 +221,7 @@ export default function ParametresPage() {
               </div>
             )}
 
-            {tab === 'confidentialite' && (
+            {!showGate && tab === 'confidentialite' && (
               <div>
                 <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">Confidentialité</h2>
                 <div className="space-y-4">

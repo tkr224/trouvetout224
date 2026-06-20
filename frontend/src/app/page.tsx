@@ -391,7 +391,7 @@ export default function HomePage() {
 
         {/* ══ CATÉGORIES POPULAIRES (pleine largeur) ══════════════ */}
         <ScrollReveal>
-        <section className="mt-10 mb-8 bg-gradient-to-b from-primary-50/70 to-transparent rounded-3xl px-6 py-8 border border-primary-100/50">
+        <section className="mt-10 mb-8 bg-gradient-to-b from-primary-50/70 to-transparent dark:from-primary-900/20 dark:to-transparent rounded-3xl px-6 py-8 border border-primary-100/50 dark:border-primary-800/30">
           <div className="flex items-end justify-between mb-6">
             <div>
               <div className="flex items-center gap-2 mb-1">

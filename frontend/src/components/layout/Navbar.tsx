@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Logo from '@/components/Logo';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { MapPin, ChevronDown, Bell, MessageCircle, User, Plus, Menu, X, LogOut, Shield } from 'lucide-react';
+import { MapPin, ChevronDown, Bell, MessageCircle, User, Plus, Menu, X, LogOut, Shield, Settings } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
@@ -131,6 +131,13 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
                 </span>
               )}
             </Link>
+            <Link
+              href="/parametres"
+              className="w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 hover:border-primary-400 hover:text-primary-700 transition-colors"
+              title="Paramètres"
+            >
+              <Settings size={18} />
+            </Link>
             {loggedIn ? (
               <Link
                 href="/profil"
@@ -171,6 +178,13 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
                 {link.label}
               </Link>
             ))}
+            <Link
+              href="/parametres"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2 px-3 py-2 text-dark-600 hover:text-primary-700 hover:bg-primary-50 rounded-xl text-sm font-medium transition-colors"
+            >
+              <Settings size={13} /> Paramètres
+            </Link>
             <div className="pt-2 border-t border-dark-100 flex gap-2">
               {loggedIn ? (
                 <>
