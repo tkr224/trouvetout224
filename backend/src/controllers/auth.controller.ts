@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 // ============================
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, phone, password, firstName, lastName, dateOfBirth, gender, cityId } = req.body;
+    const { email, phone, password, firstName, lastName, dateOfBirth, gender, cityId, accountType } = req.body;
 
     if (dateOfBirth) {
       const age = (Date.now() - new Date(dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365);
@@ -39,11 +39,14 @@ export const register = async (req: Request, res: Response) => {
       realCityId = city?.id;
     }
 
+    const isVendor = accountType === 'VENDEUR' || accountType === 'LES_DEUX';
     const user = await prisma.user.create({
       data: {
         email, phone, password: hashedPassword, firstName, lastName,
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
         gender, cityId: realCityId, isVerified: false,
+        accountType: accountType || 'ACHETEUR',
+        role: isVendor ? 'VENDOR' : 'USER',
       },
       select: {
         id: true, email: true, phone: true, firstName: true, lastName: true,

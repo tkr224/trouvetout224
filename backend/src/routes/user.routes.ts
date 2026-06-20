@@ -51,10 +51,18 @@ router.put('/me', authenticate, async (req: any, res) => {
 // Mettre à jour / créer ma boutique
 router.put('/me/shop', authenticate, async (req: any, res) => {
   try {
-    const { shopName, shopLogo, shopBanner, shopDescription, shopWhatsapp, shopActive } = req.body;
+    const {
+      shopName, shopLogo, shopBanner, shopDescription, shopWhatsapp, shopActive,
+      shopCategories, shopHasPhysical, shopAddress, shopHours,
+    } = req.body;
     const user = await prisma.user.update({
       where: { id: req.userId },
-      data: { shopName, shopLogo, shopBanner, shopDescription, shopWhatsapp, shopActive },
+      data: {
+        shopName, shopLogo, shopBanner, shopDescription, shopWhatsapp, shopActive,
+        shopCategories: shopCategories ?? undefined,
+        shopHasPhysical: shopHasPhysical ?? undefined,
+        shopAddress, shopHours,
+      },
     });
     res.json({ message: 'Boutique mise à jour.', data: user });
   } catch { res.status(500).json({ error: 'Erreur.' }); }

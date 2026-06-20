@@ -28,18 +28,23 @@ model User {
   bio           String?
   cityId        String?
   city          City?    @relation(fields: [cityId], references: [id])
-  role          Role     @default(USER)
+  role          Role        @default(USER)
+  accountType   AccountType @default(ACHETEUR)
   isVerified    Boolean  @default(false)
   isActive      Boolean  @default(true)
   isSuspended   Boolean  @default(false)
   googleId      String?  @unique
   facebookId    String?  @unique
-  shopName      String?
-  shopLogo      String?
-  shopBanner    String?
+  shopName        String?
+  shopLogo        String?
+  shopBanner      String?
   shopDescription String?
-  shopWhatsapp  String?
-  shopActive    Boolean  @default(false)
+  shopWhatsapp    String?
+  shopActive      Boolean  @default(false)
+  shopCategories  String[] @default([])
+  shopHasPhysical Boolean  @default(false)
+  shopAddress     String?
+  shopHours       String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -67,6 +72,12 @@ enum Gender {
   MALE
   FEMALE
   OTHER
+}
+
+enum AccountType {
+  ACHETEUR
+  VENDEUR
+  LES_DEUX
 }
 
 enum Role {
