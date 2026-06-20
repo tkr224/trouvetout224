@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { Loader2, Eye, EyeOff, ShoppingBag, Lock, Zap } from 'lucide-react';
+import { Loader2, Eye, EyeOff, ShoppingBag, Lock, Zap, Ban } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
@@ -12,12 +12,14 @@ import Logo from '@/components/Logo';
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
+  const [suspended, setSuspended] = useState<{ reason: string | null } | null>(null);
   const router = useRouter();
   const { setUser, setTokens } = useAuthStore();
   const { register, handleSubmit } = useForm<any>();
 
   const onSubmit = async (data: any) => {
     setLoading(true);
+    setSuspended(null);
     try {
       const res = await api.post('/auth/login', {
         identifier: data.identifier,
@@ -28,7 +30,12 @@ export default function LoginPage() {
       toast.success('Connexion réussie !');
       router.push('/');
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Erreur de connexion');
+      const errData = err.response?.data;
+      if (err.response?.status === 403 && errData?.suspended) {
+        setSuspended({ reason: errData.suspendedReason || null });
+      } else {
+        toast.error(errData?.error || 'Erreur de connexion');
+      }
     } finally {
       setLoading(false);
     }
@@ -98,6 +105,19 @@ export default function LoginPage() {
           {/* En-tête */}
           <h2 className="font-display font-bold text-3xl text-dark-900">Bon retour !</h2>
           <p className="text-dark-500 mt-1.5 mb-8">Connectez-vous à votre compte</p>
+
+          {suspended && (
+            <div className="mb-6 bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
+              <Ban size={18} className="text-red-500 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-bold text-red-800 text-sm">Compte suspendu</p>
+                {suspended.reason && (
+                  <p className="text-red-700 text-xs mt-1">Raison : {suspended.reason}</p>
+                )}
+                <p className="text-red-500 text-xs mt-1">Contactez le support pour toute réclamation.</p>
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 

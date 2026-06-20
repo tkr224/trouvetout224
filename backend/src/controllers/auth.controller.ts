@@ -83,7 +83,11 @@ export const login = async (req: Request, res: Response) => {
     });
 
     if (!user) return res.status(401).json({ error: 'Identifiants incorrects.' });
-    if (user.isSuspended) return res.status(403).json({ error: 'Votre compte a été suspendu. Contactez le support.' });
+    if (user.isSuspended) return res.status(403).json({
+      error: 'Votre compte a été suspendu.',
+      suspended: true,
+      suspendedReason: (user as any).suspendedReason || null,
+    });
     if (!user.password) return res.status(400).json({ error: 'Connectez-vous avec Google ou Facebook.' });
 
     const isPasswordValid = await bcrypt.compare(password, user.password);

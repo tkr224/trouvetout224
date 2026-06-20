@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { Search, CheckCircle, XCircle, Shield, RefreshCw, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, CheckCircle, XCircle, Shield, RefreshCw, Users, ChevronLeft, ChevronRight, Ban, X, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 
@@ -33,6 +33,8 @@ export default function AdminUtilisateurs() {
   const [search, setSearch] = useState('');
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(true);
+  const [suspendModal, setSuspendModal] = useState<{ userId: string; name: string; reason: string } | null>(null);
+  const [suspendLoading, setSuspendLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -58,12 +60,20 @@ export default function AdminUtilisateurs() {
 
   const reset = () => { setQ(''); setSearch(''); setPage(1); };
 
-  const suspend = async (id: string, suspended: boolean) => {
+  const suspend = async (id: string, suspended: boolean, reason?: string) => {
     try {
-      await api.put(`/admin/users/${id}/suspend`, { suspended });
+      await api.put(`/admin/users/${id}/suspend`, { suspended, reason });
       setUsers(u => u.map(x => x.id === id ? { ...x, isSuspended: suspended } : x));
       toast.success(suspended ? 'Compte suspendu' : 'Compte réactivé');
     } catch { toast.error('Erreur lors de la mise à jour'); }
+  };
+
+  const confirmSuspend = async () => {
+    if (!suspendModal) return;
+    setSuspendLoading(true);
+    await suspend(suspendModal.userId, true, suspendModal.reason.trim() || undefined);
+    setSuspendModal(null);
+    setSuspendLoading(false);
   };
 
   const verify = async (id: string, verified: boolean) => {
@@ -184,7 +194,10 @@ export default function AdminUtilisateurs() {
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => suspend(u.id, !u.isSuspended)}
+                          onClick={() => u.isSuspended
+                            ? suspend(u.id, false)
+                            : setSuspendModal({ userId: u.id, name: `${u.firstName} ${u.lastName}`, reason: '' })
+                          }
                           className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
                             u.isSuspended
                               ? 'bg-primary-100 text-primary-700 hover:bg-primary-200'
@@ -244,6 +257,41 @@ export default function AdminUtilisateurs() {
           </div>
         )}
       </div>
+
+      {/* Modal suspension avec raison */}
+      {suspendModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-card-hover w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-bold text-dark-900 text-lg flex items-center gap-2">
+                <Ban size={18} className="text-guinea-500" /> Suspendre le compte
+              </h3>
+              <button onClick={() => setSuspendModal(null)} className="text-dark-400 hover:text-dark-700"><X size={20} /></button>
+            </div>
+            <p className="text-dark-500 text-sm mb-1">Vous allez suspendre <strong>{suspendModal.name}</strong>.</p>
+            <p className="text-dark-400 text-xs mb-4">L&apos;utilisateur verra la raison sur son écran de connexion.</p>
+            <label className="block text-sm font-semibold text-dark-700 mb-1.5">Raison <span className="text-dark-400 font-normal">(optionnel)</span></label>
+            <textarea
+              value={suspendModal.reason}
+              onChange={e => setSuspendModal(m => m ? { ...m, reason: e.target.value } : null)}
+              placeholder="Ex : Comportement frauduleux, non-respect des CGU..."
+              rows={3}
+              className="w-full border border-dark-200 rounded-xl px-4 py-3 text-sm text-dark-900 placeholder-dark-400 focus:outline-none focus:ring-2 focus:ring-guinea-500 resize-none mb-5"
+            />
+            <div className="flex gap-3">
+              <button onClick={() => setSuspendModal(null)} className="flex-1 border border-dark-200 text-dark-600 font-semibold py-2.5 rounded-xl hover:bg-dark-50 text-sm">Annuler</button>
+              <button
+                onClick={confirmSuspend}
+                disabled={suspendLoading}
+                className="flex-1 bg-guinea-600 hover:bg-guinea-700 text-white font-semibold py-2.5 rounded-xl disabled:opacity-50 text-sm flex items-center justify-center gap-2"
+              >
+                {suspendLoading ? <Loader2 size={15} className="animate-spin" /> : <Ban size={15} />}
+                Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

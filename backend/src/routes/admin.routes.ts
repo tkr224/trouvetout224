@@ -86,10 +86,13 @@ router.get('/users', async (req, res) => {
 
 router.put('/users/:id/suspend', async (req, res) => {
   try {
-    const { suspended } = req.body;
+    const { suspended, reason } = req.body;
     const user = await prisma.user.update({
       where: { id: req.params.id },
-      data: { isSuspended: suspended },
+      data: {
+        isSuspended: suspended,
+        suspendedReason: suspended ? (reason?.trim() || null) : null,
+      },
     });
     res.json({ message: `Compte ${suspended ? 'suspendu' : 'réactivé'}.`, data: user });
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }

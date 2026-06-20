@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { AlertTriangle, CheckCircle, X, Ban, Flag } from 'lucide-react';
+import { AlertTriangle, CheckCircle, X, Ban, Flag, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 
@@ -47,6 +47,8 @@ export default function AdminSignalements() {
   const [reports, setReports] = useState<Report[]>([]);
   const [tab, setTab] = useState<TabKey>('PENDING');
   const [loading, setLoading] = useState(true);
+  const [suspendModal, setSuspendModal] = useState<{ report: Report; reason: string } | null>(null);
+  const [suspendLoading, setSuspendLoading] = useState(false);
 
   const load = async (status: string) => {
     setLoading(true);
@@ -68,16 +70,21 @@ export default function AdminSignalements() {
     } catch { toast.error('Erreur'); }
   };
 
-  const suspendUser = async (report: Report) => {
+  const suspendUser = async () => {
+    if (!suspendModal) return;
+    const { report, reason } = suspendModal;
     if (!report.reportedUser?.id) return;
+    setSuspendLoading(true);
     try {
       await Promise.all([
-        api.put(`/admin/users/${report.reportedUser.id}/suspend`, { suspended: true }),
+        api.put(`/admin/users/${report.reportedUser.id}/suspend`, { suspended: true, reason: reason.trim() || undefined }),
         api.put(`/admin/reports/${report.id}`, { status: 'RESOLVED' }),
       ]);
       setReports(r => r.filter(x => x.id !== report.id));
+      setSuspendModal(null);
       toast.success('Utilisateur suspendu et signalement résolu');
     } catch { toast.error('Erreur'); }
+    finally { setSuspendLoading(false); }
   };
 
   const suspendAnnonce = async (report: Report) => {
@@ -220,7 +227,7 @@ export default function AdminSignalements() {
                     )}
                     {r.reportedUser && (
                       <button
-                        onClick={() => suspendUser(r)}
+                        onClick={() => setSuspendModal({ report: r, reason: '' })}
                         className="flex items-center gap-1.5 px-3 py-2 bg-guinea-100 hover:bg-guinea-200 text-guinea-600 rounded-xl text-xs font-semibold transition-colors"
                       >
                         <Ban size={13} /> Suspendre l&apos;utilisateur
@@ -237,6 +244,43 @@ export default function AdminSignalements() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Modal suspension avec raison */}
+      {suspendModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-card-hover w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-bold text-dark-900 text-lg flex items-center gap-2">
+                <Ban size={18} className="text-guinea-500" /> Suspendre l&apos;utilisateur
+              </h3>
+              <button onClick={() => setSuspendModal(null)} className="text-dark-400 hover:text-dark-700"><X size={20} /></button>
+            </div>
+            <p className="text-dark-500 text-sm mb-1">
+              Vous allez suspendre <strong>{suspendModal.report.reportedUser?.firstName} {suspendModal.report.reportedUser?.lastName}</strong>.
+            </p>
+            <p className="text-dark-400 text-xs mb-4">L&apos;utilisateur verra la raison sur son écran de connexion.</p>
+            <label className="block text-sm font-semibold text-dark-700 mb-1.5">Raison de la suspension</label>
+            <textarea
+              value={suspendModal.reason}
+              onChange={e => setSuspendModal(m => m ? { ...m, reason: e.target.value } : null)}
+              placeholder="Ex : Comportement frauduleux constaté, arnaque signalée..."
+              rows={3}
+              className="w-full border border-dark-200 rounded-xl px-4 py-3 text-sm text-dark-900 placeholder-dark-400 focus:outline-none focus:ring-2 focus:ring-guinea-500 resize-none mb-5"
+            />
+            <div className="flex gap-3">
+              <button onClick={() => setSuspendModal(null)} className="flex-1 border border-dark-200 text-dark-600 font-semibold py-2.5 rounded-xl hover:bg-dark-50 text-sm">Annuler</button>
+              <button
+                onClick={suspendUser}
+                disabled={suspendLoading}
+                className="flex-1 bg-guinea-600 hover:bg-guinea-700 text-white font-semibold py-2.5 rounded-xl disabled:opacity-50 text-sm flex items-center justify-center gap-2"
+              >
+                {suspendLoading ? <Loader2 size={15} className="animate-spin" /> : <Ban size={15} />}
+                Confirmer la suspension
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

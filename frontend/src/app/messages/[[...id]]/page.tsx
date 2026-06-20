@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic';
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Send, MessageCircle, ArrowLeft, MoreVertical, User, Ban, Flag, Trash2, X, Check, CheckCheck, Reply, Camera, AlertTriangle, Mail, AlertOctagon, HelpCircle, ShoppingBag } from 'lucide-react';
+import { Send, MessageCircle, ArrowLeft, MoreVertical, User, Ban, Flag, Trash2, X, Check, CheckCheck, Reply, Camera, AlertTriangle, Mail, AlertOctagon, HelpCircle, ShoppingBag, ShieldAlert, ChevronDown } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
@@ -28,6 +28,7 @@ export default function MessagesPage() {
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [replyTo, setReplyTo] = useState<any>(null);
   const [msgMenu, setMsgMenu] = useState<string | null>(null);
+  const [showSafetyTip, setShowSafetyTip] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeout = useRef<any>(null);
   const { user, accessToken } = useAuthStore();
@@ -237,6 +238,27 @@ export default function MessagesPage() {
                       </div>
                       <span className="text-primary-400 group-hover:text-primary-600 text-xs font-medium shrink-0">Voir →</span>
                     </Link>
+                  )}
+
+                  {/* Bannière anti-arnaque */}
+                  {showSafetyTip && (
+                    <div className="mx-4 mt-2 mb-1 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <ShieldAlert size={14} className="text-amber-600 shrink-0" />
+                          <span className="text-xs font-bold text-amber-800">Conseils de sécurité</span>
+                        </div>
+                        <button onClick={() => setShowSafetyTip(false)} className="text-amber-400 hover:text-amber-600 transition-colors p-0.5">
+                          <X size={13} />
+                        </button>
+                      </div>
+                      <ul className="text-[11px] text-amber-700 space-y-0.5">
+                        <li>• Ne payez jamais à l&apos;avance à un inconnu</li>
+                        <li>• Rencontrez le vendeur dans un lieu public</li>
+                        <li>• Vérifiez le produit avant tout paiement</li>
+                        <li>• Méfiez-vous des prix anormalement bas</li>
+                      </ul>
+                    </div>
                   )}
 
                   <div className="flex-1 overflow-y-auto p-4 space-y-2" onClick={() => { setShowMenu(false); setMsgMenu(null); }}>

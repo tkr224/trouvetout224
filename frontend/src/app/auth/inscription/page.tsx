@@ -349,16 +349,53 @@ export default function RegisterPage() {
                       <input
                         {...register('password', {
                           required: 'Mot de passe obligatoire',
-                          minLength: { value: 6, message: '6 caractères minimum' },
+                          minLength: { value: 8, message: '8 caractères minimum' },
+                          validate: {
+                            hasUpper: v => /[A-Z]/.test(v) || 'Au moins une majuscule requise',
+                            hasLower: v => /[a-z]/.test(v) || 'Au moins une minuscule requise',
+                            hasDigit: v => /[0-9]/.test(v) || 'Au moins un chiffre requis',
+                          },
                         })}
                         type={showPwd ? 'text' : 'password'}
-                        placeholder="Minimum 6 caractères"
+                        placeholder="Minimum 8 caractères"
                         className={`${F} pr-12`} />
                       <button type="button" tabIndex={-1} onClick={() => setShowPwd(v => !v)}
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-600">
                         {showPwd ? <EyeOff size={17} /> : <Eye size={17} />}
                       </button>
                     </div>
+                    {/* Indicateur de force */}
+                    {pwd && (() => {
+                      const criteria = [
+                        { ok: pwd.length >= 8,    text: '8 caractères' },
+                        { ok: /[A-Z]/.test(pwd),  text: 'Majuscule' },
+                        { ok: /[a-z]/.test(pwd),  text: 'Minuscule' },
+                        { ok: /[0-9]/.test(pwd),  text: 'Chiffre' },
+                      ];
+                      const score = criteria.filter(c => c.ok).length;
+                      const colors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-primary-500'];
+                      const labels = ['Très faible', 'Faible', 'Bon', 'Fort'];
+                      const textColors = ['text-red-500', 'text-orange-500', 'text-yellow-600', 'text-primary-700'];
+                      return (
+                        <div className="mt-2">
+                          <div className="flex gap-1 mb-1">
+                            {[0,1,2,3].map(i => (
+                              <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i < score ? colors[score - 1] : 'bg-dark-200'}`} />
+                            ))}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 mt-1">
+                              {criteria.map((c, i) => (
+                                <span key={i} className={`flex items-center gap-1 text-[10px] font-medium transition-colors ${c.ok ? 'text-primary-600' : 'text-dark-400'}`}>
+                                  <CheckCircle size={10} className={c.ok ? 'text-primary-500' : 'text-dark-300'} /> {c.text}
+                                </span>
+                              ))}
+                            </div>
+                            {score > 0 && <span className={`text-xs font-semibold ${textColors[score - 1]}`}>{labels[score - 1]}</span>}
+                          </div>
+                        </div>
+                      );
+                    })()}
                     {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
                   </div>
 

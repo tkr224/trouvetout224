@@ -5,9 +5,19 @@ import Navbar from '@/components/layout/Navbar';
 import { AnnonceCard } from '@/components/annonces/AnnonceGrid';
 import ReviewSection from '@/components/ReviewSection';
 import { api } from '@/lib/api';
-import { MapPin, Star, MessageCircle, ShoppingBag, Eye, Award, CheckCircle, Calendar, TrendingUp, Store, User, Package, Sparkles } from 'lucide-react';
+import { MapPin, Star, MessageCircle, ShoppingBag, Eye, Award, CheckCircle, Calendar, TrendingUp, Store, User, Package, Sparkles, Flag, AlertTriangle, AlertCircle, HelpCircle, X, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useAuthStore } from '@/store/auth.store';
+import toast from 'react-hot-toast';
+
+const USER_REPORT_REASONS = [
+  { value: 'SCAM',                  label: 'Arnaque / Fraude',       Icon: AlertTriangle },
+  { value: 'SPAM',                  label: 'Spam',                   Icon: AlertCircle },
+  { value: 'INAPPROPRIATE_CONTENT', label: 'Comportement inapproprié', Icon: AlertCircle },
+  { value: 'FAKE_AD',               label: 'Faux profil',            Icon: AlertTriangle },
+  { value: 'OTHER',                 label: 'Autre',                  Icon: HelpCircle },
+];
 
 export default function PublicProfilPage() {
   const { id } = useParams();
@@ -16,6 +26,28 @@ export default function PublicProfilPage() {
   const [avgRating, setAvgRating] = useState(0);
   const [ratingsCount, setRatingsCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showReport, setShowReport] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDesc, setReportDesc] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
+  const { isAuthenticated } = useAuthStore();
+
+  const submitReport = async () => {
+    if (!reportReason) return toast.error('Sélectionnez un motif');
+    if (!isAuthenticated) return toast.error('Connectez-vous pour signaler');
+    setReportLoading(true);
+    try {
+      await api.post('/reports', { reportedUserId: id, reason: reportReason, description: reportDesc });
+      toast.success('Signalement envoyé. Merci !');
+      setShowReport(false);
+      setReportReason('');
+      setReportDesc('');
+    } catch {
+      toast.error('Erreur lors du signalement');
+    } finally {
+      setReportLoading(false);
+    }
+  };
 
   useEffect(() => {
     Promise.all([
@@ -98,11 +130,20 @@ export default function PublicProfilPage() {
                   <span className="flex items-center gap-1"><Calendar size={13}/>Membre depuis {memberSince}</span>
                 </div>
               </div>
-              {(hasShop && profile.shopWhatsapp) ? (
-                <a href={`https://wa.me/224${profile.shopWhatsapp}`} target="_blank" rel="noopener noreferrer" className="bg-green-500 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm hover:bg-green-600 transition-colors mb-1"><MessageCircle size={15}/>WhatsApp</a>
-              ) : (
-                <button className="btn-primary flex items-center gap-2 text-sm mb-1"><MessageCircle size={15}/>Contacter</button>
-              )}
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                {(hasShop && profile.shopWhatsapp) ? (
+                  <a href={`https://wa.me/224${profile.shopWhatsapp}`} target="_blank" rel="noopener noreferrer" className="bg-green-500 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm hover:bg-green-600 transition-colors"><MessageCircle size={15}/>WhatsApp</a>
+                ) : (
+                  <button className="btn-primary flex items-center gap-2 text-sm"><MessageCircle size={15}/>Contacter</button>
+                )}
+                <button
+                  onClick={() => setShowReport(true)}
+                  className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-dark-200 text-dark-500 hover:border-guinea-400 hover:text-guinea-600 hover:bg-guinea-50 transition-colors text-sm font-medium"
+                  title="Signaler ce profil"
+                >
+                  <Flag size={14} /> Signaler
+                </button>
+              </div>
             </div>
 
             {badges.length > 0 && (
@@ -145,6 +186,59 @@ export default function PublicProfilPage() {
 
         <ReviewSection sellerId={id as string} />
       </div>
+
+      {/* Modal Signalement profil */}
+      {showReport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-card-hover w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-display font-bold text-dark-900 text-lg flex items-center gap-2">
+                <Flag size={18} className="text-guinea-500" /> Signaler ce profil
+              </h3>
+              <button onClick={() => setShowReport(false)} className="text-dark-400 hover:text-dark-700 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            <p className="text-dark-500 text-sm mb-4">Quel est le problème avec ce profil ?</p>
+            <div className="space-y-2 mb-4">
+              {USER_REPORT_REASONS.map(({ value, label, Icon }) => (
+                <button
+                  key={value}
+                  onClick={() => setReportReason(value)}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 text-sm font-medium transition-all text-left ${
+                    reportReason === value
+                      ? 'border-guinea-500 bg-guinea-50 text-guinea-700'
+                      : 'border-dark-200 text-dark-700 hover:border-dark-300'
+                  }`}
+                >
+                  <Icon size={15} className={reportReason === value ? 'text-guinea-500' : 'text-dark-400'} />
+                  {label}
+                </button>
+              ))}
+            </div>
+            <textarea
+              value={reportDesc}
+              onChange={e => setReportDesc(e.target.value)}
+              placeholder="Détails supplémentaires (optionnel)..."
+              rows={3}
+              className="w-full border border-dark-200 rounded-xl px-4 py-3 text-sm text-dark-900 placeholder-dark-400 focus:outline-none focus:ring-2 focus:ring-guinea-500 resize-none mb-4"
+            />
+            <div className="flex gap-3">
+              <button onClick={() => setShowReport(false)} className="flex-1 border border-dark-200 text-dark-600 font-semibold py-2.5 rounded-xl hover:bg-dark-50 transition-colors text-sm">
+                Annuler
+              </button>
+              <button
+                onClick={submitReport}
+                disabled={!reportReason || reportLoading}
+                className="flex-1 bg-guinea-600 hover:bg-guinea-700 text-white font-semibold py-2.5 rounded-xl disabled:opacity-50 transition-colors text-sm flex items-center justify-center gap-2"
+              >
+                {reportLoading ? <Loader2 size={15} className="animate-spin" /> : <Flag size={15} />}
+                Envoyer le signalement
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
