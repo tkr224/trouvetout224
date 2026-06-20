@@ -58,10 +58,11 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Rate Limiting
+// Rate Limiting — plus permissif en dev pour éviter les faux positifs
+const isDev = process.env.NODE_ENV !== 'production';
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // max 100 requêtes par IP
+  windowMs: 15 * 60 * 1000, // fenêtre de 15 minutes
+  max: isDev ? 2000 : 500,  // dev: 2000 req/15min, prod: 500 req/15min (~33/min)
   message: { error: 'Trop de requêtes, réessayez dans 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
