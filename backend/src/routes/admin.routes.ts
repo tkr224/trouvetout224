@@ -287,6 +287,54 @@ router.delete('/categories/:id', async (req, res) => {
   } catch { res.status(500).json({ error: 'Erreur serveur (des annonces y sont peut-être liées).' }); }
 });
 
+// ─── Statistiques sondage d'accueil ──────────────────────────────────────────
+
+router.get('/onboarding/stats', async (req, res) => {
+  try {
+    const surveys = await prisma.onboardingSurvey.findMany({
+      where: { skipped: false },
+      select: { source: true, interests: true, city: true, createdAt: true },
+    });
+
+    const totalUsers   = await prisma.user.count();
+    const totalDone    = await prisma.user.count({ where: { onboardingDone: true } });
+    const totalSkipped = await prisma.onboardingSurvey.count({ where: { skipped: true } });
+
+    // Agrégation sources
+    const sourceMap: Record<string, number> = {};
+    // Agrégation centres d'intérêt
+    const interestMap: Record<string, number> = {};
+    // Agrégation villes (top 10)
+    const cityMap: Record<string, number> = {};
+
+    for (const s of surveys) {
+      if (s.source) sourceMap[s.source] = (sourceMap[s.source] || 0) + 1;
+      for (const i of s.interests) interestMap[i] = (interestMap[i] || 0) + 1;
+      if (s.city) {
+        const c = s.city.trim();
+        cityMap[c] = (cityMap[c] || 0) + 1;
+      }
+    }
+
+    const topCities = Object.entries(cityMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([city, count]) => ({ city, count }));
+
+    res.json({
+      data: {
+        totalUsers,
+        totalDone,
+        totalSkipped,
+        totalAnswered: surveys.length,
+        sources: Object.entries(sourceMap).sort((a, b) => b[1] - a[1]).map(([label, count]) => ({ label, count })),
+        interests: Object.entries(interestMap).sort((a, b) => b[1] - a[1]).map(([label, count]) => ({ label, count })),
+        topCities,
+      },
+    });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
 // ─── Publications officielles ─────────────────────────────────────────────────
 
 router.get('/publications', async (req, res) => {

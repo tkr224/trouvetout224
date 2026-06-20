@@ -50,7 +50,7 @@ export const register = async (req: Request, res: Response) => {
       },
       select: {
         id: true, email: true, phone: true, firstName: true, lastName: true,
-        role: true, isVerified: true, createdAt: true,
+        role: true, isVerified: true, createdAt: true, onboardingDone: true,
       },
     });
 

@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import dynamic from 'next/dynamic';
 
 const SplashScreen = dynamic(() => import('@/components/SplashScreen'), { ssr: false });
+const OnboardingGate = dynamic(() => import('@/components/OnboardingGate'), { ssr: false });
 
 export const metadata: Metadata = {
   title: 'TrouveTout224 - La plus grande marketplace de Guinée',
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <QueryProvider>
           <ThemeProvider>
             <SplashScreen />
+            <OnboardingGate />
             {children}
             <Toaster position="top-center" />
           </ThemeProvider>

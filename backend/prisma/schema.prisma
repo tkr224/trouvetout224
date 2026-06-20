@@ -65,6 +65,9 @@ model User {
   blockedByUsers  Block[]         @relation("BlockedUser")
   payments        Payment[]
   refreshTokens   RefreshToken[]
+  onboardingSurvey OnboardingSurvey?
+
+  onboardingDone  Boolean  @default(false)
 
   @@map("users")
 }
@@ -567,4 +570,21 @@ enum PublicationType {
   BANNER
   EVENT
   FEATURED_VENDOR
+}
+
+// =============================================
+// SONDAGE D'ACCUEIL (onboarding)
+// =============================================
+
+model OnboardingSurvey {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source    String?
+  interests String[] @default([])
+  city      String?
+  skipped   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("onboarding_surveys")
 }
