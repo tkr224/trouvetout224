@@ -161,7 +161,7 @@ export const createAnnonce = async (req: Request, res: Response) => {
         categoryId: realCategoryId,
         userId,
         cityId: realCityId,
-        neighborhood, phone, whatsapp, expiresAt, slug, status: 'ACTIVE',
+        neighborhood, phone, whatsapp, expiresAt, slug, status: 'PENDING_REVIEW',
         quantity: quantity ? parseInt(quantity) : null,
         condition: condition || null,
         listingType: listingType || null,

@@ -175,8 +175,9 @@ model Annonce {
   serviceType  String?
 
   images       AnnonceImage[]
-  status      AnnonceStatus @default(ACTIVE)
-  expiresAt   DateTime
+  status          AnnonceStatus @default(PENDING_REVIEW)
+  rejectionReason String?
+  expiresAt       DateTime
   viewCount   Int           @default(0)
   isPremium   Boolean       @default(false)
   isFeatured  Boolean       @default(false)
@@ -209,6 +210,7 @@ enum AnnonceStatus {
   SOLD
   SUSPENDED
   PENDING_REVIEW
+  REJECTED
 }
 
 model SavedAnnonce {
@@ -487,6 +489,7 @@ enum NotificationType {
   NEW_APPLICATION
   ANNONCE_EXPIRED
   ANNONCE_APPROVED
+  ANNONCE_REJECTED
   ACCOUNT_SUSPENDED
   SYSTEM
 }

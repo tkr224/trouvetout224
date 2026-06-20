@@ -108,27 +108,78 @@ router.put('/users/:id/verify', async (req, res) => {
 
 // ─── Annonces ─────────────────────────────────────────────────────────────────
 
+// Doit être AVANT /:id pour ne pas être capturé comme id="pending-count"
+router.get('/annonces/pending-count', async (req, res) => {
+  try {
+    const count = await prisma.annonce.count({ where: { status: 'PENDING_REVIEW' } });
+    res.json({ count });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
 router.get('/annonces', async (req, res) => {
   try {
-    const { page = '1', status, q } = req.query;
+    const { page = '1', status, q, limit = '20' } = req.query;
     const where: any = {};
     if (status) where.status = status;
     if (q) where.title = { contains: q as string, mode: 'insensitive' };
-    const skip = (parseInt(page as string) - 1) * 20;
+    const take = Math.min(parseInt(limit as string) || 20, 100);
+    const skip = (parseInt(page as string) - 1) * take;
     const [annonces, total] = await Promise.all([
       prisma.annonce.findMany({
-        where, skip, take: 20,
+        where, skip, take,
         orderBy: { createdAt: 'desc' },
         include: {
-          user: { select: { firstName: true, lastName: true } },
+          user: { select: { id: true, firstName: true, lastName: true, email: true } },
           category: true,
           city: true,
-          images: { take: 1 },
+          images: true,
         },
       }),
       prisma.annonce.count({ where }),
     ]);
-    res.json({ data: annonces, pagination: { total, pages: Math.ceil(total / 20) } });
+    res.json({ data: annonces, pagination: { total, pages: Math.ceil(total / take) } });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.post('/annonces/:id/approve', async (req, res) => {
+  try {
+    const annonce = await prisma.annonce.update({
+      where: { id: req.params.id },
+      data: { status: 'ACTIVE', rejectionReason: null },
+    });
+    await prisma.notification.create({
+      data: {
+        userId: annonce.userId,
+        type: 'ANNONCE_APPROVED',
+        title: 'Annonce approuvée !',
+        body: `Votre annonce "${annonce.title}" a été validée et est maintenant visible sur le site.`,
+        data: { annonceId: annonce.id, slug: annonce.slug },
+      },
+    });
+    res.json({ message: 'Annonce approuvée.', data: annonce });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.post('/annonces/:id/reject', async (req, res) => {
+  try {
+    const { reason } = req.body;
+    if (!reason?.trim()) {
+      return res.status(400).json({ error: 'Le motif de rejet est obligatoire.' });
+    }
+    const annonce = await prisma.annonce.update({
+      where: { id: req.params.id },
+      data: { status: 'REJECTED', rejectionReason: reason.trim() },
+    });
+    await prisma.notification.create({
+      data: {
+        userId: annonce.userId,
+        type: 'ANNONCE_REJECTED',
+        title: 'Annonce rejetée',
+        body: `Votre annonce "${annonce.title}" n'a pas été validée. Motif : ${reason.trim()}`,
+        data: { annonceId: annonce.id, reason: reason.trim() },
+      },
+    });
+    res.json({ message: 'Annonce rejetée.', data: annonce });
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 

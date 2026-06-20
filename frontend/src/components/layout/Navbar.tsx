@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Logo from '@/components/Logo';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { MapPin, ChevronDown, Bell, User, Plus, Menu, X, LogOut } from 'lucide-react';
+import { MapPin, ChevronDown, Bell, MessageCircle, User, Plus, Menu, X, LogOut } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
@@ -105,6 +105,13 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
               Publier
             </Link>
             <Link
+              href="/messages"
+              className="relative w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 hover:border-primary-400 hover:text-primary-700 transition-colors"
+              title="Messagerie"
+            >
+              <MessageCircle size={18} />
+            </Link>
+            <Link
               href="/notifications"
               className="relative w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 hover:border-primary-400 hover:text-primary-700 transition-colors"
             >
@@ -158,6 +165,13 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             <div className="pt-2 border-t border-dark-100 flex gap-2">
               {loggedIn ? (
                 <>
+                  <Link
+                    href="/messages"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-semibold text-dark-600 border border-dark-200 rounded-xl hover:border-primary-400 hover:text-primary-700 transition-colors"
+                  >
+                    <MessageCircle size={14} /> Messages
+                  </Link>
                   <Link
                     href="/profil"
                     onClick={() => setMobileOpen(false)}

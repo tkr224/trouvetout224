@@ -19,6 +19,7 @@ const NOTIF_CONFIG: Record<string, { icon: any; color: string }> = {
   NEW_APPLICATION:   { icon: Briefcase,     color: 'bg-purple-100 text-purple-700'   },
   ANNONCE_EXPIRED:   { icon: Clock,         color: 'bg-orange-100 text-orange-600'   },
   ANNONCE_APPROVED:  { icon: CheckCircle,   color: 'bg-green-100 text-green-700'     },
+  ANNONCE_REJECTED:  { icon: AlertTriangle, color: 'bg-guinea-100 text-guinea-700'   },
   ACCOUNT_SUSPENDED: { icon: AlertTriangle, color: 'bg-red-100 text-red-600'         },
   SYSTEM:            { icon: Bell,          color: 'bg-dark-100 text-dark-500'       },
 };
@@ -36,6 +37,8 @@ function getNotifLink(notif: any): string | null {
     case 'ANNONCE_APPROVED':
     case 'SYSTEM':
       return data?.annonceId ? `/annonces/${data.annonceId}` : null;
+    case 'ANNONCE_REJECTED':
+      return '/profil';
     default:
       return null;
   }

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import {
   Settings, Plus, Star, Eye, ShoppingBag, LogOut, Share2, Camera, Loader2,
   Store, BadgeCheck, Lock, ClipboardList, Heart, Bookmark, Trash2, Search,
+  Clock, CheckCircle, XCircle, PauseCircle, AlertCircle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -86,6 +87,15 @@ export default function ProfilPage() {
   );
 
   const totalViews = myAnnonces.reduce((a, x) => a + (x.viewCount || 0), 0);
+
+  const STATUS_INFO: Record<string, { label: string; icon: any; cls: string }> = {
+    ACTIVE:         { label: 'Approuvée',   icon: CheckCircle,  cls: 'text-primary-700 bg-primary-50 border-primary-200' },
+    PENDING_REVIEW: { label: 'En attente',  icon: Clock,        cls: 'text-gold-700 bg-gold-50 border-gold-200' },
+    REJECTED:       { label: 'Rejetée',     icon: XCircle,      cls: 'text-guinea-700 bg-guinea-50 border-guinea-200' },
+    SUSPENDED:      { label: 'Suspendue',   icon: PauseCircle,  cls: 'text-dark-500 bg-dark-50 border-dark-200' },
+    EXPIRED:        { label: 'Expirée',     icon: AlertCircle,  cls: 'text-dark-500 bg-dark-50 border-dark-200' },
+    SOLD:           { label: 'Vendue',      icon: CheckCircle,  cls: 'text-blue-700 bg-blue-50 border-blue-200' },
+  };
 
   return (
     <div className="min-h-screen bg-dark-50">
@@ -221,7 +231,23 @@ export default function ProfilPage() {
                 </Link>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {myAnnonces.map(a => <AnnonceCard key={a.id} annonce={a} />)}
+                {myAnnonces.map(a => {
+                  const s = STATUS_INFO[a.status] || STATUS_INFO.ACTIVE;
+                  const SIcon = s.icon;
+                  return (
+                    <div key={a.id} className="flex flex-col gap-1.5">
+                      <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg border self-start ${s.cls}`}>
+                        <SIcon size={11} /> {s.label}
+                      </span>
+                      {a.status === 'REJECTED' && a.rejectionReason && (
+                        <p className="text-[11px] text-guinea-700 bg-guinea-50 border border-guinea-100 rounded-lg px-2.5 py-1 leading-snug">
+                          <span className="font-semibold">Motif :</span> {a.rejectionReason}
+                        </p>
+                      )}
+                      <AnnonceCard annonce={a} />
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )

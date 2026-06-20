@@ -85,6 +85,7 @@ function PublierAnnonceContent() {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(false);
+  const [published, setPublished] = useState(false);
 
   const [form, setForm] = useState<any>({
     title: '', description: '', price: '', isNegotiable: false,
@@ -232,9 +233,8 @@ function PublierAnnonceContent() {
         toast.success('Annonce modifiée !');
         router.push(`/annonces/${res.data.data.slug}`);
       } else {
-        const res = await api.post('/annonces', payload);
-        toast.success('Annonce publiée !');
-        router.push(`/annonces/${res.data.data.slug}`);
+        await api.post('/annonces', payload);
+        setPublished(true);
       }
     } catch (err: any) {
       toast.error(err.response?.data?.error || (editId ? 'Erreur lors de la modification' : 'Erreur lors de la publication'));
@@ -249,6 +249,45 @@ function PublierAnnonceContent() {
         <Navbar />
         <div className="max-w-2xl mx-auto px-4 py-12 flex items-center justify-center">
           <Loader2 size={32} className="animate-spin text-primary-600" />
+        </div>
+      </div>
+    );
+  }
+
+  if (published) {
+    return (
+      <div className="min-h-screen bg-dark-50">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[70vh] px-4">
+          <div className="text-center max-w-lg mx-auto">
+            <div className="w-24 h-24 bg-primary-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+              <Check size={44} className="text-primary-700" />
+            </div>
+            <h2 className="text-2xl font-display font-bold text-dark-900 mb-3">
+              Annonce envoyée avec succès !
+            </h2>
+            <p className="text-dark-500 text-base leading-relaxed mb-2">
+              Votre annonce a bien été reçue par notre équipe.
+            </p>
+            <p className="text-dark-500 text-base leading-relaxed mb-8">
+              Elle sera <strong className="text-primary-700">publiée sur le site après validation</strong> par notre équipe de modération (généralement sous 24h).
+              Vous recevrez une notification dès qu'elle sera approuvée.
+            </p>
+            <div className="flex gap-3 justify-center flex-wrap">
+              <button
+                onClick={() => router.push('/profil')}
+                className="btn-primary flex items-center gap-2"
+              >
+                Voir mes annonces
+              </button>
+              <button
+                onClick={() => { setPublished(false); setStep(1); setSelectedCategory(''); setImages([]); }}
+                className="btn-outline flex items-center gap-2"
+              >
+                Publier une autre annonce
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
