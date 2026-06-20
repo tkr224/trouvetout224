@@ -61,11 +61,31 @@ export default function ParametresPage() {
   const [notifMsg, setNotifMsg]         = useState(true);
   const [notifAnnonce, setNotifAnnonce] = useState(true);
   const [notifVue, setNotifVue]         = useState(false);
+  const [privPublic, setPrivPublic]     = useState(true);
+  const [privPhone, setPrivPhone]       = useState(true);
+  const [privMessages, setPrivMessages] = useState(true);
   const showGate = PROTECTED_TABS.includes(tab) && _hasHydrated && !loggedIn;
+
+  useEffect(() => {
+    const saved = localStorage.getItem('tt224-privacy');
+    if (!saved) return;
+    try {
+      const p = JSON.parse(saved);
+      setPrivPublic(p.profPublic ?? true);
+      setPrivPhone(p.showPhone ?? true);
+      setPrivMessages(p.acceptMessages ?? true);
+    } catch {}
+  }, []);
 
   const saveProfile = async () => {
     try { await api.put('/users/me', { firstName, lastName, bio }); toast.success('Profil mis à jour !'); }
     catch { toast.error('Erreur de mise à jour'); }
+  };
+
+  const savePrivacy = (key: string, val: boolean) => {
+    const saved = localStorage.getItem('tt224-privacy');
+    const current = saved ? JSON.parse(saved) : {};
+    localStorage.setItem('tt224-privacy', JSON.stringify({ ...current, [key]: val }));
   };
 
   const changePwd = async () => {
@@ -226,18 +246,16 @@ export default function ParametresPage() {
                 <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">Confidentialité</h2>
                 <div className="space-y-4">
                   {[
-                    { label: 'Profil public',        sub: 'Votre profil est visible par tous les utilisateurs', value: true },
-                    { label: 'Afficher mon numéro',  sub: 'Votre numéro est visible sur vos annonces',         value: true },
-                    { label: 'Recevoir des messages',sub: 'Les autres utilisateurs peuvent vous contacter',     value: true },
+                    { label: 'Profil public',        sub: 'Votre profil est visible par tous les utilisateurs', value: privPublic,   onChange: () => { const v = !privPublic;   setPrivPublic(v);   savePrivacy('profPublic', v); } },
+                    { label: 'Afficher mon numéro',  sub: 'Votre numéro est visible sur vos annonces',         value: privPhone,    onChange: () => { const v = !privPhone;    setPrivPhone(v);    savePrivacy('showPhone', v); } },
+                    { label: 'Recevoir des messages',sub: 'Les autres utilisateurs peuvent vous contacter',     value: privMessages, onChange: () => { const v = !privMessages; setPrivMessages(v); savePrivacy('acceptMessages', v); } },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center justify-between p-4 bg-dark-50 rounded-2xl">
                       <div>
                         <p className="font-semibold text-dark-900 text-sm">{item.label}</p>
                         <p className="text-dark-500 text-xs mt-0.5">{item.sub}</p>
                       </div>
-                      <button className={`relative w-11 h-6 rounded-full shrink-0 transition-colors ${item.value ? 'bg-primary-700' : 'bg-dark-300'}`}>
-                        <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${item.value ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                      </button>
+                      <Toggle value={item.value} onChange={item.onChange} />
                     </div>
                   ))}
                 </div>
