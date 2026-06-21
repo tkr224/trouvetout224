@@ -164,10 +164,12 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Menu mobile */}
-        {mobileOpen && (
-          <div className="lg:hidden border-t border-dark-100 py-3 space-y-1">
+      {/* Menu mobile — dropdown absolu : la navbar garde sa hauteur fixe h-16 */}
+      {mobileOpen && (
+        <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-t border-b border-dark-100 shadow-xl z-50">
+          <div className="max-w-7xl mx-auto px-4 py-3 space-y-1">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -246,8 +248,8 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
               )}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </nav>
   );
 }

@@ -102,7 +102,9 @@ export default function PublicProfilPage() {
       <Navbar/>
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="card overflow-hidden mb-6 animate-fade-in-up">
-          <div className="h-40 relative">
+
+          {/* ── Bannière ── */}
+          <div className="h-36 sm:h-44 relative">
             {(hasShop && profile.shopBanner)
               ? <img src={profile.shopBanner} alt="" className="w-full h-full object-cover"/>
               : <div className="w-full h-full bg-gradient-to-r from-primary-700 to-primary-800"/>}
@@ -112,42 +114,67 @@ export default function PublicProfilPage() {
               </div>
             )}
           </div>
-          <div className="px-6 pb-6">
-            <div className="flex items-end gap-4 -mt-12 mb-4 flex-wrap">
-              <div className="w-24 h-24 rounded-2xl border-4 border-white bg-primary-100 flex items-center justify-center shadow-card overflow-hidden">
-                {(hasShop && profile.shopLogo) ? <img src={profile.shopLogo} alt="" className="w-full h-full object-cover"/>
-                  : profile.avatar ? <img src={profile.avatar} alt="" className="w-full h-full object-cover"/>
-                  : <span className="text-3xl font-bold text-primary-700">{profile.firstName[0]}{profile.lastName[0]}</span>}
+
+          {/* ── Corps de la carte ── */}
+          <div className="px-4 sm:px-6 pb-6">
+
+            {/* Ligne 1 : avatar (chevauchant la bannière) + boutons d'action */}
+            <div className="flex items-end justify-between -mt-10 sm:-mt-12 mb-4">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border-4 border-white bg-primary-100 flex items-center justify-center shadow-card overflow-hidden shrink-0">
+                {(hasShop && profile.shopLogo)
+                  ? <img src={profile.shopLogo} alt="" className="w-full h-full object-cover"/>
+                  : profile.avatar
+                  ? <img src={profile.avatar} alt="" className="w-full h-full object-cover"/>
+                  : <span className="text-2xl sm:text-3xl font-bold text-primary-700">{profile.firstName[0]}{profile.lastName[0]}</span>}
               </div>
-              <div className="flex-1 mb-1 min-w-[200px]">
-                <h1 className="text-2xl font-display font-bold text-dark-900 flex items-center gap-2">
-                  {hasShop ? profile.shopName : `${profile.firstName} ${profile.lastName}`}
-                  {profile.isVerified && <CheckCircle size={20} className="text-blue-500" />}
-                </h1>
-                {hasShop && <p className="text-dark-500 text-sm">par {profile.firstName} {profile.lastName}</p>}
-                <div className="flex items-center gap-3 mt-1 text-dark-500 text-sm flex-wrap">
-                  {hasShop && profile.city && <span className="flex items-center gap-1"><MapPin size={13}/>{profile.city.name}</span>}
-                  <span className="flex items-center gap-1"><Calendar size={13}/>Membre depuis {memberSince}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <div className="flex items-center gap-2 pb-1">
                 {(hasShop && profile.shopWhatsapp) ? (
-                  <a href={`https://wa.me/224${profile.shopWhatsapp}`} target="_blank" rel="noopener noreferrer" className="bg-green-500 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm hover:bg-green-600 transition-colors"><MessageCircle size={15}/>WhatsApp</a>
+                  <a
+                    href={`https://wa.me/224${profile.shopWhatsapp}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-green-500 text-white font-semibold px-4 py-2 rounded-xl flex items-center gap-1.5 text-sm hover:bg-green-600 transition-colors"
+                  >
+                    <MessageCircle size={14}/> WhatsApp
+                  </a>
                 ) : (
-                  <button className="btn-primary flex items-center gap-2 text-sm"><MessageCircle size={15}/>Contacter</button>
+                  <button className="btn-primary flex items-center gap-1.5 text-sm py-2 px-4">
+                    <MessageCircle size={14}/> Contacter
+                  </button>
                 )}
                 <button
                   onClick={() => setShowReport(true)}
-                  className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-dark-200 text-dark-500 hover:border-guinea-400 hover:text-guinea-600 hover:bg-guinea-50 transition-colors text-sm font-medium"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dark-200 text-dark-500 hover:border-guinea-400 hover:text-guinea-600 hover:bg-guinea-50 transition-colors text-sm font-medium"
                   title="Signaler ce profil"
                 >
-                  <Flag size={14} /> Signaler
+                  <Flag size={14} />
+                  <span className="hidden sm:inline">Signaler</span>
                 </button>
               </div>
             </div>
 
+            {/* Ligne 2 : nom + infos */}
+            <div className="mb-3">
+              <h1 className="text-xl sm:text-2xl font-display font-bold text-dark-900 flex items-center gap-2 flex-wrap leading-snug">
+                {hasShop ? profile.shopName : `${profile.firstName} ${profile.lastName}`}
+                {profile.isVerified && <CheckCircle size={18} className="text-blue-500 shrink-0" />}
+              </h1>
+              {hasShop && (
+                <p className="text-dark-500 text-sm mt-0.5">
+                  par {profile.firstName} {profile.lastName}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-dark-500 text-sm">
+                {hasShop && profile.city && (
+                  <span className="flex items-center gap-1"><MapPin size={13}/>{profile.city.name}</span>
+                )}
+                <span className="flex items-center gap-1"><Calendar size={13}/>Membre depuis {memberSince}</span>
+              </div>
+            </div>
+
+            {/* Ligne 3 : badges */}
             {badges.length > 0 && (
-              <div className="flex gap-2 flex-wrap mb-4">
+              <div className="flex gap-2 flex-wrap mb-3">
                 {badges.map((b, i) => (
                   <span key={i} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${b.color}`}>
                     <b.icon size={13} /> {b.label}
@@ -156,14 +183,18 @@ export default function PublicProfilPage() {
               </div>
             )}
 
-            {hasShop && profile.shopDescription && <p className="text-dark-600 text-sm mb-4 whitespace-pre-wrap">{profile.shopDescription}</p>}
+            {/* Ligne 4 : description boutique */}
+            {hasShop && profile.shopDescription && (
+              <p className="text-dark-600 text-sm mb-4 whitespace-pre-wrap leading-relaxed">{profile.shopDescription}</p>
+            )}
 
+            {/* Ligne 5 : stats */}
             <div className="grid grid-cols-4 gap-3">
               {[
                 { icon: ShoppingBag, label: 'Annonces', value: profile._count?.annonces || 0, color: 'text-primary-700' },
-                { icon: Eye, label: 'Vues', value: totalViews, color: 'text-blue-600' },
-                { icon: Star, label: 'Note', value: avgRating ? avgRating.toFixed(1) : '—', color: 'text-yellow-600' },
-                { icon: MessageCircle, label: 'Avis', value: ratingsCount, color: 'text-purple-600' },
+                { icon: Eye,         label: 'Vues',     value: totalViews,                    color: 'text-blue-600' },
+                { icon: Star,        label: 'Note',     value: avgRating ? avgRating.toFixed(1) : '—', color: 'text-yellow-600' },
+                { icon: MessageCircle, label: 'Avis',   value: ratingsCount,                  color: 'text-purple-600' },
               ].map((s, i) => (
                 <div key={i} className="bg-dark-50 rounded-xl p-3 text-center">
                   <s.icon size={16} className={`mx-auto mb-1 ${s.color}`} />

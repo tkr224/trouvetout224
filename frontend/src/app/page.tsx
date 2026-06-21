@@ -141,7 +141,7 @@ function PublicationsCarousel({ pubs }: { pubs: Publication[] }) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 mb-5">
-      <div className="relative rounded-2xl overflow-hidden shadow-card-hover">
+      <div className="relative rounded-2xl overflow-hidden shadow-card-hover isolate">
         {pubs.map((p, i) => (
           <div
             key={p.id}
@@ -263,6 +263,14 @@ export default function HomePage() {
       }));
   }, [categories]);
 
+  /* Compteur d'annonces actives par slug — alimente toutes les sections de catégories */
+  const countBySlug = useMemo(() => {
+    if (!categories) return {} as Record<string, number>;
+    const map: Record<string, number> = {};
+    categories.forEach(c => { map[c.slug] = c._count?.annonces ?? 0; });
+    return map;
+  }, [categories]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     router.push(`/annonces/lister?q=${encodeURIComponent(query)}&city=${selectedCity}`);
@@ -335,13 +343,18 @@ export default function HomePage() {
           <div className="flex gap-2 min-w-max">
             {SIDEBAR_CATS.slice(0, 12).map(cat => {
               const Icon = cat.icon;
+              const n = countBySlug[cat.slug];
               return (
                 <Link
                   key={cat.slug}
                   href={`/categories/${cat.slug}`}
                   className="flex items-center gap-1.5 px-3 py-2 bg-white border border-dark-200 rounded-xl text-xs font-semibold text-dark-700 hover:border-primary-400 hover:text-primary-700 shadow-sm transition-all whitespace-nowrap"
                 >
-                  <Icon size={13} /> {cat.label}
+                  <Icon size={13} />
+                  {cat.label}
+                  {n !== undefined && n > 0 && (
+                    <span className="ml-0.5 text-dark-400 font-medium">({n})</span>
+                  )}
                 </Link>
               );
             })}
@@ -366,6 +379,7 @@ export default function HomePage() {
               <nav className="py-1.5 max-h-[calc(100vh-210px)] overflow-y-auto">
                 {SIDEBAR_CATS.map(cat => {
                   const Icon = cat.icon;
+                  const n = countBySlug[cat.slug];
                   return (
                     <Link
                       key={cat.slug}
@@ -374,7 +388,12 @@ export default function HomePage() {
                     >
                       <Icon size={15} className="text-dark-400 group-hover:text-primary-600 transition-colors shrink-0" />
                       <span className="flex-1 leading-tight">{cat.label}</span>
-                      <ChevronRight size={12} className="text-dark-300 opacity-0 group-hover:opacity-100 group-hover:text-primary-400 transition-all" />
+                      {n !== undefined && (
+                        <span className="text-[10px] font-semibold text-dark-400 bg-dark-100 group-hover:bg-primary-100 group-hover:text-primary-700 px-1.5 py-0.5 rounded-full transition-colors min-w-[22px] text-center leading-tight">
+                          {n > 99 ? '99+' : n}
+                        </span>
+                      )}
+                      <ChevronRight size={12} className="text-dark-300 opacity-0 group-hover:opacity-100 group-hover:text-primary-400 transition-all shrink-0" />
                     </Link>
                   );
                 })}
@@ -487,11 +506,12 @@ export default function HomePage() {
             <ScrollReveal className="grid grid-cols-4 sm:grid-cols-8 gap-3 mb-8">
               {FEATURED_CATS.map(cat => {
                 const Icon = cat.icon;
+                const n = countBySlug[cat.slug];
                 return (
                   <Link
                     key={cat.slug}
                     href={`/categories/${cat.slug}`}
-                    className="group flex flex-col items-center gap-2 p-3 bg-[#fdfcf8] dark:bg-dark-800 rounded-2xl border border-dark-100 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-1 hover:bg-primary-50/40 dark:hover:bg-primary-900/30 transition-all duration-200"
+                    className="group flex flex-col items-center gap-1.5 p-3 bg-[#fdfcf8] dark:bg-dark-800 rounded-2xl border border-dark-100 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-1 hover:bg-primary-50/40 dark:hover:bg-primary-900/30 transition-all duration-200"
                   >
                     <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${cat.bg} flex items-center justify-center shadow-sm`}>
                       <Icon size={20} className="text-white" strokeWidth={1.8} />
@@ -499,13 +519,18 @@ export default function HomePage() {
                     <span className="text-[10px] sm:text-[11px] font-semibold text-dark-700 text-center leading-tight group-hover:text-primary-700 transition-colors">
                       {cat.label}
                     </span>
+                    {n !== undefined && (
+                      <span className="text-[9px] text-dark-400 font-medium leading-none group-hover:text-primary-500 transition-colors">
+                        {n === 0 ? '0 offre' : `${n > 999 ? (n / 1000).toFixed(1) + 'k' : n} offre${n !== 1 ? 's' : ''}`}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
               {/* Carte "Plus" */}
               <Link
                 href="/annonces/lister"
-                className="group flex flex-col items-center gap-2 p-3 bg-[#fdfcf8] dark:bg-dark-800 rounded-2xl border border-dark-100 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-1 hover:bg-primary-50/40 dark:hover:bg-primary-900/30 transition-all duration-200"
+                className="group flex flex-col items-center gap-1.5 p-3 bg-[#fdfcf8] dark:bg-dark-800 rounded-2xl border border-dark-100 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-1 hover:bg-primary-50/40 dark:hover:bg-primary-900/30 transition-all duration-200"
               >
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-dark-500 to-dark-700 flex items-center justify-center shadow-sm">
                   <MoreHorizontal size={20} className="text-white" />
