@@ -338,8 +338,8 @@ export default function HomePage() {
       {/* ══ CONTENU PRINCIPAL ═══════════════════════════════════════ */}
       <div className="flex-1 max-w-7xl mx-auto px-4 py-6 w-full">
 
-        {/* Catégories mobiles (horizontal scroll, cachées sur lg+) */}
-        <div className="lg:hidden overflow-x-auto pb-3 mb-5 -mx-4 px-4">
+        {/* Catégories mobiles (scroll horizontal, visible sur tablette sm→lg, caché sur mobile xs et desktop lg+) */}
+        <div className="hidden sm:block lg:hidden overflow-x-auto pb-3 mb-5 -mx-4 px-4">
           <div className="flex gap-2 min-w-max">
             {SIDEBAR_CATS.slice(0, 12).map(cat => {
               const Icon = cat.icon;

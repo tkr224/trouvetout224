@@ -106,7 +106,7 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             </Link>
             <Link
               href="/messages"
-              className="relative w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 hover:border-primary-400 hover:text-primary-700 transition-colors"
+              className="hidden sm:flex relative w-9 h-9 items-center justify-center rounded-xl border border-dark-200 text-dark-500 hover:border-primary-400 hover:text-primary-700 transition-colors"
               title="Messagerie"
             >
               <MessageCircle size={18} />
@@ -133,7 +133,7 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             </Link>
             <Link
               href="/parametres"
-              className="w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 hover:border-primary-400 hover:text-primary-700 transition-colors"
+              className="hidden sm:flex w-9 h-9 items-center justify-center rounded-xl border border-dark-200 text-dark-500 hover:border-primary-400 hover:text-primary-700 transition-colors"
               title="Paramètres"
             >
               <Settings size={18} />

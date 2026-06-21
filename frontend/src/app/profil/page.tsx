@@ -122,7 +122,8 @@ export default function ProfilPage() {
             <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleBannerUpload} />
           </div>
 
-          <div className="px-6 pb-6">
+          {/* relative z-10 : passe au-dessus de la bannière (relative sans z-index = couche 6, non-positionné = couche 3) */}
+          <div className="px-4 sm:px-6 pb-6 relative z-10">
             <div className="flex items-end justify-between -mt-12 mb-4">
 
               {/* Avatar */}
@@ -141,21 +142,23 @@ export default function ProfilPage() {
                 <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
               </div>
 
-              {/* Actions */}
-              <div className="flex gap-2 mb-2 flex-wrap justify-end">
+              {/* Actions — icônes compactes sur mobile pour éviter le wrapping dans la zone bannière */}
+              <div className="flex gap-1.5 sm:gap-2 pb-1 items-end flex-shrink-0">
                 <Link href="/vendeur" className="bg-primary-700 text-white py-2 px-3 flex items-center gap-1.5 text-sm font-semibold rounded-xl hover:bg-primary-800 transition-colors shadow-sm">
-                  <Store size={14} /> Espace Vendeur
+                  <Store size={14} />
+                  <span className="hidden sm:inline">Espace </span>Vendeur
                 </Link>
                 <button
                   onClick={() => { navigator.clipboard?.writeText(`${window.location.origin}/profil/${user.id}`); toast.success('Lien copié !'); }}
-                  className="btn-outline py-2 px-3 flex items-center gap-1.5 text-sm">
-                  <Share2 size={14} /> Partager
+                  title="Partager mon profil"
+                  className="w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 hover:border-primary-400 hover:text-primary-700 transition-colors">
+                  <Share2 size={15} />
                 </button>
-                <Link href="/parametres" className="btn-outline py-2 px-3 flex items-center gap-1.5 text-sm">
-                  <Settings size={14} /> Paramètres
+                <Link href="/parametres" title="Paramètres" className="w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 hover:border-primary-400 hover:text-primary-700 transition-colors">
+                  <Settings size={15} />
                 </Link>
-                <button onClick={logout} className="py-2 px-3 rounded-xl border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 flex items-center gap-1.5 transition-colors">
-                  <LogOut size={14} /> Déconnexion
+                <button onClick={logout} title="Déconnexion" className="w-9 h-9 flex items-center justify-center rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition-colors">
+                  <LogOut size={15} />
                 </button>
               </div>
             </div>
@@ -173,31 +176,31 @@ export default function ProfilPage() {
         </div>
 
         {/* Statistiques */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-3 gap-3 mb-6">
           {[
             { Icon: ShoppingBag, label: 'Annonces',    value: myAnnonces.length,             color: 'text-primary-700 bg-primary-100' },
             { Icon: Eye,         label: 'Vues totales', value: totalViews.toLocaleString('fr-FR'), color: 'text-blue-600 bg-blue-100' },
             { Icon: Star,        label: 'Favoris',      value: favoris.length,                color: 'text-guinea-600 bg-guinea-100' },
           ].map((s, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-dark-100 shadow-card p-5 text-center">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 ${s.color}`}>
-                <s.Icon size={18} />
+            <div key={i} className="bg-white rounded-2xl border border-dark-100 shadow-card p-3 sm:p-5 text-center">
+              <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mx-auto mb-1.5 ${s.color}`}>
+                <s.Icon size={16} />
               </div>
-              <p className="text-2xl font-bold text-dark-900">{s.value}</p>
-              <p className="text-dark-500 text-sm">{s.label}</p>
+              <p className="text-xl sm:text-2xl font-bold text-dark-900">{s.value}</p>
+              <p className="text-dark-500 text-xs sm:text-sm">{s.label}</p>
             </div>
           ))}
         </div>
 
-        {/* Onglets */}
-        <div className="flex gap-2 mb-5 flex-wrap">
+        {/* Onglets — scroll horizontal sur mobile pour éviter le wrapping */}
+        <div className="flex gap-2 mb-5 overflow-x-auto pb-1 -mx-4 px-4">
           {[
             { k: 'annonces',   l: `Mes annonces (${myAnnonces.length})` },
             { k: 'favoris',    l: `Mes favoris (${favoris.length})` },
-            { k: 'recherches', l: `Recherches sauvegardées (${savedSearches.length})` },
+            { k: 'recherches', l: `Recherches (${savedSearches.length})` },
           ].map(t => (
             <button key={t.k} onClick={() => setTab(t.k as any)}
-              className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all
+              className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap
                 ${tab === t.k ? 'bg-primary-700 text-white shadow-sm' : 'bg-white text-dark-600 hover:bg-primary-50 border border-dark-100 shadow-sm'}`}>
               {t.l}
             </button>
