@@ -6,6 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import AnnonceGrid from '@/components/annonces/AnnonceGrid';
 import ScrollReveal from '@/components/ScrollReveal';
+import HeroBanner from '@/components/HeroBanner';
 import { useAnnonces } from '@/hooks/useAnnonces';
 import { useCategories } from '@/hooks/useCategories';
 import Link from 'next/link';
@@ -413,94 +414,7 @@ export default function HomePage() {
           <div className="flex-1 min-w-0">
 
             {/* ── BANNIÈRE HÉRO ── */}
-            <div className="relative bg-gradient-to-br from-primary-800 via-primary-700 to-primary-900 rounded-3xl overflow-hidden mb-6 p-7 md:p-10 min-h-[260px] md:min-h-[300px]">
-
-              {/* Blobs décoratifs */}
-              <div className="pointer-events-none absolute -top-8 -left-8 w-64 h-64 bg-primary-500/25 rounded-full blur-3xl" />
-              <div className="pointer-events-none absolute bottom-0 left-1/3 w-48 h-48 bg-gold-400/10 rounded-full blur-3xl" />
-
-              {/* ── Collage d'images ── visible à partir de md */}
-              <div className="absolute right-3 top-3 bottom-3 w-[45%] hidden md:flex gap-2">
-
-                {/* Fondu sur le bord gauche du collage */}
-                <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-primary-800 to-transparent z-10" />
-
-                {/* Colonne principale — grande carte (voiture) */}
-                <div
-                  className="flex-[1.15] relative rounded-2xl overflow-hidden shadow-2xl ring-2 ring-white/20"
-                  style={{ transform: 'rotate(-1.5deg)' }}
-                >
-                  <img
-                    src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=380&h=340&fit=crop&q=82"
-                    alt="Voiture"
-                    className="w-full h-full object-cover"
-                  />
-                  <span className="absolute bottom-2 left-2 bg-black/55 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-full tracking-wide">
-                    VÉHICULES
-                  </span>
-                </div>
-
-                {/* Colonne secondaire — 2 cartes empilées */}
-                <div className="flex-[0.9] flex flex-col gap-2 pt-6 pb-1">
-                  <div
-                    className="flex-1 relative rounded-2xl overflow-hidden shadow-xl ring-2 ring-white/20"
-                    style={{ transform: 'rotate(1.2deg)' }}
-                  >
-                    <img
-                      src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=280&h=180&fit=crop&q=82"
-                      alt="Villa"
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute bottom-2 left-2 bg-black/55 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-full tracking-wide">
-                      IMMOBILIER
-                    </span>
-                  </div>
-                  <div
-                    className="flex-1 relative rounded-2xl overflow-hidden shadow-xl ring-2 ring-white/20"
-                    style={{ transform: 'rotate(-0.8deg)' }}
-                  >
-                    <img
-                      src="https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=280&h=150&fit=crop&q=82"
-                      alt="Smartphone"
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute bottom-2 left-2 bg-black/55 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-full tracking-wide">
-                      TÉLÉPHONES
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Texte — pleine largeur sur mobile, 55 % sur md+ */}
-              <div className="relative z-20 max-w-full md:max-w-[56%]">
-                <p className="text-primary-200 font-semibold text-xs uppercase tracking-widest mb-2">
-                  Bienvenue sur
-                </p>
-                <h1 className="text-3xl md:text-4xl font-display font-bold text-white leading-tight mb-2">
-                  TrouveTout<span className="text-gold-400">224</span>
-                </h1>
-                <p className="text-primary-100 text-base font-medium mb-1">
-                  Le plus grand marché en ligne de Guinée
-                </p>
-                <p className="text-primary-200/80 text-sm mb-6 leading-relaxed max-w-sm">
-                  Achetez, vendez, trouvez tout ce dont vous avez besoin — rapidement et gratuitement.
-                </p>
-                <div className="flex gap-3 flex-wrap">
-                  <Link
-                    href="/annonces/lister"
-                    className="inline-flex items-center gap-2 bg-gold-500 hover:bg-gold-600 active:scale-95 text-white font-bold px-5 py-2.5 rounded-xl transition-all shadow-lg text-sm"
-                  >
-                    <Search size={15} /> Découvrir les offres
-                  </Link>
-                  <Link
-                    href="/annonces/publier"
-                    className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 active:scale-95 border border-white/30 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm"
-                  >
-                    Publier une annonce
-                  </Link>
-                </div>
-              </div>
-            </div>
+            <HeroBanner />
 
             {/* ── CATÉGORIES EN VEDETTE ── */}
             <ScrollReveal className="grid grid-cols-4 sm:grid-cols-8 gap-3 mb-8">

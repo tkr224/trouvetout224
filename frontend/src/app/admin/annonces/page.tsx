@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   Search, ShoppingBag, Eye, EyeOff, Trash2,
-  RefreshCw, Filter, ChevronLeft, ChevronRight,
+  RefreshCw, Filter, ChevronLeft, ChevronRight, Star,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
@@ -14,6 +14,7 @@ type Annonce = {
   currency: string;
   status: string;
   createdAt: string;
+  isFeaturedBanner?: boolean;
   user?: { firstName: string; lastName: string };
   category?: { nameFr: string };
   city?: { name: string };
@@ -89,6 +90,14 @@ export default function AdminAnnonces() {
     } catch { toast.error('Erreur lors de la suppression'); }
   };
 
+  const toggleBanner = async (id: string, current: boolean) => {
+    try {
+      const res = await api.patch(`/admin/annonces/${id}/featured-banner`);
+      setAnnonces(a => a.map(x => x.id === id ? { ...x, isFeaturedBanner: res.data.data.isFeaturedBanner } : x));
+      toast.success(current ? 'Retiré de la bannière d\'accueil' : 'Mis en vedette dans la bannière !');
+    } catch { toast.error('Erreur lors de la mise à jour'); }
+  };
+
   return (
     <div className="p-8 space-y-6 animate-fadeIn">
       {/* Header */}
@@ -161,7 +170,7 @@ export default function AdminAnnonces() {
             <table className="w-full text-sm">
               <thead className="bg-dark-50 border-b border-dark-100">
                 <tr>
-                  {['Annonce', 'Vendeur', 'Catégorie', 'Ville', 'Prix', 'Statut', 'Actions'].map(h => (
+                  {['Annonce', 'Vendeur', 'Catégorie', 'Ville', 'Prix', 'Statut', 'Bannière', 'Actions'].map(h => (
                     <th key={h} className="text-left px-5 py-3.5 text-dark-500 font-semibold text-xs uppercase tracking-wide">
                       {h}
                     </th>
@@ -208,6 +217,22 @@ export default function AdminAnnonces() {
                         {STATUS_LABEL[a.status] || a.status}
                       </span>
                     </td>
+                    {/* Vedette bannière */}
+                    <td className="px-5 py-4">
+                      <button
+                        onClick={() => toggleBanner(a.id, !!a.isFeaturedBanner)}
+                        title={a.isFeaturedBanner ? 'Retirer de la bannière' : 'Mettre en vedette dans la bannière'}
+                        className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
+                          a.isFeaturedBanner
+                            ? 'bg-gold-100 text-gold-700 hover:bg-gold-200'
+                            : 'bg-dark-100 text-dark-400 hover:bg-dark-200 hover:text-dark-600'
+                        }`}
+                      >
+                        <Star size={12} className={a.isFeaturedBanner ? 'fill-gold-500 text-gold-500' : ''} />
+                        {a.isFeaturedBanner ? 'Vedette' : 'Normal'}
+                      </button>
+                    </td>
+
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
                         {a.status === 'ACTIVE' ? (

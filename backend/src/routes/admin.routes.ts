@@ -206,6 +206,22 @@ router.delete('/annonces/:id', async (req, res) => {
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
+// Toggle vedette bannière d'accueil
+router.patch('/annonces/:id/featured-banner', async (req, res) => {
+  try {
+    const current = await prisma.annonce.findUnique({
+      where: { id: req.params.id },
+      select: { isFeaturedBanner: true },
+    });
+    if (!current) return res.status(404).json({ error: 'Annonce introuvable.' });
+    const updated = await prisma.annonce.update({
+      where: { id: req.params.id },
+      data: { isFeaturedBanner: !current.isFeaturedBanner },
+    });
+    res.json({ data: updated });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
 // ─── Signalements ─────────────────────────────────────────────────────────────
 
 router.get('/reports', async (req, res) => {

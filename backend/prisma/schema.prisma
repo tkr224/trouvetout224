@@ -194,9 +194,10 @@ model Annonce {
   rejectionReason String?
   expiresAt       DateTime
   viewCount   Int           @default(0)
-  isPremium   Boolean       @default(false)
-  isFeatured  Boolean       @default(false)
-  slug        String        @unique
+  isPremium        Boolean       @default(false)
+  isFeatured       Boolean       @default(false)
+  isFeaturedBanner Boolean       @default(false)
+  slug             String        @unique
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
