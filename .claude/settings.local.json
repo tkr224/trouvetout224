@@ -17,7 +17,10 @@
       "Bash(git push *)",
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\celso\\\\OneDrive\\\\Desktop\\\\Trouvetout224\\\\frontend\\\\src\\\\components\" -Recurse -Name | Where-Object { $_ -match \"Navbar|navbar|nav\" })",
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\celso\\\\OneDrive\\\\Desktop\\\\Trouvetout224\\\\backend\\\\src\" -Recurse -Name | Where-Object { $_ -match \"admin|middleware|auth\" })",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\celso\\\\OneDrive\\\\Desktop\\\\Trouvetout224\\\\backend\\\\src\" -Name | Where-Object { $_ -match \"\\\\.\\(ts|js\\)$\" })",
+      "Bash(git *)",
+      "Bash(grep -E \"^[^/]*\\(/[^/]*\\)?$\")"
     ]
   }
 }
