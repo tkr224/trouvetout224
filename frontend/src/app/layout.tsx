@@ -9,6 +9,7 @@ const SplashScreen     = dynamic(() => import('@/components/SplashScreen'),     
 const OnboardingGate   = dynamic(() => import('@/components/OnboardingGate'),    { ssr: false });
 const PWAInstallBanner = dynamic(() => import('@/components/PWAInstallBanner'),  { ssr: false });
 const PWARegister      = dynamic(() => import('@/components/PWARegister'),       { ssr: false });
+const ThemeAnimations  = dynamic(() => import('@/components/ThemeAnimations'),   { ssr: false });
 
 /* ── Métadonnées globales (SEO + Open Graph + PWA) ───────────────── */
 export const metadata: Metadata = {
@@ -82,7 +83,7 @@ const themeScript = `(function(){try{
   if(t==='dark'||(t!=='light'&&dark)){document.documentElement.classList.add('dark')}
   var s=localStorage.getItem('tt224-special');
   var c=localStorage.getItem('tt224-color');
-  var validColors=['blue','purple','orange','red','teal','royal','feu','nuit','minimaliste','terre','animated'];
+  var validColors=['blue','purple','orange','red','teal','royal','feu','nuit','minimaliste','terre','animated','neon','valentine','halloween','luxe','retro'];
   var validSpecial=['noel','ramadan','independence'];
   if(s&&validSpecial.includes(s)){document.documentElement.setAttribute('data-color',s)}
   else if(c&&validColors.includes(c)){document.documentElement.setAttribute('data-color',c)}
@@ -149,6 +150,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <QueryProvider>
           <ThemeProvider>
+            <ThemeAnimations />
             <SplashScreen />
             <OnboardingGate />
             {children}

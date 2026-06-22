@@ -6,11 +6,16 @@
 
 /* ══════════════════════════════════════════════════════════════════════
    VARIABLES CSS — Palette primary (RGB triplets pour Tailwind /opacity)
+   + Variables de fond/carte par thème
    Thème par défaut : Vert Guinée
    ══════════════════════════════════════════════════════════════════════ */
 :root {
   --font-inter:   'Inter', sans-serif;
   --font-poppins: 'Poppins', sans-serif;
+
+  /* Fonds par défaut (thème vert / neutre) */
+  --bg-page: #f5f2eb;
+  --card-bg: #fdfcf8;
 
   /* Vert Guinée — palette complète */
   --p-50:  240 253 244;
@@ -20,13 +25,15 @@
   --p-400:  74 222 128;
   --p-500:  34 197  94;
   --p-600:  22 163  74;
-  --p-700:  27 139  59;   /* #1B8B3B — couleur de marque */
+  --p-700:  27 139  59;
   --p-800:  22 101  52;
   --p-900:  20  83  45;
 }
 
 /* ── Thème Bleu Océan ──────────────────────────────────────────────── */
 :root[data-color="blue"] {
+  --bg-page: #eff4ff;
+  --card-bg: #f5f8ff;
   --p-50:  239 246 255;
   --p-100: 219 234 254;
   --p-200: 191 219 254;
@@ -41,6 +48,8 @@
 
 /* ── Thème Violet ──────────────────────────────────────────────────── */
 :root[data-color="purple"] {
+  --bg-page: #f5f0ff;
+  --card-bg: #f9f6ff;
   --p-50:  250 245 255;
   --p-100: 243 232 255;
   --p-200: 233 213 255;
@@ -55,6 +64,8 @@
 
 /* ── Thème Orange Coucher de soleil ────────────────────────────────── */
 :root[data-color="orange"] {
+  --bg-page: #fff5eb;
+  --card-bg: #fff9f5;
   --p-50:  255 247 237;
   --p-100: 255 237 213;
   --p-200: 254 215 170;
@@ -69,6 +80,8 @@
 
 /* ── Thème Rouge Guinée ────────────────────────────────────────────── */
 :root[data-color="red"] {
+  --bg-page: #fff2f2;
+  --card-bg: #fff7f7;
   --p-50:  255 241 242;
   --p-100: 255 228 230;
   --p-200: 254 205 211;
@@ -83,6 +96,8 @@
 
 /* ── Thème Turquoise ───────────────────────────────────────────────── */
 :root[data-color="teal"] {
+  --bg-page: #edfcf8;
+  --card-bg: #f3fffe;
   --p-50:  240 253 250;
   --p-100: 204 251 241;
   --p-200: 153 246 228;
@@ -95,52 +110,10 @@
   --p-900:  19  78  74;
 }
 
-/* ── Thème spécial Noël ─────────────────────────────────────────────
-   Rouge festif + banderole décorative en haut de page                */
-:root[data-color="noel"] {
-  --p-50:  255 241 242;
-  --p-100: 255 228 230;
-  --p-200: 254 205 211;
-  --p-300: 253 164 175;
-  --p-400: 251 113 133;
-  --p-500: 220  38  38;
-  --p-600: 185  28  28;
-  --p-700: 153  27  27;
-  --p-800: 127  29  29;
-  --p-900: 113  22  22;
-}
-
-/* ── Thème spécial Ramadan ──────────────────────────────────────────
-   Violet profond + or                                                 */
-:root[data-color="ramadan"] {
-  --p-50:  253 248 255;
-  --p-100: 243 232 255;
-  --p-200: 233 213 255;
-  --p-300: 201 168  76;  /* accent doré */
-  --p-400: 192 132 252;
-  --p-500: 139  69 219;
-  --p-600: 109  40 217;
-  --p-700:  88  28 135;
-  --p-800:  74  24 122;
-  --p-900:  59  19  97;
-}
-
-/* ── Thème spécial Fête de l'indépendance Guinée (2 octobre) ─────── */
-:root[data-color="independence"] {
-  --p-50:  240 253 244;
-  --p-100: 220 252 231;
-  --p-200: 187 247 208;
-  --p-300: 134 239 172;
-  --p-400:  74 222 128;
-  --p-500:  34 197  94;
-  --p-600:  22 163  74;
-  --p-700:  27 139  59;
-  --p-800:  22 101  52;
-  --p-900:  20  83  45;
-}
-
 /* ── 👑 Thème Royal (violet profond / améthyste) ─────────────────── */
 :root[data-color="royal"] {
+  --bg-page: #f4f0ff;
+  --card-bg: #f9f7ff;
   --p-50:  245 243 255;
   --p-100: 237 233 254;
   --p-200: 221 214 254;
@@ -155,6 +128,8 @@
 
 /* ── 🔥 Thème Feu (orange-rouge ardent) ──────────────────────────── */
 :root[data-color="feu"] {
+  --bg-page: #fff4ed;
+  --card-bg: #fff9f6;
   --p-50:  255 241 235;
   --p-100: 255 224 207;
   --p-200: 255 196 163;
@@ -169,6 +144,8 @@
 
 /* ── 🌙 Thème Nuit étoilée (indigo profond) ──────────────────────── */
 :root[data-color="nuit"] {
+  --bg-page: #eef0ff;
+  --card-bg: #f4f5ff;
   --p-50:  238 242 255;
   --p-100: 224 231 255;
   --p-200: 199 210 254;
@@ -183,6 +160,8 @@
 
 /* ── 💎 Thème Minimaliste (ardoise / gris neutre) ────────────────── */
 :root[data-color="minimaliste"] {
+  --bg-page: #f8f9fa;
+  --card-bg: #ffffff;
   --p-50:  248 250 252;
   --p-100: 241 245 249;
   --p-200: 226 232 240;
@@ -197,6 +176,8 @@
 
 /* ── 🍫 Thème Terre (brun / terracotta naturel) ──────────────────── */
 :root[data-color="terre"] {
+  --bg-page: #fdf5ed;
+  --card-bg: #fef9f4;
   --p-50:  253 246 240;
   --p-100: 250 235 221;
   --p-200: 246 215 190;
@@ -209,8 +190,10 @@
   --p-900: 103  39  11;
 }
 
-/* ── ✨ Thème Animé / 3D (cyan vibrant + effets CSS) ────────────── */
+/* ── ✨ Thème Animé / 3D (cyan vibrant) ─────────────────────────── */
 :root[data-color="animated"] {
+  --bg-page: #ecfeff;
+  --card-bg: #f4fffe;
   --p-50:  236 254 255;
   --p-100: 207 250 254;
   --p-200: 165 243 252;
@@ -223,6 +206,134 @@
   --p-900:  22  78  99;
 }
 
+/* ── 🔮 Thème Néon / Cyberpunk ───────────────────────────────────── */
+:root[data-color="neon"] {
+  --bg-page: #eef8ff;
+  --card-bg: #f0fbff;
+  --p-50:  236 254 255;
+  --p-100: 207 250 254;
+  --p-200: 165 243 252;
+  --p-300: 103 232 249;
+  --p-400:  34 211 238;
+  --p-500:   6 182 212;
+  --p-600:   8 145 178;
+  --p-700:   0 180 216;
+  --p-800:  14 116 144;
+  --p-900:  22  78  99;
+}
+
+/* ── 💕 Thème Saint-Valentin ─────────────────────────────────────── */
+:root[data-color="valentine"] {
+  --bg-page: #fff0f5;
+  --card-bg: #fff7fb;
+  --p-50:  255 240 247;
+  --p-100: 255 215 237;
+  --p-200: 255 182 221;
+  --p-300: 255 143 200;
+  --p-400: 255  94 173;
+  --p-500: 236  49 133;
+  --p-600: 214  27 110;
+  --p-700: 190   8  90;
+  --p-800: 158   7  75;
+  --p-900: 128   6  60;
+}
+
+/* ── 🎃 Thème Halloween ──────────────────────────────────────────── */
+:root[data-color="halloween"] {
+  --bg-page: #fff5eb;
+  --card-bg: #fffaf6;
+  --p-50:  255 243 230;
+  --p-100: 255 224 189;
+  --p-200: 255 193 136;
+  --p-300: 255 153  67;
+  --p-400: 255 117  12;
+  --p-500: 228  90   0;
+  --p-600: 193  74   9;
+  --p-700: 160  58   4;
+  --p-800: 125  46   3;
+  --p-900:  90  33   2;
+}
+
+/* ── 🥂 Thème Luxe / Gold ────────────────────────────────────────── */
+:root[data-color="luxe"] {
+  --bg-page: #fdf8ed;
+  --card-bg: #fffdf7;
+  --p-50:  255 252 230;
+  --p-100: 255 245 195;
+  --p-200: 255 231 136;
+  --p-300: 252 211  77;
+  --p-400: 245 177  20;
+  --p-500: 212 150   8;
+  --p-600: 179 119   6;
+  --p-700: 150  95   5;
+  --p-800: 117  72   4;
+  --p-900:  82  51   3;
+}
+
+/* ── 📻 Thème Rétro / Vintage (mulberry 70s) ─────────────────────── */
+:root[data-color="retro"] {
+  --bg-page: #fef5fe;
+  --card-bg: #fdf8fe;
+  --p-50:  253 244 254;
+  --p-100: 250 224 252;
+  --p-200: 244 186 246;
+  --p-300: 232 128 237;
+  --p-400: 208  69 213;
+  --p-500: 168  25 171;
+  --p-600: 133  12 136;
+  --p-700: 105   8 108;
+  --p-800:  80   6  83;
+  --p-900:  58   4  60;
+}
+
+/* ── Thème spécial Noël ─────────────────────────────────────────────*/
+:root[data-color="noel"] {
+  --bg-page: #f4fff4;
+  --card-bg: #edfff2;
+  --p-50:  255 241 242;
+  --p-100: 255 228 230;
+  --p-200: 254 205 211;
+  --p-300: 253 164 175;
+  --p-400: 251 113 133;
+  --p-500: 220  38  38;
+  --p-600: 185  28  28;
+  --p-700: 153  27  27;
+  --p-800: 127  29  29;
+  --p-900: 113  22  22;
+}
+
+/* ── Thème spécial Ramadan ───────────────────────────────────────── */
+:root[data-color="ramadan"] {
+  --bg-page: #f8f5ff;
+  --card-bg: #f4f0ff;
+  --p-50:  253 248 255;
+  --p-100: 243 232 255;
+  --p-200: 233 213 255;
+  --p-300: 201 168  76;
+  --p-400: 192 132 252;
+  --p-500: 139  69 219;
+  --p-600: 109  40 217;
+  --p-700:  88  28 135;
+  --p-800:  74  24 122;
+  --p-900:  59  19  97;
+}
+
+/* ── Thème spécial Indépendance Guinée ──────────────────────────── */
+:root[data-color="independence"] {
+  --bg-page: #f2fef5;
+  --card-bg: #f5fff8;
+  --p-50:  240 253 244;
+  --p-100: 220 252 231;
+  --p-200: 187 247 208;
+  --p-300: 134 239 172;
+  --p-400:  74 222 128;
+  --p-500:  34 197  94;
+  --p-600:  22 163  74;
+  --p-700:  27 139  59;
+  --p-800:  22 101  52;
+  --p-900:  20  83  45;
+}
+
 /* ══════════════════════════════════════════════════════════════════════
    BASE STYLES
    ══════════════════════════════════════════════════════════════════════ */
@@ -230,7 +341,7 @@
 
 body {
   font-family: var(--font-inter);
-  background-color: #f5f2eb;
+  background-color: var(--bg-page, #f5f2eb);
   color: #1e293b;
   -webkit-font-smoothing: antialiased;
 }
@@ -250,7 +361,7 @@ body {
   }
   .card {
     @apply rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden;
-    background-color: #fdfcf8;
+    background-color: var(--card-bg, #fdfcf8);
   }
   .input {
     @apply w-full border border-dark-200 rounded-xl px-4 py-3 text-dark-900 placeholder-dark-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200;
@@ -262,52 +373,28 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   DÉCORATIONS THÈMES SPÉCIAUX — banderole en haut de page
+   FONDS DE PAGE PAR THÈME — bg-dark-50 est le wrapper principal
    ══════════════════════════════════════════════════════════════════════ */
 
-/* Noël : rouge/vert festif */
-html[data-color="noel"] body::before {
-  content: '🎄 ❄️ 🎅 ❄️ 🎄 ❄️ 🎅 ❄️ 🎄 ❄️ 🎅 ❄️ 🎄 ❄️ 🎅 ❄️ 🎄 ❄️ 🎅 ❄️ 🎄 ❄️ 🎅 ❄️';
-  display: block;
-  text-align: center;
-  font-size: 12px;
-  padding: 4px 0;
-  background: linear-gradient(90deg, #b91c1c, #166534, #b91c1c);
-  color: white;
-  letter-spacing: 0.5em;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-/* Ramadan : croissant doré / violet */
-html[data-color="ramadan"] body::before {
-  content: '🌙 ✨ رمضان كريم ✨ 🌙 ✨ رمضان كريم ✨ 🌙 ✨ رمضان كريم ✨ 🌙';
-  display: block;
-  text-align: center;
-  font-size: 12px;
-  padding: 4px 0;
-  background: linear-gradient(90deg, #4c1d95, #78350f, #4c1d95);
-  color: #fcd34d;
-  letter-spacing: 0.2em;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-/* Indépendance Guinée : drapeau tricolore */
-html[data-color="independence"] body::before {
-  content: '🇬🇳 Vive la Guinée ! 🦅 Independence Day 🦅 Vive la Guinée ! 🇬🇳';
-  display: block;
-  text-align: center;
-  font-size: 12px;
-  padding: 4px 0;
-  background: linear-gradient(90deg, #CE1126 33%, #C9A84C 33%, #C9A84C 66%, #1B8B3B 66%);
-  color: white;
-  letter-spacing: 0.2em;
-  font-weight: 600;
-  overflow: hidden;
-  white-space: nowrap;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-}
+:root[data-color="blue"]        .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="purple"]      .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="orange"]      .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="red"]         .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="teal"]        .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="royal"]       .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="feu"]         .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="nuit"]        .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="minimaliste"] .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="terre"]       .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="animated"]    .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="neon"]        .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="valentine"]   .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="halloween"]   .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="luxe"]        .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="retro"]       .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="noel"]        .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="ramadan"]     .bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="independence"].bg-dark-50 { background-color: var(--bg-page); }
 
 /* ══════════════════════════════════════════════════════════════════════
    DIVERS
@@ -348,35 +435,466 @@ html[data-color="independence"] body::before {
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   DARK MODE — html.dark appliqué par ThemeProvider + script anti-flash
-   Les couleurs primary utilisent les variables CSS (--p-NNN) —
-   on redéfinit juste les shades pour lisibilité sur fond sombre.
+   BANDEROLES — haut de page pour chaque thème
    ══════════════════════════════════════════════════════════════════════ */
 
-html.dark { color-scheme: dark; }
+/* 🎄 Noël — rouge/vert festif animé */
+html[data-color="noel"] body::before {
+  content: '❄️  Joyeux Noël !  🎄  Bonnes Fêtes !  🎅  TrouveTout224  🎁  Joyeux Noël !  ❄️  Bonnes Fêtes !  🎄';
+  display: block; text-align: center; font-size: 12px; font-weight: 600;
+  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.08em;
+  background: linear-gradient(90deg, #7f1d1d 0%, #14532d 33%, #7f1d1d 66%, #14532d 100%);
+  background-size: 200% 100%;
+  color: white;
+  animation: banner-slide 14s linear infinite;
+}
+
+/* 🌙 Ramadan — violet profond + reflet doré */
+html[data-color="ramadan"] body::before {
+  content: '🌙  رمضان كريم  ✨  Ramadan Moubarak  🌟  TrouveTout224  ✨  رمضان كريم  🌙';
+  display: block; text-align: center; font-size: 12px; font-weight: 600;
+  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.15em;
+  background: linear-gradient(90deg, #3b0764, #78350f, #3b0764, #78350f);
+  background-size: 200% 100%;
+  color: #fcd34d;
+  text-shadow: 0 0 8px rgba(252,211,77,0.4);
+  animation: banner-slide 16s linear infinite;
+}
+
+/* 🇬🇳 Indépendance Guinée — tricolore patriotique */
+html[data-color="independence"] body::before {
+  content: '🇬🇳  Vive la Guinée !  🦅  Fête Nationale  🎊  2 Octobre  🦅  Vive la Guinée !  🇬🇳';
+  display: block; text-align: center; font-size: 12px; font-weight: 700;
+  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.12em;
+  background: linear-gradient(90deg, #CE1126 33%, #C9A84C 33%, #C9A84C 66%, #1B8B3B 66%);
+  color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  animation: banner-slide 18s linear infinite;
+}
+
+/* 👑 Royal */
+html[data-color="royal"] body::before {
+  content: '👑 TrouveTout224 · Édition Royale 👑 TrouveTout224 · Édition Royale 👑';
+  display: block; text-align: center; font-size: 11px; font-weight: 600;
+  padding: 4px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.15em;
+  background: linear-gradient(90deg, #6D28D9, #C4A820, #6D28D9);
+  color: #F5D060;
+}
+
+/* 🌙 Nuit étoilée */
+html[data-color="nuit"] body::before {
+  content: '🌙 TrouveTout224 · Nuit étoilée 🌟 Nuit étoilée · TrouveTout224 🌙';
+  display: block; text-align: center; font-size: 11px; font-weight: 600;
+  padding: 4px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.12em;
+  background: linear-gradient(90deg, #1e1b4b, #3730a3, #1e1b4b);
+  color: #a5b4fc;
+}
+
+/* 🔮 Néon / Cyberpunk */
+html[data-color="neon"] body::before {
+  content: '🔮 TROUVETOUT224 ◈ CYBERPUNK ÉDITION ◈ 🔮 TROUVETOUT224 ◈ CYBERPUNK ◈ 🔮';
+  display: block; text-align: center; font-size: 10px; font-weight: 700;
+  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.2em;
+  background: #050508;
+  color: #00e5ff;
+  text-shadow: 0 0 12px #00e5ff, 0 0 24px rgba(0,229,255,0.3);
+  font-family: 'Courier New', monospace;
+  animation: neon-flicker 6s ease-in-out infinite;
+}
+
+/* 💕 Saint-Valentin */
+html[data-color="valentine"] body::before {
+  content: '💕 Bonne Saint-Valentin ! ❤️ TrouveTout224 ❤️ Bonne Saint-Valentin ! 💕 Love ❤️';
+  display: block; text-align: center; font-size: 11px; font-weight: 600;
+  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.1em;
+  background: linear-gradient(90deg, #881337, #e11d48, #db2777, #e11d48, #881337);
+  background-size: 200% 100%;
+  color: white;
+  animation: banner-slide 12s linear infinite;
+}
+
+/* 🎃 Halloween */
+html[data-color="halloween"] body::before {
+  content: '🎃 BOO ! 🦇 Halloween sur TrouveTout224 🦇 BOO ! 🎃 Halloween 🦇 BOO !';
+  display: block; text-align: center; font-size: 11px; font-weight: 700;
+  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.12em;
+  background: linear-gradient(90deg, #0f0800, #7c2d12, #0f0800);
+  color: #fb923c;
+  text-shadow: 0 0 8px rgba(251,146,60,0.4);
+}
+
+/* 🥂 Luxe / Gold */
+html[data-color="luxe"] body::before {
+  content: '✨ TrouveTout224 · Édition Prestige ✨ Collection Premium · Exclusivité ✨';
+  display: block; text-align: center; font-size: 10px; font-weight: 700;
+  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.28em;
+  background: #080600;
+  color: #d4af37;
+  text-transform: uppercase;
+  text-shadow: 0 0 12px rgba(212,175,55,0.6);
+  animation: gold-text-pulse 3s ease-in-out infinite;
+}
+
+/* 📻 Rétro / Vintage */
+html[data-color="retro"] body::before {
+  content: '📻 TrouveTout224 RÉTRO · Vintage Style · 70s/80s · Style Classique 📻';
+  display: block; text-align: center; font-size: 11px; font-weight: 600;
+  padding: 4px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.12em;
+  background: linear-gradient(90deg, #2d0a2e, #6b21a8, #2d0a2e);
+  color: #e9a8ea;
+}
+
+/* ✨ Animé / 3D */
+html[data-color="animated"] body::before {
+  content: '✨ TrouveTout224 · Thème Animé ✨ 3D · Vivant · TrouveTout224 ✨';
+  display: block; text-align: center; font-size: 11px; font-weight: 700;
+  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.12em;
+  color: white;
+  background: linear-gradient(90deg, rgb(var(--p-900)), rgb(var(--p-600)), rgb(var(--p-300)), rgb(var(--p-600)), rgb(var(--p-900)));
+  background-size: 200% 100%;
+  animation: banner-slide 8s linear infinite;
+}
+
+/* Keyframe banderole glissante */
+@keyframes banner-slide {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: -200% 50%; }
+}
+
+/* Keyframe scintillement néon */
+@keyframes neon-flicker {
+  0%, 92%, 96%, 100% { opacity: 1; }
+  93% { opacity: 0.75; }
+  95% { opacity: 0.9; }
+  97% { opacity: 0.65; }
+}
+
+/* Keyframe pulsation or */
+@keyframes gold-text-pulse {
+  0%, 100% { text-shadow: 0 0 10px rgba(212,175,55,0.5); }
+  50%       { text-shadow: 0 0 20px rgba(212,175,55,0.9), 0 0 40px rgba(212,175,55,0.3); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   EFFETS SPÉCIAUX PAR THÈME (hors animation de fond React)
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ─── 🔮 Néon — grille synthwave (fond sombre seulement) ────────── */
+html.dark[data-color="neon"] body::after {
+  content: '';
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+  background-size: 55px 55px;
+}
+
+html[data-color="neon"] .card {
+  border: 1px solid rgb(0 180 216 / 0.25);
+}
+html.dark[data-color="neon"] .card {
+  border: 1px solid rgb(0 229 255 / 0.18);
+  box-shadow: 0 0 22px rgb(0 229 255 / 0.07), 0 2px 8px rgba(0,0,0,0.5);
+}
+html.dark[data-color="neon"] .btn-primary {
+  box-shadow: 0 0 16px rgb(var(--p-700) / 0.45), 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* ─── 🥂 Luxe — reflet doré sur les cartes ──────────────────────── */
+html[data-color="luxe"] .card {
+  background: linear-gradient(135deg, #fffdf5 0%, #fef8e0 50%, #fffdf5 100%) !important;
+  background-size: 200% 200% !important;
+  border: 1px solid rgba(212,175,55,0.2);
+  animation: luxe-card-shimmer 6s ease-in-out infinite;
+}
+html.dark[data-color="luxe"] .card {
+  background: linear-gradient(135deg, #130e00 0%, #1c1700 50%, #130e00 100%) !important;
+  background-size: 200% 200% !important;
+  border: 1px solid rgba(212,175,55,0.18);
+  animation: luxe-card-shimmer 6s ease-in-out infinite;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 30px rgba(212,175,55,0.06);
+}
+
+@keyframes luxe-card-shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+/* ─── 📻 Rétro — légères scanlines décoratives ───────────────────── */
+html[data-color="retro"] body::after,
+html.dark[data-color="retro"] body::after {
+  content: '';
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent, transparent 3px,
+    rgba(0,0,0,0.018) 3px, rgba(0,0,0,0.018) 4px
+  );
+}
+html.dark[data-color="retro"] body::after {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent, transparent 3px,
+    rgba(0,0,0,0.055) 3px, rgba(0,0,0,0.055) 4px
+  );
+}
+html[data-color="retro"] .card {
+  border: 1px solid rgba(105,8,108,0.15);
+}
+html.dark[data-color="retro"] .card {
+  border: 1px solid rgba(232,128,237,0.12);
+}
+
+/* ─── 🎃 Halloween — ambiance sombre sur les cartes ─────────────── */
+html[data-color="halloween"] .card {
+  border: 1px solid rgba(160,58,4,0.18);
+}
+html.dark[data-color="halloween"] .card {
+  border: 1px solid rgba(255,148,66,0.15);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6), 0 0 20px rgba(255,148,66,0.04);
+}
+
+/* ─── 💕 Valentine — bordures roses douces ──────────────────────── */
+html[data-color="valentine"] .card {
+  border: 1px solid rgba(190,8,80,0.12);
+}
+html.dark[data-color="valentine"] .card {
+  border: 1px solid rgba(255,143,180,0.15);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6), 0 0 20px rgba(255,100,160,0.05);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   THÈME ANIMÉ / 3D — data-color="animated"
+   ══════════════════════════════════════════════════════════════════════ */
+
+html[data-color="animated"] .card,
+html[data-color="animated"] .annonce-card {
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease;
+  will-change: transform;
+}
+
+html[data-color="animated"] .card:hover,
+html[data-color="animated"] .annonce-card:hover {
+  transform: translateY(-8px) scale(1.015) rotate(-0.4deg);
+  box-shadow: 0 24px 56px rgb(var(--p-700) / 0.18), 0 8px 20px rgba(0, 0, 0, 0.10);
+}
+
+html[data-color="animated"] .btn-primary,
+html[data-color="animated"] .btn-outline {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.25s ease, background-color 0.2s ease;
+}
+
+html[data-color="animated"] .btn-primary:hover:not(:disabled),
+html[data-color="animated"] .btn-outline:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 20px rgb(var(--p-700) / 0.30);
+}
+
+html[data-color="animated"] .btn-primary:active:not(:disabled),
+html[data-color="animated"] .btn-outline:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+}
+
+html[data-color="animated"] .badge-green {
+  animation: badge-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(var(--p-700) / 0.35); }
+  50%       { box-shadow: 0 0 0 5px rgb(var(--p-700) / 0); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   ANIMATIONS PARTICULES — éléments décoratifs de fond (ThemeAnimations)
+   Toutes: transform + opacity (GPU), pointer-events: none
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Overlay de base */
+.theme-overlay {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+  overflow: hidden;
+}
+
+/* Étoiles — nuit étoilée + ramadan */
+.theme-star {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+  will-change: opacity, transform;
+  animation: star-twinkle var(--s-dur, 3s) var(--s-dly, 0s) ease-in-out infinite alternate;
+}
+
+@keyframes star-twinkle {
+  from { opacity: 0.08; transform: scale(0.6); }
+  to   { opacity: 1;    transform: scale(1.4); }
+}
+
+/* Flocons de neige — Noël */
+.theme-snowflake {
+  position: absolute;
+  top: -40px;
+  will-change: transform;
+  animation: snow-fall var(--s-dur, 9s) var(--s-dly, 0s) linear infinite;
+  line-height: 1;
+  color: rgba(220,240,255,0.85);
+  text-shadow: 0 0 6px rgba(180,220,255,0.5);
+}
+
+@keyframes snow-fall {
+  0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0.9; }
+  15%  { opacity: 0.8; }
+  85%  { opacity: 0.5; }
+  100% { transform: translateY(108vh) translateX(var(--s-drift, 25px)) rotate(400deg); opacity: 0; }
+}
+
+/* Cœurs — Saint-Valentin */
+.theme-heart {
+  position: absolute;
+  top: 100%;
+  will-change: transform, opacity;
+  animation: heart-float var(--s-dur, 10s) var(--s-dly, 0s) ease-in-out infinite;
+  line-height: 1;
+}
+
+@keyframes heart-float {
+  0%   { transform: translateY(0) scale(0.6) rotate(-8deg);   opacity: 0; }
+  6%   { opacity: 0.85; }
+  88%  { opacity: 0.35; }
+  100% { transform: translateY(-112vh) scale(1) rotate(8deg); opacity: 0; }
+}
+
+/* Éléments Halloween — chauves-souris, citrouilles, fantômes */
+.theme-halloween {
+  position: absolute;
+  will-change: transform, opacity;
+  animation: bat-drift var(--s-dur, 14s) var(--s-dly, 0s) ease-in-out infinite;
+  line-height: 1;
+}
+
+@keyframes bat-drift {
+  0%   { transform: translateX(0)    translateY(0)    scale(1);    opacity: 0.3; }
+  20%  { transform: translateX(18px) translateY(-12px) scale(1.1); opacity: 0.5; }
+  45%  { transform: translateX(-8px) translateY(6px)  scale(0.95); opacity: 0.35; }
+  70%  { transform: translateX(22px) translateY(-18px) scale(1.05); opacity: 0.5; }
+  100% { transform: translateX(0)    translateY(0)    scale(1);    opacity: 0.3; }
+}
+
+/* Confettis — Indépendance Guinée */
+.theme-confetti {
+  position: absolute;
+  top: -12px;
+  border-radius: 2px;
+  will-change: transform;
+  animation: confetti-drop var(--s-dur, 8s) var(--s-dly, 0s) linear infinite;
+}
+
+@keyframes confetti-drop {
+  0%   { transform: translateY(0) rotate(0deg);    opacity: 0.9; }
+  10%  { opacity: 0.8; }
+  80%  { opacity: 0.4; }
+  100% { transform: translateY(108vh) rotate(720deg); opacity: 0; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   prefers-reduced-motion — désactive TOUTES les animations décoratives
+   ══════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  /* Overlay masqué */
+  .theme-overlay { display: none; }
+
+  /* Banderoles sans animation */
+  html[data-color="animated"] body::before,
+  html[data-color="noel"] body::before,
+  html[data-color="ramadan"] body::before,
+  html[data-color="independence"] body::before,
+  html[data-color="valentine"] body::before,
+  html[data-color="neon"] body::before {
+    animation: none;
+    background-position: 0% 0%;
+  }
+  html[data-color="neon"] body::before {
+    animation: none;
+  }
+  html[data-color="luxe"] body::before {
+    animation: none;
+  }
+
+  /* Effets thèmes CSS */
+  html[data-color="animated"] .card,
+  html[data-color="animated"] .annonce-card,
+  html[data-color="animated"] .btn-primary,
+  html[data-color="animated"] .btn-outline {
+    transition: box-shadow 0.2s ease;
+    will-change: auto;
+  }
+  html[data-color="animated"] .card:hover,
+  html[data-color="animated"] .annonce-card:hover,
+  html[data-color="animated"] .btn-primary:hover:not(:disabled),
+  html[data-color="animated"] .btn-outline:hover:not(:disabled) {
+    transform: none;
+  }
+  html[data-color="animated"] .badge-green { animation: none; }
+  html[data-color="luxe"] .card,
+  html.dark[data-color="luxe"] .card { animation: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   DARK MODE — html.dark appliqué par ThemeProvider + script anti-flash
+   ══════════════════════════════════════════════════════════════════════ */
+
+html.dark {
+  color-scheme: dark;
+  --bg-page: #0d1117;
+  --card-bg: #1c2128;
+}
 
 html.dark body {
-  background-color: #0d1117;
+  background-color: var(--bg-page);
   color: #e6edf3;
 }
 
-/* ── Primary en dark mode : palette adaptée fond sombre
-   50-100 : restent sombres (fonds conteneurs), 200-700 : clairs (textes/icônes)
-   800-900 : SOMBRES (bg-primary-800/900 utilisés comme fonds — ex. HeroBanner) */
+/* ── Primary en dark mode : palette adaptée fond sombre ─────────── */
 html.dark {
-  --p-50:  27 139  59;   /* sombre — bg-primary-50 overridé ci-dessous */
+  --p-50:  27 139  59;
   --p-100: 27 139  59;
   --p-200: 134 239 172;
   --p-300: 134 239 172;
   --p-400:  74 222 128;
   --p-500:  74 222 128;
   --p-600:  74 222 128;
-  --p-700:  74 222 128;  /* #4ade80 — couleur primaire lisible sur fond sombre */
-  --p-800:  27 139  59;  /* #1B8B3B — plus sombre, hover boutons + fonds sombres */
-  --p-900:  20  83  45;  /* #145230 — très sombre (HeroBanner bg-primary-900) */
+  --p-700:  74 222 128;
+  --p-800:  27 139  59;
+  --p-900:  20  83  45;
 }
 
-/* Thèmes colorés en dark mode — texte allégé, fonds 800-900 sombres */
+/* ── Fonds sombres différents par thème ────────────────────────── */
+html.dark[data-color="blue"]        { --bg-page: #080e1f; --card-bg: #0d1935; }
+html.dark[data-color="purple"]      { --bg-page: #0d0820; --card-bg: #14082a; }
+html.dark[data-color="orange"]      { --bg-page: #1a0e00; --card-bg: #201500; }
+html.dark[data-color="red"]         { --bg-page: #1a0508; --card-bg: #200a0d; }
+html.dark[data-color="teal"]        { --bg-page: #001a14; --card-bg: #0a1f1a; }
+html.dark[data-color="royal"]       { --bg-page: #0d0a1a; --card-bg: #160e25; }
+html.dark[data-color="feu"]         { --bg-page: #1a0a05; --card-bg: #1e1008; }
+html.dark[data-color="nuit"]        { --bg-page: #070b1a; --card-bg: #0d1228; }
+html.dark[data-color="minimaliste"] { --bg-page: #101518; --card-bg: #1a1f24; }
+html.dark[data-color="terre"]       { --bg-page: #150c06; --card-bg: #1c1208; }
+html.dark[data-color="animated"]    { --bg-page: #031215; --card-bg: #071e22; }
+html.dark[data-color="neon"]        { --bg-page: #030608; --card-bg: #060c14; }
+html.dark[data-color="valentine"]   { --bg-page: #1a0512; --card-bg: #200820; }
+html.dark[data-color="halloween"]   { --bg-page: #100800; --card-bg: #160d02; }
+html.dark[data-color="luxe"]        { --bg-page: #0a0800; --card-bg: #130e02; }
+html.dark[data-color="retro"]       { --bg-page: #150a1c; --card-bg: #1e1228; }
+html.dark[data-color="noel"]        { --bg-page: #060f06; --card-bg: #0d1e0d; }
+html.dark[data-color="ramadan"]     { --bg-page: #0a0716; --card-bg: #120e22; }
+html.dark[data-color="independence"]{ --bg-page: #060e08; --card-bg: #0e1810; }
+
+/* ── bg-dark-50 dark mode par thème ────────────────────────────── */
+html.dark .bg-dark-50 { background-color: var(--bg-page); }
+
+/* ── Primary dark mode par thème — textes lisibles ─────────────── */
 html.dark[data-color="blue"]        { --p-700: 147 197 253; --p-600: 147 197 253; --p-500: 147 197 253; --p-800:  30  64 175; --p-900:  30  58 138; }
 html.dark[data-color="purple"]      { --p-700: 216 180 254; --p-600: 216 180 254; --p-500: 216 180 254; --p-800: 107  33 168; --p-900:  88  28 135; }
 html.dark[data-color="orange"]      { --p-700: 253 186 116; --p-600: 253 186 116; --p-500: 253 186 116; --p-800: 154  52  18; --p-900: 124  45  18; }
@@ -384,22 +902,25 @@ html.dark[data-color="red"]         { --p-700: 253 164 175; --p-600: 253 164 175
 html.dark[data-color="teal"]        { --p-700:  94 234 212; --p-600:  94 234 212; --p-500:  94 234 212; --p-800:  17  94  89; --p-900:  19  78  74; }
 html.dark[data-color="noel"]        { --p-700: 252 165 165; --p-600: 252 165 165; --p-500: 252 165 165; --p-800: 127  29  29; --p-900: 113  22  22; }
 html.dark[data-color="ramadan"]     { --p-700: 216 180 254; --p-600: 201 168  76; --p-500: 216 180 254; --p-800:  74  24 122; --p-900:  59  19  97; }
-html.dark[data-color="independence"] { --p-700:  74 222 128; --p-600:  74 222 128; --p-500:  74 222 128; --p-800:  27 139  59; --p-900:  20  83  45; }
-/* Nouveaux thèmes dark mode */
+html.dark[data-color="independence"]{ --p-700:  74 222 128; --p-600:  74 222 128; --p-500:  74 222 128; --p-800:  27 139  59; --p-900:  20  83  45; }
 html.dark[data-color="royal"]       { --p-700: 196 181 253; --p-600: 196 181 253; --p-500: 196 181 253; --p-800:  91  33 182; --p-900:  76  29 149; }
 html.dark[data-color="feu"]         { --p-700: 255 155 107; --p-600: 255 155 107; --p-500: 255 155 107; --p-800: 161  38   0; --p-900: 127  30   0; }
 html.dark[data-color="nuit"]        { --p-700: 165 180 252; --p-600: 165 180 252; --p-500: 165 180 252; --p-800:  55  48 163; --p-900:  49  46 129; }
 html.dark[data-color="minimaliste"] { --p-700: 203 213 225; --p-600: 203 213 225; --p-500: 203 213 225; --p-800:  30  41  59; --p-900:  15  23  42; }
 html.dark[data-color="terre"]       { --p-700: 240 185 148; --p-600: 240 185 148; --p-500: 240 185 148; --p-800: 131  50  16; --p-900: 103  39  11; }
 html.dark[data-color="animated"]    { --p-700: 103 232 249; --p-600: 103 232 249; --p-500: 103 232 249; --p-800:  21  94 117; --p-900:  22  78  99; }
+html.dark[data-color="neon"]        { --p-700:   0 229 255; --p-600:   0 200 230; --p-500:   0 229 255; --p-800:  14 116 144; --p-900:  22  78  99; }
+html.dark[data-color="valentine"]   { --p-700: 255 143 200; --p-600: 255 143 200; --p-500: 255 143 200; --p-800: 158   7  75; --p-900: 128   6  60; }
+html.dark[data-color="halloween"]   { --p-700: 255 153  67; --p-600: 255 153  67; --p-500: 255 153  67; --p-800: 125  46   3; --p-900:  90  33   2; }
+html.dark[data-color="luxe"]        { --p-700: 212 175  55; --p-600: 232 192  70; --p-500: 212 175  55; --p-800: 117  72   4; --p-900:  82  51   3; }
+html.dark[data-color="retro"]       { --p-700: 232 128 237; --p-600: 232 128 237; --p-500: 232 128 237; --p-800:  80   6  83; --p-900:  58   4  60; }
 
-/* ── bg-primary-50 et bg-primary-100 en dark : translucide via la couleur 700 */
+/* ── bg-primary-50 et bg-primary-100 en dark : translucide via 700 */
 html.dark .bg-primary-50  { background-color: rgb(var(--p-700) / 0.14); }
 html.dark .bg-primary-100 { background-color: rgb(var(--p-700) / 0.22); }
 
 /* ── Arrière-plans ─────────────────────────────────────────────────── */
 html.dark .bg-white          { background-color: #1c2128; }
-html.dark .bg-dark-50        { background-color: #0d1117; }
 html.dark .bg-dark-100       { background-color: #161b22; }
 html.dark .bg-amber-50       { background-color: rgba(245,197,24,0.07); }
 html.dark .bg-gold-50        { background-color: rgba(245,197,24,0.07); }
@@ -427,7 +948,6 @@ html.dark .text-dark-700 { color: #b1bac4; }
 html.dark .text-dark-600 { color: #8b949e; }
 html.dark .text-dark-500 { color: #8b949e; }
 html.dark .text-dark-400 { color: #6e7681; }
-/* Shades 800/900 utilisés comme texte → redirigés vers le shade clair (700) */
 html.dark .text-primary-800 { color: rgb(var(--p-700) / 1); }
 html.dark .text-primary-900 { color: rgb(var(--p-700) / 1); }
 
@@ -448,8 +968,8 @@ html.dark .shadow-card-hover { box-shadow: 0 10px 32px rgba(0,0,0,0.65); }
 html.dark .shadow-sm         { box-shadow: 0 1px 3px rgba(0,0,0,0.55); }
 html.dark .shadow-premium    { box-shadow: 0 4px 20px rgb(var(--p-700) / 0.32); }
 
-/* ── Composants ────────────────────────────────────────────────────── */
-html.dark .card  { background-color: #1c2128; border-color: #30363d; }
+/* ── Composants dark ────────────────────────────────────────────────── */
+html.dark .card  { background-color: var(--card-bg); border-color: #30363d; }
 html.dark .input { background-color: #161b22; border-color: #30363d; color: #e6edf3; }
 html.dark .input::placeholder { color: #6e7681; }
 
@@ -527,7 +1047,7 @@ html.dark .text-yellow-400  { color: #fbbf24; }
 html.dark .text-purple-700  { color: #c4b5fd; }
 html.dark .text-purple-600  { color: #c4b5fd; }
 
-/* ── Arrière-plans niveau 100 (badges, indicateurs) ────────────── */
+/* ── Arrière-plans niveau 100 (badges, indicateurs) ─────────────── */
 html.dark .bg-blue-100     { background-color: rgba(59,130,246,0.18); }
 html.dark .bg-purple-100   { background-color: rgba(168,85,247,0.18); }
 html.dark .bg-pink-100     { background-color: rgba(236,72,153,0.18); }
@@ -541,117 +1061,6 @@ html.dark .bg-amber-100    { background-color: rgba(245,158,11,0.18); }
 html.dark .bg-dark-200     { background-color: #21262d; }
 html.dark .bg-dark-300     { background-color: #30363d; }
 
-/* ── Bordures supplémentaires ──────────────────────────────────── */
+/* ── Bordures supplémentaires ──────────────────────────────────────── */
 html.dark .border-red-200   { border-color: rgba(239,68,68,0.38); }
 html.dark .border-dark-300  { border-color: #484f58; }
-
-/* ══════════════════════════════════════════════════════════════════════
-   BANDEROLES DÉCOS — thèmes spéciaux et animé
-   ══════════════════════════════════════════════════════════════════════ */
-
-html[data-color="royal"] body::before {
-  content: '👑 TrouveTout224 · Édition Royale 👑 TrouveTout224 · Édition Royale 👑';
-  display: block; text-align: center; font-size: 11px; font-weight: 600;
-  padding: 4px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.15em;
-  background: linear-gradient(90deg, #6D28D9, #C4A820, #6D28D9);
-  color: #F5D060;
-}
-
-html[data-color="nuit"] body::before {
-  content: '🌙 TrouveTout224 · Nuit étoilée 🌟 Nuit étoilée · TrouveTout224 🌙';
-  display: block; text-align: center; font-size: 11px; font-weight: 600;
-  padding: 4px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.12em;
-  background: linear-gradient(90deg, #1e1b4b, #3730a3, #1e1b4b);
-  color: #a5b4fc;
-}
-
-html[data-color="animated"] body::before {
-  content: '✨ TrouveTout224 · Thème Animé ✨ 3D · Vivant · TrouveTout224 ✨';
-  display: block; text-align: center; font-size: 11px; font-weight: 700;
-  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.12em;
-  color: white;
-  background: linear-gradient(
-    90deg,
-    rgb(var(--p-900)), rgb(var(--p-600)), rgb(var(--p-300)),
-    rgb(var(--p-600)), rgb(var(--p-900))
-  );
-  background-size: 200% 100%;
-  animation: banner-slide 8s linear infinite;
-}
-
-@keyframes banner-slide {
-  0%   { background-position: 0% 50%; }
-  100% { background-position: -200% 50%; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html[data-color="animated"] body::before {
-    animation: none;
-    background: rgb(var(--p-700));
-  }
-}
-
-/* ══════════════════════════════════════════════════════════════════════
-   THÈME ANIMÉ / 3D — data-color="animated"
-   Effets profondeur CSS, hover 3D, rebond boutons, badge pulsé
-   Performant (transform = GPU), respect prefers-reduced-motion
-   ══════════════════════════════════════════════════════════════════════ */
-
-html[data-color="animated"] .card,
-html[data-color="animated"] .annonce-card {
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease;
-  will-change: transform;
-}
-
-html[data-color="animated"] .card:hover,
-html[data-color="animated"] .annonce-card:hover {
-  transform: translateY(-8px) scale(1.015) rotate(-0.4deg);
-  box-shadow:
-    0 24px 56px rgb(var(--p-700) / 0.18),
-    0 8px 20px rgba(0, 0, 0, 0.10);
-}
-
-html[data-color="animated"] .btn-primary,
-html[data-color="animated"] .btn-outline {
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-              box-shadow 0.25s ease, background-color 0.2s ease;
-}
-
-html[data-color="animated"] .btn-primary:hover:not(:disabled),
-html[data-color="animated"] .btn-outline:hover:not(:disabled) {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 8px 20px rgb(var(--p-700) / 0.30);
-}
-
-html[data-color="animated"] .btn-primary:active:not(:disabled),
-html[data-color="animated"] .btn-outline:active:not(:disabled) {
-  transform: translateY(0) scale(0.97);
-}
-
-html[data-color="animated"] .badge-green {
-  animation: badge-pulse 2.5s ease-in-out infinite;
-}
-
-@keyframes badge-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgb(var(--p-700) / 0.35); }
-  50%       { box-shadow: 0 0 0 5px rgb(var(--p-700) / 0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html[data-color="animated"] .card,
-  html[data-color="animated"] .annonce-card,
-  html[data-color="animated"] .btn-primary,
-  html[data-color="animated"] .btn-outline {
-    transition: box-shadow 0.2s ease;
-    will-change: auto;
-  }
-
-  html[data-color="animated"] .card:hover,
-  html[data-color="animated"] .annonce-card:hover,
-  html[data-color="animated"] .btn-primary:hover:not(:disabled),
-  html[data-color="animated"] .btn-outline:hover:not(:disabled) {
-    transform: none;
-  }
-
-  html[data-color="animated"] .badge-green { animation: none; }
-}

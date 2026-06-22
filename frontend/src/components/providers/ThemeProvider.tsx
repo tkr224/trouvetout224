@@ -18,7 +18,12 @@ export type ColorAccent =
   | 'nuit'          // Nuit étoilée (indigo profond)
   | 'minimaliste'   // Minimaliste (ardoise / gris)
   | 'terre'         // Terre (brun / terracotta)
-  | 'animated';     // Animé / 3D (cyan + effets CSS)
+  | 'animated'      // Animé / 3D (cyan + effets CSS)
+  | 'neon'          // Néon / Cyberpunk (cyan électrique, glow)
+  | 'valentine'     // Saint-Valentin (rose / fuchsia, cœurs flottants)
+  | 'halloween'     // Halloween (orange brûlé, noir, chauves-souris)
+  | 'luxe'          // Luxe / Gold (or profond, noir premium)
+  | 'retro';        // Rétro / Vintage (mulberry chaud, parchemin)
 
 export type SpecialTheme =
   | 'noel'          // Noël
@@ -46,6 +51,11 @@ export const COLOR_THEMES: {
   { id: 'minimaliste', label: 'Minimaliste',           emoji: '💎', hex: '#334155', hexDark: '#cbd5e1' },
   { id: 'terre',       label: 'Terre',                 emoji: '🍫', hex: '#A04016', hexDark: '#f0b994' },
   { id: 'animated',    label: 'Animé / 3D',            emoji: '✨', hex: '#0E7490', hexDark: '#67e8f9' },
+  { id: 'neon',       label: 'Néon / Cyberpunk',      emoji: '🔮', hex: '#00b4d8', hexDark: '#00e5ff' },
+  { id: 'valentine',  label: 'Saint-Valentin',         emoji: '💕', hex: '#be0850', hexDark: '#ff8fb4' },
+  { id: 'halloween',  label: 'Halloween',              emoji: '🎃', hex: '#a03a04', hexDark: '#ff9442' },
+  { id: 'luxe',       label: 'Luxe / Gold',            emoji: '🥂', hex: '#96600a', hexDark: '#d4af37' },
+  { id: 'retro',      label: 'Rétro / Vintage',        emoji: '📻', hex: '#69086c', hexDark: '#e890e8' },
 ];
 
 export const SPECIAL_THEMES: {
@@ -55,9 +65,9 @@ export const SPECIAL_THEMES: {
   hex: string;
   description: string;
 }[] = [
-  { id: 'noel',         label: 'Noël',             emoji: '🎄', hex: '#991b1b', description: 'Rouge festif + banderole de Noël' },
-  { id: 'ramadan',      label: 'Ramadan',           emoji: '🌙', hex: '#581c87', description: 'Violet profond + or + banderole Ramadan' },
-  { id: 'independence', label: "Fête nationale 🇬🇳", emoji: '🦅', hex: '#1B8B3B', description: 'Tricolore guinéen + banderole festive' },
+  { id: 'noel',         label: 'Noël',             emoji: '🎄', hex: '#991b1b', description: 'Rouge/vert festif · flocons de neige animés ❄️' },
+  { id: 'ramadan',      label: 'Ramadan',           emoji: '🌙', hex: '#581c87', description: 'Violet/or chaud · croissant + étoiles ✨' },
+  { id: 'independence', label: "Fête nationale 🇬🇳", emoji: '🦅', hex: '#1B8B3B', description: 'Tricolore guinéen · confettis patriotiques 🎊' },
 ];
 
 // ─── Clés localStorage ────────────────────────────────────────────────────────
