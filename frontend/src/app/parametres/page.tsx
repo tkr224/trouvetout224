@@ -10,7 +10,7 @@ import {
   Settings, CheckCircle, ArrowRight, Mail, CreditCard, ShieldCheck, Link2,
   Palette, Sun, Moon, Monitor,
 } from 'lucide-react';
-import { useTheme } from '@/components/providers/ThemeProvider';
+import { useTheme, COLOR_THEMES, SPECIAL_THEMES } from '@/components/providers/ThemeProvider';
 import Link from 'next/link';
 
 const TABS = [
@@ -43,7 +43,7 @@ const PROTECTED_TABS = ['profil', 'securite', 'notifications', 'confidentialite'
 export default function ParametresPage() {
   const { user, logout, isAuthenticated, _hasHydrated } = useAuthStore();
   const loggedIn = _hasHydrated && isAuthenticated && !!user;
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, colorAccent, setColorAccent, specialTheme, setSpecialTheme } = useTheme();
   const [tab, setTab] = useState('profil');
 
   // Si l'utilisateur non connecté arrive sur un onglet protégé, rediriger vers Apparence
@@ -263,41 +263,100 @@ export default function ParametresPage() {
             )}
 
             {tab === 'apparence' && (
-              <div>
-                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-2">Apparence</h2>
-                <p className="text-dark-500 text-sm mb-6">Choisissez comment TrouveTout224 s&apos;affiche sur votre appareil.</p>
-                <div className="grid grid-cols-3 gap-3 mb-6">
-                  {([
-                    { value: 'light',  label: 'Clair',       icon: Sun,     desc: 'Toujours clair',    bg: 'bg-white border-dark-200' },
-                    { value: 'dark',   label: 'Sombre',      icon: Moon,    desc: 'Toujours sombre',   bg: 'bg-dark-900 border-dark-700' },
-                    { value: 'system', label: 'Automatique', icon: Monitor, desc: 'Suit votre appareil', bg: 'bg-gradient-to-br from-white to-dark-800 border-dark-300' },
-                  ] as const).map(opt => {
-                    const Icon = opt.icon;
-                    const active = theme === opt.value;
-                    return (
-                      <button
-                        key={opt.value}
-                        onClick={() => setTheme(opt.value)}
-                        className={`flex flex-col items-center gap-2.5 p-4 rounded-2xl border-2 transition-all ${
-                          active ? 'border-primary-700 bg-primary-50' : 'border-dark-200 hover:border-primary-400 hover:bg-dark-50'
-                        }`}
-                      >
-                        <div className={`w-full h-12 rounded-xl border ${opt.bg} flex items-center justify-center`}>
-                          <Icon size={20} className={active ? 'text-primary-700' : 'text-dark-400'} />
-                        </div>
-                        <p className={`font-semibold text-sm ${active ? 'text-primary-700' : 'text-dark-700'}`}>{opt.label}</p>
-                        <p className="text-dark-400 text-xs text-center leading-tight">{opt.desc}</p>
-                        {active && <CheckCircle size={15} className="text-primary-700" />}
-                      </button>
-                    );
-                  })}
+              <div className="space-y-8">
+
+                {/* ── Mode clair / sombre ── */}
+                <div>
+                  <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-2">Apparence</h2>
+                  <p className="text-dark-500 text-sm mb-5">Choisissez comment TrouveTout224 s&apos;affiche sur votre appareil.</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    {([
+                      { value: 'light',  label: 'Clair',       icon: Sun,     desc: 'Toujours clair',      bg: 'bg-white border-dark-200' },
+                      { value: 'dark',   label: 'Sombre',      icon: Moon,    desc: 'Toujours sombre',     bg: 'bg-dark-900 border-dark-700' },
+                      { value: 'system', label: 'Automatique', icon: Monitor, desc: 'Suit votre appareil', bg: 'bg-gradient-to-br from-white to-dark-800 border-dark-300' },
+                    ] as const).map(opt => {
+                      const Icon = opt.icon;
+                      const active = theme === opt.value;
+                      return (
+                        <button key={opt.value} onClick={() => setTheme(opt.value)}
+                          className={`flex flex-col items-center gap-2.5 p-4 rounded-2xl border-2 transition-all ${
+                            active ? 'border-primary-700 bg-primary-50' : 'border-dark-200 hover:border-primary-400 hover:bg-dark-50'
+                          }`}>
+                          <div className={`w-full h-12 rounded-xl border ${opt.bg} flex items-center justify-center`}>
+                            <Icon size={20} className={active ? 'text-primary-700' : 'text-dark-400'} />
+                          </div>
+                          <p className={`font-semibold text-sm ${active ? 'text-primary-700' : 'text-dark-700'}`}>{opt.label}</p>
+                          <p className="text-dark-400 text-xs text-center leading-tight">{opt.desc}</p>
+                          {active && <CheckCircle size={15} className="text-primary-700" />}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="bg-primary-50 border border-primary-100 rounded-2xl p-4 flex items-start gap-3">
-                  <Palette size={16} className="text-primary-700 mt-0.5 shrink-0" />
-                  <p className="text-primary-800 text-sm">
-                    Le mode <strong>Automatique</strong> détecte le réglage de votre téléphone ou navigateur et l&apos;applique automatiquement.
-                  </p>
+
+                {/* ── Couleur d'accent ── */}
+                <div>
+                  <h3 className="font-semibold text-dark-900 mb-1 flex items-center gap-2">
+                    <Palette size={15} className="text-primary-700" /> Couleur d&apos;accent
+                  </h3>
+                  <p className="text-dark-500 text-xs mb-4">Change la couleur principale des boutons, liens et éléments actifs.</p>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                    {COLOR_THEMES.map(ct => {
+                      const active = colorAccent === ct.id && !specialTheme;
+                      return (
+                        <button key={ct.id} onClick={() => setColorAccent(ct.id)}
+                          className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${
+                            active ? 'border-primary-700 bg-primary-50' : 'border-dark-200 hover:border-dark-400 hover:bg-dark-50'
+                          }`}>
+                          <div
+                            className="w-8 h-8 rounded-full shadow-sm"
+                            style={{ backgroundColor: ct.hex }}
+                          />
+                          <p className={`text-xs font-semibold text-center leading-tight ${active ? 'text-primary-700' : 'text-dark-600'}`}>
+                            {ct.emoji} {ct.label}
+                          </p>
+                          {active && <CheckCircle size={12} className="text-primary-700" />}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
+
+                {/* ── Thèmes spéciaux ── */}
+                <div>
+                  <h3 className="font-semibold text-dark-900 mb-1 flex items-center gap-2">
+                    <span className="text-base">✨</span> Thèmes spéciaux
+                  </h3>
+                  <p className="text-dark-500 text-xs mb-4">Ambiances festives et événementielles — avec une petite banderole décorative en haut de page.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {SPECIAL_THEMES.map(st => {
+                      const active = specialTheme === st.id;
+                      return (
+                        <button key={st.id} onClick={() => setSpecialTheme(active ? null : st.id as any)}
+                          className={`flex items-center gap-3 p-3 rounded-2xl border-2 transition-all text-left ${
+                            active ? 'border-primary-700 bg-primary-50' : 'border-dark-200 hover:border-dark-400 hover:bg-dark-50'
+                          }`}>
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl shrink-0"
+                            style={{ backgroundColor: st.hex + '22' }}>
+                            {st.emoji}
+                          </div>
+                          <div className="min-w-0">
+                            <p className={`text-sm font-semibold ${active ? 'text-primary-700' : 'text-dark-800'}`}>{st.label}</p>
+                            <p className="text-dark-400 text-xs leading-tight mt-0.5">{st.description}</p>
+                          </div>
+                          {active && <CheckCircle size={14} className="text-primary-700 ml-auto shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {specialTheme && (
+                    <button onClick={() => setSpecialTheme(null)}
+                      className="mt-3 text-xs text-dark-500 hover:text-dark-700 underline">
+                      Revenir à la couleur normale
+                    </button>
+                  )}
+                </div>
+
               </div>
             )}
 

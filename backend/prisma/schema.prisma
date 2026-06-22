@@ -594,6 +594,18 @@ enum PublicationType {
 }
 
 // =============================================
+// CONFIGURATION DU SITE (thème global, etc.)
+// =============================================
+
+model SiteConfig {
+  id          String   @id @default("singleton")
+  globalTheme String?  // ex: "blue", "noel", "ramadan" — null = pas de thème imposé
+  updatedAt   DateTime @updatedAt @default(now())
+
+  @@map("site_config")
+}
+
+// =============================================
 // SONDAGE D'ACCUEIL (onboarding)
 // =============================================
 

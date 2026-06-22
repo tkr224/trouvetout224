@@ -75,11 +75,17 @@ export const metadata: Metadata = {
   },
 };
 
-/* ── Script anti-flash thème sombre (injecté avant le rendu) ─────── */
+/* ── Script anti-flash : restaure thème sombre + couleur avant le 1er paint ─ */
 const themeScript = `(function(){try{
   var t=localStorage.getItem('tt224-theme');
   var dark=window.matchMedia('(prefers-color-scheme:dark)').matches;
   if(t==='dark'||(t!=='light'&&dark)){document.documentElement.classList.add('dark')}
+  var s=localStorage.getItem('tt224-special');
+  var c=localStorage.getItem('tt224-color');
+  var validColors=['blue','purple','orange','red','teal'];
+  var validSpecial=['noel','ramadan','independence'];
+  if(s&&validSpecial.includes(s)){document.documentElement.setAttribute('data-color',s)}
+  else if(c&&validColors.includes(c)){document.documentElement.setAttribute('data-color',c)}
 }catch(e){}})();`;
 
 /* ── Données structurées JSON-LD (Google Search) ────────────────── */

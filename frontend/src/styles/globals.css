@@ -4,11 +4,144 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700;800&display=swap');
 
+/* ══════════════════════════════════════════════════════════════════════
+   VARIABLES CSS — Palette primary (RGB triplets pour Tailwind /opacity)
+   Thème par défaut : Vert Guinée
+   ══════════════════════════════════════════════════════════════════════ */
 :root {
-  --font-inter: 'Inter', sans-serif;
+  --font-inter:   'Inter', sans-serif;
   --font-poppins: 'Poppins', sans-serif;
+
+  /* Vert Guinée — palette complète */
+  --p-50:  240 253 244;
+  --p-100: 220 252 231;
+  --p-200: 187 247 208;
+  --p-300: 134 239 172;
+  --p-400:  74 222 128;
+  --p-500:  34 197  94;
+  --p-600:  22 163  74;
+  --p-700:  27 139  59;   /* #1B8B3B — couleur de marque */
+  --p-800:  22 101  52;
+  --p-900:  20  83  45;
 }
 
+/* ── Thème Bleu Océan ──────────────────────────────────────────────── */
+:root[data-color="blue"] {
+  --p-50:  239 246 255;
+  --p-100: 219 234 254;
+  --p-200: 191 219 254;
+  --p-300: 147 197 253;
+  --p-400:  96 165 250;
+  --p-500:  59 130 246;
+  --p-600:  37  99 235;
+  --p-700:  29  78 216;
+  --p-800:  30  64 175;
+  --p-900:  30  58 138;
+}
+
+/* ── Thème Violet ──────────────────────────────────────────────────── */
+:root[data-color="purple"] {
+  --p-50:  250 245 255;
+  --p-100: 243 232 255;
+  --p-200: 233 213 255;
+  --p-300: 216 180 254;
+  --p-400: 192 132 252;
+  --p-500: 168  85 247;
+  --p-600: 147  51 234;
+  --p-700: 126  34 206;
+  --p-800: 107  33 168;
+  --p-900:  88  28 135;
+}
+
+/* ── Thème Orange Coucher de soleil ────────────────────────────────── */
+:root[data-color="orange"] {
+  --p-50:  255 247 237;
+  --p-100: 255 237 213;
+  --p-200: 254 215 170;
+  --p-300: 253 186 116;
+  --p-400: 251 146  60;
+  --p-500: 249 115  22;
+  --p-600: 234  88  12;
+  --p-700: 194  65  12;
+  --p-800: 154  52  18;
+  --p-900: 124  45  18;
+}
+
+/* ── Thème Rouge Guinée ────────────────────────────────────────────── */
+:root[data-color="red"] {
+  --p-50:  255 241 242;
+  --p-100: 255 228 230;
+  --p-200: 254 205 211;
+  --p-300: 253 164 175;
+  --p-400: 251 113 133;
+  --p-500: 244  63  94;
+  --p-600: 225  29  72;
+  --p-700: 190  18  60;
+  --p-800: 159  18  57;
+  --p-900: 136  19  55;
+}
+
+/* ── Thème Turquoise ───────────────────────────────────────────────── */
+:root[data-color="teal"] {
+  --p-50:  240 253 250;
+  --p-100: 204 251 241;
+  --p-200: 153 246 228;
+  --p-300:  94 234 212;
+  --p-400:  45 212 191;
+  --p-500:  20 184 166;
+  --p-600:  13 148 136;
+  --p-700:  15 118 110;
+  --p-800:  17  94  89;
+  --p-900:  19  78  74;
+}
+
+/* ── Thème spécial Noël ─────────────────────────────────────────────
+   Rouge festif + banderole décorative en haut de page                */
+:root[data-color="noel"] {
+  --p-50:  255 241 242;
+  --p-100: 255 228 230;
+  --p-200: 254 205 211;
+  --p-300: 253 164 175;
+  --p-400: 251 113 133;
+  --p-500: 220  38  38;
+  --p-600: 185  28  28;
+  --p-700: 153  27  27;
+  --p-800: 127  29  29;
+  --p-900: 113  22  22;
+}
+
+/* ── Thème spécial Ramadan ──────────────────────────────────────────
+   Violet profond + or                                                 */
+:root[data-color="ramadan"] {
+  --p-50:  253 248 255;
+  --p-100: 243 232 255;
+  --p-200: 233 213 255;
+  --p-300: 201 168  76;  /* accent doré */
+  --p-400: 192 132 252;
+  --p-500: 139  69 219;
+  --p-600: 109  40 217;
+  --p-700:  88  28 135;
+  --p-800:  74  24 122;
+  --p-900:  59  19  97;
+}
+
+/* ── Thème spécial Fête de l'indépendance Guinée (2 octobre) ─────── */
+:root[data-color="independence"] {
+  --p-50:  240 253 244;
+  --p-100: 220 252 231;
+  --p-200: 187 247 208;
+  --p-300: 134 239 172;
+  --p-400:  74 222 128;
+  --p-500:  34 197  94;
+  --p-600:  22 163  74;
+  --p-700:  27 139  59;
+  --p-800:  22 101  52;
+  --p-900:  20  83  45;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   BASE STYLES
+   ══════════════════════════════════════════════════════════════════════ */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -18,6 +151,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   COMPOSANTS TAILWIND
+   ══════════════════════════════════════════════════════════════════════ */
 @layer components {
   .btn-primary {
     @apply bg-primary-700 text-white font-semibold px-5 py-2.5 rounded-xl hover:bg-primary-800 transition-all duration-200 shadow-premium active:scale-95;
@@ -35,13 +171,63 @@ body {
   .input {
     @apply w-full border border-dark-200 rounded-xl px-4 py-3 text-dark-900 placeholder-dark-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200;
   }
-  .badge {
-    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold;
-  }
-  .badge-green { @apply badge bg-primary-100 text-primary-700; }
-  .badge-gold  { @apply badge bg-gold-100 text-gold-600; }
+  .badge         { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold; }
+  .badge-green   { @apply badge bg-primary-100 text-primary-700; }
+  .badge-gold    { @apply badge bg-gold-100 text-gold-600; }
   .section-title { @apply text-2xl font-display font-bold text-dark-900; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   DÉCORATIONS THÈMES SPÉCIAUX — banderole en haut de page
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Noël : rouge/vert festif */
+html[data-color="noel"] body::before {
+  content: '🎄 ❄️ 🎅 ❄️ 🎄 ❄️ 🎅 ❄️ 🎄 ❄️ 🎅 ❄️ 🎄 ❄️ 🎅 ❄️ 🎄 ❄️ 🎅 ❄️ 🎄 ❄️ 🎅 ❄️';
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  padding: 4px 0;
+  background: linear-gradient(90deg, #b91c1c, #166534, #b91c1c);
+  color: white;
+  letter-spacing: 0.5em;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Ramadan : croissant doré / violet */
+html[data-color="ramadan"] body::before {
+  content: '🌙 ✨ رمضان كريم ✨ 🌙 ✨ رمضان كريم ✨ 🌙 ✨ رمضان كريم ✨ 🌙';
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  padding: 4px 0;
+  background: linear-gradient(90deg, #4c1d95, #78350f, #4c1d95);
+  color: #fcd34d;
+  letter-spacing: 0.2em;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Indépendance Guinée : drapeau tricolore */
+html[data-color="independence"] body::before {
+  content: '🇬🇳 Vive la Guinée ! 🦅 Independence Day 🦅 Vive la Guinée ! 🇬🇳';
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  padding: 4px 0;
+  background: linear-gradient(90deg, #CE1126 33%, #C9A84C 33%, #C9A84C 66%, #1B8B3B 66%);
+  color: white;
+  letter-spacing: 0.2em;
+  font-weight: 600;
+  overflow: hidden;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   DIVERS
+   ══════════════════════════════════════════════════════════════════════ */
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
@@ -55,7 +241,7 @@ body {
 }
 .annonce-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 14px 36px rgba(27, 139, 59, 0.12), 0 4px 10px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 14px 36px rgb(var(--p-700) / 0.12), 0 4px 10px rgba(0, 0, 0, 0.06);
 }
 
 /* Admin fade-in */
@@ -79,6 +265,8 @@ body {
 
 /* ══════════════════════════════════════════════════════════════════════
    DARK MODE — html.dark appliqué par ThemeProvider + script anti-flash
+   Les couleurs primary utilisent les variables CSS (--p-NNN) —
+   on redéfinit juste les shades pour lisibilité sur fond sombre.
    ══════════════════════════════════════════════════════════════════════ */
 
 html.dark { color-scheme: dark; }
@@ -88,11 +276,38 @@ html.dark body {
   color: #e6edf3;
 }
 
+/* ── Primary en dark mode : palette allégée (couleur claire sur fond sombre) */
+html.dark {
+  --p-50:  27 139 59;    /* redéfini — utilisé avec /0.14 via sélecteur explicite ci-dessous */
+  --p-100: 27 139 59;
+  --p-200: 134 239 172;
+  --p-300: 134 239 172;
+  --p-400:  74 222 128;
+  --p-500:  74 222 128;
+  --p-600:  74 222 128;
+  --p-700:  74 222 128;  /* #4ade80 — vert clair pour lecture sur fond sombre */
+  --p-800:  74 222 128;
+  --p-900: 134 239 172;
+}
+
+/* Thèmes colorés en dark mode — couleur primaire allégée par thème */
+html.dark[data-color="blue"]       { --p-700: 147 197 253; --p-600: 147 197 253; --p-800: 147 197 253; --p-500: 147 197 253; }
+html.dark[data-color="purple"]     { --p-700: 216 180 254; --p-600: 216 180 254; --p-800: 216 180 254; --p-500: 216 180 254; }
+html.dark[data-color="orange"]     { --p-700: 253 186 116; --p-600: 253 186 116; --p-800: 253 186 116; --p-500: 253 186 116; }
+html.dark[data-color="red"]        { --p-700: 253 164 175; --p-600: 253 164 175; --p-800: 253 164 175; --p-500: 253 164 175; }
+html.dark[data-color="teal"]       { --p-700:  94 234 212; --p-600:  94 234 212; --p-800:  94 234 212; --p-500:  94 234 212; }
+html.dark[data-color="noel"]       { --p-700: 252 165 165; --p-600: 252 165 165; --p-800: 252 165 165; --p-500: 252 165 165; }
+html.dark[data-color="ramadan"]    { --p-700: 216 180 254; --p-600: 201 168  76; --p-800: 216 180 254; --p-500: 216 180 254; }
+html.dark[data-color="independence"] { --p-700: 74 222 128; --p-600: 74 222 128; --p-800: 74 222 128; --p-500: 74 222 128; }
+
+/* ── bg-primary-50 et bg-primary-100 en dark : translucide via la couleur 700 */
+html.dark .bg-primary-50  { background-color: rgb(var(--p-700) / 0.14); }
+html.dark .bg-primary-100 { background-color: rgb(var(--p-700) / 0.22); }
+
 /* ── Arrière-plans ─────────────────────────────────────────────────── */
 html.dark .bg-white          { background-color: #1c2128; }
 html.dark .bg-dark-50        { background-color: #0d1117; }
 html.dark .bg-dark-100       { background-color: #161b22; }
-html.dark .bg-primary-50     { background-color: rgba(27,139,59,0.14); }
 html.dark .bg-amber-50       { background-color: rgba(245,197,24,0.07); }
 html.dark .bg-gold-50        { background-color: rgba(245,197,24,0.07); }
 html.dark .bg-blue-50        { background-color: rgba(59,130,246,0.12); }
@@ -110,7 +325,6 @@ html.dark .bg-indigo-50      { background-color: rgba(99,102,241,0.10); }
 html.dark .bg-rose-50        { background-color: rgba(244,63,94,0.10); }
 html.dark .bg-fuchsia-50     { background-color: rgba(217,70,239,0.10); }
 html.dark .bg-guinea-50      { background-color: rgba(206,17,38,0.10); }
-/* bg-white avec opacité (ex: bg-white/80) */
 html.dark [class*="bg-white/"] { background-color: rgba(28,33,40,0.88); }
 
 /* ── Texte ─────────────────────────────────────────────────────────── */
@@ -125,47 +339,32 @@ html.dark .text-dark-400 { color: #6e7681; }
 html.dark .border-dark-50   { border-color: #21262d; }
 html.dark .border-dark-100  { border-color: #30363d; }
 html.dark .border-dark-200  { border-color: #30363d; }
-html.dark .border-primary-100 { border-color: rgba(27,139,59,0.28); }
-html.dark .border-primary-200 { border-color: rgba(27,139,59,0.38); }
-html.dark .border-amber-100  { border-color: rgba(245,197,24,0.20); }
-html.dark .border-gold-100   { border-color: rgba(201,168,76,0.20); }
-html.dark .border-blue-100   { border-color: rgba(59,130,246,0.22); }
-html.dark .border-guinea-100 { border-color: rgba(206,17,38,0.22); }
+html.dark .border-primary-100 { border-color: rgb(var(--p-700) / 0.28); }
+html.dark .border-primary-200 { border-color: rgb(var(--p-700) / 0.38); }
+html.dark .border-amber-100   { border-color: rgba(245,197,24,0.20); }
+html.dark .border-gold-100    { border-color: rgba(201,168,76,0.20); }
+html.dark .border-blue-100    { border-color: rgba(59,130,246,0.22); }
+html.dark .border-guinea-100  { border-color: rgba(206,17,38,0.22); }
 
 /* ── Ombres ────────────────────────────────────────────────────────── */
 html.dark .shadow-card       { box-shadow: 0 2px 12px rgba(0,0,0,0.55); }
 html.dark .shadow-card-hover { box-shadow: 0 10px 32px rgba(0,0,0,0.65); }
 html.dark .shadow-sm         { box-shadow: 0 1px 3px rgba(0,0,0,0.55); }
-html.dark .shadow-premium    { box-shadow: 0 4px 20px rgba(27,139,59,0.32); }
+html.dark .shadow-premium    { box-shadow: 0 4px 20px rgb(var(--p-700) / 0.32); }
 
 /* ── Composants ────────────────────────────────────────────────────── */
-html.dark .card {
-  background-color: #1c2128;
-  border-color: #30363d;
-}
-
-html.dark .input {
-  background-color: #161b22;
-  border-color: #30363d;
-  color: #e6edf3;
-}
+html.dark .card  { background-color: #1c2128; border-color: #30363d; }
+html.dark .input { background-color: #161b22; border-color: #30363d; color: #e6edf3; }
 html.dark .input::placeholder { color: #6e7681; }
 
-/* Éléments de formulaire natifs */
-html.dark input,
-html.dark textarea,
-html.dark select {
+html.dark input, html.dark textarea, html.dark select {
   background-color: #161b22;
   border-color: #30363d;
   color: #e6edf3;
 }
-html.dark input::placeholder,
-html.dark textarea::placeholder { color: #6e7681; }
-html.dark input:focus,
-html.dark textarea:focus,
-html.dark select:focus { background-color: #1c2128; }
+html.dark input::placeholder, html.dark textarea::placeholder { color: #6e7681; }
+html.dark input:focus, html.dark textarea:focus, html.dark select:focus { background-color: #1c2128; }
 
-/* Squelettes de chargement */
 html.dark .skeleton {
   background: linear-gradient(90deg, #21262d 25%, #30363d 50%, #21262d 75%);
   background-size: 200% 100%;
@@ -177,17 +376,15 @@ html.dark ::-webkit-scrollbar-track { background: #161b22; }
 html.dark ::-webkit-scrollbar-thumb { background: #30363d; }
 html.dark ::-webkit-scrollbar-thumb:hover { background: #484f58; }
 
-/* Annonce card dark hover */
 html.dark .annonce-card:hover {
-  box-shadow: 0 14px 36px rgba(0,0,0,0.55), 0 4px 10px rgba(27,139,59,0.15);
+  box-shadow: 0 14px 36px rgba(0,0,0,0.55), 0 4px 10px rgb(var(--p-700) / 0.15);
 }
 
-/* ── Textes colorés (contraste sur fond sombre) ────────────────────
-   text-*-700 / text-*-600 = trop sombres sur fond dark, on les éclaire */
-html.dark .text-primary-700 { color: #4ade80; }
-html.dark .text-primary-600 { color: #4ade80; }
+/* ── Textes colorés non-primary (contraste sur fond sombre) ──────── */
 html.dark .text-blue-700    { color: #93c5fd; }
 html.dark .text-blue-600    { color: #93c5fd; }
+html.dark .text-blue-500    { color: #93c5fd; }
+html.dark .text-blue-400    { color: #93c5fd; }
 html.dark .text-violet-700  { color: #c4b5fd; }
 html.dark .text-violet-600  { color: #c4b5fd; }
 html.dark .text-pink-700    { color: #f9a8d4; }
@@ -204,6 +401,8 @@ html.dark .text-orange-700  { color: #fdba74; }
 html.dark .text-orange-600  { color: #fdba74; }
 html.dark .text-red-700     { color: #fca5a5; }
 html.dark .text-red-600     { color: #fca5a5; }
+html.dark .text-red-500     { color: #f87171; }
+html.dark .text-red-800     { color: #fca5a5; }
 html.dark .text-fuchsia-700 { color: #f0abfc; }
 html.dark .text-fuchsia-600 { color: #f0abfc; }
 html.dark .text-teal-700    { color: #5eead4; }
@@ -212,36 +411,27 @@ html.dark .text-rose-700    { color: #fda4af; }
 html.dark .text-rose-600    { color: #fda4af; }
 html.dark .text-green-700   { color: #86efac; }
 html.dark .text-green-600   { color: #86efac; }
+html.dark .text-green-500   { color: #86efac; }
 html.dark .text-indigo-700  { color: #a5b4fc; }
 html.dark .text-indigo-600  { color: #a5b4fc; }
 html.dark .text-cyan-700    { color: #67e8f9; }
 html.dark .text-cyan-600    { color: #67e8f9; }
 html.dark .text-gold-600    { color: #fcd34d; }
 html.dark .text-gold-500    { color: #fbbf24; }
+html.dark .text-gold-700    { color: #fcd34d; }
+html.dark .text-gold-400    { color: #fbbf24; }
 html.dark .text-guinea-600  { color: #ff8088; }
 html.dark .text-guinea-500  { color: #ff8088; }
 html.dark .text-guinea-700  { color: #ff8088; }
 html.dark .text-guinea-400  { color: #ff8088; }
-html.dark .text-gold-700    { color: #fcd34d; }
-html.dark .text-gold-400    { color: #fbbf24; }
-html.dark .text-primary-800 { color: #4ade80; }
-html.dark .text-primary-500 { color: #4ade80; }
-html.dark .text-primary-400 { color: #4ade80; }
-html.dark .text-primary-300 { color: #86efac; }
 html.dark .text-yellow-700  { color: #fde047; }
 html.dark .text-yellow-600  { color: #fde047; }
 html.dark .text-yellow-500  { color: #fbbf24; }
 html.dark .text-yellow-400  { color: #fbbf24; }
 html.dark .text-purple-700  { color: #c4b5fd; }
 html.dark .text-purple-600  { color: #c4b5fd; }
-html.dark .text-red-500     { color: #f87171; }
-html.dark .text-red-800     { color: #fca5a5; }
-html.dark .text-green-500   { color: #86efac; }
-html.dark .text-blue-500    { color: #93c5fd; }
-html.dark .text-blue-400    { color: #93c5fd; }
 
 /* ── Arrière-plans niveau 100 (badges, indicateurs) ────────────── */
-html.dark .bg-primary-100  { background-color: rgba(27,139,59,0.22); }
 html.dark .bg-blue-100     { background-color: rgba(59,130,246,0.18); }
 html.dark .bg-purple-100   { background-color: rgba(168,85,247,0.18); }
 html.dark .bg-pink-100     { background-color: rgba(236,72,153,0.18); }
