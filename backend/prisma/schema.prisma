@@ -68,6 +68,7 @@ model User {
   onboardingSurvey OnboardingSurvey?
   subscriptions   ShopSubscription[] @relation("SubscriberOf")
   subscribers     ShopSubscription[] @relation("SubscribedTo")
+  themeAccesses   UserThemeAccess[]
 
   onboardingDone  Boolean  @default(false)
 
@@ -598,11 +599,28 @@ enum PublicationType {
 // =============================================
 
 model SiteConfig {
-  id          String   @id @default("singleton")
-  globalTheme String?  // ex: "blue", "noel", "ramadan" — null = pas de thème imposé
-  updatedAt   DateTime @updatedAt @default(now())
+  id                String    @id @default("singleton")
+  globalTheme       String?   // thème imposé à tous (null = chacun son thème)
+  themeEndsAt       DateTime? // expiration automatique du thème global
+  siteSpecialThemes String[]  @default([]) // thèmes spéciaux débloqués pour tous
+  updatedAt         DateTime  @updatedAt @default(now())
 
   @@map("site_config")
+}
+
+// =============================================
+// ACCÈS AUX THÈMES SPÉCIAUX (par utilisateur)
+// =============================================
+
+model UserThemeAccess {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  themeId   String
+  grantedAt DateTime @default(now())
+
+  @@unique([userId, themeId])
+  @@map("user_theme_accesses")
 }
 
 // =============================================

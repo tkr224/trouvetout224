@@ -43,7 +43,7 @@ const PROTECTED_TABS = ['profil', 'securite', 'notifications', 'confidentialite'
 export default function ParametresPage() {
   const { user, logout, isAuthenticated, _hasHydrated } = useAuthStore();
   const loggedIn = _hasHydrated && isAuthenticated && !!user;
-  const { theme, setTheme, colorAccent, setColorAccent, specialTheme, setSpecialTheme } = useTheme();
+  const { theme, setTheme, colorAccent, setColorAccent, specialTheme, setSpecialTheme, isThemeLocked } = useTheme();
   const [tab, setTab] = useState('profil');
 
   // Si l'utilisateur non connecté arrive sur un onglet protégé, rediriger vers Apparence
@@ -294,24 +294,21 @@ export default function ParametresPage() {
                   </div>
                 </div>
 
-                {/* ── Couleur d'accent ── */}
+                {/* ── Couleur d'accent (base, libres) ── */}
                 <div>
                   <h3 className="font-semibold text-dark-900 mb-1 flex items-center gap-2">
                     <Palette size={15} className="text-primary-700" /> Couleur d&apos;accent
                   </h3>
                   <p className="text-dark-500 text-xs mb-4">Change la couleur principale des boutons, liens et éléments actifs.</p>
                   <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-                    {COLOR_THEMES.map(ct => {
+                    {COLOR_THEMES.filter(ct => !ct.isSpecial).map(ct => {
                       const active = colorAccent === ct.id && !specialTheme;
                       return (
                         <button key={ct.id} onClick={() => setColorAccent(ct.id)}
                           className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${
                             active ? 'border-primary-700 bg-primary-50' : 'border-dark-200 hover:border-dark-400 hover:bg-dark-50'
                           }`}>
-                          <div
-                            className="w-8 h-8 rounded-full shadow-sm"
-                            style={{ backgroundColor: ct.hex }}
-                          />
+                          <div className="w-8 h-8 rounded-full shadow-sm" style={{ backgroundColor: ct.hex }} />
                           <p className={`text-xs font-semibold text-center leading-tight ${active ? 'text-primary-700' : 'text-dark-600'}`}>
                             {ct.emoji} {ct.label}
                           </p>
@@ -322,29 +319,79 @@ export default function ParametresPage() {
                   </div>
                 </div>
 
-                {/* ── Thèmes spéciaux ── */}
+                {/* ── Thèmes spéciaux animés (nécessitent un accès) ── */}
                 <div>
                   <h3 className="font-semibold text-dark-900 mb-1 flex items-center gap-2">
-                    <span className="text-base">✨</span> Thèmes spéciaux
+                    <span className="text-base">🎨</span> Thèmes spéciaux &amp; animés
                   </h3>
-                  <p className="text-dark-500 text-xs mb-4">Ambiances festives et événementielles — avec une petite banderole décorative en haut de page.</p>
+                  <p className="text-dark-500 text-xs mb-4">
+                    Ambiances immersives avec animations — certains sont réservés et nécessitent un accès accordé par l&apos;admin.
+                  </p>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    {COLOR_THEMES.filter(ct => ct.isSpecial).map(ct => {
+                      const active  = colorAccent === ct.id && !specialTheme;
+                      const locked  = isThemeLocked(ct.id);
+                      return (
+                        <button
+                          key={ct.id}
+                          onClick={() => !locked && setColorAccent(ct.id)}
+                          title={locked ? 'Thème réservé — demandez à l\'admin de débloquer' : ct.label}
+                          className={`relative flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${
+                            locked
+                              ? 'border-dark-200 bg-dark-50 opacity-60 cursor-not-allowed'
+                              : active
+                              ? 'border-primary-700 bg-primary-50'
+                              : 'border-dark-200 hover:border-dark-400 hover:bg-dark-50'
+                          }`}>
+                          {locked && (
+                            <span className="absolute top-1.5 right-1.5">
+                              <Lock size={11} className="text-dark-400" />
+                            </span>
+                          )}
+                          <div className="w-8 h-8 rounded-full shadow-sm" style={{ backgroundColor: ct.hex }} />
+                          <p className={`text-xs font-semibold text-center leading-tight ${active && !locked ? 'text-primary-700' : 'text-dark-600'}`}>
+                            {ct.emoji} {ct.label}
+                          </p>
+                          {active && !locked && <CheckCircle size={12} className="text-primary-700" />}
+                          {locked && <p className="text-dark-400 text-[10px]">Réservé 🔒</p>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* ── Thèmes événementiels ── */}
+                <div>
+                  <h3 className="font-semibold text-dark-900 mb-1 flex items-center gap-2">
+                    <span className="text-base">✨</span> Thèmes événementiels
+                  </h3>
+                  <p className="text-dark-500 text-xs mb-4">Ambiances festives avec banderole décorative en haut de page.</p>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {SPECIAL_THEMES.map(st => {
                       const active = specialTheme === st.id;
+                      const locked = isThemeLocked(st.id);
                       return (
-                        <button key={st.id} onClick={() => setSpecialTheme(active ? null : st.id as any)}
-                          className={`flex items-center gap-3 p-3 rounded-2xl border-2 transition-all text-left ${
-                            active ? 'border-primary-700 bg-primary-50' : 'border-dark-200 hover:border-dark-400 hover:bg-dark-50'
+                        <button
+                          key={st.id}
+                          onClick={() => !locked && setSpecialTheme(active ? null : st.id as any)}
+                          title={locked ? 'Thème réservé — demandez à l\'admin de débloquer' : st.label}
+                          className={`relative flex items-center gap-3 p-3 rounded-2xl border-2 transition-all text-left ${
+                            locked
+                              ? 'border-dark-200 bg-dark-50 opacity-60 cursor-not-allowed'
+                              : active
+                              ? 'border-primary-700 bg-primary-50'
+                              : 'border-dark-200 hover:border-dark-400 hover:bg-dark-50'
                           }`}>
                           <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl shrink-0"
                             style={{ backgroundColor: st.hex + '22' }}>
                             {st.emoji}
                           </div>
                           <div className="min-w-0">
-                            <p className={`text-sm font-semibold ${active ? 'text-primary-700' : 'text-dark-800'}`}>{st.label}</p>
+                            <p className={`text-sm font-semibold ${active && !locked ? 'text-primary-700' : 'text-dark-800'}`}>{st.label}</p>
                             <p className="text-dark-400 text-xs leading-tight mt-0.5">{st.description}</p>
                           </div>
-                          {active && <CheckCircle size={14} className="text-primary-700 ml-auto shrink-0" />}
+                          {active && !locked && <CheckCircle size={14} className="text-primary-700 ml-auto shrink-0" />}
+                          {locked && <Lock size={13} className="text-dark-400 ml-auto shrink-0" />}
                         </button>
                       );
                     })}

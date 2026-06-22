@@ -83,7 +83,7 @@ const themeScript = `(function(){try{
   if(t==='dark'||(t!=='light'&&dark)){document.documentElement.classList.add('dark')}
   var s=localStorage.getItem('tt224-special');
   var c=localStorage.getItem('tt224-color');
-  var validColors=['blue','purple','orange','red','teal','royal','feu','nuit','minimaliste','terre','animated','neon','valentine','halloween','luxe','retro'];
+  var validColors=['blue','purple','orange','red','teal','royal','feu','nuit','minimaliste','terre','animated','neon','valentine','halloween','luxe','retro','ocean','foret','galaxie','lave','pluie','arcenciel','glace','orliquide'];
   var validSpecial=['noel','ramadan','independence'];
   if(s&&validSpecial.includes(s)){document.documentElement.setAttribute('data-color',s)}
   else if(c&&validColors.includes(c)){document.documentElement.setAttribute('data-color',c)}

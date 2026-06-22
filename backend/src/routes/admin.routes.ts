@@ -477,4 +477,67 @@ router.get('/payments', async (req, res) => {
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
+// ─── Accès aux thèmes spéciaux (par utilisateur) ─────────────────────────────
+
+// Recherche rapide d'utilisateurs (pour la UI de gestion thèmes)
+router.get('/users/search', async (req, res) => {
+  try {
+    const q = String(req.query.q || '').trim();
+    if (q.length < 2) return res.json([]);
+    const users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { firstName: { contains: q, mode: 'insensitive' } },
+          { lastName:  { contains: q, mode: 'insensitive' } },
+          { email:     { contains: q, mode: 'insensitive' } },
+        ],
+      },
+      select: {
+        id: true, firstName: true, lastName: true, email: true, role: true,
+        themeAccesses: { select: { themeId: true } },
+      },
+      take: 10,
+    });
+    res.json(users);
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+// Liste tous les accès thèmes accordés
+router.get('/theme-accesses', async (req, res) => {
+  try {
+    const accesses = await prisma.userThemeAccess.findMany({
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true, email: true } },
+      },
+      orderBy: { grantedAt: 'desc' },
+    });
+    res.json(accesses);
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+// Accorder un thème à un utilisateur
+router.post('/theme-accesses', async (req, res) => {
+  try {
+    const { userId, themeId } = req.body;
+    if (!userId || !themeId) return res.status(400).json({ error: 'userId et themeId requis.' });
+    const access = await prisma.userThemeAccess.upsert({
+      where:  { userId_themeId: { userId, themeId } },
+      create: { userId, themeId },
+      update: {},
+      include: { user: { select: { firstName: true, lastName: true, email: true } } },
+    });
+    res.json(access);
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+// Révoquer un thème
+router.delete('/theme-accesses/:userId/:themeId', async (req, res) => {
+  try {
+    await prisma.userThemeAccess.deleteMany({
+      where: { userId: req.params.userId, themeId: req.params.themeId },
+    });
+    res.json({ ok: true });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
 export default router;

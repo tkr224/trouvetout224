@@ -2,234 +2,193 @@
 import { useEffect, useState } from 'react';
 
 export default function SplashScreen() {
-  const [show,   setShow]   = useState(false);
-  const [drawn,  setDrawn]  = useState(false);
-  const [nameIn, setNameIn] = useState(false);
-  const [exit,   setExit]   = useState(false);
+  const [phase, setPhase] = useState<'hidden' | 'show' | 'draw' | 'reveal' | 'exit'>('hidden');
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (sessionStorage.getItem('tt224-splash')) return;
-    setShow(true);
-    const t1 = setTimeout(() => setDrawn(true),  70);
-    const t2 = setTimeout(() => setNameIn(true), 700);
-    const t3 = setTimeout(() => setExit(true),  1200);
-    const t4 = setTimeout(() => {
-      setShow(false);
-      sessionStorage.setItem('tt224-splash', '1');
-    }, 1750);
-    return () => [t1, t2, t3, t4].forEach(clearTimeout);
+
+    sessionStorage.setItem('tt224-splash', '1');
+
+    const t1 = setTimeout(() => setPhase('show'),   60);
+    const t2 = setTimeout(() => setPhase('draw'),   200);
+    const t3 = setTimeout(() => setPhase('reveal'), 900);
+    const t4 = setTimeout(() => setPhase('exit'),   1600);
+    const t5 = setTimeout(() => setPhase('hidden'), 2200);
+
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5); };
   }, []);
 
-  if (!show) return null;
+  if (phase === 'hidden') return null;
 
   return (
-    <div className={`sp-root${exit ? ' sp-exit' : ''}`}>
-
-      {/* ── Fond dégradé vert émeraude → or ── */}
-      <div className="sp-bg" />
-
-      <div className="sp-body">
-
-        {/* ── Logo SVG animé ── */}
-        <div className={`sp-logo${drawn ? ' sp-drawn' : ''}`}>
-          <svg viewBox="0 0 100 100" width="100" height="100" fill="none">
-
-            {/* Cercle principal de la loupe (se dessine) */}
-            <circle
-              cx="42" cy="42" r="29"
-              stroke="rgba(255,255,255,0.25)"
-              strokeWidth="7"
-              pathLength="1"
-              className="sp-circle-bg"
-            />
-            <circle
-              cx="42" cy="42" r="29"
-              stroke="white"
-              strokeWidth="7"
-              pathLength="1"
-              fill="rgba(255,255,255,0.08)"
-              className="sp-circle"
-            />
-
-            {/* Arc doré (haut droit) */}
-            <path
-              d="M 42 13 A 29 29 0 0 1 71 42"
-              stroke="#F5C518"
-              strokeWidth="7"
-              strokeLinecap="round"
-              pathLength="1"
-              className="sp-arc-gold"
-            />
-
-            {/* Arc vert (côté droit) */}
-            <path
-              d="M 71 42 A 29 29 0 0 1 64 62"
-              stroke="#1B8B3B"
-              strokeWidth="9"
-              strokeLinecap="round"
-              pathLength="1"
-              className="sp-arc-green"
-            />
-
-            {/* Manche rouge */}
-            <rect
-              x="60" y="60" width="32" height="12" rx="6"
-              transform="rotate(45 60 60)"
-              fill="#CE1126"
-              className="sp-handle"
-            />
-
-            {/* Texte 224 */}
-            <text
-              x="42" y="43"
-              textAnchor="middle"
-              dominantBaseline="central"
-              fontFamily="Poppins, Arial, sans-serif"
-              fontWeight="800"
-              fontSize="24"
-              fill="#CE1126"
-              className="sp-text224"
-            >
-              224
-            </text>
-          </svg>
-        </div>
-
-        {/* ── Nom de la marque ── */}
-        <div className={`sp-name${nameIn ? ' sp-name-in' : ''}`}>
-          <span className="sp-rouge">Trouve</span>
-          <span className="sp-gold">Tout</span>
-          <span className="sp-vert">224</span>
-        </div>
-
-        <p className={`sp-slogan${nameIn ? ' sp-slogan-in' : ''}`}>
-          La plus grande marketplace de Guinée
-        </p>
-      </div>
-
-      <style jsx>{`
-
-        /* ── Racine & sortie ── */
+    <>
+      <style>{`
         .sp-root {
           position: fixed; inset: 0; z-index: 9999;
           display: flex; align-items: center; justify-content: center;
           overflow: hidden;
-          transition: opacity 0.5s cubic-bezier(0.4,0,0.2,1),
-                      transform 0.5s cubic-bezier(0.4,0,0.2,1);
+          transition: opacity 0.55s cubic-bezier(0.4,0,0.2,1),
+                      transform 0.55s cubic-bezier(0.4,0,0.2,1);
         }
-        .sp-exit { opacity: 0; transform: scale(1.04); pointer-events: none; }
+        .sp-root.sp-show { opacity: 1; transform: scale(1); }
+        .sp-root.sp-exit { opacity: 0; transform: scale(1.05); }
 
-        /* ── Fond dégradé vert émeraude → or ── */
-        .sp-bg {
+        .sp-bg { position: absolute; inset: 0; background: #040d07; }
+        .sp-glow-g {
+          position: absolute; width: 500px; height: 500px; border-radius: 50%;
+          top: -120px; left: -120px;
+          background: radial-gradient(circle, rgba(27,139,59,0.18) 0%, transparent 70%);
+          filter: blur(50px);
+        }
+        .sp-glow-gold {
+          position: absolute; width: 400px; height: 400px; border-radius: 50%;
+          bottom: -100px; right: -100px;
+          background: radial-gradient(circle, rgba(245,197,24,0.14) 0%, transparent 70%);
+          filter: blur(50px);
+        }
+        .sp-dots {
           position: absolute; inset: 0;
-          background:
-            radial-gradient(ellipse at 18% 28%, rgba(27,139,59,0.55)  0%, transparent 48%),
-            radial-gradient(ellipse at 82% 75%, rgba(245,197,24,0.40) 0%, transparent 48%),
-            linear-gradient(145deg, #071c0e 0%, #0e1f0e 45%, #1a1200 100%);
+          background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+          background-size: 28px 28px;
         }
 
-        /* ── Corps centré ── */
-        .sp-body {
+        .sp-scene {
           position: relative; z-index: 1;
           display: flex; flex-direction: column; align-items: center;
         }
 
-        /* ── Conteneur du logo ── */
-        .sp-logo {
-          margin-bottom: 28px;
-          opacity: 0; transform: scale(0.6);
-          transition: opacity 0.45s cubic-bezier(0.34,1.5,0.64,1),
-                      transform 0.45s cubic-bezier(0.34,1.5,0.64,1);
+        .sp-logo-wrap {
+          transition: transform 0.7s cubic-bezier(0.34,1.56,0.64,1),
+                      opacity  0.7s ease;
+          will-change: transform, opacity;
         }
-        .sp-drawn { opacity: 1; transform: scale(1); }
+        .sp-logo-hidden  { opacity: 0; transform: perspective(600px) rotateX(38deg) rotateY(-28deg) scale(0.45) translateY(24px); }
+        .sp-logo-show    { opacity: 1; transform: perspective(600px) rotateX(10deg)  rotateY(-7deg)  scale(1)   translateY(0px); }
+        .sp-logo-reveal  { opacity: 1; transform: perspective(600px) rotateX(0deg)   rotateY(0deg)   scale(1.08) translateY(-5px); }
+        .sp-logo-exit    { opacity: 0; transform: perspective(600px) rotateX(-18deg) rotateY(12deg)  scale(1.18) translateY(-28px); }
 
-        /* ── Cercle de fond (statique) ── */
-        .sp-circle-bg {
-          stroke-dasharray: 1;
-          stroke-dashoffset: 0;
-        }
-
-        /* ── Cercle principal (se dessine) ── */
-        .sp-circle {
+        .sp-path {
           stroke-dasharray: 1;
           stroke-dashoffset: 1;
+          transition: stroke-dashoffset 0.72s cubic-bezier(0.4,0,0.2,1);
         }
-        .sp-drawn .sp-circle {
-          animation: drawPath 0.52s cubic-bezier(0.4,0,0.2,1) 0.04s forwards;
+        .sp-path-drawn { stroke-dashoffset: 0; }
+
+        .sp-ring {
+          position: absolute;
+          width: 100px; height: 100px;
+          border-radius: 50%;
+          border: 1.5px solid rgba(27,139,59,0);
+          box-shadow: 0 0 0 rgba(27,139,59,0);
+          top: 50%; left: 50%;
+          transform: translate(-50%, -50%);
+          pointer-events: none;
+          transition: border-color 0.45s ease, box-shadow 0.45s ease;
+        }
+        .sp-ring-glow {
+          border-color: rgba(27,139,59,0.4);
+          box-shadow: 0 0 32px rgba(27,139,59,0.22), 0 0 70px rgba(27,139,59,0.08);
         }
 
-        /* ── Arc doré ── */
-        .sp-arc-gold {
-          stroke-dasharray: 1;
-          stroke-dashoffset: 1;
+        .sp-sep {
+          width: 0; height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(27,139,59,0.6), rgba(245,197,24,0.4), transparent);
+          margin: 18px auto;
+          transition: width 0.45s cubic-bezier(0.4,0,0.2,1);
         }
-        .sp-drawn .sp-arc-gold {
-          animation: drawPath 0.18s ease 0.32s forwards;
-        }
+        .sp-sep-wide { width: 150px; }
 
-        /* ── Arc vert ── */
-        .sp-arc-green {
-          stroke-dasharray: 1;
-          stroke-dashoffset: 1;
-        }
-        .sp-drawn .sp-arc-green {
-          animation: drawPath 0.13s ease 0.50s forwards;
-        }
-
-        /* ── Manche ── */
-        .sp-handle { opacity: 0; }
-        .sp-drawn .sp-handle {
-          animation: fadeUp 0.15s ease 0.52s forwards;
-        }
-
-        /* ── Texte 224 ── */
-        .sp-text224 { opacity: 0; }
-        .sp-drawn .sp-text224 {
-          animation: fadeUp 0.20s ease 0.44s forwards;
-        }
-
-        /* ── Animations clé ── */
-        @keyframes drawPath {
-          to { stroke-dashoffset: 0; }
-        }
-        @keyframes fadeUp {
-          from { opacity: 0; transform: scale(0.8); }
-          to   { opacity: 1; transform: scale(1); }
-        }
-
-        /* ── Nom de la marque ── */
-        .sp-name {
-          font-size: 2.8rem; font-weight: 800;
-          letter-spacing: -0.03em; line-height: 1;
-          font-family: var(--font-poppins, 'Poppins'), sans-serif;
-          display: flex; gap: 0;
-          opacity: 0; transform: translateY(18px);
-          transition: opacity 0.38s ease, transform 0.38s cubic-bezier(0.34,1.2,0.64,1);
-          margin-bottom: 10px;
-        }
-        .sp-name-in { opacity: 1; transform: translateY(0); }
-        .sp-rouge { color: #CE1126; }
-        .sp-gold  { color: #F5C518; }
-        .sp-vert  { color: #5edb85; }
-
-        /* ── Slogan ── */
-        .sp-slogan {
-          color: rgba(255,255,255,0.38);
-          font-size: 0.72rem;
-          letter-spacing: 0.10em;
-          text-transform: uppercase;
-          font-family: var(--font-inter, 'Inter'), sans-serif;
-          font-weight: 500;
+        .sp-brand-wrap {
           text-align: center;
-          opacity: 0; transform: translateY(6px);
-          transition: opacity 0.35s ease 0.12s, transform 0.35s ease 0.12s;
+          transition: opacity 0.48s ease, transform 0.48s cubic-bezier(0.34,1.56,0.64,1);
         }
-        .sp-slogan-in { opacity: 1; transform: translateY(0); }
+        .sp-brand-hidden { opacity: 0; transform: translateY(20px) scale(0.9); }
+        .sp-brand-show   { opacity: 1; transform: translateY(0)    scale(1); }
 
-        @media (max-width: 480px) {
-          .sp-name { font-size: 2.2rem; }
+        .sp-brand-text {
+          font-size: clamp(30px, 7vw, 48px);
+          font-weight: 800;
+          line-height: 1;
+          letter-spacing: -0.5px;
         }
+        .sp-trouve { color: #4ade80; }
+        .sp-tout   { color: #ffffff; }
+        .sp-num    { color: #f5c518; text-shadow: 0 0 24px rgba(245,197,24,0.55); }
+
+        .sp-tagline {
+          font-size: 10.5px;
+          color: rgba(255,255,255,0.35);
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          margin-top: 10px;
+          transition: opacity 0.45s ease 0.14s;
+        }
+        .sp-tagline-hidden { opacity: 0; }
+        .sp-tagline-show   { opacity: 1; }
       `}</style>
-    </div>
+
+      <div className={`sp-root ${phase === 'exit' ? 'sp-exit' : 'sp-show'}`} aria-hidden="true">
+        <div className="sp-bg" />
+        <div className="sp-glow-g" />
+        <div className="sp-glow-gold" />
+        <div className="sp-dots" />
+
+        <div className="sp-scene">
+          {/* Logo SVG avec effet 3D */}
+          <div style={{ position: 'relative', width: 86, height: 86 }}>
+            <div
+              className={`sp-ring ${phase === 'reveal' || phase === 'exit' ? 'sp-ring-glow' : ''}`}
+            />
+            <div className={`sp-logo-wrap ${
+              phase === 'show'   ? 'sp-logo-show'   :
+              phase === 'draw'   ? 'sp-logo-show'   :
+              phase === 'reveal' ? 'sp-logo-reveal'  :
+              phase === 'exit'   ? 'sp-logo-exit'    :
+              'sp-logo-hidden'
+            }`}>
+              <svg viewBox="0 0 80 80" width="86" height="86" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Cercle de la loupe */}
+                <circle
+                  cx="34" cy="34" r="22"
+                  stroke="#1B8B3B" strokeWidth="4.5" strokeLinecap="round"
+                  pathLength="1"
+                  className={`sp-path ${phase !== 'hidden' && phase !== 'show' ? 'sp-path-drawn' : ''}`}
+                />
+                {/* Reflet sur le verre */}
+                <path
+                  d="M24 24 Q27 20 32 22"
+                  stroke="rgba(255,255,255,0.5)" strokeWidth="2.5" strokeLinecap="round"
+                  pathLength="1"
+                  className={`sp-path ${phase === 'reveal' || phase === 'exit' ? 'sp-path-drawn' : ''}`}
+                />
+                {/* Manche doré */}
+                <line
+                  x1="50" y1="50" x2="63" y2="63"
+                  stroke="#F5C518" strokeWidth="5.5" strokeLinecap="round"
+                  pathLength="1"
+                  className={`sp-path ${phase !== 'hidden' && phase !== 'show' ? 'sp-path-drawn' : ''}`}
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* Séparateur lumineux */}
+          <div className={`sp-sep ${phase === 'reveal' || phase === 'exit' ? 'sp-sep-wide' : ''}`} />
+
+          {/* Nom et tagline */}
+          <div className={`sp-brand-wrap ${phase === 'reveal' || phase === 'exit' ? 'sp-brand-show' : 'sp-brand-hidden'}`}>
+            <div className="sp-brand-text">
+              <span className="sp-trouve">Trouve</span>
+              <span className="sp-tout">Tout</span>
+              <span className="sp-num">224</span>
+            </div>
+            <p className={`sp-tagline ${phase === 'reveal' || phase === 'exit' ? 'sp-tagline-show' : 'sp-tagline-hidden'}`}>
+              La plus grande marketplace de Guinée
+            </p>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
