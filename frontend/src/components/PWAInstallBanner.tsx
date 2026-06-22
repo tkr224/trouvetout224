@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { X, Download, Share2 } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -7,51 +7,95 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+// Clés localStorage
+const KEY_INSTALLED  = 'pwa_installed';   // '1' si installée
+const KEY_DISMISSED  = 'pwa_dismissed_at'; // timestamp du dernier refus/fermeture
+
+// Délai avant d'afficher le banner (ms) — l'utilisateur navigue d'abord
+const SHOW_DELAY_MS  = 8000;
+// Durée minimale entre deux affichages après un refus (30 jours)
+const SNOOZE_MS      = 30 * 24 * 60 * 60 * 1000;
+
+function shouldSuppressBanner(): boolean {
+  // App déjà en mode standalone (lancée depuis l'écran d'accueil)
+  if (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (navigator as any).standalone === true
+  ) {
+    localStorage.setItem(KEY_INSTALLED, '1');
+    return true;
+  }
+  // Marquée comme installée lors d'une session précédente
+  if (localStorage.getItem(KEY_INSTALLED) === '1') return true;
+  // Refusée / fermée il y a moins de SNOOZE_MS
+  const ts = localStorage.getItem(KEY_DISMISSED);
+  if (ts && Date.now() - parseInt(ts, 10) < SNOOZE_MS) return true;
+  return false;
+}
+
 export default function PWAInstallBanner() {
-  const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [prompt, setPrompt]   = useState<BeforeInstallPromptEvent | null>(null);
   const [visible, setVisible] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
+  const [isIOS, setIsIOS]     = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // Ne pas afficher si déjà installé ou déjà fermé dans cette session
-    if (
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (navigator as any).standalone === true ||
-      sessionStorage.getItem('pwa-banner-closed')
-    ) return;
+    if (shouldSuppressBanner()) return;
+
+    // Écoute l'installation via l'UI du navigateur (hors de notre bouton)
+    const onAppInstalled = () => {
+      localStorage.setItem(KEY_INSTALLED, '1');
+      setVisible(false);
+    };
+    window.addEventListener('appinstalled', onAppInstalled);
 
     const ua = navigator.userAgent;
-    const ios = /iphone|ipad|ipod/i.test(ua);
-    const isSafari = /safari/i.test(ua) && !/CriOS|FxiOS|OPiOS/i.test(ua);
+    const ios    = /iphone|ipad|ipod/i.test(ua);
+    const safari = /safari/i.test(ua) && !/CriOS|FxiOS|OPiOS/i.test(ua);
 
-    if (ios && isSafari) {
+    if (ios && safari) {
+      // iOS/Safari : pas d'événement natif, on affiche notre guide après le délai
       setIsIOS(true);
-      // Délai de 4 s pour ne pas interrompre le chargement de la page
-      const t = setTimeout(() => setVisible(true), 4000);
-      return () => clearTimeout(t);
+      timerRef.current = setTimeout(() => setVisible(true), SHOW_DELAY_MS);
+    } else {
+      // Android/Chrome : attendre l'événement beforeinstallprompt
+      const handler = (e: Event) => {
+        e.preventDefault();
+        setPrompt(e as BeforeInstallPromptEvent);
+        timerRef.current = setTimeout(() => setVisible(true), SHOW_DELAY_MS);
+      };
+      window.addEventListener('beforeinstallprompt', handler);
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handler);
+        window.removeEventListener('appinstalled', onAppInstalled);
+        if (timerRef.current) clearTimeout(timerRef.current);
+      };
     }
 
-    // Android / Chrome : événement natif d'installation
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setPrompt(e as BeforeInstallPromptEvent);
-      setVisible(true);
+    return () => {
+      window.removeEventListener('appinstalled', onAppInstalled);
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
   const handleInstall = async () => {
     if (!prompt) return;
     await prompt.prompt();
     const { outcome } = await prompt.userChoice;
-    if (outcome === 'accepted') setVisible(false);
+    if (outcome === 'accepted') {
+      localStorage.setItem(KEY_INSTALLED, '1');
+    } else {
+      // L'utilisateur a refusé le dialogue natif → snooze 30 jours
+      localStorage.setItem(KEY_DISMISSED, String(Date.now()));
+    }
+    setVisible(false);
     setPrompt(null);
   };
 
   const handleClose = () => {
     setVisible(false);
-    sessionStorage.setItem('pwa-banner-closed', '1');
+    // Fermeture du banner → snooze 30 jours
+    localStorage.setItem(KEY_DISMISSED, String(Date.now()));
   };
 
   if (!visible) return null;
