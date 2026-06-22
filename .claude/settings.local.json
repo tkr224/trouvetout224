@@ -20,7 +20,8 @@
       "Bash(git commit *)",
       "PowerShell(Get-ChildItem \"C:\\\\Users\\\\celso\\\\OneDrive\\\\Desktop\\\\Trouvetout224\\\\backend\\\\src\" -Name | Where-Object { $_ -match \"\\\\.\\(ts|js\\)$\" })",
       "Bash(git *)",
-      "Bash(grep -E \"^[^/]*\\(/[^/]*\\)?$\")"
+      "Bash(grep -E \"^[^/]*\\(/[^/]*\\)?$\")",
+      "Bash(npm run *)"
     ]
   }
 }
