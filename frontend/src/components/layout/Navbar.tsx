@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Logo from '@/components/Logo';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { MapPin, ChevronDown, Bell, MessageCircle, User, Plus, Menu, X, LogOut, Shield, Settings, Store } from 'lucide-react';
+import { MapPin, ChevronDown, Bell, MessageCircle, User, Plus, Menu, X, LogOut, Shield, Settings, Store, Users } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
@@ -187,6 +187,15 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             >
               <Settings size={13} /> Paramètres
             </Link>
+            {loggedIn && (
+              <Link
+                href="/abonnements"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-2 px-3 py-2 text-dark-600 hover:text-primary-700 hover:bg-primary-50 rounded-xl text-sm font-medium transition-colors"
+              >
+                <Users size={13} /> Mes abonnements
+              </Link>
+            )}
             {loggedIn && (user.accountType === 'VENDEUR' || user.accountType === 'LES_DEUX') && (
               <Link
                 href="/vendeur"

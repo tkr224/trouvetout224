@@ -32,6 +32,7 @@ import uploadRoutes from './routes/upload.routes';
 import savedSearchRoutes from './routes/saved-search.routes';
 import publicationRoutes from './routes/publication.routes';
 import onboardingRoutes from './routes/onboarding.routes';
+import subscriptionRoutes from './routes/subscription.routes';
 
 dotenv.config();
 
@@ -95,6 +96,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/saved-searches', savedSearchRoutes);
 app.use('/api/publications', publicationRoutes);
 app.use('/api/onboarding', onboardingRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

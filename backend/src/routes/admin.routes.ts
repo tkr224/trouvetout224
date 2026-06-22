@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authenticate, requireAdmin } from '../middleware/auth';
 import { prisma } from '../config/database';
+import { sendNewProductEmail } from '../services/email.service';
 
 const router = Router();
 router.use(authenticate, requireAdmin);
@@ -149,7 +150,12 @@ router.post('/annonces/:id/approve', async (req, res) => {
     const annonce = await prisma.annonce.update({
       where: { id: req.params.id },
       data: { status: 'ACTIVE', rejectionReason: null },
+      include: {
+        user: { select: { firstName: true, lastName: true, shopName: true, email: true } },
+      },
     });
+
+    // Notification au vendeur (existant)
     await prisma.notification.create({
       data: {
         userId: annonce.userId,
@@ -159,6 +165,47 @@ router.post('/annonces/:id/approve', async (req, res) => {
         data: { annonceId: annonce.id, slug: annonce.slug },
       },
     });
+
+    // Notifications aux abonnés qui ont notify=true
+    const subscriptions = await prisma.shopSubscription.findMany({
+      where: { vendorId: annonce.userId, notify: true },
+      include: {
+        subscriber: { select: { id: true, email: true, firstName: true } },
+      },
+    });
+
+    if (subscriptions.length > 0) {
+      const vendorName = (annonce as any).user.shopName
+        || `${(annonce as any).user.firstName} ${(annonce as any).user.lastName}`;
+      const productUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/annonces/${annonce.id}`;
+
+      // Notifications internes (en lot)
+      await prisma.notification.createMany({
+        data: subscriptions.map(sub => ({
+          userId: sub.subscriberId,
+          type: 'NEW_VENDOR_PRODUCT' as any,
+          title: `Nouveau produit chez ${vendorName}`,
+          body: annonce.title,
+          data: { annonceId: annonce.id, slug: annonce.slug, vendorId: annonce.userId },
+        })),
+        skipDuplicates: true,
+      });
+
+      // Emails (non bloquants — échouent silencieusement si SMTP non configuré)
+      const emailJobs = subscriptions
+        .filter(sub => sub.subscriber.email)
+        .map(sub =>
+          sendNewProductEmail(
+            sub.subscriber.email!,
+            sub.subscriber.firstName,
+            vendorName,
+            annonce.title,
+            productUrl,
+          ).catch(() => {}),
+        );
+      void Promise.all(emailJobs);
+    }
+
     res.json({ message: 'Annonce approuvée.', data: annonce });
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
 });

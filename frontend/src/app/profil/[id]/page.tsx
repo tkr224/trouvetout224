@@ -5,11 +5,12 @@ import Navbar from '@/components/layout/Navbar';
 import { AnnonceCard } from '@/components/annonces/AnnonceGrid';
 import ReviewSection from '@/components/ReviewSection';
 import { api } from '@/lib/api';
-import { MapPin, Star, MessageCircle, ShoppingBag, Eye, Award, CheckCircle, Calendar, TrendingUp, Store, User, Package, Sparkles, Flag, AlertTriangle, AlertCircle, HelpCircle, X, Loader2 } from 'lucide-react';
+import { MapPin, Star, MessageCircle, ShoppingBag, Eye, Award, CheckCircle, Calendar, TrendingUp, Store, User, Package, Sparkles, Flag, AlertTriangle, AlertCircle, HelpCircle, X, Loader2, Users } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useAuthStore } from '@/store/auth.store';
 import toast from 'react-hot-toast';
+import SubscribeButton from '@/components/SubscribeButton';
 
 const USER_REPORT_REASONS = [
   { value: 'SCAM',                  label: 'Arnaque / Fraude',       Icon: AlertTriangle },
@@ -203,6 +204,10 @@ export default function PublicProfilPage() {
                 </div>
               ))}
             </div>
+
+            {/* Ligne 6 : bouton abonnement */}
+            <div className="mt-4 pt-4 border-t border-dark-100">
+              <SubscribeButton vendorId={id as string} /></div>
           </div>
         </div>
 

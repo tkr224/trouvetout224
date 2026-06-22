@@ -8,7 +8,7 @@ import { useAuthStore } from '@/store/auth.store';
 import {
   Eye, Heart, MessageCircle, ShoppingBag, Star, Store, TrendingUp,
   Settings, Plus, ArrowRight, CheckCircle, Clock, XCircle, Activity, Tag,
-  Lock, ClipboardList, Package,
+  Lock, ClipboardList, Package, Users,
 } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -27,17 +27,25 @@ const BAR_COLORS = ['#15803d', '#16a34a', '#22c55e', '#86efac', '#3b82f6', '#8b5
 
 export default function VendeurDashboard() {
   const { user } = useAuthStore();
-  const [stats, setStats]     = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
+  const [stats, setStats]           = useState<any>(null);
+  const [loading, setLoading]       = useState(true);
+  const [mounted, setMounted]       = useState(false);
+  const [subscribers, setSubscribers] = useState<any[]>([]);
+  const [subTotal, setSubTotal]     = useState(0);
 
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
-    api.get('/users/me/stats')
-      .then(r => { setStats(r.data.data); setLoading(false); })
-      .catch(() => setLoading(false));
+    Promise.all([
+      api.get('/users/me/stats'),
+      api.get('/subscriptions/my-subscribers').catch(() => ({ data: { data: [], total: 0 } })),
+    ]).then(([r, s]) => {
+      setStats(r.data.data);
+      setSubscribers(s.data.data || []);
+      setSubTotal(s.data.total || 0);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, [user]);
 
   if (!user) return (
@@ -341,6 +349,80 @@ export default function VendeurDashboard() {
                   <ArrowRight size={15} className="text-dark-300 shrink-0" />
                 </Link>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Mes abonnés ─────────────────────────────────── */}
+        <div className="card p-6 mt-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display font-bold text-dark-900 text-lg flex items-center gap-2">
+              <Users size={20} className="text-primary-700" /> Mes abonnés
+              {subTotal > 0 && (
+                <span className="ml-1 px-2.5 py-0.5 bg-primary-100 text-primary-700 rounded-full text-sm font-semibold">
+                  {subTotal}
+                </span>
+              )}
+            </h2>
+            {subTotal > 0 && (
+              <p className="text-dark-400 text-xs">
+                {subTotal} personne{subTotal > 1 ? 's' : ''} suivent votre boutique
+              </p>
+            )}
+          </div>
+
+          {loading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex gap-3 p-3">
+                  <div className="skeleton w-9 h-9 rounded-full shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="skeleton h-4 w-1/2" />
+                    <div className="skeleton h-3 w-1/3" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : subscribers.length === 0 ? (
+            <div className="text-center py-10">
+              <div className="w-12 h-12 bg-dark-50 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <Users size={22} className="text-dark-300" />
+              </div>
+              <p className="text-dark-500 text-sm">Aucun abonné pour le moment</p>
+              <p className="text-dark-400 text-xs mt-1">Partagez votre boutique pour gagner des abonnés</p>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {subscribers.slice(0, 10).map((sub: any) => {
+                const u = sub.subscriber;
+                const name = `${u.firstName} ${u.lastName}`;
+                return (
+                  <Link
+                    key={sub.id}
+                    href={`/profil/${u.id}`}
+                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-dark-50 transition-colors group"
+                  >
+                    <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center shrink-0 overflow-hidden">
+                      {u.avatar
+                        ? <img src={u.avatar} alt="" className="w-full h-full object-cover" />
+                        : <span className="text-primary-700 font-bold text-sm">{name[0]?.toUpperCase()}</span>
+                      }
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-dark-900 truncate flex items-center gap-1.5">
+                        {name}
+                        {u.isVerified && <CheckCircle size={12} className="text-blue-500 shrink-0" />}
+                      </p>
+                    </div>
+                    <ArrowRight size={14} className="text-dark-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </Link>
+                );
+              })}
+              {subTotal > 10 && (
+                <p className="text-dark-400 text-xs text-center pt-3 border-t border-dark-100 mt-2">
+                  + {subTotal - 10} autre{subTotal - 10 > 1 ? 's' : ''} abonné{subTotal - 10 > 1 ? 's' : ''}
+                </p>
+              )}
             </div>
           )}
         </div>

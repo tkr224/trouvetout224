@@ -66,6 +66,8 @@ model User {
   payments        Payment[]
   refreshTokens   RefreshToken[]
   onboardingSurvey OnboardingSurvey?
+  subscriptions   ShopSubscription[] @relation("SubscriberOf")
+  subscribers     ShopSubscription[] @relation("SubscribedTo")
 
   onboardingDone  Boolean  @default(false)
 
@@ -255,6 +257,23 @@ model SavedSearch {
   createdAt  DateTime @default(now())
 
   @@map("saved_searches")
+}
+
+// =============================================
+// ABONNEMENTS AUX BOUTIQUES
+// =============================================
+
+model ShopSubscription {
+  id           String   @id @default(cuid())
+  subscriberId String
+  subscriber   User     @relation("SubscriberOf", fields: [subscriberId], references: [id], onDelete: Cascade)
+  vendorId     String
+  vendor       User     @relation("SubscribedTo", fields: [vendorId], references: [id], onDelete: Cascade)
+  notify       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  @@unique([subscriberId, vendorId])
+  @@map("shop_subscriptions")
 }
 
 // =============================================
@@ -508,6 +527,7 @@ enum NotificationType {
   ANNONCE_REJECTED
   ACCOUNT_SUSPENDED
   SYSTEM
+  NEW_VENDOR_PRODUCT
 }
 
 // =============================================

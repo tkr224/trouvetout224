@@ -7,21 +7,22 @@ import { useAuthStore } from '@/store/auth.store';
 import Link from 'next/link';
 import {
   Bell, Check, MessageCircle, Star, Eye, Clock,
-  CheckCircle, AlertTriangle, Briefcase, Lock,
+  CheckCircle, AlertTriangle, Briefcase, Lock, ShoppingBag,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 const NOTIF_CONFIG: Record<string, { icon: any; color: string }> = {
-  NEW_MESSAGE:       { icon: MessageCircle, color: 'bg-primary-100 text-primary-700' },
-  NEW_RATING:        { icon: Star,          color: 'bg-yellow-100 text-yellow-700'   },
-  NEW_VIEW:          { icon: Eye,           color: 'bg-blue-100 text-blue-600'       },
-  NEW_APPLICATION:   { icon: Briefcase,     color: 'bg-purple-100 text-purple-700'   },
-  ANNONCE_EXPIRED:   { icon: Clock,         color: 'bg-orange-100 text-orange-600'   },
-  ANNONCE_APPROVED:  { icon: CheckCircle,   color: 'bg-green-100 text-green-700'     },
-  ANNONCE_REJECTED:  { icon: AlertTriangle, color: 'bg-guinea-100 text-guinea-700'   },
-  ACCOUNT_SUSPENDED: { icon: AlertTriangle, color: 'bg-red-100 text-red-600'         },
-  SYSTEM:            { icon: Bell,          color: 'bg-dark-100 text-dark-500'       },
+  NEW_MESSAGE:        { icon: MessageCircle, color: 'bg-primary-100 text-primary-700' },
+  NEW_RATING:         { icon: Star,          color: 'bg-yellow-100 text-yellow-700'   },
+  NEW_VIEW:           { icon: Eye,           color: 'bg-blue-100 text-blue-600'       },
+  NEW_APPLICATION:    { icon: Briefcase,     color: 'bg-purple-100 text-purple-700'   },
+  ANNONCE_EXPIRED:    { icon: Clock,         color: 'bg-orange-100 text-orange-600'   },
+  ANNONCE_APPROVED:   { icon: CheckCircle,   color: 'bg-green-100 text-green-700'     },
+  ANNONCE_REJECTED:   { icon: AlertTriangle, color: 'bg-guinea-100 text-guinea-700'   },
+  ACCOUNT_SUSPENDED:  { icon: AlertTriangle, color: 'bg-red-100 text-red-600'         },
+  NEW_VENDOR_PRODUCT: { icon: ShoppingBag,   color: 'bg-primary-100 text-primary-700' },
+  SYSTEM:             { icon: Bell,          color: 'bg-dark-100 text-dark-500'       },
 };
 
 function getNotifLink(notif: any): string | null {
@@ -39,6 +40,8 @@ function getNotifLink(notif: any): string | null {
       return data?.annonceId ? `/annonces/${data.annonceId}` : null;
     case 'ANNONCE_REJECTED':
       return '/profil';
+    case 'NEW_VENDOR_PRODUCT':
+      return data?.annonceId ? `/annonces/${data.annonceId}` : '/abonnements';
     default:
       return null;
   }
