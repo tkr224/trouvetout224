@@ -6,6 +6,7 @@ const router = Router();
 
 const VALID_THEMES = [
   'green', 'blue', 'purple', 'orange', 'red', 'teal',
+  'royal', 'feu', 'nuit', 'minimaliste', 'terre', 'animated',
   'noel', 'ramadan', 'independence',
 ];
 

@@ -13,6 +13,13 @@ router.get('/', async (req, res) => {
         children: {
           where: { isActive: true },
           orderBy: { order: 'asc' },
+          include: {
+            _count: {
+              select: {
+                annonces: { where: { status: 'ACTIVE' } },
+              },
+            },
+          },
         },
         _count: {
           select: {
@@ -21,7 +28,18 @@ router.get('/', async (req, res) => {
         },
       },
     });
-    res.json({ data: categories });
+
+    // Totalise les annonces de la catégorie parente + toutes ses sous-catégories
+    const result = categories.map(cat => ({
+      ...cat,
+      _count: {
+        annonces:
+          cat._count.annonces +
+          cat.children.reduce((sum: number, child: any) => sum + (child._count?.annonces ?? 0), 0),
+      },
+    }));
+
+    res.json({ data: result });
   } catch (e) {
     res.status(500).json({ error: 'Erreur.' });
   }

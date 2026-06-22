@@ -12,7 +12,13 @@ export type ColorAccent =
   | 'purple'        // Violet
   | 'orange'        // Coucher de soleil
   | 'red'           // Rouge Guinée
-  | 'teal';         // Turquoise
+  | 'teal'          // Turquoise
+  | 'royal'         // Violet royal / améthyste
+  | 'feu'           // Feu (rouge-orange ardent)
+  | 'nuit'          // Nuit étoilée (indigo profond)
+  | 'minimaliste'   // Minimaliste (ardoise / gris)
+  | 'terre'         // Terre (brun / terracotta)
+  | 'animated';     // Animé / 3D (cyan + effets CSS)
 
 export type SpecialTheme =
   | 'noel'          // Noël
@@ -28,12 +34,18 @@ export const COLOR_THEMES: {
   hex: string;       // hex du shade-700 pour aperçu
   hexDark: string;
 }[] = [
-  { id: 'green',  label: 'Vert Guinée',          emoji: '🌿', hex: '#1B8B3B', hexDark: '#4ade80' },
-  { id: 'blue',   label: 'Océan bleu',            emoji: '🌊', hex: '#1d4ed8', hexDark: '#93c5fd' },
-  { id: 'purple', label: 'Violet',                emoji: '💜', hex: '#7e22ce', hexDark: '#d8b4fe' },
-  { id: 'orange', label: 'Coucher de soleil',     emoji: '🌅', hex: '#c2410c', hexDark: '#fdba74' },
-  { id: 'red',    label: 'Rouge Guinée',           emoji: '❤️', hex: '#be123c', hexDark: '#fda4af' },
-  { id: 'teal',   label: 'Turquoise',             emoji: '🩵', hex: '#0f766e', hexDark: '#5eead4' },
+  { id: 'green',       label: 'Vert Guinée',          emoji: '🌿', hex: '#1B8B3B', hexDark: '#4ade80' },
+  { id: 'blue',        label: 'Océan bleu',            emoji: '🌊', hex: '#1d4ed8', hexDark: '#93c5fd' },
+  { id: 'purple',      label: 'Violet',                emoji: '💜', hex: '#7e22ce', hexDark: '#d8b4fe' },
+  { id: 'orange',      label: 'Coucher de soleil',     emoji: '🌅', hex: '#c2410c', hexDark: '#fdba74' },
+  { id: 'red',         label: 'Rouge Guinée',           emoji: '❤️', hex: '#be123c', hexDark: '#fda4af' },
+  { id: 'teal',        label: 'Turquoise',             emoji: '🩵', hex: '#0f766e', hexDark: '#5eead4' },
+  { id: 'royal',       label: 'Royal',                 emoji: '👑', hex: '#6D28D9', hexDark: '#c4b5fd' },
+  { id: 'feu',         label: 'Feu',                   emoji: '🔥', hex: '#C43000', hexDark: '#ff9b6b' },
+  { id: 'nuit',        label: 'Nuit étoilée',          emoji: '🌙', hex: '#4338CA', hexDark: '#a5b4fc' },
+  { id: 'minimaliste', label: 'Minimaliste',           emoji: '💎', hex: '#334155', hexDark: '#cbd5e1' },
+  { id: 'terre',       label: 'Terre',                 emoji: '🍫', hex: '#A04016', hexDark: '#f0b994' },
+  { id: 'animated',    label: 'Animé / 3D',            emoji: '✨', hex: '#0E7490', hexDark: '#67e8f9' },
 ];
 
 export const SPECIAL_THEMES: {
