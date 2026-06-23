@@ -11,9 +11,10 @@ const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faran
 
 const NAV_LINKS = [
   { href: '/annonces/lister', label: 'Annonces' },
-  { href: '/emplois', label: 'Emplois' },
-  { href: '/restaurants', label: 'Restaurants' },
-  { href: '/hotels', label: 'Hôtels' },
+  { href: '/boutiques',       label: 'Boutiques' },
+  { href: '/emplois',         label: 'Emplois' },
+  { href: '/restaurants',     label: 'Restaurants' },
+  { href: '/hotels',          label: 'Hôtels' },
 ];
 
 interface NavbarProps {

@@ -5,6 +5,51 @@ import { prisma } from '../config/database';
 
 const router = Router();
 
+// Liste toutes les boutiques actives (avec recherche + filtres)
+router.get('/shops', async (req, res) => {
+  try {
+    const { q = '', cityId = '', category = '', page = '1' } = req.query;
+    const take = 20;
+    const skip = (parseInt(page as string, 10) - 1) * take;
+
+    const where: any = { shopActive: true };
+    if (q) {
+      where.shopName = { contains: q as string, mode: 'insensitive' };
+    }
+    if (cityId) {
+      where.cityId = cityId as string;
+    }
+    if (category) {
+      where.shopCategories = { has: category as string };
+    }
+
+    const [shops, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true, firstName: true, lastName: true,
+          shopName: true, shopLogo: true, shopDescription: true,
+          shopCategories: true, shopHasPhysical: true,
+          isVerified: true, createdAt: true,
+          city: { select: { id: true, name: true } },
+          _count: {
+            select: {
+              annonces: true,
+              subscribers: true,
+            },
+          },
+        },
+      }),
+      prisma.user.count({ where }),
+    ]);
+
+    res.json({ data: shops, pagination: { total, page: parseInt(page as string, 10), pages: Math.ceil(total / take) } });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
 // Profil public d'un utilisateur (+ infos boutique si active)
 router.get('/profile/:id', async (req, res) => {
   try {

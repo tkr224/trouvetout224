@@ -13,6 +13,8 @@ const VALID_THEMES = [
   'neon', 'valentine', 'halloween', 'luxe', 'retro',
   // Nouveaux thèmes spéciaux (cette session)
   'ocean', 'foret', 'galaxie', 'lave', 'pluie', 'arcenciel', 'glace', 'orliquide',
+  // Pack premium — 8 nouveaux thèmes
+  'aurore', 'sakura', 'matrix', 'bonbon', 'volcan', 'orage', 'desert', 'cristal',
   // Thèmes événementiels
   'noel', 'ramadan', 'independence',
 ];

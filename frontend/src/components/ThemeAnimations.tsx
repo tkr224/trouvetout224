@@ -473,6 +473,312 @@ function GoldParticleOverlay() {
   );
 }
 
+/* ─── Vagues d'aurore boréale ────────────────────────────────────────── */
+const AURORA_COLORS = [
+  'rgba(16,185,129,0.22)', 'rgba(99,102,241,0.18)',
+  'rgba(52,211,153,0.20)', 'rgba(167,139,250,0.15)',
+  'rgba(6,182,212,0.18)',
+];
+function AuroraOverlay() {
+  const waves = useMemo(
+    () =>
+      Array.from({ length: 5 }, (_, i) => ({
+        id: i,
+        left:   `${pr(i * 3 + 1300) * 60 - 10}%`,
+        width:  `${30 + pr(i * 5 + 1301) * 50}%`,
+        dur:    `${7 + pr(i * 13 + 1302) * 6}s`,
+        dly:    `${pr(i * 11 + 1303) * 8}s`,
+        color:  AURORA_COLORS[i % AURORA_COLORS.length],
+        op:     0.6 + pr(i * 17 + 1304) * 0.4,
+      })),
+    [],
+  );
+  return (
+    <div className="theme-overlay" aria-hidden="true">
+      {waves.map(w => (
+        <div
+          key={w.id}
+          className="theme-aurora-wave"
+          style={{
+            left:            w.left,
+            width:           w.width,
+            background:      w.color,
+            ['--s-dur' as string]: w.dur,
+            ['--s-dly' as string]: w.dly,
+            ['--s-op'  as string]: String(w.op),
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ─── Pétales Sakura ─────────────────────────────────────────────────── */
+const PETALS = ['🌸', '🌺', '🌸', '🌸', '🌺'];
+function SakuraOverlay() {
+  const petals = useMemo(
+    () =>
+      Array.from({ length: 14 }, (_, i) => ({
+        id:    i,
+        left:  `${pr(i * 3 + 1400) * 100}%`,
+        size:  12 + pr(i * 5 + 1401) * 18,
+        dur:   10 + pr(i * 13 + 1402) * 10,
+        dly:   pr(i * 11 + 1403) * 16,
+        drift: `${(pr(i * 19 + 1404) - 0.5) * 80}px`,
+        char:  PETALS[i % PETALS.length],
+        op:    0.5 + pr(i * 17 + 1405) * 0.4,
+      })),
+    [],
+  );
+  return (
+    <div className="theme-overlay" aria-hidden="true">
+      {petals.map(p => (
+        <span
+          key={p.id}
+          className="theme-petal"
+          style={{
+            left:     p.left,
+            fontSize: `${p.size}px`,
+            opacity:  p.op,
+            ['--s-dur'   as string]: `${p.dur}s`,
+            ['--s-dly'   as string]: `${p.dly}s`,
+            ['--s-drift' as string]: p.drift,
+          }}
+        >
+          {p.char}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Pluie de caractères Matrix ─────────────────────────────────────── */
+const MATRIX_CHARS = ['0', '1', '0', '1', 'A', 'B', 'C', 'F', 'X', '▌', '▐', '░'];
+function MatrixOverlay() {
+  const chars = useMemo(
+    () =>
+      Array.from({ length: 20 }, (_, i) => ({
+        id:   i,
+        left: `${pr(i * 3 + 1500) * 100}%`,
+        size: 10 + pr(i * 5 + 1501) * 8,
+        dur:  1.5 + pr(i * 13 + 1502) * 2.5,
+        dly:  pr(i * 11 + 1503) * 4,
+        char: MATRIX_CHARS[i % MATRIX_CHARS.length],
+        op:   0.5 + pr(i * 17 + 1504) * 0.4,
+      })),
+    [],
+  );
+  return (
+    <div className="theme-overlay" aria-hidden="true">
+      {chars.map(c => (
+        <span
+          key={c.id}
+          className="theme-matrix-char"
+          style={{
+            left:     c.left,
+            fontSize: `${c.size}px`,
+            opacity:  c.op,
+            ['--s-dur' as string]: `${c.dur}s`,
+            ['--s-dly' as string]: `${c.dly}s`,
+          }}
+        >
+          {c.char}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Bonbons et sucreries ────────────────────────────────────────────── */
+const CANDIES = ['🍬', '🍭', '🍡', '🍬', '🍭'];
+function CandyOverlay() {
+  const items = useMemo(
+    () =>
+      Array.from({ length: 12 }, (_, i) => ({
+        id:    i,
+        left:  `${pr(i * 3 + 1600) * 100}%`,
+        size:  14 + pr(i * 5 + 1601) * 16,
+        dur:   12 + pr(i * 13 + 1602) * 10,
+        dly:   pr(i * 11 + 1603) * 14,
+        drift: `${(pr(i * 19 + 1604) - 0.5) * 70}px`,
+        char:  CANDIES[i % CANDIES.length],
+        op:    0.35 + pr(i * 17 + 1605) * 0.45,
+      })),
+    [],
+  );
+  return (
+    <div className="theme-overlay" aria-hidden="true">
+      {items.map(it => (
+        <span
+          key={it.id}
+          className="theme-candy"
+          style={{
+            left:     it.left,
+            fontSize: `${it.size}px`,
+            opacity:  it.op,
+            ['--s-dur'   as string]: `${it.dur}s`,
+            ['--s-dly'   as string]: `${it.dly}s`,
+            ['--s-drift' as string]: it.drift,
+          }}
+        >
+          {it.char}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Cendres Volcan ─────────────────────────────────────────────────── */
+const ASH_COLORS = ['#6b2020', '#9a1b1b', '#7f1d1d', '#b91c1c'];
+function VolcanOverlay() {
+  const ashes = useMemo(
+    () =>
+      Array.from({ length: 22 }, (_, i) => ({
+        id:     i,
+        left:   `${pr(i * 3 + 1700) * 100}%`,
+        bottom: `${pr(i * 7 + 1701) * 15}%`,
+        size:   3 + pr(i * 5 + 1702) * 8,
+        dur:    5 + pr(i * 13 + 1703) * 6,
+        dly:    pr(i * 11 + 1704) * 8,
+        drift:  `${(pr(i * 19 + 1705) - 0.5) * 80}px`,
+        color:  ASH_COLORS[i % ASH_COLORS.length],
+        round:  pr(i * 23 + 1706) > 0.4 ? '50%' : '2px',
+      })),
+    [],
+  );
+  return (
+    <div className="theme-overlay" aria-hidden="true">
+      {ashes.map(a => (
+        <div
+          key={a.id}
+          className="theme-ash"
+          style={{
+            left:         a.left,
+            bottom:       a.bottom,
+            width:        `${a.size}px`,
+            height:       `${a.size * 0.5}px`,
+            background:   a.color,
+            borderRadius: a.round,
+            ['--s-dur'   as string]: `${a.dur}s`,
+            ['--s-dly'   as string]: `${a.dly}s`,
+            ['--s-drift' as string]: a.drift,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ─── Éclairs (Orage) ────────────────────────────────────────────────── */
+function StormOverlay() {
+  const flashes = useMemo(
+    () =>
+      Array.from({ length: 3 }, (_, i) => ({
+        id:  i,
+        dur: `${7 + pr(i * 13 + 1800) * 8}s`,
+        dly: `${pr(i * 11 + 1801) * 5}s`,
+      })),
+    [],
+  );
+  return (
+    <div className="theme-overlay" aria-hidden="true">
+      {flashes.map(f => (
+        <div
+          key={f.id}
+          className="theme-lightning"
+          style={{
+            ['--s-dur' as string]: f.dur,
+            ['--s-dly' as string]: f.dly,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ─── Grains de sable (Désert) ───────────────────────────────────────── */
+function SandOverlay() {
+  const grains = useMemo(
+    () =>
+      Array.from({ length: 25 }, (_, i) => ({
+        id:     i,
+        left:   `${pr(i * 3 + 1900) * 100}%`,
+        top:    `${20 + pr(i * 7 + 1901) * 70}%`,
+        size:   1.5 + pr(i * 5 + 1902) * 3,
+        dur:    8 + pr(i * 13 + 1903) * 12,
+        dly:    pr(i * 11 + 1904) * 10,
+        drift:  `${60 + pr(i * 19 + 1905) * 100}px`,
+        vy:     `${(pr(i * 23 + 1906) - 0.5) * 20}px`,
+        op:     0.3 + pr(i * 17 + 1907) * 0.4,
+      })),
+    [],
+  );
+  return (
+    <div className="theme-overlay" aria-hidden="true">
+      {grains.map(g => (
+        <div
+          key={g.id}
+          className="theme-sand"
+          style={{
+            left:   g.left,
+            top:    g.top,
+            width:  `${g.size}px`,
+            height: `${g.size}px`,
+            opacity: g.op,
+            ['--s-dur'   as string]: `${g.dur}s`,
+            ['--s-dly'   as string]: `${g.dly}s`,
+            ['--s-drift' as string]: g.drift,
+            ['--s-vy'    as string]: g.vy,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ─── Scintillements Cristal ─────────────────────────────────────────── */
+const SPARKLE_CHARS = ['✦', '✧', '✸', '✹', '✺', '❋'];
+function CristalOverlay() {
+  const sparkles = useMemo(
+    () =>
+      Array.from({ length: 18 }, (_, i) => ({
+        id:   i,
+        left: `${pr(i * 3 + 2000) * 100}%`,
+        top:  `${pr(i * 7 + 2001) * 100}%`,
+        size: 8 + pr(i * 5 + 2002) * 18,
+        dur:  2 + pr(i * 13 + 2003) * 5,
+        dly:  pr(i * 11 + 2004) * 8,
+        char: SPARKLE_CHARS[i % SPARKLE_CHARS.length],
+        color: pr(i * 23 + 2005) > 0.5
+          ? 'rgba(103,232,249,0.8)'
+          : pr(i * 29 + 2006) > 0.5
+          ? 'rgba(165,243,252,0.9)'
+          : 'rgba(224,242,254,0.7)',
+      })),
+    [],
+  );
+  return (
+    <div className="theme-overlay" aria-hidden="true">
+      {sparkles.map(s => (
+        <span
+          key={s.id}
+          className="theme-sparkle"
+          style={{
+            left:     s.left,
+            top:      s.top,
+            fontSize: `${s.size}px`,
+            color:    s.color,
+            ['--s-dur' as string]: `${s.dur}s`,
+            ['--s-dly' as string]: `${s.dly}s`,
+          }}
+        >
+          {s.char}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 /* ─── Composant principal ────────────────────────────────────────────────── */
 export default function ThemeAnimations() {
   const { colorAccent, specialTheme } = useTheme();
@@ -491,6 +797,15 @@ export default function ThemeAnimations() {
   if (active === 'lave')         return <EmberOverlay />;
   if (active === 'pluie')        return <RainOverlay />;
   if (active === 'orliquide')    return <GoldParticleOverlay />;
+  // ── Pack premium ──
+  if (active === 'aurore')       return <AuroraOverlay />;
+  if (active === 'sakura')       return <SakuraOverlay />;
+  if (active === 'matrix')       return <MatrixOverlay />;
+  if (active === 'bonbon')       return <CandyOverlay />;
+  if (active === 'volcan')       return <VolcanOverlay />;
+  if (active === 'orage')        return <StormOverlay />;
+  if (active === 'desert')       return <SandOverlay />;
+  if (active === 'cristal')      return <CristalOverlay />;
 
   return null;
 }

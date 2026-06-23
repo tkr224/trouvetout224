@@ -1528,3 +1528,424 @@ html.dark[data-color="orliquide"] body::after {
   html.dark[data-color="arcenciel"] .card,
   html.dark[data-color="orliquide"] .card   { animation: none; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   PACK PREMIUM — 8 NOUVEAUX THÈMES
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ─── 🌌 AURORE BORÉALE ──────────────────────────────────────────────── */
+:root[data-color="aurore"] {
+  --bg-page: #ecfdf5; --card-bg: #f0fdf9;
+  --p-50: 236 253 245; --p-100: 209 250 229; --p-200: 167 243 208;
+  --p-300: 110 231 183; --p-400:  52 211 153; --p-500:  16 185 129;
+  --p-600:   5 150 105; --p-700:   4 120  87; --p-800:   6  95  70; --p-900:   6  78  59;
+}
+html.dark[data-color="aurore"] { --bg-page: #020d09; --card-bg: #051410; }
+html.dark[data-color="aurore"] { --p-700: 52 211 153; --p-600: 52 211 153; --p-500: 52 211 153; --p-800: 4 120 87; --p-900: 6 78 59; }
+
+html[data-color="aurore"] body::before {
+  content: '🌌  TrouveTout224 · Aurore Boréale  ✨  Lumières du Nord  💚  Northern Lights Edition  🌌';
+  display: block; text-align: center; font-size: 11px; font-weight: 600;
+  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.1em;
+  background: linear-gradient(90deg, #064e3b, #047857, #0d9488, #6366f1, #7c3aed, #047857, #064e3b);
+  background-size: 300% 100%;
+  color: #a7f3d0;
+  text-shadow: 0 0 12px rgba(167,243,208,0.6);
+  animation: aurora-banner 10s linear infinite;
+}
+@keyframes aurora-banner {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: -200% 50%; }
+}
+html.dark[data-color="aurore"] body::after {
+  content: '';
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(16,185,129,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 60%, rgba(99,102,241,0.07) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 90%, rgba(52,211,153,0.05) 0%, transparent 40%);
+  animation: aurora-bg 8s ease-in-out infinite alternate;
+}
+@keyframes aurora-bg {
+  0%   { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* ─── 🌸 SAKURA ──────────────────────────────────────────────────────── */
+:root[data-color="sakura"] {
+  --bg-page: #fff0f6; --card-bg: #fff5f9;
+  --p-50: 255 240 246; --p-100: 255 214 232; --p-200: 255 176 213;
+  --p-300: 255 134 190; --p-400: 249  99 166; --p-500: 236  72 153;
+  --p-600: 219  39 119; --p-700: 190  24  93; --p-800: 157  23  77; --p-900: 131  24  67;
+}
+html.dark[data-color="sakura"] { --bg-page: #1a0510; --card-bg: #200818; }
+html.dark[data-color="sakura"] { --p-700: 249 168 212; --p-600: 249 168 212; --p-500: 249 168 212; --p-800: 190 24 93; --p-900: 131 24 67; }
+
+html[data-color="sakura"] body::before {
+  content: '🌸  TrouveTout224 · Édition Sakura  🌺  Floraison du Printemps  🌸  Cherry Blossom  🌸';
+  display: block; text-align: center; font-size: 11px; font-weight: 600;
+  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.1em;
+  background: linear-gradient(90deg, #9d174d, #db2777, #f472b6, #db2777, #9d174d);
+  background-size: 200% 100%;
+  color: #fce7f3;
+  animation: banner-slide 14s linear infinite;
+}
+html.dark[data-color="sakura"] body::after {
+  content: '';
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+  background: radial-gradient(ellipse at 50% 30%, rgba(244,114,182,0.07) 0%, transparent 60%);
+}
+
+/* ─── 💻 MATRIX ──────────────────────────────────────────────────────── */
+:root[data-color="matrix"] {
+  --bg-page: #f0fff4; --card-bg: #f6fffa;
+  --p-50:  240 255 244; --p-100: 209 250 229; --p-200: 134 239 172;
+  --p-300:  74 222 128; --p-400:  34 197  94; --p-500:  22 163  74;
+  --p-600:  21 128  61; --p-700:  20 100  50; --p-800:  22  83  45; --p-900:  20  65  35;
+}
+html.dark[data-color="matrix"] { --bg-page: #000500; --card-bg: #010e02; }
+html.dark[data-color="matrix"] { --p-700: 74 222 128; --p-600: 34 197 94; --p-500: 74 222 128; --p-800: 21 128 61; --p-900: 20 83 45; }
+
+html[data-color="matrix"] body::before {
+  content: '💻  TrouveTout224 · Matrix Edition  01001  SYSTEM ONLINE  10110  Follow the Green Rabbit  💻';
+  display: block; text-align: center; font-size: 10px; font-weight: 700;
+  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.3em;
+  text-transform: uppercase;
+  background: #000500;
+  color: #4ade80;
+  text-shadow: 0 0 12px rgba(74,222,128,0.8);
+  animation: matrix-text 3s ease-in-out infinite;
+}
+@keyframes matrix-text {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
+}
+html.dark[data-color="matrix"] body::after {
+  content: '';
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(22,163,74,0.05) 0%, transparent 70%);
+}
+html.dark[data-color="matrix"] .card {
+  border: 1px solid rgba(74,222,128,0.15);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.8), 0 0 20px rgba(22,163,74,0.04);
+}
+
+/* ─── 🍬 BONBON / CANDY ──────────────────────────────────────────────── */
+:root[data-color="bonbon"] {
+  --bg-page: #fff0f8; --card-bg: #fff5fb;
+  --p-50: 255 236 253; --p-100: 251 207 232; --p-200: 249 168 212;
+  --p-300: 244 114 182; --p-400: 236  72 153; --p-500: 219  39 119;
+  --p-600: 190  24  93; --p-700: 162  14  84; --p-800: 131  24  67; --p-900: 112  26  60;
+}
+html.dark[data-color="bonbon"] { --bg-page: #180510; --card-bg: #200818; }
+html.dark[data-color="bonbon"] { --p-700: 251 207 232; --p-600: 249 168 212; --p-500: 251 207 232; --p-800: 162 14 84; --p-900: 131 24 67; }
+
+html[data-color="bonbon"] body::before {
+  content: '🍬  TrouveTout224 · Candy Edition  🍭  Sweet & Fun  🍡  Ambiance Sucrée  🍬  TrouveTout224';
+  display: block; text-align: center; font-size: 11px; font-weight: 600;
+  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.1em;
+  background: linear-gradient(90deg,
+    #f9a8d4 0%, #c4b5fd 25%, #a5f3fc 50%, #bbf7d0 75%, #f9a8d4 100%);
+  background-size: 300% 100%;
+  color: #831843;
+  animation: candy-banner 8s linear infinite;
+}
+@keyframes candy-banner {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: -200% 50%; }
+}
+
+/* ─── 🌋 VOLCAN ──────────────────────────────────────────────────────── */
+:root[data-color="volcan"] {
+  --bg-page: #fff5f5; --card-bg: #fff8f7;
+  --p-50: 255 241 240; --p-100: 254 202 202; --p-200: 252 165 165;
+  --p-300: 248 113 113; --p-400: 239  68  68; --p-500: 220  38  38;
+  --p-600: 185  28  28; --p-700: 153  27  27; --p-800: 127  29  29; --p-900: 113  22  22;
+}
+html.dark[data-color="volcan"] { --bg-page: #0f0000; --card-bg: #180200; }
+html.dark[data-color="volcan"] { --p-700: 248 113 113; --p-600: 239 68 68; --p-500: 248 113 113; --p-800: 185 28 28; --p-900: 127 29 29; }
+
+html[data-color="volcan"] body::before {
+  content: '🌋  TrouveTout224 · Édition Volcan  🔥  Puissance Brute  💥  Éruption Imminente  🌋';
+  display: block; text-align: center; font-size: 11px; font-weight: 700;
+  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.12em;
+  background: linear-gradient(90deg, #0f0000, #450a0a, #991b1b, #b91c1c, #7f1d1d, #450a0a, #0f0000);
+  background-size: 300% 100%;
+  color: #fca5a5;
+  text-shadow: 0 0 12px rgba(239,68,68,0.6);
+  animation: volcan-banner 8s linear infinite;
+}
+@keyframes volcan-banner {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: -100% 50%; }
+  100% { background-position: -200% 50%; }
+}
+html.dark[data-color="volcan"] body::after {
+  content: '';
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(220,38,38,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 30% 80%, rgba(234,88,12,0.08) 0%, transparent 40%);
+}
+html.dark[data-color="volcan"] .card {
+  border: 1px solid rgba(248,113,113,0.14);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.75), 0 0 25px rgba(220,38,38,0.06);
+}
+
+/* ─── ⚡ ORAGE / TONNERRE ────────────────────────────────────────────── */
+:root[data-color="orage"] {
+  --bg-page: #f0f4ff; --card-bg: #f5f7ff;
+  --p-50: 240 244 255; --p-100: 224 231 255; --p-200: 199 210 254;
+  --p-300: 165 180 252; --p-400: 129 140 248; --p-500:  99 102 241;
+  --p-600:  79  70 229; --p-700:  67  56 202; --p-800:  55  48 163; --p-900:  49  46 129;
+}
+html.dark[data-color="orage"] { --bg-page: #050810; --card-bg: #080d1a; }
+html.dark[data-color="orage"] { --p-700: 253 224 71; --p-600: 250 204 21; --p-500: 253 224 71; --p-800: 161 98 7; --p-900: 120 53 6; }
+
+html[data-color="orage"] body::before {
+  content: '⚡  TrouveTout224 · Édition Orage  🌩️  Puissance de la Foudre  ⛈️  Storm Edition  ⚡';
+  display: block; text-align: center; font-size: 11px; font-weight: 600;
+  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.12em;
+  background: linear-gradient(90deg, #050810, #0f172a, #1e1b4b, #312e81, #1e1b4b, #0f172a, #050810);
+  background-size: 300% 100%;
+  color: #fde047;
+  text-shadow: 0 0 14px rgba(253,224,71,0.7);
+  animation: banner-slide 18s linear infinite;
+}
+html.dark[data-color="orage"] body::after {
+  content: '';
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 50%, rgba(253,224,71,0.03) 0%, transparent 40%);
+}
+html.dark[data-color="orage"] .card {
+  border: 1px solid rgba(253,224,71,0.1);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.75), 0 0 25px rgba(99,102,241,0.04);
+}
+
+/* ─── 🏜️ DÉSERT ──────────────────────────────────────────────────────── */
+:root[data-color="desert"] {
+  --bg-page: #fffbeb; --card-bg: #fffdf5;
+  --p-50: 255 251 235; --p-100: 254 243 199; --p-200: 253 230 138;
+  --p-300: 252 211  77; --p-400: 251 191  36; --p-500: 245 158  11;
+  --p-600: 217 119   6; --p-700: 180  83   9; --p-800: 146  64  14; --p-900: 120  53   6;
+}
+html.dark[data-color="desert"] { --bg-page: #100a00; --card-bg: #1a1000; }
+html.dark[data-color="desert"] { --p-700: 252 211 77; --p-600: 251 191 36; --p-500: 252 211 77; --p-800: 180 83 9; --p-900: 120 53 6; }
+
+html[data-color="desert"] body::before {
+  content: '🏜️  TrouveTout224 · Édition Désert  ☀️  Chaleur du Sahara  🌵  Desert Edition  🏜️';
+  display: block; text-align: center; font-size: 11px; font-weight: 600;
+  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.1em;
+  background: linear-gradient(90deg, #78350f, #b45309, #d97706, #f59e0b, #d97706, #b45309, #78350f);
+  background-size: 300% 100%;
+  color: #fef3c7;
+  animation: banner-slide 18s linear infinite;
+}
+html.dark[data-color="desert"] body::after {
+  content: '';
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+  background: radial-gradient(ellipse at 70% 20%, rgba(245,158,11,0.07) 0%, transparent 55%);
+}
+
+/* ─── 💎 CRISTAL ─────────────────────────────────────────────────────── */
+:root[data-color="cristal"] {
+  --bg-page: #ecfeff; --card-bg: #f0fffe;
+  --p-50: 236 254 255; --p-100: 207 250 254; --p-200: 165 243 252;
+  --p-300: 103 232 249; --p-400:  34 211 238; --p-500:   6 182 212;
+  --p-600:   8 145 178; --p-700:  14 116 144; --p-800:  21  94 117; --p-900:  22  78  99;
+}
+html.dark[data-color="cristal"] { --bg-page: #001a1e; --card-bg: #012028; }
+html.dark[data-color="cristal"] { --p-700: 165 243 252; --p-600: 103 232 249; --p-500: 165 243 252; --p-800: 14 116 144; --p-900: 22 78 99; }
+
+html[data-color="cristal"] body::before {
+  content: '💎  TrouveTout224 · Édition Cristal  ✦  Préciosité Absolue  💠  Crystal Clear Edition  💎';
+  display: block; text-align: center; font-size: 11px; font-weight: 600;
+  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.12em;
+  background: linear-gradient(90deg, #0c4a6e, #0284c7, #06b6d4, #67e8f9, #06b6d4, #0284c7, #0c4a6e);
+  background-size: 300% 100%;
+  color: #e0f2fe;
+  text-shadow: 0 0 10px rgba(103,232,249,0.6);
+  animation: banner-slide 16s linear infinite;
+}
+html.dark[data-color="cristal"] body::after {
+  content: '';
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse at 30% 30%, rgba(6,182,212,0.07) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 70%, rgba(99,102,241,0.05) 0%, transparent 45%);
+}
+html.dark[data-color="cristal"] .card {
+  border: 1px solid rgba(165,243,252,0.14);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.65), 0 0 25px rgba(6,182,212,0.05);
+}
+html[data-color="cristal"] .card {
+  background: linear-gradient(135deg, #ffffff 0%, #ecfeff 50%, #ffffff 100%) !important;
+  background-size: 200% 200% !important;
+  animation: luxe-card-shimmer 8s ease-in-out infinite;
+}
+
+/* ── Dark mode backgrounds — 8 nouveaux ─────────────────────────── */
+html.dark[data-color="aurore"]  .bg-dark-50 { background-color: var(--bg-page); }
+html.dark[data-color="sakura"]  .bg-dark-50 { background-color: var(--bg-page); }
+html.dark[data-color="matrix"]  .bg-dark-50 { background-color: var(--bg-page); }
+html.dark[data-color="bonbon"]  .bg-dark-50 { background-color: var(--bg-page); }
+html.dark[data-color="volcan"]  .bg-dark-50 { background-color: var(--bg-page); }
+html.dark[data-color="orage"]   .bg-dark-50 { background-color: var(--bg-page); }
+html.dark[data-color="desert"]  .bg-dark-50 { background-color: var(--bg-page); }
+html.dark[data-color="cristal"] .bg-dark-50 { background-color: var(--bg-page); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   ANIMATIONS — 8 nouveaux thèmes
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* 🌌 Aurore — vagues de lumière colorées */
+.theme-aurora-wave {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 200px;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: aurora-wave-anim var(--s-dur, 8s) var(--s-dly, 0s) ease-in-out infinite alternate;
+  border-radius: 0 0 60% 60%;
+  filter: blur(30px);
+  opacity: 0;
+}
+@keyframes aurora-wave-anim {
+  0%   { transform: translateY(-60%) scaleX(1);   opacity: 0; }
+  30%  { opacity: var(--s-op, 0.18); }
+  70%  { opacity: var(--s-op, 0.18); }
+  100% { transform: translateY(-20%) scaleX(1.15); opacity: 0; }
+}
+
+/* 🌸 Pétales Sakura */
+.theme-petal {
+  position: absolute;
+  top: -40px;
+  line-height: 1;
+  will-change: transform, opacity;
+  animation: petal-fall var(--s-dur, 10s) var(--s-dly, 0s) ease-in-out infinite;
+}
+@keyframes petal-fall {
+  0%   { transform: translateY(0) translateX(0) rotate(0deg)   scale(1);   opacity: 0.9; }
+  20%  { transform: translateY(20vh) translateX(var(--s-drift, 15px)) rotate(60deg)  scale(0.95); }
+  50%  { transform: translateY(50vh) translateX(calc(var(--s-drift, 15px) * -0.6)) rotate(150deg) scale(0.85); }
+  80%  { transform: translateY(80vh) translateX(var(--s-drift, 15px)) rotate(260deg) scale(0.7);  opacity: 0.5; }
+  100% { transform: translateY(110vh) translateX(0) rotate(360deg) scale(0.5); opacity: 0; }
+}
+
+/* 💻 Caractères Matrix qui tombent */
+.theme-matrix-char {
+  position: absolute;
+  top: -30px;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  color: #4ade80;
+  text-shadow: 0 0 8px rgba(74,222,128,0.7);
+  will-change: transform, opacity;
+  animation: matrix-fall var(--s-dur, 2s) var(--s-dly, 0s) linear infinite;
+}
+@keyframes matrix-fall {
+  0%   { transform: translateY(0);      opacity: 1; }
+  70%  { opacity: 0.7; }
+  100% { transform: translateY(115vh);  opacity: 0; }
+}
+
+/* 🍬 Bonbons flottants */
+.theme-candy {
+  position: absolute;
+  top: -30px;
+  line-height: 1;
+  will-change: transform, opacity;
+  animation: candy-float var(--s-dur, 12s) var(--s-dly, 0s) ease-in-out infinite;
+}
+@keyframes candy-float {
+  0%   { transform: translateY(0) rotate(0deg);   opacity: 0.9; }
+  30%  { transform: translateY(28vh) translateX(var(--s-drift, 20px)) rotate(90deg); }
+  60%  { transform: translateY(58vh) translateX(calc(var(--s-drift, 20px) * -0.7)) rotate(200deg); opacity: 0.5; }
+  100% { transform: translateY(112vh) rotate(360deg); opacity: 0; }
+}
+
+/* 🌋 Cendres volcans */
+.theme-ash {
+  position: absolute;
+  will-change: transform, opacity;
+  border-radius: 3px;
+  animation: ash-rise var(--s-dur, 6s) var(--s-dly, 0s) ease-out infinite;
+}
+@keyframes ash-rise {
+  0%   { transform: translateY(0) translateX(0) rotate(0deg)   scale(1);   opacity: 0.7; }
+  30%  { transform: translateY(-25vh) translateX(var(--s-drift, 20px)) rotate(60deg)  scale(0.85); opacity: 0.55; }
+  70%  { transform: translateY(-65vh) translateX(calc(var(--s-drift, 20px) * -0.6)) rotate(150deg) scale(0.4);  opacity: 0.2; }
+  100% { transform: translateY(-100vh) rotate(200deg) scale(0); opacity: 0; }
+}
+
+/* ⚡ Éclairs */
+.theme-lightning {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  background: rgba(253,224,71,0.06);
+  will-change: opacity;
+  animation: lightning-flash var(--s-dur, 8s) var(--s-dly, 0s) ease-in-out infinite;
+}
+@keyframes lightning-flash {
+  0%, 88%, 100%     { opacity: 0; }
+  90%               { opacity: 1; }
+  92%               { opacity: 0; }
+  94%               { opacity: 0.7; }
+  96%               { opacity: 0; }
+}
+
+/* 🏜️ Grains de sable */
+.theme-sand {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(245,158,11,0.6);
+  will-change: transform, opacity;
+  animation: sand-drift var(--s-dur, 10s) var(--s-dly, 0s) ease-in-out infinite;
+}
+@keyframes sand-drift {
+  0%   { transform: translateX(0) translateY(0);         opacity: 0; }
+  10%  { opacity: var(--s-op, 0.5); }
+  90%  { opacity: var(--s-op, 0.5); }
+  100% { transform: translateX(var(--s-drift, 120px)) translateY(var(--s-vy, 20px)); opacity: 0; }
+}
+
+/* 💎 Scintillements cristal */
+.theme-sparkle {
+  position: absolute;
+  will-change: transform, opacity;
+  animation: sparkle-shine var(--s-dur, 3s) var(--s-dly, 0s) ease-in-out infinite;
+}
+@keyframes sparkle-shine {
+  0%, 100% { transform: scale(0) rotate(0deg);   opacity: 0; }
+  20%       { transform: scale(1) rotate(45deg);  opacity: 1; }
+  50%       { transform: scale(0.8) rotate(90deg); opacity: 0.7; }
+  80%       { transform: scale(0.3) rotate(135deg); opacity: 0.2; }
+}
+
+/* ── reduced-motion — 8 nouveaux thèmes ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html[data-color="aurore"] body::before,
+  html[data-color="sakura"] body::before,
+  html[data-color="matrix"] body::before,
+  html[data-color="bonbon"] body::before,
+  html[data-color="volcan"] body::before,
+  html[data-color="orage"]  body::before,
+  html[data-color="desert"] body::before,
+  html[data-color="cristal"] body::before { animation: none; }
+  html.dark[data-color="aurore"] body::after,
+  html.dark[data-color="orage"]  body::after { animation: none; }
+  html[data-color="cristal"] .card { animation: none; }
+  .theme-aurora-wave, .theme-petal, .theme-matrix-char, .theme-candy,
+  .theme-ash, .theme-lightning, .theme-sand, .theme-sparkle { display: none; }
+}
