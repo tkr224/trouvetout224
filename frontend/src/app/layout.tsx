@@ -35,6 +35,11 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true },
   },
 
+  /* ── Vérification Google Search Console ── */
+  verification: {
+    google: '5XQYMJLG8eJYkZlEbeYE0gsqMNDRA87VUN93D3B3PZw',
+  },
+
   /* ── Open Graph (Facebook, WhatsApp, LinkedIn…) ── */
   openGraph: {
     type:        'website',
