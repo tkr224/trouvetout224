@@ -20,14 +20,24 @@ export const register = async (req: Request, res: Response) => {
       }
     }
 
-    if (email) {
-      const existingEmail = await prisma.user.findUnique({ where: { email } });
-      if (existingEmail) return res.status(409).json({ error: 'Cet email est déjà utilisé.' });
+    const normalizedEmail = email ? email.toLowerCase().trim() : undefined;
+
+    if (normalizedEmail) {
+      const existingEmail = await prisma.user.findFirst({
+        where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+      });
+      if (existingEmail) return res.status(409).json({
+        error: 'Cette adresse email est déjà utilisée. Connectez-vous ou utilisez une autre adresse.',
+        field: 'email',
+      });
     }
 
     if (phone) {
       const existingPhone = await prisma.user.findUnique({ where: { phone } });
-      if (existingPhone) return res.status(409).json({ error: 'Ce numéro de téléphone est déjà utilisé.' });
+      if (existingPhone) return res.status(409).json({
+        error: 'Ce numéro de téléphone est déjà utilisé. Connectez-vous ou utilisez un autre numéro.',
+        field: 'phone',
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -42,7 +52,7 @@ export const register = async (req: Request, res: Response) => {
     const isVendor = accountType === 'VENDEUR' || accountType === 'LES_DEUX';
     const user = await prisma.user.create({
       data: {
-        email, phone, password: hashedPassword, firstName, lastName,
+        email: normalizedEmail, phone, password: hashedPassword, firstName, lastName,
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
         gender, cityId: realCityId, isVerified: false,
         accountType: accountType || 'ACHETEUR',
@@ -54,8 +64,8 @@ export const register = async (req: Request, res: Response) => {
       },
     });
 
-    if (email) {
-      sendVerificationEmail(email, firstName).catch(e => console.log('Email non envoyé:', e.message));
+    if (normalizedEmail) {
+      sendVerificationEmail(normalizedEmail, firstName).catch(e => console.log('Email non envoyé:', e.message));
     }
 
     const { accessToken, refreshToken } = await generateTokens(user.id);
@@ -68,8 +78,14 @@ export const register = async (req: Request, res: Response) => {
     console.error('Erreur register:', error);
     if (error.code === 'P2002') {
       const field = error.meta?.target?.[0] ?? '';
-      if (field === 'email') return res.status(409).json({ error: 'Cet email est déjà utilisé.' });
-      if (field === 'phone') return res.status(409).json({ error: 'Ce numéro de téléphone est déjà utilisé.' });
+      if (field === 'email') return res.status(409).json({
+        error: 'Cette adresse email est déjà utilisée. Connectez-vous ou utilisez une autre adresse.',
+        field: 'email',
+      });
+      if (field === 'phone') return res.status(409).json({
+        error: 'Ce numéro de téléphone est déjà utilisé. Connectez-vous ou utilisez un autre numéro.',
+        field: 'phone',
+      });
     }
     res.status(500).json({ error: 'Erreur lors de la création du compte.' });
   }
@@ -144,14 +160,15 @@ export const logout = async (req: Request, res: Response) => {
 // ============================
 export const oauthLogin = async (req: Request, res: Response) => {
   try {
-    const { provider, providerId, email, firstName, lastName, avatar } = req.body;
+    const { provider, providerId, email: rawEmail, firstName, lastName, avatar } = req.body;
+    const email = rawEmail ? rawEmail.toLowerCase().trim() : undefined;
 
     let user = await prisma.user.findFirst({
       where: {
         OR: [
           provider === 'google' ? { googleId: providerId } : {},
           provider === 'facebook' ? { facebookId: providerId } : {},
-          email ? { email } : {},
+          email ? { email: { equals: email, mode: 'insensitive' as const } } : {},
         ].filter((o) => Object.keys(o).length > 0),
       },
     });

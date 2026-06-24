@@ -6,7 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import toast from 'react-hot-toast';
-import { Store, Camera, Loader2, Eye, Save, Lock, MessageCircle } from 'lucide-react';
+import { Store, Camera, Loader2, Eye, Save, Lock, MessageCircle, Trash2, AlertTriangle, X } from 'lucide-react';
 import Link from 'next/link';
 
 export default function BoutiquePage() {
@@ -18,6 +18,8 @@ export default function BoutiquePage() {
   const [loading, setLoading] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const logoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
 
@@ -48,6 +50,21 @@ export default function BoutiquePage() {
       toast.success('Image ajoutée !');
     } catch { toast.error('Erreur upload'); }
     finally { setUploading(false); }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await api.delete('/users/me/shop');
+      toast.success('Boutique supprimée.');
+      setUser({ ...user!, shopActive: false, shopName: undefined } as any);
+      router.push('/vendeur');
+    } catch {
+      toast.error('Erreur lors de la suppression.');
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
+    }
   };
 
   const handleSave = async () => {
@@ -99,7 +116,7 @@ export default function BoutiquePage() {
 
           {/* Logo boutique */}
           <div className="px-6 pb-6">
-            <div className="-mt-12 mb-4">
+            <div className="-mt-12 mb-4 relative z-10">
               <div className="w-24 h-24 rounded-2xl border-4 border-white bg-primary-100 flex items-center justify-center shadow-card overflow-hidden cursor-pointer group relative" onClick={() => logoRef.current?.click()}>
                 {uploadingLogo ? <Loader2 size={28} className="text-primary-700 animate-spin" />
                   : shopLogo ? <img src={shopLogo} alt="" className="w-full h-full object-cover" />
@@ -134,7 +151,63 @@ export default function BoutiquePage() {
         <button onClick={handleSave} disabled={loading} className="btn-primary w-full py-3.5 flex items-center justify-center gap-2 text-base">
           {loading ? <><Loader2 size={18} className="animate-spin" /> Enregistrement...</> : <><Save size={18} /> Enregistrer ma boutique</>}
         </button>
+
+        {/* Zone de danger */}
+        {form.shopName && (
+          <div className="mt-8 border border-red-200 dark:border-red-900 rounded-2xl p-5 bg-red-50 dark:bg-red-950/20">
+            <h3 className="flex items-center gap-2 text-sm font-bold text-red-700 dark:text-red-400 mb-1">
+              <AlertTriangle size={15} /> Zone de danger
+            </h3>
+            <p className="text-xs text-red-600 dark:text-red-400 mb-4">
+              La suppression de la boutique est <strong>irréversible</strong>. Toutes vos annonces seront également supprimées. Votre compte reste actif.
+            </p>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-red-400 text-red-600 dark:text-red-400 font-semibold text-sm hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+            >
+              <Trash2 size={15} /> Supprimer ma boutique
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Modal confirmation suppression */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-dark-800 rounded-3xl shadow-card-hover w-full max-w-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-bold text-dark-900 dark:text-white text-lg flex items-center gap-2">
+                <Trash2 size={18} className="text-red-500" /> Supprimer la boutique
+              </h3>
+              <button onClick={() => setShowDeleteModal(false)} className="text-dark-400 hover:text-dark-700 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-5">
+              <p className="text-sm text-red-700 dark:text-red-400 font-semibold mb-1">Attention — action irréversible</p>
+              <p className="text-sm text-red-600 dark:text-red-400">
+                Votre boutique <strong>"{form.shopName}"</strong> et toutes vos annonces seront définitivement supprimées. Votre compte reste actif.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 border border-dark-200 text-dark-600 font-semibold py-2.5 rounded-xl hover:bg-dark-50 transition-colors text-sm"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-xl disabled:opacity-50 transition-colors text-sm flex items-center justify-center gap-2"
+              >
+                {deleting ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                {deleting ? 'Suppression...' : 'Supprimer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

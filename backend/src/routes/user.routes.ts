@@ -113,6 +113,53 @@ router.put('/me/shop', authenticate, async (req: any, res) => {
   } catch { res.status(500).json({ error: 'Erreur.' }); }
 });
 
+// Supprimer ma boutique (et toutes ses annonces)
+router.delete('/me/shop', authenticate, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+
+    // Récupère les IDs de toutes les annonces du vendeur
+    const annonces = await prisma.annonce.findMany({
+      where: { userId },
+      select: { id: true },
+    });
+    const annonceIds = annonces.map(a => a.id);
+
+    if (annonceIds.length > 0) {
+      // Supprime les favoris liés à ces annonces
+      await prisma.savedAnnonce.deleteMany({ where: { annonceId: { in: annonceIds } } });
+      // Détache les signalements (on les conserve mais sans lien vers l'annonce)
+      await prisma.report.updateMany({ where: { annonceId: { in: annonceIds } }, data: { annonceId: null } });
+      // Détache les conversations (on les conserve avec leur historique de messages)
+      await prisma.conversation.updateMany({ where: { annonceId: { in: annonceIds } }, data: { annonceId: null } });
+      // Supprime les annonces (les images cascadent automatiquement via onDelete: Cascade)
+      await prisma.annonce.deleteMany({ where: { userId } });
+    }
+
+    // Réinitialise tous les champs boutique de l'utilisateur
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        shopActive: false,
+        shopName: null,
+        shopLogo: null,
+        shopBanner: null,
+        shopDescription: null,
+        shopWhatsapp: null,
+        shopCategories: [],
+        shopHasPhysical: false,
+        shopAddress: null,
+        shopHours: null,
+      },
+    });
+
+    res.json({ message: 'Boutique supprimée avec succès.' });
+  } catch (e) {
+    console.error('Erreur suppression boutique:', e);
+    res.status(500).json({ error: 'Erreur lors de la suppression.' });
+  }
+});
+
 // Statistiques du vendeur (tableau de bord)
 router.get('/me/stats', authenticate, async (req: any, res) => {
   try {

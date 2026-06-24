@@ -71,6 +71,7 @@ export default function RegisterPage() {
   const [accountType, setAccountType] = useState<AccountType>('ACHETEUR');
   const [loading, setLoading] = useState(false);
   const [step1Data, setStep1Data] = useState<Step1Fields | null>(null);
+  const [fieldError, setFieldError] = useState<{ field: 'email' | 'phone'; msg: string } | null>(null);
 
   const [showPwd, setShowPwd] = useState(false);
   const [showConf, setShowConf] = useState(false);
@@ -128,6 +129,7 @@ export default function RegisterPage() {
       toast.error('Renseignez au moins votre email ou votre téléphone.');
       return;
     }
+    setFieldError(null);
     setStep1Data(data);
     setStep(2);
   });
@@ -191,7 +193,12 @@ export default function RegisterPage() {
       const msg = d?.error
         ?? (Array.isArray(d?.errors) ? d.errors[0]?.msg : null)
         ?? 'Erreur lors de la création du compte.';
-      toast.error(msg);
+      if (err.response?.status === 409 && d?.field) {
+        setFieldError({ field: d.field as 'email' | 'phone', msg });
+        setStep(1);
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -318,9 +325,14 @@ export default function RegisterPage() {
                     <input
                       {...register('email', {
                         pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Email invalide' },
+                        onChange: () => fieldError?.field === 'email' && setFieldError(null),
                       })}
-                      type="email" placeholder="email@exemple.com" className={F} />
+                      type="email" placeholder="email@exemple.com"
+                      className={`${F} ${fieldError?.field === 'email' ? 'border-red-400 ring-2 ring-red-200' : ''}`} />
                     {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
+                    {fieldError?.field === 'email' && (
+                      <p className="text-xs text-red-600 mt-1 font-medium">{fieldError.msg}</p>
+                    )}
                   </div>
 
                   {/* Téléphone */}
@@ -331,9 +343,15 @@ export default function RegisterPage() {
                         🇬🇳 +224
                       </span>
                       <input
-                        {...register('phone')}
-                        type="tel" placeholder="620 00 00 00" className={`${F} flex-1`} />
+                        {...register('phone', {
+                          onChange: () => fieldError?.field === 'phone' && setFieldError(null),
+                        })}
+                        type="tel" placeholder="620 00 00 00"
+                        className={`${F} flex-1 ${fieldError?.field === 'phone' ? 'border-red-400 ring-2 ring-red-200' : ''}`} />
                     </div>
+                    {fieldError?.field === 'phone' && (
+                      <p className="text-xs text-red-600 mt-1 font-medium">{fieldError.msg}</p>
+                    )}
                     <p className="text-xs text-dark-400 mt-1">Au moins un des deux (email ou téléphone) est requis.</p>
                   </div>
 

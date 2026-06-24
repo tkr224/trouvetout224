@@ -120,7 +120,7 @@ export default function PublicProfilPage() {
           <div className="px-4 sm:px-6 pb-6">
 
             {/* Ligne 1 : avatar (chevauchant la bannière) + boutons d'action */}
-            <div className="flex items-end justify-between -mt-10 sm:-mt-12 mb-4">
+            <div className="flex items-end justify-between -mt-10 sm:-mt-12 mb-4 relative z-10">
               <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border-4 border-white bg-primary-100 flex items-center justify-center shadow-card overflow-hidden shrink-0">
                 {(hasShop && profile.shopLogo)
                   ? <img src={profile.shopLogo} alt="" className="w-full h-full object-cover"/>
