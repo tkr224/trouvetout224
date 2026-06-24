@@ -64,8 +64,13 @@ export const register = async (req: Request, res: Response) => {
       message: 'Compte créé avec succès !',
       user, accessToken, refreshToken,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erreur register:', error);
+    if (error.code === 'P2002') {
+      const field = error.meta?.target?.[0] ?? '';
+      if (field === 'email') return res.status(409).json({ error: 'Cet email est déjà utilisé.' });
+      if (field === 'phone') return res.status(409).json({ error: 'Ce numéro de téléphone est déjà utilisé.' });
+    }
     res.status(500).json({ error: 'Erreur lors de la création du compte.' });
   }
 };

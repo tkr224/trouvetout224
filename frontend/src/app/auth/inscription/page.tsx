@@ -187,7 +187,11 @@ export default function RegisterPage() {
       toast.success('Bienvenue sur TrouveTout224 !');
       router.push('/');
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Erreur lors de la création du compte.");
+      const d = err.response?.data;
+      const msg = d?.error
+        ?? (Array.isArray(d?.errors) ? d.errors[0]?.msg : null)
+        ?? 'Erreur lors de la création du compte.';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
