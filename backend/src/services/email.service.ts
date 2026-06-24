@@ -51,6 +51,7 @@ export const sendNewProductEmail = async (
 };
 
 export const sendVerificationEmail = async (email: string, firstName: string) => {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return;
   await transporter.sendMail({
     from: `"TrouveTout224 🇬🇳" <${process.env.FROM_EMAIL}>`,
     to: email,

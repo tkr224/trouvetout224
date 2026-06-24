@@ -55,7 +55,7 @@ export const register = async (req: Request, res: Response) => {
     });
 
     if (email) {
-      try { await sendVerificationEmail(email, firstName); } catch (e) { console.log('Email non envoyé'); }
+      sendVerificationEmail(email, firstName).catch(e => console.log('Email non envoyé:', e.message));
     }
 
     const { accessToken, refreshToken } = await generateTokens(user.id);
