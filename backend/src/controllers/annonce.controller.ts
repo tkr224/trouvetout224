@@ -78,12 +78,19 @@ export const getAnnonces = async (req: Request, res: Response) => {
   }
 };
 
+// Cache anti-spam vues : clé = "annonceId:viewerKey", valeur = timestamp dernière vue
+// Les entrées expirent automatiquement après VIEW_COOLDOWN_MS (pas besoin de cleanup actif)
+const VIEW_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
+const viewCooldownCache = new Map<string, number>();
+
 // ============================
 // DÉTAIL D'UNE ANNONCE
 // ============================
 export const getAnnonceById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const viewerId: string | undefined = (req as any).userId;
+
     const annonce = await prisma.annonce.findFirst({
       where: { OR: [{ id }, { slug: id }] },
       include: {
@@ -91,7 +98,8 @@ export const getAnnonceById = async (req: Request, res: Response) => {
         category: true, city: true,
         user: {
           select: {
-            id: true, firstName: true, lastName: true, avatar: true, isVerified: true, phone: true, createdAt: true,
+            id: true, firstName: true, lastName: true, avatar: true, isVerified: true,
+            isShopVerified: true, phone: true, createdAt: true,
             _count: { select: { annonces: true, ratingsReceived: true } },
           },
         },
@@ -100,14 +108,33 @@ export const getAnnonceById = async (req: Request, res: Response) => {
 
     if (!annonce) return res.status(404).json({ error: 'Annonce non trouvée.' });
 
-    await prisma.annonce.update({ where: { id: annonce.id }, data: { viewCount: { increment: 1 } } });
+    // Ne pas compter la vue si c'est le propriétaire qui consulte
+    const isOwner = viewerId && viewerId === annonce.userId;
+
+    let newViewCount = annonce.viewCount;
+    if (!isOwner) {
+      // Clé anti-spam : userId si connecté, sinon IP
+      const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
+        || req.socket.remoteAddress
+        || 'unknown';
+      const viewerKey = viewerId || ip;
+      const cacheKey = `${annonce.id}:${viewerKey}`;
+      const lastView = viewCooldownCache.get(cacheKey);
+      const now = Date.now();
+
+      if (!lastView || now - lastView > VIEW_COOLDOWN_MS) {
+        viewCooldownCache.set(cacheKey, now);
+        await prisma.annonce.update({ where: { id: annonce.id }, data: { viewCount: { increment: 1 } } });
+        newViewCount = annonce.viewCount + 1;
+      }
+    }
 
     const similar = await prisma.annonce.findMany({
       where: { categoryId: annonce.categoryId, status: 'ACTIVE', id: { not: annonce.id } },
       take: 6, include: { images: { take: 1 }, city: true },
     });
 
-    res.json({ data: { ...annonce, viewCount: annonce.viewCount + 1 }, similar });
+    res.json({ data: { ...annonce, viewCount: newViewCount }, similar });
   } catch (error) {
     console.error('Erreur getAnnonceById:', error);
     res.status(500).json({ error: 'Erreur.' });

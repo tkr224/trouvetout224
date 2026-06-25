@@ -8,7 +8,8 @@ import { useAuthStore } from '@/store/auth.store';
 import {
   Eye, Heart, MessageCircle, ShoppingBag, Star, Store, TrendingUp,
   Settings, Plus, ArrowRight, CheckCircle, Clock, XCircle, Activity, Tag,
-  Lock, ClipboardList, Package, Users,
+  Lock, ClipboardList, Package, Users, Pin, PinOff, Percent, X as XIcon,
+  Trophy, Award, BadgeCheck, Zap,
 } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -25,6 +26,13 @@ const STATUS_CFG: Record<string, { label: string; color: string; Icon: any }> = 
 
 const BAR_COLORS = ['#15803d', '#16a34a', '#22c55e', '#86efac', '#3b82f6', '#8b5cf6'];
 
+const LEVEL_ICONS: Record<string, any> = {
+  'Top Vendeur':   Trophy,
+  'Vendeur Pro':   Award,
+  'Vendeur Actif': BadgeCheck,
+  'Nouveau Vendeur': Zap,
+};
+
 export default function VendeurDashboard() {
   const { user } = useAuthStore();
   const [stats, setStats]           = useState<any>(null);
@@ -33,10 +41,16 @@ export default function VendeurDashboard() {
   const [subscribers, setSubscribers] = useState<any[]>([]);
   const [subTotal, setSubTotal]     = useState(0);
 
+  // Promo modal
+  const [promoModal, setPromoModal] = useState<{ id: string; title: string; price?: number } | null>(null);
+  const [promoPrice, setPromoPrice] = useState('');
+  const [promoEndsAt, setPromoEndsAt] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
+
   useEffect(() => { setMounted(true); }, []);
 
-  useEffect(() => {
-    if (!user) { setLoading(false); return; }
+  const reload = () => {
+    if (!user) return;
     Promise.all([
       api.get('/users/me/stats'),
       api.get('/subscriptions/my-subscribers').catch(() => ({ data: { data: [], total: 0 } })),
@@ -46,7 +60,49 @@ export default function VendeurDashboard() {
       setSubTotal(s.data.total || 0);
       setLoading(false);
     }).catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    if (!user) { setLoading(false); return; }
+    reload();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  const handlePin = async (a: any) => {
+    try {
+      if (a.isPinned) {
+        await api.delete(`/annonces/${a.id}/pin`);
+      } else {
+        await api.put(`/annonces/${a.id}/pin`);
+      }
+      reload();
+    } catch { alert('Erreur lors de l\'épinglage.'); }
+  };
+
+  const handleRemovePromo = async (id: string) => {
+    try {
+      await api.delete(`/annonces/${id}/promo`);
+      reload();
+    } catch { alert('Erreur lors de la suppression de la promo.'); }
+  };
+
+  const handleSubmitPromo = async () => {
+    if (!promoModal) return;
+    if (!promoPrice || parseFloat(promoPrice) <= 0) { alert('Entrez un prix promo valide.'); return; }
+    setPromoLoading(true);
+    try {
+      await api.put(`/annonces/${promoModal.id}/promo`, {
+        promoPrice: parseFloat(promoPrice),
+        promoEndsAt: promoEndsAt || null,
+      });
+      setPromoModal(null);
+      setPromoPrice('');
+      setPromoEndsAt('');
+      reload();
+    } catch (e: any) {
+      alert(e?.response?.data?.error || 'Erreur lors de l\'activation de la promo.');
+    } finally { setPromoLoading(false); }
+  };
 
   if (!user) return (
     <div className="min-h-screen bg-dark-50">
@@ -64,19 +120,20 @@ export default function VendeurDashboard() {
   );
 
   const statCards = [
-    { Icon: ShoppingBag, label: 'Annonces',    value: stats?.totalAnnonces ?? 0,                      sub: `${stats?.byStatus?.active ?? stats?.activeAnnonces ?? 0} actives`, color: 'text-primary-700 bg-primary-100' },
-    { Icon: Eye,         label: 'Vues totales', value: (stats?.totalViews ?? 0).toLocaleString('fr-FR'), sub: 'sur toutes vos annonces',                                          color: 'text-blue-600 bg-blue-100' },
-    { Icon: Heart,       label: 'Favoris reçus', value: stats?.totalFavoris ?? 0,                       sub: 'sauvegardes',                                                        color: 'text-guinea-600 bg-guinea-100' },
-    { Icon: MessageCircle, label: 'Messages',   value: stats?.totalMessages ?? 0,                       sub: 'conversations',                                                      color: 'text-purple-600 bg-purple-100' },
+    { Icon: ShoppingBag,   label: 'Annonces',     value: stats?.totalAnnonces ?? 0,                       sub: `${stats?.byStatus?.active ?? stats?.activeAnnonces ?? 0} actives`, color: 'text-primary-700 bg-primary-100' },
+    { Icon: Eye,           label: 'Vues totales',  value: (stats?.totalViews ?? 0).toLocaleString('fr-FR'), sub: 'hors vos propres visites',                                          color: 'text-blue-600 bg-blue-100' },
+    { Icon: MessageCircle, label: 'Contacts',      value: stats?.totalContacts ?? 0,                       sub: 'conversations ouvertes',                                             color: 'text-purple-600 bg-purple-100' },
+    { Icon: Heart,         label: 'Favoris reçus', value: stats?.totalFavoris ?? 0,                        sub: 'sauvegardes',                                                        color: 'text-guinea-600 bg-guinea-100' },
   ];
 
   return (
+    <>
     <div className="min-h-screen bg-dark-50">
       <Navbar />
       <div className="max-w-6xl mx-auto px-4 py-8">
 
         {/* En-tête */}
-        <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <div>
             <h1 className="text-3xl font-display font-bold text-dark-900 flex items-center gap-2">
               <Store className="text-primary-700" size={28} /> Espace Vendeur
@@ -92,6 +149,18 @@ export default function VendeurDashboard() {
             </Link>
           </div>
         </div>
+
+        {/* Niveau vendeur */}
+        {!loading && stats?.sellerLevel && (() => {
+          const level = stats.sellerLevel;
+          const LIcon = LEVEL_ICONS[level.label] ?? Zap;
+          return (
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-semibold mb-6 ${level.color}`}>
+              <LIcon size={15} />
+              {level.label}
+            </div>
+          );
+        })()}
 
         {/* ── Cartes stats ────────────────────────────────── */}
         {loading ? (
@@ -263,36 +332,84 @@ export default function VendeurDashboard() {
           ) : (
             <>
               <div className="space-y-1">
-                {(stats.allAnnonces as any[]).slice(0, 8).map((a: any) => {
+                {(stats.allAnnonces as any[]).slice(0, 10).map((a: any) => {
                   const cfg = STATUS_CFG[a.status] ?? STATUS_CFG.ACTIVE;
                   const SIcon = cfg.Icon;
+                  const promoActive = a.promoPrice != null
+                    && (!a.promoEndsAt || new Date(a.promoEndsAt) > new Date());
                   return (
-                    <Link key={a.id} href={`/annonces/${a.id}`}
-                      className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-dark-50 transition-colors group">
-                      <div className="w-11 h-11 rounded-lg overflow-hidden bg-dark-100 shrink-0">
+                    <div key={a.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-dark-50 transition-colors group">
+                      {/* Image */}
+                      <Link href={`/annonces/${a.id}`} className="w-11 h-11 rounded-lg overflow-hidden bg-dark-100 shrink-0">
                         {a.images?.[0]?.url
                           ? <img src={a.images[0].url} alt="" className="w-full h-full object-cover" />
                           : <div className="w-full h-full flex items-center justify-center"><Package size={16} className="text-dark-300" /></div>}
-                      </div>
+                      </Link>
+                      {/* Infos */}
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-dark-900 text-sm truncate">{a.title}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <div className="flex items-center gap-1.5">
+                          {a.isPinned && <Pin size={11} className="text-gold-500 shrink-0" />}
+                          <Link href={`/annonces/${a.id}`} className="font-medium text-dark-900 text-sm truncate hover:text-primary-700 transition-colors">
+                            {a.title}
+                          </Link>
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${cfg.color}`}>
                             <SIcon size={10} /> {cfg.label}
                           </span>
                           <span className="text-dark-400 text-xs flex items-center gap-0.5">
                             <Eye size={10} /> {a.viewCount}
                           </span>
+                          <span className="text-dark-400 text-xs flex items-center gap-0.5">
+                            <MessageCircle size={10} /> {a._count?.conversations ?? 0}
+                          </span>
+                          {promoActive && (
+                            <span className="text-guinea-600 text-xs font-semibold flex items-center gap-0.5">
+                              <Tag size={10} /> {a.promoPrice?.toLocaleString('fr-GN')} GNF
+                            </span>
+                          )}
                         </div>
                       </div>
-                      <ArrowRight size={15} className="text-dark-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                    </Link>
+                      {/* Actions rapides */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        {/* Épingler */}
+                        <button
+                          onClick={() => handlePin(a)}
+                          title={a.isPinned ? 'Désépingler' : 'Épingler en haut de la boutique'}
+                          className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+                            a.isPinned
+                              ? 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200'
+                              : 'text-dark-300 hover:bg-dark-100 hover:text-dark-600'
+                          }`}
+                        >
+                          {a.isPinned ? <PinOff size={13} /> : <Pin size={13} />}
+                        </button>
+                        {/* Promo */}
+                        {promoActive ? (
+                          <button
+                            onClick={() => handleRemovePromo(a.id)}
+                            title="Retirer la promo"
+                            className="w-7 h-7 rounded-lg flex items-center justify-center bg-guinea-100 text-guinea-600 hover:bg-guinea-200 transition-colors"
+                          >
+                            <XIcon size={13} />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => { setPromoModal({ id: a.id, title: a.title, price: a.price }); setPromoPrice(''); setPromoEndsAt(''); }}
+                            title="Ajouter une promo"
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-dark-300 hover:bg-dark-100 hover:text-dark-600 transition-colors"
+                          >
+                            <Percent size={13} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   );
                 })}
               </div>
-              {stats.allAnnonces.length > 8 && (
+              {stats.allAnnonces.length > 10 && (
                 <p className="text-dark-400 text-xs text-center pt-3 border-t border-dark-100 mt-2">
-                  + {stats.allAnnonces.length - 8} autre{stats.allAnnonces.length - 8 > 1 ? 's' : ''} annonce{stats.allAnnonces.length - 8 > 1 ? 's' : ''}
+                  + {stats.allAnnonces.length - 10} autre{stats.allAnnonces.length - 10 > 1 ? 's' : ''} annonce{stats.allAnnonces.length - 10 > 1 ? 's' : ''}
                 </p>
               )}
             </>
@@ -429,5 +546,52 @@ export default function VendeurDashboard() {
 
       </div>
     </div>
+
+    {/* Modal promo — hors du flux principal pour éviter les conflits de z-index */}
+    {promoModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-display font-bold text-dark-900 flex items-center gap-2">
+              <Tag size={18} className="text-guinea-600" /> Ajouter une promo
+            </h3>
+            <button onClick={() => setPromoModal(null)} className="text-dark-400 hover:text-dark-700">
+              <XIcon size={18} />
+            </button>
+          </div>
+          <p className="text-dark-500 text-sm mb-4 line-clamp-2">{promoModal.title}</p>
+          {promoModal.price && (
+            <p className="text-dark-500 text-xs mb-3">
+              Prix actuel : <strong>{promoModal.price.toLocaleString('fr-GN')} GNF</strong>
+            </p>
+          )}
+          <label className="block text-sm font-semibold text-dark-700 mb-1">Prix promo (GNF) *</label>
+          <input
+            type="number"
+            min="0"
+            className="input-field w-full mb-3"
+            placeholder="Ex : 50000"
+            value={promoPrice}
+            onChange={e => setPromoPrice(e.target.value)}
+          />
+          <label className="block text-sm font-semibold text-dark-700 mb-1">Date de fin (optionnel)</label>
+          <input
+            type="date"
+            className="input-field w-full mb-5"
+            value={promoEndsAt}
+            onChange={e => setPromoEndsAt(e.target.value)}
+            min={new Date().toISOString().split('T')[0]}
+          />
+          <div className="flex gap-2">
+            <button onClick={() => setPromoModal(null)} className="btn-outline flex-1 text-sm">Annuler</button>
+            <button onClick={handleSubmitPromo} disabled={promoLoading} className="btn-primary flex-1 text-sm flex items-center justify-center gap-2">
+              {promoLoading ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : null}
+              Activer
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

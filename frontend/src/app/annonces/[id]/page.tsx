@@ -7,7 +7,7 @@ import {
   ChevronLeft, ChevronRight, Flag, X, Copy, Edit, EyeOff, Trash2,
   Star, BadgeCheck, User, ShieldAlert, ImageIcon, ExternalLink,
   AlertTriangle, AlertCircle, HelpCircle, PackageX, DollarSign,
-  ArrowRight, Sparkles, History, Send, Loader2,
+  ArrowRight, Sparkles, History, Send, Loader2, Tag, ShieldCheck,
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import { useAnnonce } from '@/hooks/useAnnonces';
@@ -385,21 +385,52 @@ export default function AnnonceDetailPage() {
               </div>
 
               {/* Prix */}
-              <div className="mb-5 bg-gradient-to-r from-primary-50 to-transparent border border-primary-100 rounded-2xl px-5 py-4">
-                {annonce.price != null ? (
-                  <div className="flex items-baseline gap-3 flex-wrap">
-                    <p className="text-3xl font-bold text-primary-700">
-                      {annonce.price.toLocaleString('fr-GN')}
-                      <span className="text-lg ml-1.5 font-semibold text-primary-600">GNF</span>
-                    </p>
-                    {annonce.isNegotiable && (
-                      <span className="text-sm text-primary-700 bg-primary-100 font-semibold px-3 py-1 rounded-full">Négociable</span>
+              {(() => {
+                const a2 = annonce as any;
+                const promoActive = a2.promoPrice != null
+                  && (!a2.promoEndsAt || new Date(a2.promoEndsAt) > new Date());
+                return (
+                  <div className="mb-5 bg-gradient-to-r from-primary-50 to-transparent border border-primary-100 rounded-2xl px-5 py-4">
+                    {promoActive ? (
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="flex items-center gap-1 bg-guinea-100 text-guinea-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                            <Tag size={11} /> Promo
+                          </span>
+                          {a2.promoEndsAt && (
+                            <span className="text-dark-400 text-xs">
+                              jusqu'au {new Date(a2.promoEndsAt).toLocaleDateString('fr-FR')}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-baseline gap-3 flex-wrap">
+                          <p className="text-3xl font-bold text-guinea-600">
+                            {a2.promoPrice.toLocaleString('fr-GN')}
+                            <span className="text-lg ml-1.5 font-semibold text-guinea-500">GNF</span>
+                          </p>
+                          {annonce.price != null && (
+                            <span className="text-xl text-dark-400 line-through">
+                              {annonce.price.toLocaleString('fr-GN')} GNF
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ) : annonce.price != null ? (
+                      <div className="flex items-baseline gap-3 flex-wrap">
+                        <p className="text-3xl font-bold text-primary-700">
+                          {annonce.price.toLocaleString('fr-GN')}
+                          <span className="text-lg ml-1.5 font-semibold text-primary-600">GNF</span>
+                        </p>
+                        {annonce.isNegotiable && (
+                          <span className="text-sm text-primary-700 bg-primary-100 font-semibold px-3 py-1 rounded-full">Négociable</span>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-xl text-dark-500 italic">Prix à négocier</p>
                     )}
                   </div>
-                ) : (
-                  <p className="text-xl text-dark-500 italic">Prix à négocier</p>
-                )}
-              </div>
+                );
+              })()}
 
               {/* Méta : lieu, vues, date */}
               <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-dark-500 pb-5 border-b border-dark-100">
@@ -486,7 +517,12 @@ export default function AnnonceDetailPage() {
                       <p className="font-bold text-dark-900">
                         {annonce.user.firstName} {annonce.user.lastName}
                       </p>
-                      <Link href={`/profil/${annonce.user.id}`} className="text-primary-700 text-sm font-medium hover:underline flex items-center gap-1">
+                      {(annonce.user as any).isShopVerified && (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gold-600 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full mt-0.5">
+                          <ShieldCheck size={10} /> Boutique vérifiée
+                        </span>
+                      )}
+                      <Link href={`/profil/${annonce.user.id}`} className="text-primary-700 text-sm font-medium hover:underline flex items-center gap-1 mt-1">
                         Voir le profil →
                       </Link>
                     </div>

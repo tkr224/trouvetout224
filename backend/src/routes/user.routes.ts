@@ -57,9 +57,9 @@ router.get('/profile/:id', async (req, res) => {
       where: { id: req.params.id },
       select: {
         id: true, firstName: true, lastName: true, avatar: true,
-        city: true, isVerified: true, createdAt: true,
+        city: true, isVerified: true, isShopVerified: true, createdAt: true,
         shopName: true, shopLogo: true, shopBanner: true, shopDescription: true, shopWhatsapp: true, shopActive: true,
-        _count: { select: { annonces: true, ratingsReceived: true } },
+        _count: { select: { annonces: true, ratingsReceived: true, subscribers: true } },
         ratingsReceived: { select: { score: true } },
       },
     });
@@ -160,6 +160,26 @@ router.delete('/me/shop', authenticate, async (req: any, res) => {
   }
 });
 
+// Calcul du niveau vendeur
+function computeSellerLevel(opts: {
+  createdAt: Date;
+  totalAnnonces: number;
+  subscribersCount: number;
+  avgRating: number;
+}): { label: string; color: string; emoji: string } {
+  const ageDays = (Date.now() - opts.createdAt.getTime()) / (1000 * 60 * 60 * 24);
+  if (ageDays >= 180 && opts.totalAnnonces >= 20 && (opts.subscribersCount >= 20 || opts.avgRating >= 4)) {
+    return { label: 'Top Vendeur', color: 'text-yellow-600 bg-yellow-50 border-yellow-200', emoji: '🏆' };
+  }
+  if (ageDays >= 90 && opts.totalAnnonces >= 5 && opts.subscribersCount >= 3) {
+    return { label: 'Vendeur Pro', color: 'text-purple-700 bg-purple-50 border-purple-200', emoji: '⭐' };
+  }
+  if (ageDays >= 30 && opts.totalAnnonces >= 1) {
+    return { label: 'Vendeur Actif', color: 'text-primary-700 bg-primary-50 border-primary-200', emoji: '✅' };
+  }
+  return { label: 'Nouveau Vendeur', color: 'text-blue-700 bg-blue-50 border-blue-200', emoji: '🆕' };
+}
+
 // Statistiques du vendeur (tableau de bord)
 router.get('/me/stats', authenticate, async (req: any, res) => {
   try {
@@ -170,15 +190,20 @@ router.get('/me/stats', authenticate, async (req: any, res) => {
       where: { userId },
       select: {
         id: true, title: true, viewCount: true, status: true, createdAt: true,
+        isPinned: true, promoPrice: true, promoEndsAt: true,
         images: { take: 1 },
         category: { select: { id: true, nameFr: true } },
+        _count: { select: { conversations: true } },
       },
-      orderBy: { viewCount: 'desc' },
+      orderBy: [{ isPinned: 'desc' }, { viewCount: 'desc' }],
     });
 
     const totalAnnonces = annonces.length;
     const activeAnnonces = annonces.filter(a => a.status === 'ACTIVE').length;
     const totalViews = annonces.reduce((sum, a) => sum + (a.viewCount || 0), 0);
+
+    // Contacts totaux (conversations initiées sur mes annonces)
+    const totalContacts = annonces.reduce((sum, a) => sum + ((a as any)._count?.conversations || 0), 0);
 
     // Favoris reçus
     const annonceIds = annonces.map(a => a.id);
@@ -198,8 +223,20 @@ router.get('/me/stats', authenticate, async (req: any, res) => {
     const ratings = await prisma.rating.findMany({ where: { ratedId: userId }, select: { score: true } });
     const avgRating = ratings.length ? ratings.reduce((a, r) => a + r.score, 0) / ratings.length : 0;
 
-    // Top 5 les plus vues
-    const topAnnonces = annonces.slice(0, 5);
+    // Abonnés
+    const subscribersCount = await prisma.shopSubscription.count({ where: { vendorId: userId } });
+
+    // Niveau vendeur
+    const me = await prisma.user.findUnique({ where: { id: userId }, select: { createdAt: true } });
+    const sellerLevel = computeSellerLevel({
+      createdAt: me!.createdAt,
+      totalAnnonces,
+      subscribersCount,
+      avgRating,
+    });
+
+    // Top 5 les plus vues (après tri, les épinglées apparaissent en premier dans allAnnonces)
+    const topAnnonces = [...annonces].sort((a, b) => b.viewCount - a.viewCount).slice(0, 5);
 
     // === NOUVELLES STATS ===
 
@@ -257,8 +294,9 @@ router.get('/me/stats', authenticate, async (req: any, res) => {
 
     res.json({
       data: {
-        totalAnnonces, activeAnnonces, totalViews, totalFavoris, totalMessages,
+        totalAnnonces, activeAnnonces, totalViews, totalFavoris, totalMessages, totalContacts,
         avgRating: Number(avgRating.toFixed(1)), ratingsCount: ratings.length,
+        subscribersCount, sellerLevel,
         topAnnonces, byStatus, byCategory, viewsByDay, allAnnonces,
       },
     });

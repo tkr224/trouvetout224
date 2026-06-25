@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   Search, ShoppingBag, Eye, EyeOff, Trash2,
-  RefreshCw, Filter, ChevronLeft, ChevronRight, Star,
+  RefreshCw, Filter, ChevronLeft, ChevronRight, Star, X,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
@@ -46,6 +46,9 @@ export default function AdminAnnonces() {
   const [q, setQ] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
+  const [deleteModal, setDeleteModal] = useState<{ id: string; title: string } | null>(null);
+  const [deleteReason, setDeleteReason] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -80,14 +83,20 @@ export default function AdminAnnonces() {
     } catch { toast.error('Erreur lors de la mise à jour'); }
   };
 
-  const deleteAnnonce = async (id: string) => {
-    if (!confirm('Supprimer définitivement cette annonce ? Cette action est irréversible.')) return;
+  const confirmDelete = async () => {
+    if (!deleteModal) return;
+    if (!deleteReason.trim()) { toast.error('Le motif est obligatoire.'); return; }
+    setDeleteLoading(true);
     try {
-      await api.delete(`/admin/annonces/${id}`);
-      setAnnonces(a => a.filter(x => x.id !== id));
+      await api.delete(`/admin/annonces/${deleteModal.id}`, { data: { reason: deleteReason.trim() } });
+      setAnnonces(a => a.filter(x => x.id !== deleteModal.id));
       setTotal(t => t - 1);
-      toast.success('Annonce supprimée');
-    } catch { toast.error('Erreur lors de la suppression'); }
+      toast.success('Annonce supprimée — le vendeur a été notifié');
+      setDeleteModal(null);
+      setDeleteReason('');
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || 'Erreur lors de la suppression');
+    } finally { setDeleteLoading(false); }
   };
 
   const toggleBanner = async (id: string, current: boolean) => {
@@ -251,7 +260,7 @@ export default function AdminAnnonces() {
                           </button>
                         ) : null}
                         <button
-                          onClick={() => deleteAnnonce(a.id)}
+                          onClick={() => { setDeleteModal({ id: a.id, title: a.title }); setDeleteReason(''); }}
                           className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-guinea-50 text-guinea-600 hover:bg-guinea-100 transition-colors"
                         >
                           <Trash2 size={12} /> Supprimer
@@ -296,6 +305,48 @@ export default function AdminAnnonces() {
           </div>
         )}
       </div>
+
+      {/* Modal suppression avec motif */}
+      {deleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-bold text-dark-900 flex items-center gap-2 text-lg">
+                <Trash2 size={18} className="text-guinea-600" /> Supprimer l&apos;annonce
+              </h3>
+              <button onClick={() => setDeleteModal(null)} className="text-dark-400 hover:text-dark-700">
+                <X size={18} />
+              </button>
+            </div>
+            <p className="text-dark-600 text-sm mb-1">Annonce :</p>
+            <p className="font-semibold text-dark-900 mb-4 line-clamp-2">{deleteModal.title}</p>
+            <p className="text-dark-500 text-xs mb-4">
+              Le vendeur recevra une notification avec le motif. Cette action est irréversible.
+            </p>
+            <label className="block text-sm font-semibold text-dark-700 mb-2">Motif de suppression *</label>
+            <textarea
+              className="w-full border border-dark-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-guinea-500/20 focus:border-guinea-500 resize-none"
+              rows={3}
+              placeholder="Ex : Contenu frauduleux, produit interdit..."
+              value={deleteReason}
+              onChange={e => setDeleteReason(e.target.value)}
+            />
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => setDeleteModal(null)} className="btn-outline flex-1 text-sm">
+                Annuler
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleteLoading || !deleteReason.trim()}
+                className="flex-1 text-sm bg-guinea-600 hover:bg-guinea-700 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {deleteLoading && <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

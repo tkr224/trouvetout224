@@ -46,6 +46,7 @@ model User {
   shopHasPhysical Boolean  @default(false)
   shopAddress     String?
   shopHours       String?
+  isShopVerified  Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -200,6 +201,9 @@ model Annonce {
   isPremium        Boolean       @default(false)
   isFeatured       Boolean       @default(false)
   isFeaturedBanner Boolean       @default(false)
+  promoPrice       Float?
+  promoEndsAt      DateTime?
+  isPinned         Boolean       @default(false)
   slug             String        @unique
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -526,7 +530,9 @@ enum NotificationType {
   ANNONCE_EXPIRED
   ANNONCE_APPROVED
   ANNONCE_REJECTED
+  ANNONCE_DELETED
   ACCOUNT_SUSPENDED
+  ACCOUNT_DELETED
   SYSTEM
   NEW_VENDOR_PRODUCT
 }
@@ -638,4 +644,25 @@ model OnboardingSurvey {
   createdAt DateTime @default(now())
 
   @@map("onboarding_surveys")
+}
+
+// =============================================
+// JOURNAL DES SUPPRESSIONS ADMIN
+// =============================================
+
+model AdminDeletion {
+  id          String            @id @default(cuid())
+  adminId     String
+  targetType  AdminDeletionType
+  targetId    String
+  targetTitle String
+  motif       String
+  createdAt   DateTime          @default(now())
+
+  @@map("admin_deletions")
+}
+
+enum AdminDeletionType {
+  ANNONCE
+  ACCOUNT
 }

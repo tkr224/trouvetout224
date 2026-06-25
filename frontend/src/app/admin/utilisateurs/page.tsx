@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { Search, CheckCircle, XCircle, Shield, RefreshCw, Users, ChevronLeft, ChevronRight, Ban, X, Loader2 } from 'lucide-react';
+import { Search, CheckCircle, XCircle, Shield, RefreshCw, Users, ChevronLeft, ChevronRight, Ban, X, Loader2, Trash2, ShieldCheck } from 'lucide-react';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 
@@ -12,6 +12,7 @@ type User = {
   phone?: string;
   role: string;
   isVerified: boolean;
+  isShopVerified?: boolean;
   isSuspended: boolean;
   createdAt: string;
   city?: { name: string };
@@ -35,6 +36,8 @@ export default function AdminUtilisateurs() {
   const [loading, setLoading] = useState(true);
   const [suspendModal, setSuspendModal] = useState<{ userId: string; name: string; reason: string } | null>(null);
   const [suspendLoading, setSuspendLoading] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{ userId: string; name: string; reason: string } | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -82,6 +85,29 @@ export default function AdminUtilisateurs() {
       setUsers(u => u.map(x => x.id === id ? { ...x, isVerified: verified } : x));
       toast.success(verified ? 'Compte vérifié' : 'Vérification retirée');
     } catch { toast.error('Erreur lors de la mise à jour'); }
+  };
+
+  const shopVerify = async (id: string, shopVerified: boolean) => {
+    try {
+      await api.put(`/admin/users/${id}/shop-verify`, { shopVerified });
+      setUsers(u => u.map(x => x.id === id ? { ...x, isShopVerified: shopVerified } : x));
+      toast.success(shopVerified ? 'Boutique vérifiée !' : 'Badge boutique retiré');
+    } catch { toast.error('Erreur lors de la mise à jour'); }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteModal) return;
+    if (!deleteModal.reason.trim()) { toast.error('Le motif est obligatoire.'); return; }
+    setDeleteLoading(true);
+    try {
+      await api.delete(`/admin/users/${deleteModal.userId}`, { data: { reason: deleteModal.reason.trim() } });
+      setUsers(u => u.filter(x => x.id !== deleteModal.userId));
+      setTotal(t => t - 1);
+      toast.success(`Compte supprimé`);
+      setDeleteModal(null);
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || 'Erreur lors de la suppression');
+    } finally { setDeleteLoading(false); }
   };
 
   return (
@@ -138,7 +164,7 @@ export default function AdminUtilisateurs() {
             <table className="w-full text-sm">
               <thead className="bg-dark-50 border-b border-dark-100">
                 <tr>
-                  {['Utilisateur', 'Contact', 'Ville', 'Annonces', 'Rôle', 'Statut', 'Actions'].map(h => (
+                  {['Utilisateur', 'Contact', 'Ville', 'Annonces', 'Rôle', 'Statut', 'Boutique', 'Actions'].map(h => (
                     <th key={h} className="text-left px-5 py-3.5 text-dark-500 font-semibold text-xs uppercase tracking-wide">
                       {h}
                     </th>
@@ -191,8 +217,23 @@ export default function AdminUtilisateurs() {
                         </span>
                       )}
                     </td>
+                    {/* Colonne boutique vérifiée */}
                     <td className="px-5 py-4">
-                      <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => shopVerify(u.id, !u.isShopVerified)}
+                        title={u.isShopVerified ? 'Retirer le badge boutique' : 'Marquer boutique vérifiée'}
+                        className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 ${
+                          u.isShopVerified
+                            ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                            : 'bg-dark-100 text-dark-400 hover:bg-dark-200 hover:text-dark-600'
+                        }`}
+                      >
+                        <ShieldCheck size={11} />
+                        {u.isShopVerified ? 'Vérifiée' : 'Vérifier'}
+                      </button>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <button
                           onClick={() => u.isSuspended
                             ? suspend(u.id, false)
@@ -201,7 +242,7 @@ export default function AdminUtilisateurs() {
                           className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
                             u.isSuspended
                               ? 'bg-primary-100 text-primary-700 hover:bg-primary-200'
-                              : 'bg-guinea-100 text-guinea-600 hover:bg-guinea-200'
+                              : 'bg-gold-100 text-gold-700 hover:bg-gold-200'
                           }`}
                         >
                           {u.isSuspended ? 'Réactiver' : 'Suspendre'}
@@ -214,8 +255,16 @@ export default function AdminUtilisateurs() {
                               : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                           }`}
                         >
-                          {u.isVerified ? 'Désactiver' : 'Vérifier'}
+                          {u.isVerified ? 'Non vérifié' : 'Vérifier'}
                         </button>
+                        {!['ADMIN', 'SUPER_ADMIN'].includes(u.role) && (
+                          <button
+                            onClick={() => setDeleteModal({ userId: u.id, name: `${u.firstName} ${u.lastName}`, reason: '' })}
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-guinea-50 text-guinea-600 hover:bg-guinea-100 transition-colors flex items-center gap-1"
+                          >
+                            <Trash2 size={11} /> Supprimer
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -287,6 +336,41 @@ export default function AdminUtilisateurs() {
               >
                 {suspendLoading ? <Loader2 size={15} className="animate-spin" /> : <Ban size={15} />}
                 Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal suppression compte */}
+      {deleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-card-hover w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-bold text-dark-900 text-lg flex items-center gap-2">
+                <Trash2 size={18} className="text-guinea-500" /> Supprimer le compte
+              </h3>
+              <button onClick={() => setDeleteModal(null)} className="text-dark-400 hover:text-dark-700"><X size={20} /></button>
+            </div>
+            <p className="text-dark-500 text-sm mb-1">Vous allez supprimer définitivement le compte de <strong>{deleteModal.name}</strong>.</p>
+            <p className="text-dark-400 text-xs mb-4 text-guinea-600">Cette action supprime toutes les annonces, messages et données associées. Elle est irréversible.</p>
+            <label className="block text-sm font-semibold text-dark-700 mb-1.5">Motif de suppression <span className="text-guinea-500">*</span></label>
+            <textarea
+              value={deleteModal.reason}
+              onChange={e => setDeleteModal(m => m ? { ...m, reason: e.target.value } : null)}
+              placeholder="Ex : Contenu interdit répété, fraude avérée..."
+              rows={3}
+              className="w-full border border-dark-200 rounded-xl px-4 py-3 text-sm text-dark-900 placeholder-dark-400 focus:outline-none focus:ring-2 focus:ring-guinea-500 resize-none mb-5"
+            />
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteModal(null)} className="flex-1 border border-dark-200 text-dark-600 font-semibold py-2.5 rounded-xl hover:bg-dark-50 text-sm">Annuler</button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleteLoading || !deleteModal.reason.trim()}
+                className="flex-1 bg-guinea-600 hover:bg-guinea-700 text-white font-semibold py-2.5 rounded-xl disabled:opacity-50 text-sm flex items-center justify-center gap-2"
+              >
+                {deleteLoading ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                Supprimer définitivement
               </button>
             </div>
           </div>

@@ -110,6 +110,18 @@ router.put('/users/:id/verify', async (req, res) => {
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
+// Badge "Boutique vérifiée" (distinct de la vérification email)
+router.put('/users/:id/shop-verify', async (req, res) => {
+  try {
+    const { shopVerified } = req.body;
+    const user = await prisma.user.update({
+      where: { id: req.params.id },
+      data: { isShopVerified: shopVerified },
+    });
+    res.json({ message: `Boutique ${shopVerified ? 'vérifiée' : 'non vérifiée'}.`, data: user });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
 // ─── Annonces ─────────────────────────────────────────────────────────────────
 
 // Doit être AVANT /:id pour ne pas être capturé comme id="pending-count"
@@ -244,12 +256,104 @@ router.put('/annonces/:id/status', async (req, res) => {
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
-router.delete('/annonces/:id', async (req, res) => {
+router.delete('/annonces/:id', async (req: any, res) => {
   try {
+    const { reason } = req.body;
+    if (!reason?.trim()) {
+      return res.status(400).json({ error: 'Le motif de suppression est obligatoire.' });
+    }
+    const annonce = await prisma.annonce.findUnique({
+      where: { id: req.params.id },
+      select: { id: true, title: true, userId: true },
+    });
+    if (!annonce) return res.status(404).json({ error: 'Annonce introuvable.' });
+
+    // Notification à l'utilisateur avant suppression
+    await prisma.notification.create({
+      data: {
+        userId: annonce.userId,
+        type: 'ANNONCE_DELETED',
+        title: 'Annonce supprimée par l\'administrateur',
+        body: `Votre annonce « ${annonce.title} » a été supprimée. Motif : ${reason.trim()}`,
+        data: { annonceId: annonce.id, motif: reason.trim() },
+      },
+    });
+
     await prisma.savedAnnonce.deleteMany({ where: { annonceId: req.params.id } });
     await prisma.annonceImage.deleteMany({ where: { annonceId: req.params.id } });
+    await prisma.report.updateMany({ where: { annonceId: req.params.id }, data: { annonceId: null } });
+    await prisma.conversation.updateMany({ where: { annonceId: req.params.id }, data: { annonceId: null } });
     await prisma.annonce.delete({ where: { id: req.params.id } });
+
+    // Log de suppression
+    await (prisma as any).adminDeletion.create({
+      data: {
+        adminId: req.userId,
+        targetType: 'ANNONCE',
+        targetId: annonce.id,
+        targetTitle: annonce.title,
+        motif: reason.trim(),
+      },
+    });
+
     res.json({ message: 'Annonce supprimée.' });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+// Supprimer un compte utilisateur avec motif
+router.delete('/users/:id', async (req: any, res) => {
+  try {
+    const { reason } = req.body;
+    if (!reason?.trim()) {
+      return res.status(400).json({ error: 'Le motif de suppression est obligatoire.' });
+    }
+    const user = await prisma.user.findUnique({
+      where: { id: req.params.id },
+      select: { id: true, firstName: true, lastName: true, email: true, role: true },
+    });
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable.' });
+    if (['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
+      return res.status(403).json({ error: 'Impossible de supprimer un compte administrateur.' });
+    }
+
+    const userName = `${user.firstName} ${user.lastName}`;
+
+    // Log avant suppression (userId disparaît avec le compte)
+    await (prisma as any).adminDeletion.create({
+      data: {
+        adminId: req.userId,
+        targetType: 'ACCOUNT',
+        targetId: user.id,
+        targetTitle: `${userName} (${user.email || 'sans email'})`,
+        motif: reason.trim(),
+      },
+    });
+
+    // Suppression en cascade (annonces, messages, etc. via Prisma onDelete)
+    await prisma.user.delete({ where: { id: req.params.id } });
+
+    res.json({ message: `Compte de ${userName} supprimé.` });
+  } catch (e: any) {
+    console.error('Erreur suppression compte:', e);
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
+});
+
+// Journal des suppressions admin
+router.get('/deletions', async (req, res) => {
+  try {
+    const { page = '1', type } = req.query;
+    const skip = (parseInt(page as string) - 1) * 30;
+    const where: any = {};
+    if (type) where.targetType = type as string;
+    const [items, total] = await Promise.all([
+      (prisma as any).adminDeletion.findMany({
+        where, skip, take: 30,
+        orderBy: { createdAt: 'desc' },
+      }),
+      (prisma as any).adminDeletion.count({ where }),
+    ]);
+    res.json({ data: items, pagination: { total, page: parseInt(page as string), pages: Math.ceil(total / 30) } });
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 

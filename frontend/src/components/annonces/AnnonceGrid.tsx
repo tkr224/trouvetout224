@@ -1,14 +1,15 @@
 'use client';
 import Link from 'next/link';
-import { Heart, Eye, MapPin, BadgeCheck, ImageIcon, Star, Sparkles } from 'lucide-react';
+import { Heart, Eye, MapPin, BadgeCheck, ImageIcon, Star, Sparkles, Tag, ShieldCheck } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 interface Annonce {
   id: string; slug: string; title: string; price?: number; currency?: string;
+  promoPrice?: number; promoEndsAt?: string;
   images: { url: string }[]; city: { name: string }; category: { nameFr: string; icon: string };
-  viewCount: number; createdAt: string; isPremium: boolean; neighborhood?: string;
-  user: { firstName: string; lastName: string; isVerified: boolean; createdAt?: string };
+  viewCount: number; createdAt: string; isPremium: boolean; isPinned?: boolean; neighborhood?: string;
+  user: { firstName: string; lastName: string; isVerified: boolean; isShopVerified?: boolean; createdAt?: string };
 }
 
 export function AnnonceCard({ annonce }: { annonce: Annonce }) {
@@ -17,6 +18,9 @@ export function AnnonceCard({ annonce }: { annonce: Annonce }) {
   const isNewSeller = annonce.user?.createdAt
     ? (Date.now() - new Date(annonce.user.createdAt).getTime()) < 30 * 24 * 60 * 60 * 1000
     : false;
+
+  const promoActive = annonce.promoPrice != null
+    && (!annonce.promoEndsAt || new Date(annonce.promoEndsAt) > new Date());
 
   return (
     <Link href={`/annonces/${annonce.slug || annonce.id}`} className="card annonce-card block group overflow-hidden">
@@ -28,11 +32,18 @@ export function AnnonceCard({ annonce }: { annonce: Annonce }) {
             <ImageIcon size={36} className="text-dark-300" />
           </div>
         )}
-        {annonce.isPremium && (
-          <div className="absolute top-2.5 left-2.5 bg-gold-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
-            <Star size={10} className="fill-white text-white" /> À la une
-          </div>
-        )}
+        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1">
+          {annonce.isPremium && (
+            <div className="bg-gold-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+              <Star size={10} className="fill-white text-white" /> À la une
+            </div>
+          )}
+          {promoActive && (
+            <div className="bg-guinea-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+              <Tag size={10} /> Promo
+            </div>
+          )}
+        </div>
         <button
           onClick={(e) => { e.preventDefault(); }}
           className="absolute top-2.5 right-2.5 w-9 h-9 bg-white/95 backdrop-blur rounded-full flex items-center justify-center shadow-md hover:bg-white hover:scale-110 transition-all group/heart"
@@ -43,18 +54,38 @@ export function AnnonceCard({ annonce }: { annonce: Annonce }) {
 
       <div className="p-3">
         <h3 className="font-semibold text-dark-900 text-sm line-clamp-1 group-hover:text-primary-700 transition-colors">{annonce.title}</h3>
-        {annonce.price != null ? (
+
+        {/* Prix : affiche promo si active, sinon prix normal */}
+        {promoActive ? (
+          <div className="mt-1">
+            <span className="text-guinea-600 font-bold text-base">
+              {annonce.promoPrice!.toLocaleString('fr-GN')} <span className="text-xs font-medium">GNF</span>
+            </span>
+            {annonce.price != null && (
+              <span className="ml-2 text-dark-400 text-sm line-through">
+                {annonce.price.toLocaleString('fr-GN')} GNF
+              </span>
+            )}
+          </div>
+        ) : annonce.price != null ? (
           <p className="text-primary-700 font-bold text-base mt-1">{annonce.price.toLocaleString('fr-GN')} <span className="text-xs font-medium">GNF</span></p>
         ) : (
           <p className="text-dark-400 text-sm mt-1 italic">Prix à négocier</p>
         )}
+
         <div className="flex items-center gap-1 text-dark-400 text-xs mt-2">
           <MapPin size={11} />
           <span className="line-clamp-1">{annonce.city?.name}{annonce.neighborhood && `, ${annonce.neighborhood}`}</span>
         </div>
-        {(annonce.user?.isVerified || isNewSeller) && (
+
+        {(annonce.user?.isVerified || annonce.user?.isShopVerified || isNewSeller) && (
           <div className="flex gap-1 mt-1.5 flex-wrap">
-            {annonce.user?.isVerified && (
+            {annonce.user?.isShopVerified && (
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-gold-600 bg-yellow-50 px-1.5 py-0.5 rounded-full">
+                <ShieldCheck size={9} /> Boutique vérifiée
+              </span>
+            )}
+            {annonce.user?.isVerified && !annonce.user?.isShopVerified && (
               <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">
                 <BadgeCheck size={9} /> Vérifié
               </span>
