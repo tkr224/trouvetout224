@@ -12,6 +12,17 @@ import { useAuthStore } from '@/store/auth.store';
 import toast from 'react-hot-toast';
 import SubscribeButton from '@/components/SubscribeButton';
 
+const SHOP_COLORS = [
+  { key: 'vert',   gradient: 'linear-gradient(135deg,#16a34a,#14532d)', dot: '#16a34a' },
+  { key: 'bleu',   gradient: 'linear-gradient(135deg,#1d4ed8,#1e3a8a)', dot: '#1d4ed8' },
+  { key: 'or',     gradient: 'linear-gradient(135deg,#d97706,#78350f)', dot: '#d97706' },
+  { key: 'rouge',  gradient: 'linear-gradient(135deg,#dc2626,#7f1d1d)', dot: '#dc2626' },
+  { key: 'violet', gradient: 'linear-gradient(135deg,#7c3aed,#4c1d95)', dot: '#7c3aed' },
+  { key: 'rose',   gradient: 'linear-gradient(135deg,#ec4899,#9d174d)', dot: '#ec4899' },
+  { key: 'orange', gradient: 'linear-gradient(135deg,#ea580c,#7c2d12)', dot: '#ea580c' },
+  { key: 'sombre', gradient: 'linear-gradient(135deg,#1f2937,#111827)', dot: '#374151' },
+];
+
 const USER_REPORT_REASONS = [
   { value: 'SCAM',                  label: 'Arnaque / Fraude',       Icon: AlertTriangle },
   { value: 'SPAM',                  label: 'Spam',                   Icon: AlertCircle },
@@ -91,6 +102,9 @@ export default function PublicProfilPage() {
     ? (Date.now() - new Date(profile.createdAt).getTime()) < 30 * 24 * 60 * 60 * 1000
     : false;
 
+  const shopColorData = SHOP_COLORS.find(c => c.key === profile.shopColor) || SHOP_COLORS[0];
+  const sortedAnnonces = [...annonces].sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+
   const badges = [];
   if (profile.isVerified) badges.push({ icon: CheckCircle, label: 'Vendeur vérifié', color: 'bg-blue-100 text-blue-700' });
   if ((profile._count?.annonces || 0) >= 10 && avgRating >= 4.0) badges.push({ icon: Award, label: 'Top vendeur', color: 'bg-yellow-100 text-yellow-700' });
@@ -108,10 +122,18 @@ export default function PublicProfilPage() {
           <div className="h-36 sm:h-44 relative">
             {(hasShop && profile.shopBanner)
               ? <img src={profile.shopBanner} alt="" className="w-full h-full object-cover"/>
-              : <div className="w-full h-full bg-gradient-to-r from-primary-700 to-primary-800"/>}
+              : <div className="w-full h-full" style={{ background: hasShop ? shopColorData.gradient : 'linear-gradient(135deg,#16a34a,#14532d)' }}/>}
             {hasShop && (
-              <div className="absolute top-3 left-3 bg-white/90 backdrop-blur text-primary-700 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5">
+              <div className="absolute top-3 left-3 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5"
+                style={{ color: shopColorData.dot }}>
                 <Store size={13} /> Boutique officielle
+              </div>
+            )}
+            {hasShop && profile.shopSlogan && (
+              <div className="absolute bottom-3 left-4 right-4">
+                <p className="text-white text-sm font-medium italic drop-shadow-md line-clamp-2">
+                  &ldquo;{profile.shopSlogan}&rdquo;
+                </p>
               </div>
             )}
           </div>
@@ -173,6 +195,13 @@ export default function PublicProfilPage() {
               </div>
             </div>
 
+            {/* Slogan boutique */}
+            {hasShop && profile.shopSlogan && (
+              <p className="text-sm font-semibold italic mb-3" style={{ color: shopColorData.dot }}>
+                &ldquo;{profile.shopSlogan}&rdquo;
+              </p>
+            )}
+
             {/* Ligne 3 : badges */}
             {badges.length > 0 && (
               <div className="flex gap-2 flex-wrap mb-3">
@@ -215,7 +244,7 @@ export default function PublicProfilPage() {
           <div className="mb-8">
             <h2 className="text-xl font-display font-bold text-dark-900 mb-4 flex items-center gap-2"><Package size={18} className="text-dark-400" />{hasShop ? 'Produits de la boutique' : `Annonces de ${profile.firstName}`} ({annonces.length})</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 stagger">
-              {annonces.map(a => <AnnonceCard key={a.id} annonce={a}/>)}
+              {sortedAnnonces.map(a => <AnnonceCard key={a.id} annonce={a}/>)}
             </div>
           </div>
         )}

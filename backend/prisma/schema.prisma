@@ -47,6 +47,8 @@ model User {
   shopAddress     String?
   shopHours       String?
   isShopVerified  Boolean  @default(false)
+  shopColor       String?  @default("vert")
+  shopSlogan      String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

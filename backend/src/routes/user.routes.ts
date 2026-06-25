@@ -58,7 +58,7 @@ router.get('/profile/:id', async (req, res) => {
       select: {
         id: true, firstName: true, lastName: true, avatar: true,
         city: true, isVerified: true, isShopVerified: true, createdAt: true,
-        shopName: true, shopLogo: true, shopBanner: true, shopDescription: true, shopWhatsapp: true, shopActive: true,
+        shopName: true, shopLogo: true, shopBanner: true, shopDescription: true, shopWhatsapp: true, shopActive: true, shopColor: true, shopSlogan: true,
         _count: { select: { annonces: true, ratingsReceived: true, subscribers: true } },
         ratingsReceived: { select: { score: true } },
       },
@@ -98,7 +98,7 @@ router.put('/me/shop', authenticate, async (req: any, res) => {
   try {
     const {
       shopName, shopLogo, shopBanner, shopDescription, shopWhatsapp, shopActive,
-      shopCategories, shopHasPhysical, shopAddress, shopHours,
+      shopCategories, shopHasPhysical, shopAddress, shopHours, shopColor, shopSlogan,
     } = req.body;
     const user = await prisma.user.update({
       where: { id: req.userId },
@@ -107,6 +107,8 @@ router.put('/me/shop', authenticate, async (req: any, res) => {
         shopCategories: shopCategories ?? undefined,
         shopHasPhysical: shopHasPhysical ?? undefined,
         shopAddress, shopHours,
+        shopColor: shopColor ?? undefined,
+        shopSlogan: shopSlogan ?? undefined,
       },
     });
     res.json({ message: 'Boutique mise à jour.', data: user });
@@ -150,6 +152,8 @@ router.delete('/me/shop', authenticate, async (req: any, res) => {
         shopHasPhysical: false,
         shopAddress: null,
         shopHours: null,
+        shopColor: 'vert',
+        shopSlogan: null,
       },
     });
 
