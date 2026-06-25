@@ -9,7 +9,7 @@ import {
   Wrench, Shirt, Home, Leaf, Heart, Utensils, Calendar, GraduationCap,
   PawPrint, Music, ShoppingCart, Package, Sparkles, Map, Baby,
   MessageCircle, Send, BedDouble, Trophy, Star, Wifi, ParkingCircle,
-  Waves, Dumbbell, Coffee, UtensilsCrossed, FileCheck,
+  Waves, Dumbbell, Coffee, UtensilsCrossed, FileCheck, Lightbulb,
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import { api } from '@/lib/api';
@@ -63,6 +63,25 @@ const TYPE_META: Record<string, { label: string; Icon: any; color: string }> = {
   emploi:     { label: 'Emploi',     Icon: Briefcase,    color: 'text-purple-600 bg-purple-50 border-purple-200' },
   service:    { label: 'Service',    Icon: Wrench,       color: 'text-teal-600 bg-teal-50 border-teal-200' },
 };
+
+const TITLE_PLACEHOLDERS: Record<string, string> = {
+  electronique: "Ex : Samsung Galaxy A54 128Go – Très bon état",
+  vehicules:    "Ex : Toyota Hilux 2018 – Bon état, 80 000 km",
+  immobilier:   "Ex : Villa F4 à Ratoma – 3 chambres, meublée",
+  terrains:     "Ex : Terrain 500 m² à Matoto – Titre foncier disponible",
+  emplois:      "Ex : Comptable – CDI, Conakry, 2 ans d'expérience",
+  services:     "Ex : Plombier professionnel – Intervention rapide Conakry",
+  mode:         "Ex : Robe de soirée taille 38 – Comme neuve",
+  maison:       "Ex : Canapé 3 places cuir – Bon état, livraison possible",
+  sports:       "Ex : Vélo VTT 26 pouces – Occasion, bon état",
+  restaurants:  "Ex : Restaurant La Palmeraie – Cuisine africaine, Conakry",
+  hotels:       "Ex : Hôtel Noom – Chambre double, centre-ville",
+  bebe:         "Ex : Poussette Chicco – Très bon état, 6 mois d'utilisation",
+  beaute:       "Ex : Tresse nattes box – Spécialiste Conakry, résultat garanti",
+  agriculture:  "Ex : Sacs de riz local 50kg – Récolte 2024, Kindia",
+  animaux:      "Ex : Chiot Berger Allemand – 3 mois, vacciné",
+};
+const DEFAULT_TITLE_PLACEHOLDER = 'Ex : iPhone 14 Pro 256Go – Comme neuf';
 
 const STEP_META = [
   { label: 'Catégorie',    Icon: LayoutGrid },
@@ -162,9 +181,10 @@ function PublierAnnonceContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editId, categories.length]);
 
-  const currentCat    = categories.find((c) => c.slug === selectedCategory);
-  const subCategories = currentCat?.children || [];
-  const listingType   = getListingType(selectedCategory);
+  const currentCat      = categories.find((c) => c.slug === selectedCategory);
+  const subCategories   = currentCat?.children || [];
+  const listingType     = getListingType(selectedCategory);
+  const titlePlaceholder = TITLE_PLACEHOLDERS[selectedSub] || TITLE_PLACEHOLDERS[selectedCategory] || DEFAULT_TITLE_PLACEHOLDER;
 
   const set = (k: string, v: any) => setForm((p: any) => ({ ...p, [k]: v }));
   const toggleAmenity = (a: string) => setForm((p: any) => ({
@@ -407,7 +427,11 @@ function PublierAnnonceContent() {
               <div>
                 <label className="block text-sm font-semibold text-dark-700 mb-1.5">Titre *</label>
                 <input value={form.title} onChange={e => set('title', e.target.value)}
-                  placeholder="Ex: iPhone 14 Pro 256Go" className="input" />
+                  placeholder={titlePlaceholder} className="input" />
+                <p className="mt-1.5 text-xs text-dark-400 flex items-start gap-1.5">
+                  <Lightbulb size={13} className="text-primary-600 shrink-0 mt-0.5" />
+                  <span>Conseil : un bon titre = <strong>Marque + Modèle + État</strong>. Ex : <em>Samsung A54 128Go – Comme neuf</em>. Ça attire plus d&apos;acheteurs !</span>
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-dark-700 mb-1.5">Description *</label>

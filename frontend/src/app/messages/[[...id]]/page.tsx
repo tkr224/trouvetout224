@@ -246,17 +246,17 @@ export default function MessagesPage() {
                       <div className="flex items-center justify-between mb-1.5">
                         <div className="flex items-center gap-1.5">
                           <ShieldAlert size={14} className="text-amber-600 shrink-0" />
-                          <span className="text-xs font-bold text-amber-800">Conseils de sécurité</span>
+                          <span className="text-xs font-bold text-amber-800">Conseils anti-arnaque</span>
                         </div>
                         <button onClick={() => setShowSafetyTip(false)} className="text-amber-400 hover:text-amber-600 transition-colors p-0.5">
                           <X size={13} />
                         </button>
                       </div>
-                      <ul className="text-[11px] text-amber-700 space-y-0.5">
-                        <li>• Ne payez jamais à l&apos;avance à un inconnu</li>
-                        <li>• Rencontrez le vendeur dans un lieu public</li>
-                        <li>• Vérifiez le produit avant tout paiement</li>
-                        <li>• Méfiez-vous des prix anormalement bas</li>
+                      <ul className="text-[11px] text-amber-800 space-y-1">
+                        <li className="flex items-start gap-1.5"><span className="font-bold text-amber-500 shrink-0">!</span> Ne payez jamais d&apos;avance sans avoir vu le produit en personne.</li>
+                        <li className="flex items-start gap-1.5"><span className="font-bold text-amber-500 shrink-0">!</span> Rencontrez le vendeur dans un lieu public et fréquenté.</li>
+                        <li className="flex items-start gap-1.5"><span className="font-bold text-amber-500 shrink-0">!</span> N&apos;envoyez pas d&apos;argent par transfert à un inconnu.</li>
+                        <li className="flex items-start gap-1.5"><span className="font-bold text-amber-500 shrink-0">!</span> Vérifiez bien le produit avant de payer.</li>
                       </ul>
                     </div>
                   )}

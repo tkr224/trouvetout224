@@ -557,17 +557,29 @@ export default function AnnonceDetailPage() {
               </div>
             )}
 
-            {/* Conseils de sécurité */}
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-              <h4 className="font-semibold text-amber-800 text-sm mb-3 flex items-center gap-1.5">
-                <ShieldAlert size={15} className="text-amber-600" />
-                Conseils de sécurité
+            {/* Conseils anti-arnaque */}
+            <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4">
+              <h4 className="font-bold text-amber-800 text-sm mb-3 flex items-center gap-1.5">
+                <ShieldAlert size={16} className="text-amber-600 shrink-0" />
+                Conseils anti-arnaque
               </h4>
-              <ul className="text-xs text-amber-700 space-y-1.5">
-                <li className="flex items-start gap-1.5"><span className="text-amber-500 mt-0.5">•</span> Rencontrez le vendeur dans un lieu public</li>
-                <li className="flex items-start gap-1.5"><span className="text-amber-500 mt-0.5">•</span> Vérifiez le produit avant de payer</li>
-                <li className="flex items-start gap-1.5"><span className="text-amber-500 mt-0.5">•</span> Méfiez-vous des prix trop bas</li>
-                <li className="flex items-start gap-1.5"><span className="text-amber-500 mt-0.5">•</span> Ne payez jamais à l&apos;avance</li>
+              <ul className="text-xs text-amber-800 space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-500 mt-0.5 shrink-0 font-bold">!</span>
+                  Ne payez jamais d&apos;avance sans avoir vérifié le produit en personne.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-500 mt-0.5 shrink-0 font-bold">!</span>
+                  Rencontrez le vendeur dans un lieu public et fréquenté.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-500 mt-0.5 shrink-0 font-bold">!</span>
+                  N&apos;envoyez pas d&apos;argent par transfert à une personne inconnue.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-500 mt-0.5 shrink-0 font-bold">!</span>
+                  Vérifiez bien le produit avant de payer.
+                </li>
               </ul>
             </div>
           </div>
@@ -665,6 +677,14 @@ export default function AnnonceDetailPage() {
                   <p className="text-xs text-dark-400 mt-0.5">{annonce.city.name}</p>
                 </div>
               </div>
+            </div>
+
+            {/* Rappel sécurité */}
+            <div className="mx-5 mb-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
+              <ShieldAlert size={14} className="text-amber-600 shrink-0 mt-0.5" />
+              <p className="text-[11px] text-amber-800 leading-relaxed">
+                <strong>Conseil :</strong> Ne payez jamais avant de voir le produit. Rencontrez le vendeur dans un lieu public.
+              </p>
             </div>
 
             {/* Zone de texte */}
