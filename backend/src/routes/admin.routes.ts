@@ -13,6 +13,7 @@ router.get('/stats', async (req, res) => {
     const [
       totalUsers, totalAnnonces, totalMessages, totalJobs,
       activeAnnonces, pendingReports, totalRevenue, recentUsers,
+      pendingJobs, totalRestaurants, pendingRestaurants,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.annonce.count(),
@@ -22,13 +23,16 @@ router.get('/stats', async (req, res) => {
       prisma.report.count({ where: { status: 'PENDING' } }),
       prisma.payment.aggregate({ where: { status: 'SUCCESS' }, _sum: { amount: true } }),
       prisma.user.count({ where: { createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } } }),
+      prisma.job.count({ where: { status: 'PENDING_REVIEW' } }),
+      prisma.restaurant.count(),
+      prisma.restaurant.count({ where: { status: 'PENDING_REVIEW' } }),
     ]);
     res.json({
       data: {
         totalUsers, totalAnnonces, totalMessages, totalJobs,
         activeAnnonces, pendingReports,
         totalRevenue: totalRevenue._sum.amount || 0,
-        recentUsers,
+        recentUsers, pendingJobs, totalRestaurants, pendingRestaurants,
       },
     });
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
@@ -641,6 +645,178 @@ router.delete('/theme-accesses/:userId/:themeId', async (req, res) => {
       where: { userId: req.params.userId, themeId: req.params.themeId },
     });
     res.json({ ok: true });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+// ─── EMPLOIS (admin) ──────────────────────────────────────────────────────────
+
+router.get('/jobs/pending-count', async (req, res) => {
+  try {
+    const count = await prisma.job.count({ where: { status: 'PENDING_REVIEW' } });
+    res.json({ count });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.get('/jobs', async (req, res) => {
+  try {
+    const { page = '1', status, q } = req.query;
+    const where: any = {};
+    if (status) where.status = status;
+    if (q) where.OR = [
+      { title: { contains: q as string, mode: 'insensitive' } },
+      { company: { contains: q as string, mode: 'insensitive' } },
+    ];
+    const skip = (parseInt(page as string) - 1) * 20;
+    const [jobs, total] = await Promise.all([
+      prisma.job.findMany({
+        where, skip, take: 20,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          city: true,
+          owner: { select: { id: true, firstName: true, lastName: true, email: true } },
+          _count: { select: { applications: true } },
+        },
+      }),
+      prisma.job.count({ where }),
+    ]);
+    res.json({ data: jobs, pagination: { total, pages: Math.ceil(total / 20) } });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.post('/jobs/:id/approve', async (req: any, res) => {
+  try {
+    const job = await prisma.job.update({
+      where: { id: req.params.id },
+      data: { status: 'ACTIVE', rejectionReason: null },
+    });
+    if (job.ownerId) {
+      await prisma.notification.create({
+        data: {
+          userId: job.ownerId,
+          type: 'SYSTEM' as any,
+          title: 'Offre d\'emploi approuvée !',
+          body: `Votre offre "${job.title}" est maintenant visible sur le site.`,
+          data: { jobId: job.id },
+        },
+      }).catch(() => {});
+    }
+    res.json({ message: 'Offre approuvée.', data: job });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.post('/jobs/:id/reject', async (req: any, res) => {
+  try {
+    const { reason } = req.body;
+    if (!reason?.trim()) return res.status(400).json({ error: 'Le motif est obligatoire.' });
+    const job = await prisma.job.update({
+      where: { id: req.params.id },
+      data: { status: 'REJECTED', rejectionReason: reason.trim() },
+    });
+    if (job.ownerId) {
+      await prisma.notification.create({
+        data: {
+          userId: job.ownerId,
+          type: 'SYSTEM' as any,
+          title: 'Offre d\'emploi rejetée',
+          body: `Votre offre "${job.title}" n'a pas été validée. Motif : ${reason.trim()}`,
+          data: { jobId: job.id, reason: reason.trim() },
+        },
+      }).catch(() => {});
+    }
+    res.json({ message: 'Offre rejetée.', data: job });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.delete('/jobs/:id', async (req: any, res) => {
+  try {
+    await prisma.jobApplication.deleteMany({ where: { jobId: req.params.id } });
+    await prisma.job.delete({ where: { id: req.params.id } });
+    res.json({ message: 'Offre supprimée.' });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+// ─── RESTAURANTS (admin) ──────────────────────────────────────────────────────
+
+router.get('/restaurants/pending-count', async (req, res) => {
+  try {
+    const count = await prisma.restaurant.count({ where: { status: 'PENDING_REVIEW' } });
+    res.json({ count });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.get('/restaurants', async (req, res) => {
+  try {
+    const { page = '1', status, q } = req.query;
+    const where: any = {};
+    if (status) where.status = status;
+    if (q) where.name = { contains: q as string, mode: 'insensitive' };
+    const skip = (parseInt(page as string) - 1) * 20;
+    const [restaurants, total] = await Promise.all([
+      prisma.restaurant.findMany({
+        where, skip, take: 20,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          city: true,
+          images: { take: 1 },
+          owner: { select: { id: true, firstName: true, lastName: true, email: true } },
+        },
+      }),
+      prisma.restaurant.count({ where }),
+    ]);
+    res.json({ data: restaurants, pagination: { total, pages: Math.ceil(total / 20) } });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.post('/restaurants/:id/approve', async (req: any, res) => {
+  try {
+    const restaurant = await prisma.restaurant.update({
+      where: { id: req.params.id },
+      data: { status: 'ACTIVE', rejectionReason: null },
+    });
+    if (restaurant.ownerId) {
+      await prisma.notification.create({
+        data: {
+          userId: restaurant.ownerId,
+          type: 'SYSTEM' as any,
+          title: 'Restaurant approuvé !',
+          body: `"${restaurant.name}" est maintenant visible sur TrouveTout224.`,
+          data: { restaurantId: restaurant.id },
+        },
+      }).catch(() => {});
+    }
+    res.json({ message: 'Restaurant approuvé.', data: restaurant });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.post('/restaurants/:id/reject', async (req: any, res) => {
+  try {
+    const { reason } = req.body;
+    if (!reason?.trim()) return res.status(400).json({ error: 'Le motif est obligatoire.' });
+    const restaurant = await prisma.restaurant.update({
+      where: { id: req.params.id },
+      data: { status: 'REJECTED', rejectionReason: reason.trim() },
+    });
+    if (restaurant.ownerId) {
+      await prisma.notification.create({
+        data: {
+          userId: restaurant.ownerId,
+          type: 'SYSTEM' as any,
+          title: 'Restaurant rejeté',
+          body: `"${restaurant.name}" n'a pas été validé. Motif : ${reason.trim()}`,
+          data: { restaurantId: restaurant.id, reason: reason.trim() },
+        },
+      }).catch(() => {});
+    }
+    res.json({ message: 'Restaurant rejeté.', data: restaurant });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.delete('/restaurants/:id', async (req: any, res) => {
+  try {
+    await prisma.menuItem.deleteMany({ where: { restaurantId: req.params.id } });
+    await prisma.restaurantImage.deleteMany({ where: { restaurantId: req.params.id } });
+    await prisma.restaurant.delete({ where: { id: req.params.id } });
+    res.json({ message: 'Restaurant supprimé.' });
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 

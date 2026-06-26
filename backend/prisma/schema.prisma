@@ -60,6 +60,8 @@ model User {
   ratingsReceived Rating[]        @relation("RatingsReceived")
   notifications   Notification[]
   jobApplications JobApplication[]
+  publishedJobs   Job[]            @relation("JobOwner")
+  restaurants     Restaurant[]     @relation("RestaurantOwner")
   savedAnnonces   SavedAnnonce[]
   savedSearches   SavedSearch[]
   reports         Report[]        @relation("ReportedBy")
@@ -122,7 +124,8 @@ model City {
   isActive  Boolean   @default(true)
   users     User[]
   annonces  Annonce[]
-  jobs      Job[]
+  jobs        Job[]
+  restaurants Restaurant[]
 
   @@map("cities")
 }
@@ -325,27 +328,35 @@ model Message {
 // =============================================
 
 model Job {
-  id           String         @id @default(cuid())
-  title        String
-  description  String
-  company      String
-  salary       Float?
-  salaryMax    Float?
-  currency     String         @default("GNF")
-  schedule     String?
-  cityId       String
-  city         City           @relation(fields: [cityId], references: [id])
-  neighborhood String?
-  type         JobType        @default(FULL_TIME)
-  experience   String?
-  education    String?
-  phone        String?
-  email        String?
-  deadline     DateTime?
-  isActive     Boolean        @default(true)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  applications JobApplication[]
+  id              String      @id @default(cuid())
+  title           String
+  description     String
+  company         String
+  sector          String?     // VENTE, BTP, RESTAURATION, BUREAUTIQUE, CHAUFFEUR, SECURITE, SANTE, EDUCATION, INFORMATIQUE, AUTRE
+  salary          Float?
+  salaryMax       Float?
+  salaryNegotiable Boolean    @default(false)
+  currency        String      @default("GNF")
+  schedule        String?
+  cityId          String
+  city            City        @relation(fields: [cityId], references: [id])
+  neighborhood    String?
+  type            JobType     @default(FULL_TIME)
+  experience      String?
+  education       String?
+  phone           String?
+  whatsapp        String?
+  email           String?
+  deadline        DateTime?
+  howToApply      String?
+  status          JobStatus   @default(ACTIVE)
+  rejectionReason String?
+  ownerId         String?
+  owner           User?       @relation("JobOwner", fields: [ownerId], references: [id])
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  applications    JobApplication[]
 
   @@map("jobs")
 }
@@ -356,6 +367,13 @@ enum JobType {
   FREELANCE
   INTERNSHIP
   VOLUNTEER
+  DAILY
+}
+
+enum JobStatus {
+  PENDING_REVIEW
+  ACTIVE
+  REJECTED
 }
 
 model JobApplication {
@@ -385,24 +403,42 @@ enum ApplicationStatus {
 // =============================================
 
 model Restaurant {
-  id          String           @id @default(cuid())
-  name        String
-  description String?
-  address     String
-  phone       String?
-  whatsapp    String?
-  email       String?
-  website     String?
-  images      RestaurantImage[]
-  menu        MenuItem[]
-  schedule    String?
-  latitude    Float?
-  longitude   Float?
-  isVerified  Boolean          @default(false)
-  isActive    Boolean          @default(true)
-  createdAt   DateTime         @default(now())
+  id              String            @id @default(cuid())
+  name            String
+  description     String?
+  address         String
+  cityId          String?
+  city            City?             @relation(fields: [cityId], references: [id])
+  neighborhood    String?
+  phone           String?
+  whatsapp        String?
+  email           String?
+  website         String?
+  cuisineType     String?
+  avgPrice        Float?
+  hasDelivery     Boolean           @default(false)
+  hasTakeaway     Boolean           @default(false)
+  images          RestaurantImage[]
+  menu            MenuItem[]
+  schedule        String?
+  latitude        Float?
+  longitude       Float?
+  status          RestaurantStatus  @default(ACTIVE)
+  rejectionReason String?
+  ownerId         String?
+  owner           User?             @relation("RestaurantOwner", fields: [ownerId], references: [id])
+  isVerified      Boolean           @default(false)
+  isActive        Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   @@map("restaurants")
+}
+
+enum RestaurantStatus {
+  PENDING_REVIEW
+  ACTIVE
+  REJECTED
 }
 
 model RestaurantImage {
@@ -410,7 +446,8 @@ model RestaurantImage {
   url          String
   publicId     String
   restaurantId String
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  order        Int        @default(0)
 
   @@map("restaurant_images")
 }

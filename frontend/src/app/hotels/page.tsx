@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useQuery } from 'react-query';
-import { Search, MapPin, Building2, Star } from 'lucide-react';
+import { Search, MapPin, Building2, Star, Wifi, Car, Wind, Waves, Coffee, Zap } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { api } from '@/lib/api';
@@ -9,26 +9,63 @@ import Link from 'next/link';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 
+const AMENITY_FILTERS = [
+  { value: 'wifi', label: 'Wi-Fi', icon: <Wifi size={12} /> },
+  { value: 'parking', label: 'Parking', icon: <Car size={12} /> },
+  { value: 'clim', label: 'Clim', icon: <Wind size={12} /> },
+  { value: 'piscine', label: 'Piscine', icon: <Waves size={12} /> },
+  { value: 'petitdej', label: 'Petit-déj', icon: <Coffee size={12} /> },
+  { value: 'groupelec', label: 'Groupe élec.', icon: <Zap size={12} /> },
+];
+
+const PRICE_RANGES = [
+  { label: 'Tous les prix', min: 0, max: 0 },
+  { label: '< 200 000 GNF', min: 0, max: 200000 },
+  { label: '200 000 – 500 000', min: 200000, max: 500000 },
+  { label: '500 000 – 1 M', min: 500000, max: 1000000 },
+  { label: '+ 1 000 000 GNF', min: 1000000, max: 0 },
+];
+
 export default function HotelsPage() {
   const [q, setQ] = useState('');
   const [city, setCity] = useState('');
+  const [priceRange, setPriceRange] = useState(0);
+  const [amenityFilter, setAmenityFilter] = useState('');
 
   const { data, isLoading } = useQuery(
-    ['hotels', q, city],
+    ['hotels', q, city, priceRange, amenityFilter],
     () => api.get('/annonces', {
-      params: { categoryId: 'hotels', q: q || undefined, cityId: city || undefined, limit: 24 },
+      params: {
+        categoryId: 'hotels',
+        q: q || undefined,
+        cityId: city || undefined,
+        limit: 24,
+        ...(PRICE_RANGES[priceRange].min > 0 ? { priceMin: PRICE_RANGES[priceRange].min } : {}),
+        ...(PRICE_RANGES[priceRange].max > 0 ? { priceMax: PRICE_RANGES[priceRange].max } : {}),
+      },
     }).then(r => r.data),
     { keepPreviousData: true }
   );
 
-  const hotels = data?.data ?? [];
+  let hotels = data?.data ?? [];
+
+  // Filtre équipements côté client (amenities stockés en comma-separated)
+  if (amenityFilter) {
+    hotels = hotels.filter((h: any) =>
+      h.amenities && h.amenities.toLowerCase().includes(amenityFilter.toLowerCase())
+    );
+  }
 
   return (
     <div className="min-h-screen bg-dark-50">
       <Navbar />
 
-      <section className="bg-gradient-to-br from-violet-700 via-violet-800 to-violet-900 py-16 px-4">
-        <div className="max-w-3xl mx-auto text-center">
+      {/* Hero */}
+      <section className="bg-gradient-to-br from-violet-700 via-violet-800 to-violet-900 py-16 px-4 relative overflow-hidden">
+        <div className="absolute right-8 top-4 opacity-5 pointer-events-none">
+          <Building2 size={200} className="text-white" />
+        </div>
+        <div className="max-w-3xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 bg-white/10 text-white/80 text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
             <Building2 size={13} /> Hébergements
           </div>
@@ -60,6 +97,41 @@ export default function HotelsPage() {
         </div>
       </section>
 
+      {/* Filtres secondaires */}
+      <div className="sticky top-16 z-30 bg-white border-b border-dark-100 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3 overflow-x-auto scrollbar-hide">
+          {/* Fourchette de prix */}
+          <span className="text-xs text-dark-400 font-semibold shrink-0">Budget :</span>
+          {PRICE_RANGES.map((r, i) => (
+            <button key={i} onClick={() => setPriceRange(i)}
+              className={`shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
+                priceRange === i
+                  ? 'bg-violet-600 text-white'
+                  : 'bg-dark-50 hover:bg-violet-50 text-dark-600 border border-dark-100'
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+
+          <div className="h-4 w-px bg-dark-200 mx-1 shrink-0" />
+
+          {/* Filtres équipements */}
+          <span className="text-xs text-dark-400 font-semibold shrink-0">Équip. :</span>
+          {AMENITY_FILTERS.map(a => (
+            <button key={a.value} onClick={() => setAmenityFilter(f => f === a.value ? '' : a.value)}
+              className={`shrink-0 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
+                amenityFilter === a.value
+                  ? 'bg-violet-600 text-white'
+                  : 'bg-dark-50 hover:bg-violet-50 text-dark-600 border border-dark-100'
+              }`}
+            >
+              {a.icon} {a.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="max-w-6xl mx-auto px-4 py-10">
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -83,7 +155,7 @@ export default function HotelsPage() {
               Aucun hébergement disponible
             </h3>
             <p className="text-dark-500 text-sm mb-6">
-              Aucun hôtel ou résidence publié pour le moment. Revenez bientôt !
+              Essayez d'autres filtres ou revenez plus tard.
             </p>
             <Link href="/annonces/publier" className="btn-primary inline-flex items-center gap-2">
               <Building2 size={15} /> Publier un hébergement
@@ -98,7 +170,7 @@ export default function HotelsPage() {
               {hotels.map((h: any) => (
                 <Link
                   key={h.id}
-                  href={`/annonces/${h.slug || h.id}`}
+                  href={`/hotels/${h.slug || h.id}`}
                   className="card group overflow-hidden hover:shadow-card-hover transition-all duration-300"
                 >
                   <div className="aspect-[4/3] bg-violet-50 overflow-hidden relative">
@@ -112,6 +184,7 @@ export default function HotelsPage() {
                         <Building2 size={56} className="text-violet-200" />
                       </div>
                     )}
+
                     {h.stars && (
                       <div className="absolute top-3 left-3 flex items-center gap-0.5 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-xl shadow-sm">
                         {Array.from({ length: h.stars }).map((_, i) => (
@@ -119,12 +192,25 @@ export default function HotelsPage() {
                         ))}
                       </div>
                     )}
+
                     {h.isFeatured && (
                       <div className="absolute top-3 right-3 bg-gold-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
                         À la une
                       </div>
                     )}
+
+                    {/* Badge équipements top */}
+                    {h.amenities && (
+                      <div className="absolute bottom-3 left-3 flex gap-1 flex-wrap">
+                        {['wifi', 'piscine', 'clim'].filter(a => h.amenities?.toLowerCase().includes(a)).slice(0, 3).map(a => (
+                          <span key={a} className="bg-black/50 text-white text-[9px] px-1.5 py-0.5 rounded-md backdrop-blur-sm capitalize">
+                            {a === 'wifi' ? 'Wi-Fi' : a === 'clim' ? 'Clim' : 'Piscine'}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
+
                   <div className="p-5">
                     <h3 className="font-display font-bold text-dark-900 text-lg mb-1 line-clamp-1 group-hover:text-violet-700 transition-colors">
                       {h.title}

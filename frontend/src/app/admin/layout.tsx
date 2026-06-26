@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   LayoutDashboard, Users, ShoppingBag, AlertTriangle,
   Tag, LogOut, Home, Shield, ClipboardCheck, Megaphone, BarChart2, Palette, Trash2,
+  Briefcase, Utensils,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
@@ -19,7 +20,9 @@ const NAV = [
   { href: '/admin/publications', label: 'Publications', icon: Megaphone },
   { href: '/admin/onboarding',   label: 'Sondage',       icon: BarChart2 },
   { href: '/admin/themes',       label: 'Thèmes',        icon: Palette },
-  { href: '/admin/suppressions', label: 'Suppressions',  icon: Trash2 },
+  { href: '/admin/suppressions',      label: 'Suppressions',  icon: Trash2 },
+  { href: '/admin/emplois',           label: 'Emplois',       icon: Briefcase, badge: false },
+  { href: '/admin/restaurants-admin', label: 'Restaurants',   icon: Utensils,  badge: false },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

@@ -1,17 +1,35 @@
 'use client';
 import { useState } from 'react';
 import { useQuery } from 'react-query';
-import { Search, MapPin, Utensils, MessageCircle, Phone, Clock, ChefHat, ExternalLink } from 'lucide-react';
+import { Search, MapPin, Utensils, MessageCircle, Phone, Clock, ChefHat, ExternalLink, Plus, Truck } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { api } from '@/lib/api';
+import Link from 'next/link';
+
+const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
+
+const CUISINE_TYPES = [
+  'Cuisine Guinéenne', 'Cuisine Africaine', 'Fast-food',
+  'Grillades', 'Pizzeria', 'Boulangerie / Pâtisserie', 'Autre',
+];
 
 export default function RestaurantsPage() {
   const [q, setQ] = useState('');
+  const [cityId, setCityId] = useState('');
+  const [cuisineType, setCuisineType] = useState('');
+  const [hasDelivery, setHasDelivery] = useState(false);
 
   const { data, isLoading } = useQuery(
-    ['restaurants', q],
-    () => api.get('/restaurants', { params: { q } }).then(r => r.data),
+    ['restaurants', q, cityId, cuisineType, hasDelivery],
+    () => api.get('/restaurants', {
+      params: {
+        q: q || undefined,
+        cityId: cityId || undefined,
+        cuisineType: cuisineType || undefined,
+        hasDelivery: hasDelivery ? 'true' : undefined,
+      },
+    }).then(r => r.data),
     { keepPreviousData: true }
   );
 
@@ -21,11 +39,10 @@ export default function RestaurantsPage() {
     <div className="min-h-screen bg-dark-50">
       <Navbar />
 
+      {/* Hero */}
       <section className="bg-gradient-to-br from-orange-600 via-red-600 to-red-800 py-16 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-4 right-8 text-8xl rotate-12 select-none pointer-events-none">
-            <Utensils size={120} className="text-white" />
-          </div>
+        <div className="absolute inset-0 opacity-5 pointer-events-none flex items-center justify-end pr-8">
+          <Utensils size={200} className="text-white" />
         </div>
         <div className="max-w-3xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 bg-white/15 text-white/90 text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
@@ -37,16 +54,61 @@ export default function RestaurantsPage() {
           <p className="text-orange-100 mb-8 text-lg">
             Découvrez les saveurs de la Guinée
           </p>
-          <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-2xl shadow-xl max-w-xl mx-auto">
-            <Search size={18} className="text-dark-400 shrink-0" />
-            <input
-              value={q} onChange={e => setQ(e.target.value)}
-              placeholder="Nom du restaurant, spécialité..."
-              className="flex-1 outline-none text-dark-900 text-sm bg-transparent"
-            />
+          {/* Barre de recherche */}
+          <div className="flex bg-white rounded-2xl shadow-xl overflow-hidden max-w-2xl mx-auto">
+            <div className="flex items-center gap-2 flex-1 px-4 py-3">
+              <Search size={18} className="text-dark-400 shrink-0" />
+              <input
+                value={q} onChange={e => setQ(e.target.value)}
+                placeholder="Nom du restaurant, spécialité..."
+                className="flex-1 outline-none text-dark-900 text-sm bg-transparent"
+              />
+            </div>
+            <div className="border-l border-dark-100 flex items-center">
+              <select value={cityId} onChange={e => setCityId(e.target.value)} className="h-full px-4 text-sm text-dark-600 outline-none bg-transparent">
+                <option value="">Toutes les villes</option>
+                {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center mt-4">
+            <Link href="/restaurants/publier"
+              className="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white font-semibold px-4 py-2 rounded-xl text-sm transition-colors"
+            >
+              <Plus size={14} /> Ajouter mon restaurant
+            </Link>
           </div>
         </div>
       </section>
+
+      {/* Filtres */}
+      <div className="sticky top-16 z-30 bg-white border-b border-dark-100 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3 overflow-x-auto scrollbar-hide">
+          <span className="text-xs text-dark-400 font-semibold shrink-0">Cuisine :</span>
+          {[{ value: '', label: 'Tous' }, ...CUISINE_TYPES.map(c => ({ value: c, label: c }))].map(c => (
+            <button key={c.value} onClick={() => setCuisineType(c.value)}
+              className={`shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
+                cuisineType === c.value
+                  ? 'bg-red-600 text-white'
+                  : 'bg-dark-50 hover:bg-red-50 text-dark-600 border border-dark-100'
+              }`}
+            >
+              {c.label}
+            </button>
+          ))}
+          <div className="h-4 w-px bg-dark-200 mx-1 shrink-0" />
+          <button onClick={() => setHasDelivery(v => !v)}
+            className={`shrink-0 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
+              hasDelivery
+                ? 'bg-green-500 text-white'
+                : 'bg-dark-50 hover:bg-green-50 text-dark-600 border border-dark-100'
+            }`}
+          >
+            <Truck size={12} /> Livraison
+          </button>
+        </div>
+      </div>
 
       <div className="max-w-6xl mx-auto px-4 py-10">
         {isLoading ? (
@@ -67,12 +129,13 @@ export default function RestaurantsPage() {
             <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-5">
               <Utensils size={36} className="text-red-400" />
             </div>
-            <h3 className="font-display font-bold text-dark-800 text-xl mb-2">
-              Aucun restaurant trouvé
-            </h3>
-            <p className="text-dark-500 text-sm">
-              {q ? `Aucun résultat pour "${q}".` : 'Aucun restaurant enregistré pour le moment.'}
+            <h3 className="font-display font-bold text-dark-800 text-xl mb-2">Aucun restaurant trouvé</h3>
+            <p className="text-dark-500 text-sm mb-6">
+              {q ? `Aucun résultat pour "${q}".` : 'Aucun restaurant pour ces filtres.'}
             </p>
+            <Link href="/restaurants/publier" className="btn-primary inline-flex items-center gap-2">
+              <Plus size={15} /> Ajouter le vôtre
+            </Link>
           </div>
         ) : (
           <>
@@ -82,7 +145,7 @@ export default function RestaurantsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {restaurants.map((r: any) => (
                 <div key={r.id} className="card group overflow-hidden hover:shadow-card-hover transition-all duration-300">
-                  {/* Image avec overlay */}
+                  {/* Image */}
                   <div className="aspect-[4/3] bg-red-50 overflow-hidden relative">
                     {r.images?.[0]?.url ? (
                       <>
@@ -97,18 +160,23 @@ export default function RestaurantsPage() {
                         <Utensils size={48} className="text-red-200" />
                       </div>
                     )}
-                    {/* Badge cuisine */}
                     {r.cuisineType && (
                       <div className="absolute top-3 left-3 bg-red-600 text-white text-xs font-semibold px-2.5 py-1 rounded-xl shadow-sm">
                         {r.cuisineType}
                       </div>
                     )}
-                    {/* Badge plats */}
-                    {r._count?.menu > 0 && (
-                      <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm text-dark-700 text-xs font-semibold px-2.5 py-1 rounded-xl shadow-sm">
-                        {r._count.menu} plat{r._count.menu > 1 ? 's' : ''}
-                      </div>
-                    )}
+                    <div className="absolute top-3 right-3 flex gap-1.5">
+                      {r._count?.menu > 0 && (
+                        <div className="bg-white/95 backdrop-blur-sm text-dark-700 text-xs font-semibold px-2.5 py-1 rounded-xl shadow-sm">
+                          {r._count.menu} plat{r._count.menu > 1 ? 's' : ''}
+                        </div>
+                      )}
+                      {r.hasDelivery && (
+                        <div className="bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-xl shadow-sm flex items-center gap-1">
+                          <Truck size={10} /> Livraison
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="p-5">
@@ -116,10 +184,12 @@ export default function RestaurantsPage() {
                       {r.name}
                     </h3>
 
-                    {r.address && (
+                    {(r.address || r.city?.name) && (
                       <p className="text-dark-500 text-sm flex items-center gap-1 mb-2">
                         <MapPin size={13} className="text-red-400 shrink-0" />
-                        <span className="line-clamp-1">{r.address}</span>
+                        <span className="line-clamp-1">
+                          {r.city?.name ? `${r.city.name}${r.neighborhood ? ` · ${r.neighborhood}` : ''}` : r.address}
+                        </span>
                       </p>
                     )}
 
@@ -127,25 +197,32 @@ export default function RestaurantsPage() {
                       <p className="text-dark-600 text-sm mb-3 line-clamp-2 leading-relaxed">{r.description}</p>
                     )}
 
-                    {r.schedule && (
-                      <p className="text-dark-400 text-xs mb-4 flex items-center gap-1.5">
-                        <Clock size={12} className="text-orange-400" /> {r.schedule}
-                      </p>
-                    )}
+                    <div className="flex items-center gap-3 mb-3 flex-wrap">
+                      {r.schedule && (
+                        <p className="text-dark-400 text-xs flex items-center gap-1.5">
+                          <Clock size={12} className="text-orange-400" /> {r.schedule}
+                        </p>
+                      )}
+                      {r.avgPrice && (
+                        <p className="text-dark-500 text-xs font-medium">
+                          ~{Number(r.avgPrice).toLocaleString('fr-GN')} GNF/pers.
+                        </p>
+                      )}
+                    </div>
 
                     <div className="flex gap-2 pt-3 border-t border-dark-100">
-                      <a
+                      <Link
                         href={`/restaurants/${r.id}`}
                         className="flex-1 flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-3 rounded-xl transition-colors"
                       >
                         <ExternalLink size={14} /> Voir le menu
-                      </a>
+                      </Link>
                       {r.whatsapp && (
                         <a
-                          href={`https://wa.me/224${r.whatsapp}`}
+                          href={`https://wa.me/224${r.whatsapp}?text=${encodeURIComponent(`Bonjour, je souhaite passer une commande chez ${r.name}.`)}`}
                           target="_blank" rel="noopener noreferrer"
                           className="w-10 h-10 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-colors shrink-0"
-                          title="WhatsApp"
+                          title="Commander via WhatsApp"
                         >
                           <MessageCircle size={16} />
                         </a>
