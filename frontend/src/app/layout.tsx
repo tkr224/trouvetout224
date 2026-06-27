@@ -5,11 +5,12 @@ import { QueryProvider } from '@/components/providers/QueryProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import dynamic from 'next/dynamic';
 
-const SplashScreen     = dynamic(() => import('@/components/SplashScreen'),      { ssr: false });
-const OnboardingGate   = dynamic(() => import('@/components/OnboardingGate'),    { ssr: false });
-const PWAInstallBanner = dynamic(() => import('@/components/PWAInstallBanner'),  { ssr: false });
-const PWARegister      = dynamic(() => import('@/components/PWARegister'),       { ssr: false });
-const ThemeAnimations  = dynamic(() => import('@/components/ThemeAnimations'),   { ssr: false });
+const SplashScreen        = dynamic(() => import('@/components/SplashScreen'),                    { ssr: false });
+const OnboardingGate      = dynamic(() => import('@/components/OnboardingGate'),                  { ssr: false });
+const PWAInstallBanner    = dynamic(() => import('@/components/PWAInstallBanner'),                { ssr: false });
+const PWARegister         = dynamic(() => import('@/components/PWARegister'),                     { ssr: false });
+const ThemeAnimations     = dynamic(() => import('@/components/ThemeAnimations'),                 { ssr: false });
+const Futur3DOrchestrator = dynamic(() => import('@/components/futur3d/Futur3DOrchestrator'),    { ssr: false });
 
 /* ── Métadonnées globales (SEO + Open Graph + PWA) ───────────────── */
 export const metadata: Metadata = {
@@ -156,6 +157,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <QueryProvider>
           <ThemeProvider>
             <ThemeAnimations />
+            <Futur3DOrchestrator />
             <SplashScreen />
             <OnboardingGate />
             {children}
