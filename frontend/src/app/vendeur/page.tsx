@@ -6,7 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import {
-  Eye, Heart, MessageCircle, ShoppingBag, Star, Store, TrendingUp,
+  Eye, Heart, MessageCircle, ShoppingBag, Star, Store, TrendingUp, TrendingDown, Minus,
   Settings, Plus, ArrowRight, CheckCircle, Clock, XCircle, Activity, Tag,
   Lock, ClipboardList, Package, Users, Pin, PinOff, Percent, X as XIcon,
   Trophy, Award, BadgeCheck, Zap,
@@ -119,11 +119,15 @@ export default function VendeurDashboard() {
     </div>
   );
 
+  const weeklyMsg  = stats?.weeklyMessages  ?? 0;
+  const prevMsg    = stats?.prevWeekMessages ?? 0;
+  const msgTrend   = prevMsg === 0 ? (weeklyMsg > 0 ? 100 : 0) : Math.round(((weeklyMsg - prevMsg) / prevMsg) * 100);
+
   const statCards = [
-    { Icon: ShoppingBag,   label: 'Annonces',     value: stats?.totalAnnonces ?? 0,                       sub: `${stats?.byStatus?.active ?? stats?.activeAnnonces ?? 0} actives`, color: 'text-primary-700 bg-primary-100' },
-    { Icon: Eye,           label: 'Vues totales',  value: (stats?.totalViews ?? 0).toLocaleString('fr-FR'), sub: 'hors vos propres visites',                                          color: 'text-blue-600 bg-blue-100' },
-    { Icon: MessageCircle, label: 'Contacts',      value: stats?.totalContacts ?? 0,                       sub: 'conversations ouvertes',                                             color: 'text-purple-600 bg-purple-100' },
-    { Icon: Heart,         label: 'Favoris reçus', value: stats?.totalFavoris ?? 0,                        sub: 'sauvegardes',                                                        color: 'text-guinea-600 bg-guinea-100' },
+    { Icon: ShoppingBag,   label: 'Annonces',     value: stats?.totalAnnonces ?? 0,                       sub: `${stats?.byStatus?.active ?? stats?.activeAnnonces ?? 0} actives`, color: 'text-primary-700 bg-primary-100', trend: null },
+    { Icon: Eye,           label: 'Vues totales',  value: (stats?.totalViews ?? 0).toLocaleString('fr-FR'), sub: 'hors vos propres visites',                                          color: 'text-blue-600 bg-blue-100',       trend: null },
+    { Icon: MessageCircle, label: 'Messages (7j)', value: weeklyMsg,                                       sub: `${prevMsg} la semaine préc.`,                                        color: 'text-purple-600 bg-purple-100',   trend: msgTrend },
+    { Icon: Heart,         label: 'Favoris reçus', value: stats?.totalFavoris ?? 0,                        sub: 'sauvegardes',                                                        color: 'text-guinea-600 bg-guinea-100',   trend: null },
   ];
 
   return (
@@ -177,8 +181,21 @@ export default function VendeurDashboard() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {statCards.map((c, i) => (
               <div key={i} className="card p-5 hover:shadow-card-hover transition-shadow">
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-3 ${c.color}`}>
-                  <c.Icon size={20} />
+                <div className="flex items-start justify-between mb-3">
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${c.color}`}>
+                    <c.Icon size={20} />
+                  </div>
+                  {c.trend !== null && Math.abs(c.trend) >= 2 && (
+                    <span className={`text-xs font-bold flex items-center gap-0.5 mt-1 ${c.trend > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                      {c.trend > 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                      {c.trend > 0 ? '+' : ''}{c.trend}%
+                    </span>
+                  )}
+                  {c.trend !== null && Math.abs(c.trend) < 2 && (
+                    <span className="text-xs font-semibold text-dark-400 flex items-center gap-0.5 mt-1">
+                      <Minus size={11} /> stable
+                    </span>
+                  )}
                 </div>
                 <p className="text-2xl font-bold text-dark-900">{c.value}</p>
                 <p className="text-dark-700 text-sm font-medium">{c.label}</p>
@@ -235,9 +252,17 @@ export default function VendeurDashboard() {
 
           {/* Courbe : activité 7 jours */}
           <div className="card p-6">
-            <h2 className="font-display font-bold text-dark-900 text-base flex items-center gap-2 mb-0.5">
-              <Activity size={17} className="text-primary-700" /> Activité des 7 derniers jours
-            </h2>
+            <div className="flex items-start justify-between mb-0.5">
+              <h2 className="font-display font-bold text-dark-900 text-base flex items-center gap-2">
+                <Activity size={17} className="text-primary-700" /> Activité des 7 derniers jours
+              </h2>
+              {!loading && Math.abs(msgTrend) >= 2 && (
+                <span className={`text-xs font-bold flex items-center gap-0.5 px-2 py-0.5 rounded-lg ${msgTrend > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                  {msgTrend > 0 ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+                  {msgTrend > 0 ? '+' : ''}{msgTrend}% vs sem. préc.
+                </span>
+              )}
+            </div>
             <p className="text-dark-400 text-xs mb-4">Messages reçus par jour</p>
             {loading || !mounted ? (
               <div className="skeleton h-44 rounded-xl" />

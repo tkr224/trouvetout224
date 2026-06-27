@@ -1,0 +1,242 @@
+'use client';
+export const dynamic = 'force-dynamic';
+import { useState, useEffect } from 'react';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+import { api } from '@/lib/api';
+import Link from 'next/link';
+import {
+  Calendar, MapPin, Phone, MessageCircle, ChevronLeft, ChevronRight,
+  Search, SlidersHorizontal, Plus, Clock,
+} from 'lucide-react';
+import { useAuthStore } from '@/store/auth.store';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
+
+const EVENT_TYPES = [
+  'Concert & Musique', 'Mariage & Cérémonie', 'Formation & Séminaire',
+  'Fête & Soirée', 'Sport & Compétition', 'Conférence', 'Exposition', 'Autre',
+];
+
+export default function EvenementsPage() {
+  const { user, isAuthenticated } = useAuthStore();
+  const router = useRouter();
+  const [annonces, setAnnonces]   = useState<any[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [page, setPage]           = useState(1);
+  const [total, setTotal]         = useState(0);
+  const [cities, setCities]       = useState<any[]>([]);
+
+  const [q, setQ]               = useState('');
+  const [cityId, setCityId]     = useState('');
+  const [eventType, setEventType] = useState('');
+  const [upcoming, setUpcoming] = useState(false);
+
+  useEffect(() => {
+    api.get('/cities').then(r => setCities(r.data.data || [])).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    const params: any = { categoryId: 'evenements', page, limit: 12 };
+    if (q)          params.q = q;
+    if (cityId)     params.cityId = cityId;
+    if (eventType)  params.serviceType = eventType; // reuse serviceType for event type
+    if (upcoming)   params.eventDateFrom = new Date().toISOString();
+
+    api.get('/annonces', { params })
+      .then(r => {
+        setAnnonces(r.data.data || []);
+        setTotal(r.data.pagination?.total || 0);
+      })
+      .catch(() => setAnnonces([]))
+      .finally(() => setLoading(false));
+  }, [q, cityId, eventType, upcoming, page]);
+
+  const startConversation = async (ownerId: string) => {
+    if (!isAuthenticated) { toast.error('Connectez-vous pour envoyer un message.'); return; }
+    try {
+      const res = await api.post('/messages/conversations', { participantId: ownerId });
+      router.push(`/messages?conversation=${res.data.data?.id || ''}`);
+    } catch { toast.error('Impossible d\'ouvrir la messagerie.'); }
+  };
+
+  const pages = Math.ceil(total / 12);
+
+  return (
+    <div className="min-h-screen bg-dark-50">
+      <Navbar />
+
+      {/* Hero */}
+      <div className="bg-gradient-to-br from-purple-700 to-purple-500 text-white py-10 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center">
+              <Calendar size={20} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-display font-bold">Événements</h1>
+              <p className="text-purple-100 text-sm">Concerts, mariages, formations, conférences et plus encore</p>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-4">
+            <div className="flex-1 flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-xl px-4 py-2.5">
+              <Search size={16} className="text-white/70 shrink-0" />
+              <input
+                value={q} onChange={e => { setQ(e.target.value); setPage(1); }}
+                placeholder="Rechercher un événement..."
+                className="flex-1 bg-transparent text-white placeholder-white/60 outline-none text-sm"
+              />
+            </div>
+            <Link href="/annonces/publier?cat=evenements" className="bg-white text-purple-700 font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-purple-50 transition-colors whitespace-nowrap">
+              <Plus size={15} /> Publier un événement
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        {/* Filtres */}
+        <div className="flex gap-3 mb-5 flex-wrap items-center">
+          <SlidersHorizontal size={14} className="text-dark-400 shrink-0" />
+          <select value={cityId} onChange={e => { setCityId(e.target.value); setPage(1); }}
+            className="input py-2 text-sm w-auto min-w-[140px]">
+            <option value="">Toutes les villes</option>
+            {cities.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <button onClick={() => { setUpcoming(!upcoming); setPage(1); }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border-2 transition-colors ${
+              upcoming ? 'bg-purple-600 border-purple-600 text-white' : 'bg-white border-dark-200 text-dark-600 hover:border-purple-400'
+            }`}>
+            <Clock size={12} /> À venir uniquement
+          </button>
+          <div className="flex gap-2 flex-wrap">
+            {EVENT_TYPES.map(t => (
+              <button key={t} onClick={() => { setEventType(eventType === t ? '' : t); setPage(1); }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold border-2 transition-colors ${
+                  eventType === t
+                    ? 'bg-purple-600 border-purple-600 text-white'
+                    : 'bg-white border-dark-200 text-dark-600 hover:border-purple-400'
+                }`}>
+                {t}
+              </button>
+            ))}
+          </div>
+          {(q || cityId || eventType || upcoming) && (
+            <button onClick={() => { setQ(''); setCityId(''); setEventType(''); setUpcoming(false); setPage(1); }}
+              className="text-xs text-dark-400 hover:text-dark-600 underline ml-auto">
+              Effacer filtres
+            </button>
+          )}
+        </div>
+
+        <p className="text-dark-400 text-sm mb-4">{total} événement{total !== 1 ? 's' : ''} trouvé{total !== 1 ? 's' : ''}</p>
+
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl p-4 border border-dark-100">
+                <div className="skeleton h-40 rounded-xl mb-3" />
+                <div className="skeleton h-5 w-3/4 mb-2" />
+                <div className="skeleton h-4 w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : annonces.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Calendar size={28} className="text-purple-500" />
+            </div>
+            <p className="text-dark-500 font-semibold text-lg mb-2">Aucun événement trouvé</p>
+            <p className="text-dark-400 text-sm mb-5">Organisez votre événement sur TrouveTout224 !</p>
+            <Link href="/annonces/publier" className="btn-primary inline-flex items-center gap-2">
+              <Plus size={15} /> Publier un événement
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {annonces.map((a: any) => {
+              const eventDate = a.eventDate ? new Date(a.eventDate) : null;
+              const isPast = eventDate && eventDate < new Date();
+              return (
+                <div key={a.id} className="bg-white rounded-2xl border border-dark-100 overflow-hidden hover:shadow-card transition-shadow group">
+                  <Link href={`/annonces/${a.slug || a.id}`}>
+                    <div className="aspect-[4/3] bg-purple-50 overflow-hidden relative">
+                      {a.images?.[0]?.url ? (
+                        <img src={a.images[0].url} alt={a.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Calendar size={40} className="text-purple-200" />
+                        </div>
+                      )}
+                      {eventDate && (
+                        <div className={`absolute top-2 left-2 px-2 py-1 rounded-lg text-xs font-bold ${isPast ? 'bg-dark-800/80 text-dark-200' : 'bg-purple-600 text-white'}`}>
+                          {eventDate.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                  <div className="p-4">
+                    {a.serviceType && (
+                      <span className="inline-block bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full mb-2">
+                        {a.serviceType}
+                      </span>
+                    )}
+                    <Link href={`/annonces/${a.slug || a.id}`}>
+                      <h3 className="font-semibold text-dark-900 text-sm leading-tight mb-1 hover:text-purple-700 transition-colors line-clamp-2">{a.title}</h3>
+                    </Link>
+                    <p className="text-dark-400 text-xs line-clamp-2 mb-3">{a.description}</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        {a.price ? (
+                          <p className="font-bold text-purple-700 text-sm">{Number(a.price).toLocaleString('fr-GN')} GNF</p>
+                        ) : (
+                          <p className="text-dark-400 text-xs font-semibold">Entrée libre</p>
+                        )}
+                        {a.city && (
+                          <p className="text-dark-400 text-xs flex items-center gap-0.5 mt-0.5">
+                            <MapPin size={10} /> {a.city.name}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-1.5">
+                        {a.whatsapp && (
+                          <a href={`https://wa.me/224${a.whatsapp}?text=${encodeURIComponent(`Bonjour, je souhaite des informations sur l'événement : ${a.title}`)}`}
+                            target="_blank" rel="noopener noreferrer"
+                            className="w-8 h-8 bg-green-50 hover:bg-green-100 text-green-700 rounded-xl flex items-center justify-center transition-colors">
+                            <MessageCircle size={14} />
+                          </a>
+                        )}
+                        {a.userId && a.userId !== user?.id && (
+                          <button onClick={() => startConversation(a.userId)}
+                            className="w-8 h-8 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl flex items-center justify-center transition-colors">
+                            <MessageCircle size={14} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {pages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-8">
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+              className="w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 disabled:opacity-40 hover:bg-dark-50 transition-colors">
+              <ChevronLeft size={16} />
+            </button>
+            <span className="text-sm text-dark-600 px-2">Page {page} / {pages}</span>
+            <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages}
+              className="w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 disabled:opacity-40 hover:bg-dark-50 transition-colors">
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        )}
+      </div>
+      <Footer />
+    </div>
+  );
+}

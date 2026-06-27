@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Logo from '@/components/Logo';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { MapPin, ChevronDown, Bell, MessageCircle, User, Plus, Menu, X, LogOut, Shield, Settings, Store, Users } from 'lucide-react';
+import { MapPin, ChevronDown, Bell, MessageCircle, User, Plus, Menu, X, LogOut, Shield, Settings, Store, Users, Wrench, Calendar, Building2, Car } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
@@ -22,9 +22,17 @@ interface NavbarProps {
   onCityChange?: (city: string) => void;
 }
 
+const MORE_LINKS = [
+  { href: '/services',   label: 'Services',    icon: Wrench,    color: 'text-teal-600' },
+  { href: '/evenements', label: 'Événements',  icon: Calendar,  color: 'text-purple-600' },
+  { href: '/immobilier', label: 'Immobilier',  icon: Building2, color: 'text-amber-600' },
+  { href: '/vehicules',  label: 'Véhicules',   icon: Car,       color: 'text-sky-600' },
+];
+
 export default function Navbar({ selectedCity = 'Conakry', onCityChange }: NavbarProps) {
   const [cityOpen, setCityOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   const { user, isAuthenticated, _hasHydrated, logout } = useAuthStore();
   const loggedIn = _hasHydrated && isAuthenticated && !!user;
@@ -94,6 +102,27 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
                 {link.label}
               </Link>
             ))}
+            {/* Plus dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setMoreOpen(!moreOpen)}
+                onBlur={() => setTimeout(() => setMoreOpen(false), 150)}
+                className="flex items-center gap-1 px-3 py-2 text-dark-600 hover:text-primary-700 hover:bg-primary-50 rounded-xl text-sm font-medium transition-colors"
+              >
+                Plus <ChevronDown size={13} className={`transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {moreOpen && (
+                <div className="absolute top-full mt-1 left-0 bg-white rounded-xl border border-dark-100 shadow-card-hover py-1.5 min-w-[180px] z-50">
+                  {MORE_LINKS.map(({ href, label, icon: Icon, color }) => (
+                    <Link key={href} href={href}
+                      className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-dark-50 transition-colors text-sm text-dark-700 hover:text-dark-900"
+                      onClick={() => setMoreOpen(false)}>
+                      <Icon size={15} className={color} /> {label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Droite */}
@@ -181,6 +210,14 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
                 {link.label}
               </Link>
             ))}
+            <div className="border-t border-dark-100 pt-1 mt-1">
+              {MORE_LINKS.map(({ href, label, icon: Icon, color }) => (
+                <Link key={href} href={href} onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 text-dark-600 hover:text-primary-700 hover:bg-primary-50 rounded-xl text-sm font-medium transition-colors">
+                  <Icon size={14} className={color} /> {label}
+                </Link>
+              ))}
+            </div>
             <Link
               href="/parametres"
               onClick={() => setMobileOpen(false)}

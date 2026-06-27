@@ -321,7 +321,13 @@ export default function ParametresPage() {
 
                 {/* ── Thèmes spéciaux animés (visibles seulement si débloqués) ── */}
                 {(() => {
-                  const visibleSpecial = COLOR_THEMES.filter(ct => ct.isSpecial && !isThemeLocked(ct.id));
+                  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+                  const visibleSpecial = COLOR_THEMES.filter(ct =>
+                    ct.isSpecial &&
+                    // adminOnly: toujours visible pour l'admin, jamais pour les autres
+                    // isSpecial normal: visible si débloqué
+                    (ct.adminOnly ? isAdmin : !isThemeLocked(ct.id))
+                  );
                   if (visibleSpecial.length === 0) return null;
                   return (
                     <div>

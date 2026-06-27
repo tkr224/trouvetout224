@@ -10,10 +10,15 @@ router.use(authenticate, requireAdmin);
 
 router.get('/stats', async (req, res) => {
   try {
+    const now = Date.now();
+    const sevenDaysAgo   = new Date(now - 7  * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(now - 14 * 24 * 60 * 60 * 1000);
+
     const [
       totalUsers, totalAnnonces, totalMessages, totalJobs,
       activeAnnonces, pendingReports, totalRevenue, recentUsers,
       pendingJobs, totalRestaurants, pendingRestaurants,
+      recentAnnonces, prevWeekUsers, prevWeekAnnonces,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.annonce.count(),
@@ -22,10 +27,13 @@ router.get('/stats', async (req, res) => {
       prisma.annonce.count({ where: { status: 'ACTIVE' } }),
       prisma.report.count({ where: { status: 'PENDING' } }),
       prisma.payment.aggregate({ where: { status: 'SUCCESS' }, _sum: { amount: true } }),
-      prisma.user.count({ where: { createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } } }),
+      prisma.user.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
       prisma.job.count({ where: { status: 'PENDING_REVIEW' } }),
       prisma.restaurant.count(),
       prisma.restaurant.count({ where: { status: 'PENDING_REVIEW' } }),
+      prisma.annonce.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+      prisma.user.count({ where: { createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } }),
+      prisma.annonce.count({ where: { createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } }),
     ]);
     res.json({
       data: {
@@ -33,6 +41,7 @@ router.get('/stats', async (req, res) => {
         activeAnnonces, pendingReports,
         totalRevenue: totalRevenue._sum.amount || 0,
         recentUsers, pendingJobs, totalRestaurants, pendingRestaurants,
+        recentAnnonces, prevWeekUsers, prevWeekAnnonces,
       },
     });
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }

@@ -267,14 +267,27 @@ router.get('/me/stats', authenticate, async (req: any, res) => {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
     sevenDaysAgo.setHours(0, 0, 0, 0);
 
-    const recentMessages = await prisma.message.findMany({
-      where: {
-        senderId: { not: userId },
-        createdAt: { gte: sevenDaysAgo },
-        conversation: { participants: { some: { id: userId } } },
-      },
-      select: { createdAt: true },
-    });
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 13);
+    fourteenDaysAgo.setHours(0, 0, 0, 0);
+
+    const [recentMessages, prevWeekMessages] = await Promise.all([
+      prisma.message.findMany({
+        where: {
+          senderId: { not: userId },
+          createdAt: { gte: sevenDaysAgo },
+          conversation: { participants: { some: { id: userId } } },
+        },
+        select: { createdAt: true },
+      }),
+      prisma.message.count({
+        where: {
+          senderId: { not: userId },
+          createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo },
+          conversation: { participants: { some: { id: userId } } },
+        },
+      }),
+    ]);
 
     const viewsByDay = Array.from({ length: 7 }, (_, i) => {
       const d = new Date();
@@ -302,6 +315,7 @@ router.get('/me/stats', authenticate, async (req: any, res) => {
         avgRating: Number(avgRating.toFixed(1)), ratingsCount: ratings.length,
         subscribersCount, sellerLevel,
         topAnnonces, byStatus, byCategory, viewsByDay, allAnnonces,
+        weeklyMessages: recentMessages.length, prevWeekMessages,
       },
     });
   } catch (e) {

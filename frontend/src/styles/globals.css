@@ -334,6 +334,169 @@
   --p-900:  20  83  45;
 }
 
+/* ── 🚀 Thème 3D Futur (ADMIN ONLY) ─────────────────────────────────── */
+:root[data-color="futur3d"] {
+  --bg-page:  #03001e;
+  --card-bg:  #06003a;
+  --p-50:   0  20  60;
+  --p-100:  0  40  90;
+  --p-200:  0  80 160;
+  --p-300:  0 130 220;
+  --p-400:  0 180 255;
+  --p-500: 14 165 233;
+  --p-600:  0 200 255;
+  --p-700:  0 220 255;
+  --p-800:  0 180 220;
+  --p-900:  0 140 180;
+
+  --futur-glow:   0 0 20px rgba(0, 220, 255, 0.35), 0 0 60px rgba(0, 180, 255, 0.15);
+  --futur-border: rgba(0, 210, 255, 0.25);
+  --futur-scan:   rgba(0, 200, 255, 0.04);
+}
+
+/* Fond global 3D avec grille perspective */
+:root[data-color="futur3d"] body {
+  background: #03001e;
+  background-image:
+    linear-gradient(rgba(0, 200, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 200, 255, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  color: #e0f4ff;
+}
+
+/* Banderole admin */
+html[data-color="futur3d"] body::before {
+  content: '🚀 TROUVETOUT224 ◈ 3D FUTUR ◈ MODE ADMINISTRATEUR ◈ 🚀 TROUVETOUT224 ◈ 3D FUTUR ◈';
+  display: block; text-align: center; font-size: 10px; font-weight: 700;
+  padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: 0.25em;
+  background: linear-gradient(90deg, #03001e, #001040, #03001e);
+  color: #00dcff;
+  text-shadow: 0 0 10px #00dcff, 0 0 20px rgba(0,220,255,0.4);
+  font-family: 'Courier New', monospace;
+  border-bottom: 1px solid rgba(0, 220, 255, 0.3);
+  animation: futur3d-scan 20s linear infinite;
+}
+
+/* Couleur de fond de page */
+:root[data-color="futur3d"] .bg-dark-50 { background-color: #04002a; }
+
+/* Cards 3D */
+:root[data-color="futur3d"] .card {
+  background: linear-gradient(135deg, #060330 0%, #020220 100%);
+  border: 1px solid var(--futur-border, rgba(0, 210, 255, 0.25));
+  box-shadow: var(--futur-glow);
+  transform-style: preserve-3d;
+  transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1),
+              box-shadow 0.35s ease,
+              border-color 0.35s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+:root[data-color="futur3d"] .card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 220, 255, 0.06) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+:root[data-color="futur3d"] .card:hover {
+  transform: perspective(800px) rotateX(3deg) rotateY(-3deg) translateZ(8px);
+  box-shadow: 0 0 30px rgba(0, 220, 255, 0.45), 0 0 80px rgba(0, 180, 255, 0.2), 0 20px 40px rgba(0,0,0,0.6);
+  border-color: rgba(0, 220, 255, 0.55);
+}
+
+/* Boutons primaires */
+:root[data-color="futur3d"] .btn-primary {
+  background: linear-gradient(135deg, #0077b6 0%, #00b4d8 100%);
+  box-shadow: 0 0 12px rgba(0, 200, 255, 0.4), 0 4px 16px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 220, 255, 0.5);
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+:root[data-color="futur3d"] .btn-primary:hover {
+  box-shadow: 0 0 20px rgba(0, 220, 255, 0.6), 0 8px 24px rgba(0, 0, 0, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Inputs */
+:root[data-color="futur3d"] .input {
+  background: rgba(0, 20, 60, 0.7);
+  border-color: rgba(0, 180, 255, 0.3);
+  color: #d0efff;
+}
+
+:root[data-color="futur3d"] .input:focus {
+  border-color: #00dcff;
+  box-shadow: 0 0 0 2px rgba(0, 220, 255, 0.2), 0 0 12px rgba(0, 220, 255, 0.15);
+}
+
+/* Texts */
+:root[data-color="futur3d"] .text-dark-900 { color: #e0f4ff; }
+:root[data-color="futur3d"] .text-dark-700 { color: #b0dcf0; }
+:root[data-color="futur3d"] .text-dark-600 { color: #90c8e8; }
+:root[data-color="futur3d"] .text-dark-500 { color: #6aaec8; }
+:root[data-color="futur3d"] .text-dark-400 { color: #4a8ea8; }
+:root[data-color="futur3d"] .text-dark-300 { color: #2a6e88; }
+:root[data-color="futur3d"] .text-dark-200 { color: #1a4e68; }
+
+/* Skeleton adaptés */
+:root[data-color="futur3d"] .skeleton {
+  background: linear-gradient(90deg, #060330 25%, #0a0550 50%, #060330 75%);
+  background-size: 200% 100%;
+}
+
+/* Animation de scan (ligne lumineuse qui passe) */
+@keyframes futur3d-scan {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Effet de flottement sur les annonce-cards */
+:root[data-color="futur3d"] .annonce-card {
+  border: 1px solid rgba(0, 180, 255, 0.2);
+  background: linear-gradient(135deg, #060330 0%, #020220 100%);
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+:root[data-color="futur3d"] .annonce-card:hover {
+  transform: perspective(800px) rotateX(2deg) rotateY(-2deg) translateY(-6px) translateZ(4px);
+  box-shadow: 0 0 25px rgba(0, 220, 255, 0.35), 0 16px 40px rgba(0, 0, 0, 0.7);
+  border-color: rgba(0, 220, 255, 0.5);
+}
+
+/* Animation flottante pour les éléments hero */
+@keyframes futur3d-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+
+/* Glow pulsant sur les éléments accent */
+@keyframes futur3d-pulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(0, 220, 255, 0.3), 0 0 30px rgba(0, 180, 255, 0.1); }
+  50%       { box-shadow: 0 0 20px rgba(0, 220, 255, 0.5), 0 0 50px rgba(0, 180, 255, 0.25); }
+}
+
+:root[data-color="futur3d"] .btn-primary {
+  animation: futur3d-pulse 3s ease-in-out infinite;
+}
+
+/* Respect de la préférence "reduce-motion" */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-color="futur3d"] .card:hover,
+  :root[data-color="futur3d"] .annonce-card:hover {
+    transform: none;
+  }
+  :root[data-color="futur3d"] .btn-primary {
+    animation: none;
+  }
+  html[data-color="futur3d"] body::before {
+    animation: none;
+  }
+}
+
 /* ══════════════════════════════════════════════════════════════════════
    BASE STYLES
    ══════════════════════════════════════════════════════════════════════ */
@@ -395,6 +558,7 @@ body {
 :root[data-color="noel"]        .bg-dark-50 { background-color: var(--bg-page); }
 :root[data-color="ramadan"]     .bg-dark-50 { background-color: var(--bg-page); }
 :root[data-color="independence"].bg-dark-50 { background-color: var(--bg-page); }
+:root[data-color="futur3d"]    .bg-dark-50 { background-color: var(--bg-page); }
 
 /* ══════════════════════════════════════════════════════════════════════
    DIVERS

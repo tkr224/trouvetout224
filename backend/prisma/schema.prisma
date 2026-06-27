@@ -198,6 +198,17 @@ model Annonce {
   // Services
   serviceType  String?
 
+  // Événements
+  eventDate    DateTime?
+
+  // Véhicules
+  vehicleMake         String?
+  vehicleModel        String?
+  vehicleYear         Int?
+  vehicleMileage      Int?
+  vehicleFuel         String?
+  vehicleTransmission String?
+
   images       AnnonceImage[]
   status          AnnonceStatus @default(PENDING_REVIEW)
   rejectionReason String?

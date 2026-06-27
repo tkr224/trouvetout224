@@ -41,7 +41,9 @@ export type ColorAccent =
   | 'volcan'        // Volcan
   | 'orage'         // Orage / Tonnerre
   | 'desert'        // Désert
-  | 'cristal';      // Cristal
+  | 'cristal'       // Cristal
+  // ── Thème admin exclusif ──
+  | 'futur3d';     // 3D Futur (admin only)
 
 export type SpecialTheme =
   | 'noel'          // Noël
@@ -54,9 +56,10 @@ export const COLOR_THEMES: {
   id: ColorAccent;
   label: string;
   emoji: string;
-  hex: string;       // couleur pour aperçu en mode clair
-  hexDark: string;   // couleur pour aperçu en mode sombre
+  hex: string;        // couleur pour aperçu en mode clair
+  hexDark: string;    // couleur pour aperçu en mode sombre
   isSpecial?: boolean; // true = réservé, nécessite un accès admin
+  adminOnly?: boolean; // true = visible UNIQUEMENT pour ADMIN/SUPER_ADMIN, jamais pour les utilisateurs
 }[] = [
   // ── Thèmes de BASE (libres pour tous) ──
   { id: 'green',       label: 'Vert Guinée',       emoji: '🌿', hex: '#1B8B3B', hexDark: '#4ade80' },
@@ -95,6 +98,8 @@ export const COLOR_THEMES: {
   { id: 'orage',   label: 'Orage / Tonnerre',emoji: '⚡', hex: '#1e3a5f', hexDark: '#fde047', isSpecial: true },
   { id: 'desert',  label: 'Désert',          emoji: '🏜️', hex: '#b45309', hexDark: '#fcd34d', isSpecial: true },
   { id: 'cristal', label: 'Cristal',         emoji: '💎', hex: '#0891b2', hexDark: '#a5f3fc', isSpecial: true },
+  // ── Thème exclusif Admin ──
+  { id: 'futur3d', label: '3D Futur',        emoji: '🚀', hex: '#0ea5e9', hexDark: '#38bdf8', isSpecial: true, adminOnly: true },
 ];
 
 export const SPECIAL_THEMES: {

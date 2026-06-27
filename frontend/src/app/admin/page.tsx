@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Users, ShoppingBag, AlertTriangle, UserPlus,
-  TrendingUp, Activity, ArrowRight,
+  TrendingUp, TrendingDown, Activity, ArrowRight, Minus,
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -19,9 +19,31 @@ type Stats = {
   recentUsers: number;
   totalRevenue: number;
   totalMessages: number;
+  recentAnnonces: number;
+  prevWeekUsers: number;
+  prevWeekAnnonces: number;
 };
 
 type ChartPoint = { date: string; users: number; annonces: number };
+
+function TrendBadge({ current, previous }: { current: number; previous: number }) {
+  const diff = previous === 0
+    ? (current > 0 ? 100 : 0)
+    : Math.round(((current - previous) / previous) * 100);
+
+  if (Math.abs(diff) < 2) return (
+    <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-dark-400">
+      <Minus size={11} /> stable
+    </span>
+  );
+  const up = diff > 0;
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-xs font-bold ${up ? 'text-green-600' : 'text-red-500'}`}>
+      {up ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+      {up ? '+' : ''}{diff}%
+    </span>
+  );
+}
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -46,6 +68,12 @@ export default function AdminDashboard() {
     );
   }
 
+  // Trend for the chart: compare sum of first half vs second half of the 7-day period
+  const chartTotal = chart.reduce((s, d) => s + d.users + d.annonces, 0);
+  const firstHalf  = chart.slice(0, 3).reduce((s, d) => s + d.users + d.annonces, 0);
+  const secondHalf = chart.slice(4).reduce((s, d) => s + d.users + d.annonces, 0);
+  const chartTrend = firstHalf === 0 ? 0 : Math.round(((secondHalf - firstHalf) / firstHalf) * 100);
+
   const CARDS = [
     {
       label: 'Utilisateurs',
@@ -54,6 +82,8 @@ export default function AdminDashboard() {
       iconClass: 'text-blue-600 bg-blue-50',
       sub: `+${stats?.recentUsers ?? 0} cette semaine`,
       href: '/admin/utilisateurs',
+      current: stats?.recentUsers ?? 0,
+      previous: stats?.prevWeekUsers ?? 0,
     },
     {
       label: 'Annonces actives',
@@ -62,6 +92,8 @@ export default function AdminDashboard() {
       iconClass: 'text-primary-700 bg-primary-50',
       sub: `${stats?.totalAnnonces ?? 0} au total`,
       href: '/admin/annonces',
+      current: stats?.recentAnnonces ?? 0,
+      previous: stats?.prevWeekAnnonces ?? 0,
     },
     {
       label: 'Signalements',
@@ -72,6 +104,8 @@ export default function AdminDashboard() {
         : 'text-dark-500 bg-dark-100',
       sub: 'En attente de traitement',
       href: '/admin/signalements',
+      current: null,
+      previous: null,
     },
     {
       label: 'Nouveaux inscrits',
@@ -80,6 +114,8 @@ export default function AdminDashboard() {
       iconClass: 'text-gold-600 bg-gold-50',
       sub: 'Ces 7 derniers jours',
       href: '/admin/utilisateurs',
+      current: stats?.recentUsers ?? 0,
+      previous: stats?.prevWeekUsers ?? 0,
     },
   ];
 
@@ -103,7 +139,11 @@ export default function AdminDashboard() {
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${card.iconClass}`}>
                 <card.icon size={22} />
               </div>
-              <TrendingUp size={16} className="text-primary-500 opacity-60 group-hover:opacity-100 transition-opacity" />
+              {card.current !== null && card.previous !== null ? (
+                <TrendBadge current={card.current} previous={card.previous} />
+              ) : (
+                <TrendingUp size={16} className="text-primary-500 opacity-60 group-hover:opacity-100 transition-opacity" />
+              )}
             </div>
             <p className="text-3xl font-bold text-dark-900">
               {card.value.toLocaleString('fr-FR')}
@@ -116,18 +156,34 @@ export default function AdminDashboard() {
 
       {/* Graphique d'activité */}
       <div className="bg-white rounded-2xl p-6 shadow-card">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
-            <Activity size={20} className="text-primary-700" />
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
+              <Activity size={20} className="text-primary-700" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-dark-900 flex items-center gap-2">
+                Activité des 7 derniers jours
+              </h2>
+              <p className="text-dark-400 text-xs">
+                Nouveaux utilisateurs et annonces publiées
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base font-semibold text-dark-900">
-              Activité des 7 derniers jours
-            </h2>
-            <p className="text-dark-400 text-xs">
-              Nouveaux utilisateurs et annonces publiées
-            </p>
-          </div>
+          {chartTotal > 0 && (
+            <div className={`flex items-center gap-1.5 text-sm font-bold px-3 py-1.5 rounded-xl ${
+              chartTrend > 2 ? 'bg-green-100 text-green-700' :
+              chartTrend < -2 ? 'bg-red-100 text-red-600' :
+              'bg-dark-100 text-dark-500'
+            }`}>
+              {chartTrend > 2 ? <TrendingUp size={15} /> :
+               chartTrend < -2 ? <TrendingDown size={15} /> :
+               <Minus size={15} />}
+              {chartTrend > 2 ? `+${chartTrend}%` :
+               chartTrend < -2 ? `${chartTrend}%` : 'Stable'}
+              <span className="font-normal text-xs opacity-70 ml-0.5">vs sem. préc.</span>
+            </div>
+          )}
         </div>
         <ResponsiveContainer width="100%" height={280}>
           <AreaChart data={chart} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>

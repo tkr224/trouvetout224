@@ -115,6 +115,9 @@ function PublierAnnonceContent() {
     cuisineType: '', priceRange: '',
     plotType: '', hasTitleDeed: false,
     serviceType: '',
+    eventDate: '',
+    vehicleMake: '', vehicleModel: '', vehicleYear: '', vehicleMileage: '',
+    vehicleFuel: '', vehicleTransmission: '',
   });
 
   useEffect(() => {
@@ -173,6 +176,13 @@ function PublierAnnonceContent() {
           plotType:     a.plotType || '',
           hasTitleDeed: a.hasTitleDeed || false,
           serviceType:  a.serviceType || '',
+          eventDate:    a.eventDate ? new Date(a.eventDate).toISOString().split('T')[0] : '',
+          vehicleMake:  a.vehicleMake || '',
+          vehicleModel: a.vehicleModel || '',
+          vehicleYear:  a.vehicleYear ? String(a.vehicleYear) : '',
+          vehicleMileage: a.vehicleMileage ? String(a.vehicleMileage) : '',
+          vehicleFuel:  a.vehicleFuel || '',
+          vehicleTransmission: a.vehicleTransmission || '',
         }));
         setStep(2);
       })
@@ -230,8 +240,10 @@ function PublierAnnonceContent() {
       const isHotel          = selectedCategory === 'hotels';
       const isRestaurant     = selectedCategory === 'restaurants';
       const isTerrain        = selectedCategory === 'terrains';
+      const isVehicule       = selectedCategory === 'vehicules';
+      const isEvenement      = selectedCategory === 'evenements';
       const isImmoNonTerrain = listingType === 'immobilier' && !isTerrain;
-      const isGenericService = listingType === 'service' && !isHotel && !isRestaurant;
+      const isGenericService = listingType === 'service' && !isHotel && !isRestaurant && !isEvenement;
 
       const payload = {
         ...form,
@@ -246,6 +258,14 @@ function PublierAnnonceContent() {
         plotType:     isTerrain     ? (form.plotType     || undefined) : undefined,
         hasTitleDeed: isTerrain     ? form.hasTitleDeed : undefined,
         serviceType:  isGenericService ? (form.serviceType || undefined) : undefined,
+        eventDate:    isEvenement   ? (form.eventDate || undefined) : undefined,
+        vehicleMake:  isVehicule    ? (form.vehicleMake || undefined) : undefined,
+        vehicleModel: isVehicule    ? (form.vehicleModel || undefined) : undefined,
+        vehicleYear:  isVehicule    ? (form.vehicleYear || undefined) : undefined,
+        vehicleMileage: isVehicule  ? (form.vehicleMileage || undefined) : undefined,
+        vehicleFuel:  isVehicule    ? (form.vehicleFuel || undefined) : undefined,
+        vehicleTransmission: isVehicule ? (form.vehicleTransmission || undefined) : undefined,
+        condition:    isVehicule    ? (form.condition || undefined) : form.condition || undefined,
       };
 
       if (editId) {
@@ -672,8 +692,8 @@ function PublierAnnonceContent() {
                 </div>
               )}
 
-              {/* Services génériques */}
-              {listingType === 'service' && !['hotels', 'restaurants'].includes(selectedCategory) && (
+              {/* Services génériques (hors événements) */}
+              {listingType === 'service' && !['hotels', 'restaurants', 'evenements'].includes(selectedCategory) && (
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-dark-700 mb-1.5">Type de service</label>
@@ -692,6 +712,116 @@ function PublierAnnonceContent() {
                       className="accent-primary-700 w-4 h-4" />
                     <span className="text-sm font-medium text-dark-700">Tarif négociable / sur devis</span>
                   </label>
+                </div>
+              )}
+
+              {/* Événements */}
+              {selectedCategory === 'evenements' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Type d'événement</label>
+                      <div className="flex gap-2 flex-wrap">
+                        {['Concert & Musique', 'Mariage & Cérémonie', 'Formation & Séminaire', 'Fête & Soirée', 'Conférence', 'Sport', 'Exposition', 'Autre'].map(t => (
+                          <button key={t} type="button" onClick={() => set('serviceType', form.serviceType === t ? '' : t)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-medium border-2 transition-colors ${
+                              form.serviceType === t ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'
+                            }`}>
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Date de l'événement</label>
+                      <input value={form.eventDate} onChange={e => set('eventDate', e.target.value)}
+                        type="date" className="input" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">
+                        Prix d'entrée (GNF) <span className="text-dark-400 font-normal">- 0 si gratuit</span>
+                      </label>
+                      <input value={form.price} onChange={e => set('price', e.target.value)}
+                        type="number" placeholder="Ex: 50000" className="input" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Véhicules */}
+              {selectedCategory === 'vehicules' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Marque</label>
+                      <input value={form.vehicleMake} onChange={e => set('vehicleMake', e.target.value)}
+                        placeholder="Ex: Toyota, Honda..." className="input" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Modèle</label>
+                      <input value={form.vehicleModel} onChange={e => set('vehicleModel', e.target.value)}
+                        placeholder="Ex: Hilux, Civic..." className="input" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Année</label>
+                      <input value={form.vehicleYear} onChange={e => set('vehicleYear', e.target.value)}
+                        type="number" placeholder="Ex: 2018" className="input" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Kilométrage</label>
+                      <input value={form.vehicleMileage} onChange={e => set('vehicleMileage', e.target.value)}
+                        type="number" placeholder="Ex: 80000" className="input" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Prix (GNF)</label>
+                      <input value={form.price} onChange={e => set('price', e.target.value)}
+                        type="number" placeholder="Ex: 80000000" className="input" />
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer select-none self-end pb-3">
+                      <input type="checkbox" checked={form.isNegotiable} onChange={e => set('isNegotiable', e.target.checked)}
+                        className="accent-primary-700 w-4 h-4" />
+                      <span className="text-sm font-medium text-dark-700">Prix négociable</span>
+                    </label>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Carburant</label>
+                      <div className="flex gap-2 flex-wrap">
+                        {['Essence', 'Diesel', 'Hybride', 'Électrique', 'GPL'].map(f => (
+                          <button key={f} type="button" onClick={() => set('vehicleFuel', form.vehicleFuel === f ? '' : f)}
+                            className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-colors ${
+                              form.vehicleFuel === f ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'
+                            }`}>
+                            {f}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Transmission</label>
+                      <div className="flex gap-2">
+                        {['Manuelle', 'Automatique'].map(t => (
+                          <button key={t} type="button" onClick={() => set('vehicleTransmission', form.vehicleTransmission === t ? '' : t)}
+                            className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition-colors ${
+                              form.vehicleTransmission === t ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'
+                            }`}>
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">État du véhicule</label>
+                      <div className="flex gap-2 flex-wrap">
+                        {['Neuf', 'Très bon état', 'Bon état', 'Occasion', 'À réviser'].map(c => (
+                          <button key={c} type="button" onClick={() => set('condition', form.condition === c ? '' : c)}
+                            className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-colors ${
+                              form.condition === c ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'
+                            }`}>
+                            {c}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

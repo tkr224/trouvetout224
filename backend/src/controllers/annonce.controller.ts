@@ -26,7 +26,12 @@ async function resolveCityId(value: string): Promise<string | null> {
 // ============================
 export const getAnnonces = async (req: Request, res: Response) => {
   try {
-    const { page = '1', limit = '20', categoryId, cityId, minPrice, maxPrice, sort = 'recent', q, neighborhood, condition, listingType, bedrooms } = req.query;
+    const {
+      page = '1', limit = '20', categoryId, cityId, minPrice, maxPrice, sort = 'recent', q,
+      neighborhood, condition, listingType, bedrooms, contractType,
+      serviceType, vehicleMake, vehicleFuel, vehicleTransmission, vehicleYearMin, vehicleYearMax,
+      eventDateFrom,
+    } = req.query;
     const pageNum = parseInt(page as string);
     const limitNum = parseInt(limit as string);
     const skip = (pageNum - 1) * limitNum;
@@ -52,7 +57,15 @@ export const getAnnonces = async (req: Request, res: Response) => {
     if (q) where.OR = [{ title: { contains: q, mode: 'insensitive' } }, { description: { contains: q, mode: 'insensitive' } }];
     if (condition) where.condition = condition as string;
     if (listingType) where.listingType = listingType as string;
+    if (contractType) where.contractType = contractType as string;
     if (bedrooms) where.bedrooms = { gte: parseInt(bedrooms as string) };
+    if (serviceType) where.serviceType = { contains: serviceType as string, mode: 'insensitive' };
+    if (vehicleMake) where.vehicleMake = { contains: vehicleMake as string, mode: 'insensitive' };
+    if (vehicleFuel) where.vehicleFuel = vehicleFuel as string;
+    if (vehicleTransmission) where.vehicleTransmission = vehicleTransmission as string;
+    if (vehicleYearMin) where.vehicleYear = { ...where.vehicleYear, gte: parseInt(vehicleYearMin as string) };
+    if (vehicleYearMax) where.vehicleYear = { ...where.vehicleYear, lte: parseInt(vehicleYearMax as string) };
+    if (eventDateFrom) where.eventDate = { gte: new Date(eventDateFrom as string) };
 
     let orderBy: any = { createdAt: 'desc' };
     if (sort === 'popular') orderBy = { viewCount: 'desc' };
@@ -151,6 +164,7 @@ export const createAnnonce = async (req: Request, res: Response) => {
       title, description, price, isNegotiable, categoryId, cityId, neighborhood, phone, whatsapp, duration = 7, images = [],
       quantity, condition, listingType, bedrooms, surface, contractType, salary, experience,
       stars, amenities, isFurnished, cuisineType, priceRange, plotType, hasTitleDeed, serviceType,
+      eventDate, vehicleMake, vehicleModel, vehicleYear, vehicleMileage, vehicleFuel, vehicleTransmission,
     } = req.body;
 
     const realCategoryId = await resolveCategoryId(categoryId);
@@ -205,6 +219,13 @@ export const createAnnonce = async (req: Request, res: Response) => {
         plotType: plotType || null,
         hasTitleDeed: hasTitleDeed !== undefined && hasTitleDeed !== '' ? Boolean(hasTitleDeed) : null,
         serviceType: serviceType || null,
+        eventDate: eventDate ? new Date(eventDate) : null,
+        vehicleMake: vehicleMake || null,
+        vehicleModel: vehicleModel || null,
+        vehicleYear: vehicleYear ? parseInt(vehicleYear) : null,
+        vehicleMileage: vehicleMileage ? parseInt(vehicleMileage) : null,
+        vehicleFuel: vehicleFuel || null,
+        vehicleTransmission: vehicleTransmission || null,
         images: { create: images.map((img: any, index: number) => ({ url: img.url, publicId: img.publicId, order: index })) },
       },
       include: { images: true, category: true, city: true },
@@ -299,6 +320,13 @@ export const updateAnnonce = async (req: Request, res: Response) => {
         plotType:     str(updates.plotType),
         hasTitleDeed: bool(updates.hasTitleDeed),
         serviceType:  str(updates.serviceType),
+        eventDate:    updates.eventDate !== undefined ? (updates.eventDate ? new Date(updates.eventDate) : null) : undefined,
+        vehicleMake:  str(updates.vehicleMake),
+        vehicleModel: str(updates.vehicleModel),
+        vehicleYear:  int(updates.vehicleYear),
+        vehicleMileage: int(updates.vehicleMileage),
+        vehicleFuel:  str(updates.vehicleFuel),
+        vehicleTransmission: str(updates.vehicleTransmission),
       },
       include: { images: true, category: true, city: true },
     });
