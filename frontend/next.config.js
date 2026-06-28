@@ -28,7 +28,7 @@ const securityHeaders = [
       // Images : Cloudinary (annonces), Google (avatars OAuth), Unsplash (placeholders), blobs (canvas Three.js)
       "img-src 'self' data: blob: https://res.cloudinary.com https://lh3.googleusercontent.com https://images.unsplash.com",
       // API backend + WebSocket (prod + dev)
-      "connect-src 'self' https://api.trouvetout224.site wss://api.trouvetout224.site http://localhost:5000 ws://localhost:5000",
+      "connect-src 'self' https://api.trouvetout224.site wss://api.trouvetout224.site https://trouvetout224-production.up.railway.app wss://trouvetout224-production.up.railway.app http://localhost:5000 ws://localhost:5000",
       // Workers Three.js peuvent utiliser des blobs
       "worker-src blob: 'self'",
       "media-src 'self' blob:",
