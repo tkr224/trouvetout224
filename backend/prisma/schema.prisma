@@ -220,6 +220,8 @@ model Annonce {
   promoPrice       Float?
   promoEndsAt      DateTime?
   isPinned         Boolean       @default(false)
+  soldPrice        Float?
+  soldAt           DateTime?
   slug             String        @unique
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt

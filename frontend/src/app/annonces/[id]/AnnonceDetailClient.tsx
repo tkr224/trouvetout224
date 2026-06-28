@@ -8,6 +8,7 @@ import {
   Star, BadgeCheck, User, ShieldAlert, ImageIcon, ExternalLink,
   AlertTriangle, AlertCircle, HelpCircle, PackageX, DollarSign,
   ArrowRight, Sparkles, History, Send, Loader2, Tag, ShieldCheck,
+  CheckCircle2, RotateCcw, TrendingUp,
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import { useAnnonce } from '@/hooks/useAnnonces';
@@ -41,6 +42,10 @@ export default function AnnonceDetailPage() {
   const [showContactModal, setShowContactModal] = useState(false);
   const [contactMessage, setContactMessage] = useState('');
   const [sendingMsg, setSendingMsg] = useState(false);
+  const [showSoldModal, setShowSoldModal] = useState(false);
+  const [soldPrice, setSoldPrice] = useState('');
+  const [soldAt, setSoldAt] = useState('');
+  const [markingSold, setMarkingSold] = useState(false);
   const [similar, setSimilar] = useState<any[]>([]);
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
@@ -200,6 +205,33 @@ export default function AnnonceDetailPage() {
     } catch { toast.error('Erreur lors de la suppression'); }
   };
 
+  const openSoldModal = () => {
+    setSoldPrice(annonce.price != null ? String(annonce.price) : '');
+    setSoldAt(new Date().toISOString().split('T')[0]);
+    setShowSoldModal(true);
+  };
+
+  const handleMarkSold = async () => {
+    if (!soldPrice || Number(soldPrice) <= 0) { toast.error('Entrez un prix de vente valide.'); return; }
+    setMarkingSold(true);
+    try {
+      await api.put(`/annonces/${annonce.id}/mark-sold`, { soldPrice: Number(soldPrice), soldAt: soldAt || undefined });
+      toast.success('Annonce marquée comme vendue !');
+      setShowSoldModal(false);
+      setTimeout(() => window.location.reload(), 800);
+    } catch { toast.error('Erreur lors de la mise à jour.'); }
+    finally { setMarkingSold(false); }
+  };
+
+  const handleReactivate = async () => {
+    if (!confirm('Réactiver cette annonce et la remettre en vente ?')) return;
+    try {
+      await api.put(`/annonces/${annonce.id}/reactivate`);
+      toast.success('Annonce réactivée avec succès.');
+      setTimeout(() => window.location.reload(), 800);
+    } catch { toast.error('Erreur lors de la réactivation.'); }
+  };
+
   const submitReport = async () => {
     if (!reportReason) { toast.error('Choisissez une raison'); return; }
     if (!isAuthenticated) { toast.error('Connectez-vous pour signaler'); router.push('/auth/connexion'); return; }
@@ -260,14 +292,33 @@ export default function AnnonceDetailPage() {
               {annonce.status === 'SUSPENDED' && (
                 <span className="bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-semibold">Masquée</span>
               )}
+              {annonce.status === 'SOLD' && (
+                <span className="bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1">
+                  <CheckCircle2 size={11} /> Vendue
+                </span>
+              )}
             </p>
             <div className="flex gap-2 flex-wrap">
-              <button onClick={handleEdit} className="flex items-center gap-1.5 bg-white border border-dark-200 text-dark-700 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-primary-50 hover:border-primary-300 transition-all shadow-sm">
-                <Edit size={14} /> Modifier
-              </button>
-              <button onClick={handleHide} className="flex items-center gap-1.5 bg-white border border-dark-200 text-dark-700 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-dark-50 transition-all shadow-sm">
-                <EyeOff size={14} /> {annonce.status === 'ACTIVE' ? 'Masquer' : 'Réafficher'}
-              </button>
+              {annonce.status !== 'SOLD' && (
+                <button onClick={handleEdit} className="flex items-center gap-1.5 bg-white border border-dark-200 text-dark-700 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-primary-50 hover:border-primary-300 transition-all shadow-sm">
+                  <Edit size={14} /> Modifier
+                </button>
+              )}
+              {annonce.status !== 'SOLD' && (
+                <button onClick={handleHide} className="flex items-center gap-1.5 bg-white border border-dark-200 text-dark-700 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-dark-50 transition-all shadow-sm">
+                  <EyeOff size={14} /> {annonce.status === 'ACTIVE' ? 'Masquer' : 'Réafficher'}
+                </button>
+              )}
+              {annonce.status !== 'SOLD' && (
+                <button onClick={openSoldModal} className="flex items-center gap-1.5 bg-white border border-blue-200 text-blue-700 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-blue-50 transition-all shadow-sm">
+                  <CheckCircle2 size={14} /> Marquer vendu
+                </button>
+              )}
+              {annonce.status === 'SOLD' && (
+                <button onClick={handleReactivate} className="flex items-center gap-1.5 bg-white border border-primary-200 text-primary-700 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-primary-50 transition-all shadow-sm">
+                  <RotateCcw size={14} /> Réactiver
+                </button>
+              )}
               <button onClick={handleDeleteAnnonce} className="flex items-center gap-1.5 bg-white border border-guinea-200 text-guinea-600 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-guinea-50 transition-all shadow-sm">
                 <Trash2 size={14} /> Supprimer
               </button>
@@ -755,6 +806,97 @@ export default function AnnonceDetailPage() {
                 <ExternalLink size={17} className="text-blue-600 shrink-0" />
                 <span className="text-sm font-medium text-dark-700">Partager sur Facebook</span>
               </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Marquer comme vendu ───────────────────────────── */}
+      {showSoldModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4" onClick={() => setShowSoldModal(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-dark-100">
+              <h3 className="font-display font-bold text-dark-900 text-base flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-blue-600" /> Marquer comme vendu
+              </h3>
+              <button onClick={() => setShowSoldModal(false)} className="w-8 h-8 rounded-full flex items-center justify-center text-dark-400 hover:bg-dark-100 transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="px-5 pt-4 pb-3">
+              <div className="flex gap-3 bg-dark-50 border border-dark-100 rounded-xl p-3 mb-4">
+                {images.length > 0 ? (
+                  <img src={images[0].url} alt={annonce.title} className="w-14 h-14 rounded-xl object-cover shrink-0" />
+                ) : (
+                  <div className="w-14 h-14 rounded-xl bg-dark-100 flex items-center justify-center shrink-0">
+                    <ImageIcon size={20} className="text-dark-300" />
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-dark-900 line-clamp-2 leading-snug">{annonce.title}</p>
+                  {annonce.price != null && (
+                    <p className="text-dark-400 text-xs mt-0.5">Prix affiché : {annonce.price.toLocaleString('fr-GN')} GNF</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-dark-800 mb-1.5">
+                    Prix réel de vente <span className="text-guinea-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="1"
+                      value={soldPrice}
+                      onChange={e => setSoldPrice(e.target.value)}
+                      placeholder="Ex: 450000"
+                      className="input pr-14 w-full"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-dark-400">GNF</span>
+                  </div>
+                  <p className="text-xs text-dark-400 mt-1">Modifiez si le prix négocié diffère du prix affiché.</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-dark-800 mb-1.5">
+                    Date de vente <span className="text-dark-400 font-normal">(optionnel)</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={soldAt}
+                    onChange={e => setSoldAt(e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
+                    className="input w-full"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5">
+                <TrendingUp size={14} className="text-blue-600 shrink-0 mt-0.5" />
+                <p className="text-[11px] text-blue-800 leading-relaxed">
+                  Cette vente sera comptabilisée dans vos statistiques. L&apos;annonce sera retirée des recherches actives.
+                </p>
+              </div>
+            </div>
+
+            <div className="px-5 pb-5 flex gap-2 pt-2">
+              <button
+                onClick={() => setShowSoldModal(false)}
+                className="flex-1 py-2.5 rounded-xl border border-dark-200 text-dark-600 text-sm font-semibold hover:bg-dark-50 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleMarkSold}
+                disabled={markingSold || !soldPrice || Number(soldPrice) <= 0}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {markingSold ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={15} />}
+                {markingSold ? 'Enregistrement...' : 'Confirmer la vente'}
+              </button>
             </div>
           </div>
         </div>

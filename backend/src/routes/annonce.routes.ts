@@ -121,4 +121,42 @@ router.delete('/:id/pin', authenticate, async (req: any, res) => {
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
+// ── Suivi des ventes ─────────────────────────────────────────────────────────
+
+router.put('/:id/mark-sold', authenticate, async (req: any, res) => {
+  try {
+    const { soldPrice, soldAt } = req.body;
+    if (!soldPrice || Number(soldPrice) <= 0) {
+      return res.status(400).json({ error: 'Le prix de vente doit être supérieur à 0.' });
+    }
+    const annonce = await prisma.annonce.findUnique({ where: { id: req.params.id } });
+    if (!annonce) return res.status(404).json({ error: 'Annonce introuvable.' });
+    if (annonce.userId !== req.userId) return res.status(403).json({ error: 'Non autorisé.' });
+    if (annonce.status === 'SOLD') return res.status(400).json({ error: 'Annonce déjà marquée comme vendue.' });
+    const updated = await prisma.annonce.update({
+      where: { id: req.params.id },
+      data: {
+        status: 'SOLD',
+        soldPrice: parseFloat(String(soldPrice)),
+        soldAt: soldAt ? new Date(soldAt) : new Date(),
+      },
+    });
+    res.json({ message: 'Annonce marquée comme vendue.', data: updated });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.put('/:id/reactivate', authenticate, async (req: any, res) => {
+  try {
+    const annonce = await prisma.annonce.findUnique({ where: { id: req.params.id } });
+    if (!annonce) return res.status(404).json({ error: 'Annonce introuvable.' });
+    if (annonce.userId !== req.userId) return res.status(403).json({ error: 'Non autorisé.' });
+    if (annonce.status !== 'SOLD') return res.status(400).json({ error: "Cette annonce n'est pas vendue." });
+    const updated = await prisma.annonce.update({
+      where: { id: req.params.id },
+      data: { status: 'ACTIVE', soldPrice: null, soldAt: null },
+    });
+    res.json({ message: 'Annonce réactivée avec succès.', data: updated });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
 export default router;

@@ -9,6 +9,7 @@ import {
   Settings, Plus, Star, Eye, ShoppingBag, LogOut, Share2, Camera, Loader2,
   Store, BadgeCheck, Lock, ClipboardList, Heart, Bookmark, Trash2, Search,
   Clock, CheckCircle, XCircle, PauseCircle, AlertCircle,
+  TrendingUp, CheckCircle2, ImageIcon,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -17,7 +18,8 @@ export default function ProfilPage() {
   const [myAnnonces, setMyAnnonces] = useState<any[]>([]);
   const [favoris, setFavoris] = useState<any[]>([]);
   const [savedSearches, setSavedSearches] = useState<any[]>([]);
-  const [tab, setTab] = useState<'annonces' | 'favoris' | 'recherches'>('annonces');
+  const [salesStats, setSalesStats] = useState<any>(null);
+  const [tab, setTab] = useState<'annonces' | 'favoris' | 'recherches' | 'ventes'>('annonces');
   const [loading, setLoading] = useState(true);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
@@ -31,6 +33,7 @@ export default function ProfilPage() {
       api.get('/annonces/me').then(r => { setMyAnnonces(r.data.data || []); setLoading(false); }).catch(() => setLoading(false));
       api.get('/annonces/saved').then(r => setFavoris(r.data.data || [])).catch(() => {});
       api.get('/saved-searches').then(r => setSavedSearches(r.data.data || [])).catch(() => {});
+      api.get('/users/me/sales-stats').then(r => setSalesStats(r.data.data)).catch(() => {});
     }
   }, [user]);
 
@@ -198,6 +201,7 @@ export default function ProfilPage() {
             { k: 'annonces',   l: `Mes annonces (${myAnnonces.length})` },
             { k: 'favoris',    l: `Mes favoris (${favoris.length})` },
             { k: 'recherches', l: `Recherches (${savedSearches.length})` },
+            { k: 'ventes',     l: `Mes ventes${salesStats ? ` (${salesStats.total.count})` : ''}` },
           ].map(t => (
             <button key={t.k} onClick={() => setTab(t.k as any)}
               className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap
@@ -337,6 +341,80 @@ export default function ProfilPage() {
             </div>
           )
         )}
+        {/* Mes ventes */}
+        {tab === 'ventes' && (
+          salesStats === null ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="card p-5"><div className="skeleton h-8 w-3/4 mx-auto" /></div>
+              ))}
+            </div>
+          ) : salesStats.total.count === 0 ? (
+            <div className="bg-white rounded-2xl border border-dark-100 shadow-card p-14 text-center">
+              <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <TrendingUp size={28} className="text-blue-300" />
+              </div>
+              <p className="font-semibold text-dark-700 text-lg">Aucune vente enregistrée</p>
+              <p className="text-dark-500 text-sm mt-1">Marquez une annonce comme vendue depuis sa page pour suivre vos ventes.</p>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {/* Cartes stats */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {[
+                  { label: 'Total ventes', value: salesStats.total.count, sub: `${(salesStats.total.revenue || 0).toLocaleString('fr-GN')} GNF`, color: 'bg-blue-100 text-blue-700' },
+                  { label: 'Ce mois-ci', value: salesStats.thisMonth.count, sub: `${(salesStats.thisMonth.revenue || 0).toLocaleString('fr-GN')} GNF`, color: 'bg-primary-100 text-primary-700' },
+                  { label: 'Cette semaine', value: salesStats.thisWeek.count, sub: `${(salesStats.thisWeek.revenue || 0).toLocaleString('fr-GN')} GNF`, color: 'bg-gold-100 text-gold-700' },
+                ].map((s, i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-dark-100 shadow-card p-4 text-center">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 ${s.color}`}>
+                      <TrendingUp size={18} />
+                    </div>
+                    <p className="text-2xl font-bold text-dark-900">{s.value}</p>
+                    <p className="text-dark-500 text-xs mt-0.5">{s.label}</p>
+                    <p className="text-primary-700 font-semibold text-xs mt-1">{s.sub}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Top produits */}
+              {salesStats.topProducts.length > 0 && (
+                <div className="bg-white rounded-2xl border border-dark-100 shadow-card overflow-hidden">
+                  <div className="px-5 py-4 border-b border-dark-100 flex items-center gap-2">
+                    <CheckCircle2 size={16} className="text-blue-600" />
+                    <h3 className="font-display font-bold text-dark-900 text-base">Produits vendus</h3>
+                  </div>
+                  <div className="divide-y divide-dark-50">
+                    {salesStats.topProducts.map((p: any, i: number) => (
+                      <div key={p.id} className="flex items-center gap-3 px-5 py-3">
+                        <span className="text-dark-300 text-sm font-bold w-5 text-center">{i + 1}</span>
+                        {p.images?.[0]?.url ? (
+                          <img src={p.images[0].url} alt={p.title} className="w-11 h-11 rounded-xl object-cover shrink-0" />
+                        ) : (
+                          <div className="w-11 h-11 rounded-xl bg-dark-100 flex items-center justify-center shrink-0">
+                            <ImageIcon size={16} className="text-dark-300" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-dark-900 line-clamp-1">{p.title}</p>
+                          {p.soldAt && (
+                            <p className="text-xs text-dark-400 mt-0.5">
+                              {new Date(p.soldAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            </p>
+                          )}
+                        </div>
+                        <p className="text-primary-700 font-bold text-sm shrink-0">
+                          {(p.soldPrice || 0).toLocaleString('fr-GN')} GNF
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        )}
+
       </div>
     </div>
   );

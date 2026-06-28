@@ -71,6 +71,47 @@ router.get('/stats/chart', async (req, res) => {
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
+// ─── Statistiques de ventes ───────────────────────────────────────────────────
+
+router.get('/sales-stats', async (req, res) => {
+  try {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+    const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+
+    const [total, thisMonth, thisWeek, prevMonth, topSellersRaw, topCategoriesRaw] = await Promise.all([
+      prisma.annonce.aggregate({ where: { status: 'SOLD', soldPrice: { not: null } }, _sum: { soldPrice: true }, _count: { id: true } }),
+      prisma.annonce.aggregate({ where: { status: 'SOLD', soldAt: { gte: startOfMonth }, soldPrice: { not: null } }, _sum: { soldPrice: true }, _count: { id: true } }),
+      prisma.annonce.aggregate({ where: { status: 'SOLD', soldAt: { gte: startOfWeek }, soldPrice: { not: null } }, _sum: { soldPrice: true }, _count: { id: true } }),
+      prisma.annonce.aggregate({ where: { status: 'SOLD', soldAt: { gte: prevMonthStart, lte: prevMonthEnd }, soldPrice: { not: null } }, _sum: { soldPrice: true }, _count: { id: true } }),
+      prisma.annonce.groupBy({ by: ['userId'], where: { status: 'SOLD', soldPrice: { not: null } }, _sum: { soldPrice: true }, _count: { id: true }, orderBy: { _sum: { soldPrice: 'desc' } }, take: 5 }),
+      prisma.annonce.groupBy({ by: ['categoryId'], where: { status: 'SOLD', soldPrice: { not: null } }, _sum: { soldPrice: true }, _count: { id: true }, orderBy: { _sum: { soldPrice: 'desc' } }, take: 5 }),
+    ]);
+
+    const [sellers, categories] = await Promise.all([
+      topSellersRaw.length ? prisma.user.findMany({ where: { id: { in: topSellersRaw.map(s => s.userId) } }, select: { id: true, firstName: true, lastName: true, avatar: true } }) : [],
+      topCategoriesRaw.length ? prisma.category.findMany({ where: { id: { in: topCategoriesRaw.map(c => c.categoryId) } }, select: { id: true, nameFr: true, icon: true } }) : [],
+    ]);
+    const usersMap = Object.fromEntries(sellers.map((u: any) => [u.id, u]));
+    const catsMap  = Object.fromEntries(categories.map((c: any) => [c.id, c]));
+
+    res.json({
+      data: {
+        total:    { revenue: total._sum.soldPrice    || 0, count: total._count.id    },
+        thisMonth:{ revenue: thisMonth._sum.soldPrice || 0, count: thisMonth._count.id },
+        thisWeek: { revenue: thisWeek._sum.soldPrice  || 0, count: thisWeek._count.id  },
+        prevMonth:{ revenue: prevMonth._sum.soldPrice || 0, count: prevMonth._count.id },
+        topSellers: topSellersRaw.map(s => ({ ...(usersMap[s.userId] || {}), revenue: s._sum.soldPrice || 0, count: s._count.id })),
+        topCategories: topCategoriesRaw.map(c => ({ ...(catsMap[c.categoryId] || {}), revenue: c._sum.soldPrice || 0, count: c._count.id })),
+      },
+    });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
 // ─── Utilisateurs ─────────────────────────────────────────────────────────────
 
 router.get('/users', async (req, res) => {

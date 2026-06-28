@@ -1,12 +1,12 @@
 'use client';
 import Link from 'next/link';
-import { Heart, Eye, MapPin, BadgeCheck, ImageIcon, Star, Sparkles, Tag, ShieldCheck } from 'lucide-react';
+import { Heart, Eye, MapPin, BadgeCheck, ImageIcon, Star, Sparkles, Tag, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 interface Annonce {
   id: string; slug: string; title: string; price?: number; currency?: string;
-  promoPrice?: number; promoEndsAt?: string;
+  promoPrice?: number; promoEndsAt?: string; status?: string;
   images: { url: string }[]; city: { name: string }; category: { nameFr: string; icon: string };
   viewCount: number; createdAt: string; isPremium: boolean; isPinned?: boolean; neighborhood?: string;
   user: { firstName: string; lastName: string; isVerified: boolean; isShopVerified?: boolean; createdAt?: string };
@@ -33,12 +33,17 @@ export function AnnonceCard({ annonce }: { annonce: Annonce }) {
           </div>
         )}
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1">
-          {annonce.isPremium && (
+          {annonce.status === 'SOLD' && (
+            <div className="bg-blue-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+              <CheckCircle2 size={10} /> Vendu
+            </div>
+          )}
+          {annonce.isPremium && annonce.status !== 'SOLD' && (
             <div className="bg-gold-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
               <Star size={10} className="fill-white text-white" /> À la une
             </div>
           )}
-          {promoActive && (
+          {promoActive && annonce.status !== 'SOLD' && (
             <div className="bg-guinea-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
               <Tag size={10} /> Promo
             </div>

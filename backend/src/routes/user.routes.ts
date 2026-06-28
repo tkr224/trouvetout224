@@ -324,4 +324,47 @@ router.get('/me/stats', authenticate, async (req: any, res) => {
   }
 });
 
+// ── Statistiques de ventes du vendeur ────────────────────────────────────────
+
+router.get('/me/sales-stats', authenticate, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const [total, thisMonth, thisWeek, topProducts] = await Promise.all([
+      prisma.annonce.aggregate({
+        where: { userId, status: 'SOLD', soldPrice: { not: null } },
+        _sum: { soldPrice: true }, _count: { id: true },
+      }),
+      prisma.annonce.aggregate({
+        where: { userId, status: 'SOLD', soldAt: { gte: startOfMonth }, soldPrice: { not: null } },
+        _sum: { soldPrice: true }, _count: { id: true },
+      }),
+      prisma.annonce.aggregate({
+        where: { userId, status: 'SOLD', soldAt: { gte: startOfWeek }, soldPrice: { not: null } },
+        _sum: { soldPrice: true }, _count: { id: true },
+      }),
+      prisma.annonce.findMany({
+        where: { userId, status: 'SOLD', soldPrice: { not: null } },
+        orderBy: { soldPrice: 'desc' },
+        take: 5,
+        select: { id: true, slug: true, title: true, soldPrice: true, soldAt: true, images: { take: 1, select: { url: true } } },
+      }),
+    ]);
+
+    res.json({
+      data: {
+        total: { revenue: total._sum.soldPrice || 0, count: total._count.id },
+        thisMonth: { revenue: thisMonth._sum.soldPrice || 0, count: thisMonth._count.id },
+        thisWeek: { revenue: thisWeek._sum.soldPrice || 0, count: thisWeek._count.id },
+        topProducts,
+      },
+    });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
 export default router;

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {
   Users, ShoppingBag, AlertTriangle, UserPlus,
   TrendingUp, TrendingDown, Activity, ArrowRight, Minus,
+  CheckCircle2, ImageIcon,
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -48,15 +49,18 @@ function TrendBadge({ current, previous }: { current: number; previous: number }
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [chart, setChart] = useState<ChartPoint[]>([]);
+  const [salesStats, setSalesStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       api.get('/admin/stats'),
       api.get('/admin/stats/chart'),
-    ]).then(([s, c]) => {
+      api.get('/admin/sales-stats'),
+    ]).then(([s, c, ss]) => {
       setStats(s.data.data);
       setChart(c.data.data);
+      setSalesStats(ss.data.data);
     }).finally(() => setLoading(false));
   }, []);
 
@@ -246,6 +250,94 @@ export default function AdminDashboard() {
           </AreaChart>
         </ResponsiveContainer>
       </div>
+
+      {/* Suivi des ventes */}
+      {salesStats && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+              <TrendingUp size={20} className="text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-dark-900">Suivi des ventes</h2>
+              <p className="text-dark-400 text-xs">Revenus déclarés par les vendeurs</p>
+            </div>
+          </div>
+
+          {/* Cartes revenus */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: 'Revenu total', value: (salesStats.total.revenue || 0).toLocaleString('fr-GN') + ' GNF', count: salesStats.total.count || 0, color: 'text-blue-700 bg-blue-50' },
+              { label: 'Ce mois-ci', value: (salesStats.thisMonth.revenue || 0).toLocaleString('fr-GN') + ' GNF', count: salesStats.thisMonth.count || 0, color: 'text-primary-700 bg-primary-50' },
+              { label: 'Semaine en cours', value: (salesStats.thisWeek.revenue || 0).toLocaleString('fr-GN') + ' GNF', count: salesStats.thisWeek.count || 0, color: 'text-gold-700 bg-gold-50' },
+              { label: 'Mois précédent', value: (salesStats.prevMonth.revenue || 0).toLocaleString('fr-GN') + ' GNF', count: salesStats.prevMonth.count || 0, color: 'text-dark-500 bg-dark-50' },
+            ].map((s, i) => (
+              <div key={i} className="bg-white rounded-2xl shadow-card p-4">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${s.color}`}>
+                  <CheckCircle2 size={16} />
+                </div>
+                <p className="text-lg font-bold text-dark-900 leading-tight">{s.value}</p>
+                <p className="text-dark-600 text-xs font-semibold mt-0.5">{s.label}</p>
+                <p className="text-dark-400 text-xs mt-0.5">{s.count} vente(s)</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Top vendeurs */}
+            {salesStats.topSellers?.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-card overflow-hidden">
+                <div className="px-5 py-3.5 border-b border-dark-100 font-semibold text-dark-900 text-sm flex items-center gap-2">
+                  <Users size={15} className="text-primary-700" /> Top vendeurs
+                </div>
+                <div className="divide-y divide-dark-50">
+                  {salesStats.topSellers.map((s: any, i: number) => (
+                    <div key={s.id || i} className="flex items-center gap-3 px-5 py-3">
+                      <span className="text-dark-300 text-sm font-bold w-4">{i + 1}</span>
+                      <div className="w-8 h-8 rounded-xl bg-primary-100 flex items-center justify-center text-primary-700 font-bold text-xs shrink-0">
+                        {s.firstName?.[0]}{s.lastName?.[0]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-dark-900 truncate">{s.firstName} {s.lastName}</p>
+                        <p className="text-xs text-dark-400">{s.count || 0} vente(s)</p>
+                      </div>
+                      <p className="text-primary-700 font-bold text-xs shrink-0">
+                        {(s.revenue || 0).toLocaleString('fr-GN')} GNF
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Top catégories */}
+            {salesStats.topCategories?.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-card overflow-hidden">
+                <div className="px-5 py-3.5 border-b border-dark-100 font-semibold text-dark-900 text-sm flex items-center gap-2">
+                  <ShoppingBag size={15} className="text-gold-600" /> Top catégories
+                </div>
+                <div className="divide-y divide-dark-50">
+                  {salesStats.topCategories.map((c: any, i: number) => (
+                    <div key={c.id || i} className="flex items-center gap-3 px-5 py-3">
+                      <span className="text-dark-300 text-sm font-bold w-4">{i + 1}</span>
+                      <div className="w-8 h-8 rounded-xl bg-gold-50 flex items-center justify-center text-lg shrink-0">
+                        {c.icon || '📦'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-dark-900 truncate">{c.nameFr || '—'}</p>
+                        <p className="text-xs text-dark-400">{c.count || 0} vente(s)</p>
+                      </div>
+                      <p className="text-gold-700 font-bold text-xs shrink-0">
+                        {(c.revenue || 0).toLocaleString('fr-GN')} GNF
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Alerte signalements */}
       {(stats?.pendingReports ?? 0) > 0 && (
