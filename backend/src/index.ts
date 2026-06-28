@@ -47,35 +47,105 @@ const io = new Server(httpServer, {
   },
 });
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 // ============================
 // MIDDLEWARES GLOBAUX
 // ============================
-app.use(helmet());
+
+// Helmet renforcé
+app.use(helmet({
+  // HSTS : forcer HTTPS pendant 2 ans
+  hsts: {
+    maxAge: 63072000,
+    includeSubDomains: true,
+    preload: true,
+  },
+  // Empêche le navigateur de deviner le MIME type
+  noSniff: true,
+  // Protection XSS navigateur (legacy mais utile)
+  xssFilter: true,
+  // Pas de header X-Powered-By (masque la techno)
+  hidePoweredBy: true,
+  // Empêche l'embarquement dans des iframes externes
+  frameguard: { action: 'sameorigin' },
+  // Referrer strict
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  // CSP de base côté API (pas de HTML à protéger, mais bonne pratique)
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'none'"],
+      scriptSrc: ["'none'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Nécessaire pour les réponses JSON cross-origin
+}));
+
 app.use(compression());
-app.use(morgan('combined'));
+app.use(morgan(isDev ? 'dev' : 'combined'));
+
+// CORS strict : accepte uniquement le frontend déclaré
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'http://localhost:3000',
+  'https://trouvetout224.site',
+  'https://www.trouvetout224.site',
+];
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      // Autoriser les requêtes sans origin (Postman, curl en dev)
+      if (!origin || isDev) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error(`Origine non autorisée : ${origin}`));
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Webhook-Secret'],
   })
 );
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Rate Limiting — plus permissif en dev pour éviter les faux positifs
-const isDev = process.env.NODE_ENV !== 'production';
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // fenêtre de 15 minutes
-  max: isDev ? 2000 : 500,  // dev: 2000 req/15min, prod: 500 req/15min (~33/min)
+// Limite la taille des corps de requête
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
+
+// ── Rate Limiting global ────────────────────────────────────────────────
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isDev ? 2000 : 300,
   message: { error: 'Trop de requêtes, réessayez dans 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.path === '/api/health', // Ne pas limiter le health-check
 });
-app.use('/api/', limiter);
+app.use('/api/', globalLimiter);
 
-// Swagger Documentation
+// ── Rate Limiting strict sur les routes sensibles ───────────────────────
+const strictLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 heure
+  max: isDev ? 500 : 30,
+  message: { error: 'Limite atteinte. Réessayez dans 1 heure.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+// Inscription (anti-création de comptes en masse)
+app.use('/api/auth/register', strictLimiter);
+// Signalements (anti-spam)
+app.use('/api/reports', strictLimiter);
+
+// ── Swagger — désactivé en production (évite l'exposition publique de l'API) ──
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+if (isDev) {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+} else {
+  // En production : accès Swagger uniquement avec le bon header interne
+  app.use('/api-docs', (req, res, next) => {
+    const key = req.headers['x-docs-key'];
+    if (key && key === process.env.DOCS_KEY) return next();
+    res.status(404).json({ error: 'Not found' });
+  }, swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+}
 
 // ============================
 // ROUTES API
@@ -115,7 +185,7 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Route non trouvée' });
 });
 
-// Global error handler
+// Gestionnaire d'erreurs global — ne jamais exposer les détails en production
 app.use(
   (
     err: Error,
@@ -123,11 +193,22 @@ app.use(
     res: express.Response,
     next: express.NextFunction
   ) => {
-    console.error('Erreur globale:', err);
-    res.status(500).json({
-      error: 'Erreur interne du serveur',
-      ...(process.env.NODE_ENV === 'development' && { details: err.message }),
-    });
+    // Erreur CORS : retourner 403 proprement
+    if (err.message?.startsWith('Origine non autorisée')) {
+      return res.status(403).json({ error: 'Accès refusé.' });
+    }
+    // Erreur multer (type MIME invalide)
+    if (err.message?.includes('non autorisé') || err.message?.includes('Type de fichier')) {
+      return res.status(400).json({ error: err.message });
+    }
+    // En développement : log + détails ; en production : message générique uniquement
+    if (isDev) {
+      console.error('[ERREUR]', err.stack || err.message);
+      return res.status(500).json({ error: 'Erreur interne du serveur', details: err.message });
+    }
+    // PRODUCTION : ne jamais révéler la stack trace ni err.message
+    console.error('[ERREUR]', new Date().toISOString(), req.method, req.path, err.message);
+    res.status(500).json({ error: 'Erreur interne du serveur.' });
   }
 );
 
