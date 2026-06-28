@@ -49,6 +49,9 @@ const io = new Server(httpServer, {
 
 const isDev = process.env.NODE_ENV !== 'production';
 
+// Indique à Express de faire confiance au proxy Railway (nécessaire pour rate-limit + IP réelle)
+app.set('trust proxy', 1);
+
 // ============================
 // MIDDLEWARES GLOBAUX
 // ============================
