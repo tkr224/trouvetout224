@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
@@ -140,7 +140,7 @@ if (isDev) {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 } else {
   // En production : accès Swagger uniquement avec le bon header interne
-  app.use('/api-docs', (req, res, next) => {
+  app.use('/api-docs', (req: Request, res: Response, next: NextFunction) => {
     const key = req.headers['x-docs-key'];
     if (key && key === process.env.DOCS_KEY) return next();
     res.status(404).json({ error: 'Not found' });
@@ -171,7 +171,7 @@ app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/site-config',  configRoutes);
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req: Request, res: Response) => {
   res.json({
     status: 'OK',
     service: 'TrouveTout224 API',
@@ -181,7 +181,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // 404 handler
-app.use('*', (req, res) => {
+app.use('*', (req: Request, res: Response) => {
   res.status(404).json({ error: 'Route non trouvée' });
 });
 
