@@ -66,8 +66,11 @@ export default function PublierEmploiPage() {
     }
     setLoading(true);
     try {
-      await api.post('/jobs', form);
-      toast.success('Offre soumise ! Elle sera visible après validation par notre équipe.');
+      const res = await api.post('/jobs', form);
+      const isDirectPublish = res.data.data?.status === 'ACTIVE';
+      toast.success(isDirectPublish
+        ? 'Offre publiée directement ! Votre compte vérifié vous donne accès à la publication immédiate.'
+        : 'Offre soumise ! Elle sera visible après validation par notre équipe.');
       router.push('/emplois');
     } catch (e: any) {
       toast.error(e.response?.data?.error || 'Erreur lors de la publication.');

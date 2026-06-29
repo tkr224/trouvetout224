@@ -97,6 +97,13 @@ router.post('/', authenticate, async (req: any, res) => {
       return res.status(400).json({ error: 'Titre, description, entreprise et ville sont requis.' });
     }
 
+    // Vendeur vérifié (isVerified OU isShopVerified) → publication directe
+    const owner = await prisma.user.findUnique({
+      where: { id: req.userId },
+      select: { isVerified: true, isShopVerified: true },
+    });
+    const jobStatus = (owner?.isVerified || owner?.isShopVerified) ? 'ACTIVE' : 'PENDING_REVIEW';
+
     const job = await prisma.job.create({
       data: {
         title: title.trim(),
@@ -119,10 +126,13 @@ router.post('/', authenticate, async (req: any, res) => {
         howToApply: howToApply?.trim() || null,
         schedule: schedule?.trim() || null,
         ownerId: req.userId,
-        status: 'PENDING_REVIEW',
+        status: jobStatus,
       },
     });
-    res.status(201).json({ message: 'Offre soumise — en attente de validation.', data: job });
+    const jobMessage = jobStatus === 'ACTIVE'
+      ? 'Offre publiée directement !'
+      : 'Offre soumise — en attente de validation.';
+    res.status(201).json({ message: jobMessage, data: job });
   } catch (e: any) {
     console.error(e);
     res.status(500).json({ error: 'Erreur lors de la publication.' });

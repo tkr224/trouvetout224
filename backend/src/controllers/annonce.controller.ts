@@ -194,6 +194,16 @@ export const createAnnonce = async (req: Request, res: Response) => {
     const baseSlug = slugify(title, { lower: true, strict: true });
     const slug = `${baseSlug}-${uuidv4().split('-')[0]}`;
 
+    // Vendeur vérifié (badge admin) → publication directe, sinon en attente de validation
+    // isVerified = badge "Compte vérifié" (vert) ; isShopVerified = badge "Boutique vérifiée" (doré)
+    // Les deux badges donnent le droit à la publication directe
+    const seller = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { isVerified: true, isShopVerified: true },
+    });
+    const isVendorVerified = !!(seller?.isVerified || seller?.isShopVerified);
+    const initialStatus = isVendorVerified ? 'ACTIVE' : 'PENDING_REVIEW';
+
     const annonce = await prisma.annonce.create({
       data: {
         title, description,
@@ -202,7 +212,7 @@ export const createAnnonce = async (req: Request, res: Response) => {
         categoryId: realCategoryId,
         userId,
         cityId: realCityId,
-        neighborhood, phone, whatsapp, expiresAt, slug, status: 'PENDING_REVIEW',
+        neighborhood, phone, whatsapp, expiresAt, slug, status: initialStatus,
         quantity: quantity ? parseInt(quantity) : null,
         condition: condition || null,
         listingType: listingType || null,
@@ -231,11 +241,35 @@ export const createAnnonce = async (req: Request, res: Response) => {
       include: { images: true, category: true, city: true },
     });
 
-    res.status(201).json({ message: 'Annonce publiée avec succès !', data: annonce });
+    const responseMessage = initialStatus === 'ACTIVE'
+      ? 'Annonce publiée directement !'
+      : 'Annonce envoyée — en attente de validation par notre équipe.';
+    res.status(201).json({ message: responseMessage, data: annonce });
 
-    // Notify users whose saved searches match this new annonce
+    // Notifications post-publication (non bloquantes)
     setImmediate(async () => {
       try {
+        // Si publication directe (vendeur vérifié) → notifier les abonnés comme lors d'une approbation admin
+        if (initialStatus === 'ACTIVE') {
+          const subscriptions = await prisma.shopSubscription.findMany({
+            where: { vendorId: userId, notify: true },
+            include: { subscriber: { select: { id: true } } },
+          });
+          if (subscriptions.length > 0) {
+            await prisma.notification.createMany({
+              data: subscriptions.map(sub => ({
+                userId: sub.subscriberId,
+                type: 'NEW_VENDOR_PRODUCT' as any,
+                title: `Nouveau produit chez ${isVendorVerified ? 'un vendeur vérifié' : 'un vendeur'}`,
+                body: annonce.title,
+                data: { annonceId: annonce.id, slug: annonce.slug, vendorId: userId },
+              })),
+              skipDuplicates: true,
+            });
+          }
+        }
+
+        // Alertes recherches sauvegardées (toujours actives, peu importe le statut)
         const savedSearches = await prisma.savedSearch.findMany({
           where: { userId: { not: userId } },
         });

@@ -73,6 +73,13 @@ router.post('/', authenticate, async (req: any, res) => {
       return res.status(400).json({ error: 'Nom et adresse sont requis.' });
     }
 
+    // Vendeur vérifié (isVerified OU isShopVerified) → publication directe
+    const owner = await prisma.user.findUnique({
+      where: { id: req.userId },
+      select: { isVerified: true, isShopVerified: true },
+    });
+    const restaurantStatus = (owner?.isVerified || owner?.isShopVerified) ? 'ACTIVE' : 'PENDING_REVIEW';
+
     const restaurant = await prisma.restaurant.create({
       data: {
         name: name.trim(),
@@ -92,10 +99,13 @@ router.post('/', authenticate, async (req: any, res) => {
         latitude: latitude ? parseFloat(latitude) : null,
         longitude: longitude ? parseFloat(longitude) : null,
         ownerId: req.userId,
-        status: 'PENDING_REVIEW',
+        status: restaurantStatus,
       },
     });
-    res.status(201).json({ message: 'Restaurant soumis — en attente de validation.', data: restaurant });
+    const restaurantMessage = restaurantStatus === 'ACTIVE'
+      ? 'Restaurant publié directement !'
+      : 'Restaurant soumis — en attente de validation.';
+    res.status(201).json({ message: restaurantMessage, data: restaurant });
   } catch (e: any) {
     console.error(e);
     res.status(500).json({ error: 'Erreur lors de la création.' });

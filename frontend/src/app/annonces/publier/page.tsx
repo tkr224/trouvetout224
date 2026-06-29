@@ -105,6 +105,7 @@ function PublierAnnonceContent() {
   const [loading, setLoading] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [published, setPublished] = useState(false);
+  const [publishedDirect, setPublishedDirect] = useState(false);
 
   const [form, setForm] = useState<any>({
     title: '', description: '', price: '', isNegotiable: false,
@@ -273,7 +274,8 @@ function PublierAnnonceContent() {
         toast.success('Annonce modifiée !');
         router.push(`/annonces/${res.data.data.slug}`);
       } else {
-        await api.post('/annonces', payload);
+        const res = await api.post('/annonces', payload);
+        setPublishedDirect(res.data.data?.status === 'ACTIVE');
         setPublished(true);
       }
     } catch (err: any) {
@@ -303,16 +305,30 @@ function PublierAnnonceContent() {
             <div className="w-24 h-24 bg-primary-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
               <Check size={44} className="text-primary-700" />
             </div>
-            <h2 className="text-2xl font-display font-bold text-dark-900 mb-3">
-              Annonce envoyée avec succès !
-            </h2>
-            <p className="text-dark-500 text-base leading-relaxed mb-2">
-              Votre annonce a bien été reçue par notre équipe.
-            </p>
-            <p className="text-dark-500 text-base leading-relaxed mb-8">
-              Elle sera <strong className="text-primary-700">publiée sur le site après validation</strong> par notre équipe de modération (généralement sous 24h).
-              Vous recevrez une notification dès qu'elle sera approuvée.
-            </p>
+            {publishedDirect ? (
+              <>
+                <h2 className="text-2xl font-display font-bold text-dark-900 mb-3">
+                  Annonce publiée directement !
+                </h2>
+                <p className="text-dark-500 text-base leading-relaxed mb-8">
+                  Votre compte est <strong className="text-primary-700">vérifié</strong> — votre annonce est
+                  maintenant <strong className="text-primary-700">visible sur le site</strong> sans délai de validation.
+                </p>
+              </>
+            ) : (
+              <>
+                <h2 className="text-2xl font-display font-bold text-dark-900 mb-3">
+                  Annonce envoyée avec succès !
+                </h2>
+                <p className="text-dark-500 text-base leading-relaxed mb-2">
+                  Votre annonce a bien été reçue par notre équipe.
+                </p>
+                <p className="text-dark-500 text-base leading-relaxed mb-8">
+                  Elle sera <strong className="text-primary-700">publiée sur le site après validation</strong> par notre équipe de modération (généralement sous 24h).
+                  Vous recevrez une notification dès qu'elle sera approuvée.
+                </p>
+              </>
+            )}
             <div className="flex gap-3 justify-center flex-wrap">
               <button
                 onClick={() => router.push('/profil')}
@@ -321,7 +337,7 @@ function PublierAnnonceContent() {
                 Voir mes annonces
               </button>
               <button
-                onClick={() => { setPublished(false); setStep(1); setSelectedCategory(''); setImages([]); }}
+                onClick={() => { setPublished(false); setPublishedDirect(false); setStep(1); setSelectedCategory(''); setImages([]); }}
                 className="btn-outline flex items-center gap-2"
               >
                 Publier une autre annonce

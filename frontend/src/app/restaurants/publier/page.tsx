@@ -24,6 +24,7 @@ export default function PublierRestaurantPage() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
   const [restaurantId, setRestaurantId] = useState('');
+  const [restaurantDirect, setRestaurantDirect] = useState(false);
 
   const [form, setForm] = useState({
     name: '', description: '', address: '',
@@ -55,7 +56,10 @@ export default function PublierRestaurantPage() {
     try {
       const res = await api.post('/restaurants', form);
       setRestaurantId(res.data.data.id);
-      toast.success('Restaurant soumis ! Ajoutez maintenant votre menu.');
+      setRestaurantDirect(res.data.data?.status === 'ACTIVE');
+      toast.success(res.data.data?.status === 'ACTIVE'
+        ? 'Restaurant publié directement ! Ajoutez maintenant votre menu.'
+        : 'Restaurant soumis ! Ajoutez maintenant votre menu.');
       setStep(2);
     } catch (e: any) {
       toast.error(e.response?.data?.error || 'Erreur lors de la création.');
@@ -75,7 +79,9 @@ export default function PublierRestaurantPage() {
       await Promise.all(validItems.map(item =>
         api.post(`/restaurants/${restaurantId}/menu`, item)
       ));
-      toast.success('Menu ajouté ! Votre restaurant est en attente de validation.');
+      toast.success(restaurantDirect
+        ? 'Menu ajouté ! Votre restaurant est maintenant visible sur le site.'
+        : 'Menu ajouté ! Votre restaurant est en attente de validation.');
       router.push('/restaurants');
     } catch (e: any) {
       toast.error('Erreur lors de l\'ajout du menu.');
