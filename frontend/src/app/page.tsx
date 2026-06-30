@@ -1,193 +1,132 @@
 'use client';
 export const dynamic = 'force-dynamic';
-import { useState, useMemo, useEffect, useCallback } from 'react';
+
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import Logo from '@/components/Logo';
 import AnnonceGrid from '@/components/annonces/AnnonceGrid';
 import ScrollReveal from '@/components/ScrollReveal';
-import HeroBanner from '@/components/HeroBanner';
 import { useAnnonces } from '@/hooks/useAnnonces';
 import { useCategories } from '@/hooks/useCategories';
-import Link from 'next/link';
 import { api } from '@/lib/api';
 import {
-  Search, ShieldCheck, Zap, MapPin, ArrowRight, TrendingUp, Clock,
-  Star, Eye, Smartphone, Laptop, Cpu, Car, Home, Trees, Briefcase,
-  Wrench, UtensilsCrossed, Hotel, Shirt, Footprints, Sparkles,
-  HeartPulse, GraduationCap, PartyPopper, Sofa, Wheat, PawPrint,
-  Dumbbell, Package, ChevronRight, MoreHorizontal,
-  Calendar, ChevronLeft,
+  Search, ArrowRight, TrendingUp, Clock, Eye, ChevronLeft, ChevronRight,
+  Smartphone, Laptop, Cpu, Car, Home, Trees, Briefcase, Wrench,
+  UtensilsCrossed, Hotel, Shirt, Footprints, Sparkles, HeartPulse,
+  GraduationCap, PartyPopper, Sofa, Wheat, PawPrint, Dumbbell,
+  Package, MapPin, ShieldCheck, Zap, MessageCircle, Star, Plus,
+  MoreHorizontal, Calendar,
 } from 'lucide-react';
 
-/* ── Données statiques ─────────────────────────────────────────── */
+/* ── Villes ──────────────────────────────────────────────────────── */
+const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 
+/* ── Tris ────────────────────────────────────────────────────────── */
 const SORTS = [
-  { key: 'recent',     label: 'Plus récents',    icon: Clock },
-  { key: 'popular',   label: 'Plus populaires',  icon: TrendingUp },
-  { key: 'views',     label: 'Plus consultés',   icon: Eye },
-  { key: 'price_asc', label: 'Prix croissant',   icon: ArrowRight },
-  { key: 'price_desc',label: 'Prix décroissant', icon: ArrowRight },
+  { key: 'recent',     label: 'Récents',    icon: Clock },
+  { key: 'popular',   label: 'Populaires', icon: TrendingUp },
+  { key: 'views',     label: 'Consultés',  icon: Eye },
+  { key: 'price_asc', label: 'Prix ↑',     icon: ArrowRight },
+  { key: 'price_desc',label: 'Prix ↓',     icon: ArrowRight },
   { key: 'rating',    label: 'Meilleures notes', icon: Star },
 ];
 
-const SIDEBAR_CATS = [
-  { slug: 'telephones',   icon: Smartphone,      label: 'Téléphones' },
-  { slug: 'informatique', icon: Laptop,           label: 'Informatique' },
-  { slug: 'electronique', icon: Cpu,              label: 'Électronique' },
-  { slug: 'vehicules',    icon: Car,              label: 'Véhicules' },
-  { slug: 'immobilier',   icon: Home,             label: 'Immobilier' },
-  { slug: 'terrains',     icon: Trees,            label: 'Terrains' },
-  { slug: 'emplois',      icon: Briefcase,        label: 'Emplois' },
-  { slug: 'services',     icon: Wrench,           label: 'Services' },
-  { slug: 'restaurants',  icon: UtensilsCrossed,  label: 'Restaurants' },
-  { slug: 'hotels',       icon: Hotel,            label: 'Hôtels' },
-  { slug: 'mode',         icon: Shirt,            label: 'Mode' },
-  { slug: 'chaussures',   icon: Footprints,       label: 'Chaussures' },
-  { slug: 'beaute',       icon: Sparkles,         label: 'Beauté' },
-  { slug: 'sante',        icon: HeartPulse,       label: 'Santé' },
-  { slug: 'formation',    icon: GraduationCap,    label: 'Formation' },
-  { slug: 'evenements',   icon: PartyPopper,      label: 'Événements' },
-  { slug: 'maison',       icon: Sofa,             label: 'Maison' },
-  { slug: 'agriculture',  icon: Wheat,            label: 'Agriculture' },
-  { slug: 'animaux',      icon: PawPrint,         label: 'Animaux' },
-  { slug: 'sports',       icon: Dumbbell,         label: 'Sports' },
-  { slug: 'divers',       icon: Package,          label: 'Divers' },
+/* ── Images hero : produits marketplace ──────────────────────────────
+   Pour changer les images, modifiez uniquement les URLs ci-dessous.
+   Format recommandé : ≥ 1200 px de large, ratio paysage (16/9 ou 3/2).
+   ─────────────────────────────────────────────────────────────────── */
+const HERO_IMAGES = [
+  {
+    url: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&q=80',
+    alt: 'Mode et vêtements — boutique tendance',
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1580910051074-3eb694886505?w=1600&q=80',
+    alt: 'Smartphones et téléphones neufs',
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1600&q=80',
+    alt: 'Véhicules — voitures et motos',
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1600&q=80',
+    alt: 'Électronique et informatique',
+  },
 ];
 
-const FEATURED_CATS = [
-  { slug: 'telephones',   icon: Smartphone,     label: 'Téléphones',  bg: 'from-blue-500   to-blue-600' },
-  { slug: 'vehicules',    icon: Car,            label: 'Véhicules',   bg: 'from-amber-500  to-amber-600' },
-  { slug: 'immobilier',   icon: Home,           label: 'Immobilier',  bg: 'from-emerald-500 to-emerald-600' },
-  { slug: 'emplois',      icon: Briefcase,      label: 'Emplois',     bg: 'from-sky-500    to-sky-600' },
-  { slug: 'services',     icon: Wrench,         label: 'Services',    bg: 'from-orange-500 to-orange-600' },
-  { slug: 'restaurants',  icon: UtensilsCrossed,label: 'Restaurants', bg: 'from-red-500    to-red-600' },
-  { slug: 'hotels',       icon: Hotel,          label: 'Hôtels',      bg: 'from-fuchsia-500 to-fuchsia-600' },
-];
-
-/* Métadonnées statiques : icône + couleur par slug (les compteurs viennent de l'API) */
-const CAT_META: Record<string, { icon: React.ElementType; color: string }> = {
-  telephones:   { icon: Smartphone,      color: 'text-blue-700 bg-blue-50 border-blue-100' },
-  informatique: { icon: Laptop,          color: 'text-violet-700 bg-violet-50 border-violet-100' },
-  electronique: { icon: Cpu,             color: 'text-pink-700 bg-pink-50 border-pink-100' },
-  vehicules:    { icon: Car,             color: 'text-amber-700 bg-amber-50 border-amber-100' },
-  immobilier:   { icon: Home,            color: 'text-emerald-700 bg-emerald-50 border-emerald-100' },
-  terrains:     { icon: Trees,           color: 'text-lime-700 bg-lime-50 border-lime-100' },
-  emplois:      { icon: Briefcase,       color: 'text-sky-700 bg-sky-50 border-sky-100' },
-  services:     { icon: Wrench,          color: 'text-orange-700 bg-orange-50 border-orange-100' },
-  restaurants:  { icon: UtensilsCrossed, color: 'text-red-700 bg-red-50 border-red-100' },
-  hotels:       { icon: Hotel,           color: 'text-fuchsia-700 bg-fuchsia-50 border-fuchsia-100' },
-  mode:         { icon: Shirt,           color: 'text-pink-700 bg-pink-50 border-pink-100' },
-  chaussures:   { icon: Footprints,      color: 'text-teal-700 bg-teal-50 border-teal-100' },
-  beaute:       { icon: Sparkles,        color: 'text-rose-700 bg-rose-50 border-rose-100' },
-  sante:        { icon: HeartPulse,      color: 'text-green-700 bg-green-50 border-green-100' },
-  formation:    { icon: GraduationCap,   color: 'text-indigo-700 bg-indigo-50 border-indigo-100' },
-  evenements:   { icon: PartyPopper,     color: 'text-amber-700 bg-amber-50 border-amber-100' },
-  maison:       { icon: Sofa,            color: 'text-lime-700 bg-lime-50 border-lime-100' },
-  agriculture:  { icon: Wheat,           color: 'text-green-700 bg-green-50 border-green-100' },
-  animaux:      { icon: PawPrint,        color: 'text-orange-700 bg-orange-50 border-orange-100' },
-  sports:       { icon: Dumbbell,        color: 'text-cyan-700 bg-cyan-50 border-cyan-100' },
-  divers:       { icon: Package,         color: 'text-dark-600 bg-dark-50 border-dark-200' },
+/* ── Métadonnées catégories ──────────────────────────────────────── */
+const CAT_META: Record<string, { icon: React.ElementType; bg: string; href: string }> = {
+  telephones:   { icon: Smartphone,      bg: 'bg-blue-500',    href: '/categories/telephones' },
+  electronique: { icon: Cpu,             bg: 'bg-pink-500',    href: '/categories/electronique' },
+  informatique: { icon: Laptop,          bg: 'bg-violet-500',  href: '/categories/informatique' },
+  vehicules:    { icon: Car,             bg: 'bg-amber-500',   href: '/vehicules' },
+  immobilier:   { icon: Home,            bg: 'bg-emerald-600', href: '/immobilier' },
+  terrains:     { icon: Trees,           bg: 'bg-lime-600',    href: '/categories/terrains' },
+  emplois:      { icon: Briefcase,       bg: 'bg-sky-600',     href: '/emplois' },
+  services:     { icon: Wrench,          bg: 'bg-orange-500',  href: '/services' },
+  restaurants:  { icon: UtensilsCrossed, bg: 'bg-red-500',     href: '/restaurants' },
+  hotels:       { icon: Hotel,           bg: 'bg-fuchsia-500', href: '/hotels' },
+  mode:         { icon: Shirt,           bg: 'bg-pink-400',    href: '/categories/mode' },
+  chaussures:   { icon: Footprints,      bg: 'bg-teal-500',    href: '/categories/chaussures' },
+  beaute:       { icon: Sparkles,        bg: 'bg-rose-500',    href: '/categories/beaute' },
+  sante:        { icon: HeartPulse,      bg: 'bg-green-500',   href: '/categories/sante' },
+  formation:    { icon: GraduationCap,   bg: 'bg-indigo-500',  href: '/categories/formation' },
+  evenements:   { icon: PartyPopper,     bg: 'bg-purple-500',  href: '/evenements' },
+  maison:       { icon: Sofa,            bg: 'bg-lime-500',    href: '/categories/maison' },
+  agriculture:  { icon: Wheat,           bg: 'bg-green-700',   href: '/categories/agriculture' },
+  animaux:      { icon: PawPrint,        bg: 'bg-orange-400',  href: '/categories/animaux' },
+  sports:       { icon: Dumbbell,        bg: 'bg-cyan-500',    href: '/categories/sports' },
+  divers:       { icon: Package,         bg: 'bg-slate-500',   href: '/categories/divers' },
 };
 
-function formatCount(n: number): string {
-  if (n === 0) return '0';
-  return n.toLocaleString('fr-FR');
-}
-
-/* ── Types publications ─────────────────────────────────────────── */
-
+/* ── Publications ────────────────────────────────────────────────── */
 type PubType = 'BANNER' | 'EVENT' | 'FEATURED_VENDOR';
 type Publication = {
-  id: string;
-  type: PubType;
-  title: string;
-  subtitle?: string;
-  image?: string;
-  description?: string;
-  link?: string;
-  eventDate?: string;
-  eventLocation?: string;
+  id: string; type: PubType; title: string; subtitle?: string;
+  image?: string; link?: string; eventDate?: string; eventLocation?: string;
 };
-
 const PUB_GRADIENT: Record<PubType, string> = {
   BANNER:          'from-primary-700 to-primary-800',
   EVENT:           'from-blue-700 to-blue-900',
   FEATURED_VENDOR: 'from-amber-500 to-amber-700',
 };
-
 const PUB_BADGE: Record<PubType, string> = {
   BANNER:          '🎉 Promo officielle',
   EVENT:           '📅 Événement',
   FEATURED_VENDOR: '⭐ Vendeur en vedette',
 };
 
-/* ── Carrousel publications ─────────────────────────────────────── */
-
 function PublicationsCarousel({ pubs }: { pubs: Publication[] }) {
   const [active, setActive] = useState(0);
-
   const next = useCallback(() => setActive(i => (i + 1) % pubs.length), [pubs.length]);
   const prev = useCallback(() => setActive(i => (i - 1 + pubs.length) % pubs.length), [pubs.length]);
-
   useEffect(() => {
     if (pubs.length <= 1) return;
     const t = setInterval(next, 4500);
     return () => clearInterval(t);
   }, [next, pubs.length]);
-
   if (!pubs.length) return null;
-
   const pub = pubs[active];
-
   return (
-    <div className="max-w-7xl mx-auto px-4 mb-5">
-      <div className="relative rounded-2xl overflow-hidden shadow-card-hover isolate">
-        {pubs.map((p, i) => (
-          <div
-            key={p.id}
-            className={`absolute inset-0 transition-opacity duration-700 ${i === active ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-          />
+    <div className="max-w-7xl mx-auto px-4 mb-6">
+      <div className="relative rounded-xl overflow-hidden shadow-card-hover isolate">
+        {pubs.map((_, i) => (
+          <div key={i} className={`absolute inset-0 transition-opacity duration-700 ${i === active ? 'opacity-100 z-10' : 'opacity-0 z-0'}`} />
         ))}
-
-        {/* Slide actif */}
-        {pub.link ? (
-          <Link href={pub.link}>
-            <SlideContent pub={pub} />
-          </Link>
-        ) : (
-          <SlideContent pub={pub} />
-        )}
-
-        {/* Navigation flèches (si plusieurs slides) */}
+        {pub.link ? <Link href={pub.link}><SlideContent pub={pub} /></Link> : <SlideContent pub={pub} />}
         {pubs.length > 1 && (
           <>
-            <button
-              onClick={prev}
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button
-              onClick={next}
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors"
-            >
-              <ChevronRight size={16} />
-            </button>
+            <button onClick={prev} className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-7 h-7 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors"><ChevronLeft size={14} /></button>
+            <button onClick={next} className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-7 h-7 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors"><ChevronRight size={14} /></button>
+            <div className="absolute bottom-2.5 left-0 right-0 z-20 flex justify-center gap-1.5">
+              {pubs.map((_, i) => (
+                <button key={i} onClick={() => setActive(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === active ? 'w-5 bg-white' : 'w-1.5 bg-white/50'}`} />
+              ))}
+            </div>
           </>
-        )}
-
-        {/* Dots */}
-        {pubs.length > 1 && (
-          <div className="absolute bottom-3 left-0 right-0 z-20 flex justify-center gap-1.5">
-            {pubs.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setActive(i)}
-                className={`h-1.5 rounded-full transition-all duration-300 ${i === active ? 'w-5 bg-white' : 'w-1.5 bg-white/50'}`}
-              />
-            ))}
-          </div>
         )}
       </div>
     </div>
@@ -196,36 +135,20 @@ function PublicationsCarousel({ pubs }: { pubs: Publication[] }) {
 
 function SlideContent({ pub }: { pub: Publication }) {
   return (
-    <div className={`relative h-44 sm:h-52 bg-gradient-to-r ${PUB_GRADIENT[pub.type]} flex items-center px-6 sm:px-10 overflow-hidden`}>
-      {/* Image en fond à droite */}
+    <div className={`relative h-36 sm:h-44 bg-gradient-to-r ${PUB_GRADIENT[pub.type]} flex items-center px-6 sm:px-8 overflow-hidden`}>
       {pub.image && (
         <div className="absolute inset-y-0 right-0 w-2/5 sm:w-1/3">
           <img src={pub.image} alt="" className="w-full h-full object-cover opacity-30 sm:opacity-60" />
-          <div className="absolute inset-0 bg-gradient-to-r from-current to-transparent" style={{ color: 'inherit' }} />
         </div>
       )}
-
-      {/* Contenu texte */}
       <div className="relative z-10 max-w-xs sm:max-w-md">
-        <span className="inline-block px-2.5 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-xs font-semibold mb-3">
-          {PUB_BADGE[pub.type]}
-        </span>
-        <h3 className="text-white font-display font-bold text-xl sm:text-2xl leading-tight mb-1.5">
-          {pub.title}
-        </h3>
-        {pub.subtitle && (
-          <p className="text-white/80 text-sm leading-snug">{pub.subtitle}</p>
-        )}
+        <span className="inline-block px-2.5 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-xs font-semibold mb-2">{PUB_BADGE[pub.type]}</span>
+        <h3 className="text-white font-display font-bold text-lg sm:text-xl leading-tight mb-1">{pub.title}</h3>
         {pub.eventDate && (
-          <p className="text-white/70 text-xs mt-2 flex items-center gap-1">
+          <p className="text-white/70 text-xs mt-1.5 flex items-center gap-1">
             <Calendar size={11} />
             {new Date(pub.eventDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
             {pub.eventLocation && ` · ${pub.eventLocation}`}
-          </p>
-        )}
-        {pub.link && (
-          <p className="text-white/70 text-xs mt-3 flex items-center gap-1 hover:text-white transition-colors">
-            En savoir plus <ArrowRight size={11} />
           </p>
         )}
       </div>
@@ -233,386 +156,348 @@ function SlideContent({ pub }: { pub: Publication }) {
   );
 }
 
-/* ── Composant ─────────────────────────────────────────────────── */
+/* ── Page principale ─────────────────────────────────────────────── */
 
 export default function HomePage() {
   const [selectedCity, setSelectedCity] = useState('Conakry');
   const [query, setQuery]               = useState('');
   const [sort, setSort]                 = useState('recent');
   const [publications, setPublications] = useState<Publication[]>([]);
+  const [heroSlide, setHeroSlide]       = useState(0);
   const router = useRouter();
 
-  const { data: annonces,        isLoading }         = useAnnonces({ sort, limit: 12 });
-  const { data: popularAnnonces, isLoading: loadingPopular } = useAnnonces({ sort: 'popular', limit: 4 });
+  const { data: annonces, isLoading }                = useAnnonces({ sort, limit: 12 });
   const { data: categories, isLoading: loadingCats } = useCategories();
 
   useEffect(() => {
     api.get('/publications').then(r => setPublications(r.data.data || [])).catch(() => {});
   }, []);
 
-  const popularCats = useMemo(() => {
+  /* Avancement automatique du carrousel hero toutes les 4 secondes */
+  useEffect(() => {
+    if (HERO_IMAGES.length <= 1) return;
+    const t = setInterval(() => setHeroSlide(i => (i + 1) % HERO_IMAGES.length), 4000);
+    return () => clearInterval(t);
+  }, []);
+
+  /* Top 10 catégories triées par nombre d'annonces */
+  const topCats = useMemo(() => {
     if (!categories) return [];
     return [...categories]
       .sort((a, b) => b._count.annonces - a._count.annonces)
-      .slice(0, 8)
+      .slice(0, 10)
       .map(c => ({
-        slug: c.slug,
+        slug:  c.slug,
         label: c.nameFr || c.name,
         count: c._count.annonces,
-        icon: CAT_META[c.slug]?.icon ?? Package,
-        color: CAT_META[c.slug]?.color ?? 'text-dark-600 bg-dark-50 border-dark-200',
+        icon:  CAT_META[c.slug]?.icon ?? Package,
+        bg:    CAT_META[c.slug]?.bg   ?? 'bg-slate-400',
+        href:  CAT_META[c.slug]?.href ?? `/categories/${c.slug}`,
       }));
-  }, [categories]);
-
-  /* Compteur d'annonces actives par slug — alimente toutes les sections de catégories */
-  const countBySlug = useMemo(() => {
-    if (!categories) return {} as Record<string, number>;
-    const map: Record<string, number> = {};
-    categories.forEach(c => { map[c.slug] = c._count?.annonces ?? 0; });
-    return map;
   }, [categories]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push(`/annonces/lister?q=${encodeURIComponent(query)}&city=${selectedCity}`);
+    const p = new URLSearchParams();
+    if (query)        p.set('q',    query);
+    if (selectedCity) p.set('city', selectedCity);
+    router.push(`/annonces/lister?${p.toString()}`);
   };
 
   return (
-    <div className="min-h-screen bg-dark-50 flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-page)' }}>
+
+      {/* ══ NAVBAR ════════════════════════════════════════════════════ */}
       <Navbar selectedCity={selectedCity} onCityChange={setSelectedCity} />
 
-      {/* ══ BARRE DE RECHERCHE + FILTRES ══════════════════════════ */}
-      <div className="bg-white border-b border-dark-100 sticky top-16 z-30 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-
-          {/* Champ de recherche */}
-          <form onSubmit={handleSearch} className="flex gap-2 mb-3">
-            <div className="flex-1 relative">
-              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-400 pointer-events-none" />
+      {/* ══ BARRE DE RECHERCHE (sticky sous la navbar) ════════════════ */}
+      <div className="bg-white dark:bg-dark-900 border-b border-dark-100 dark:border-dark-700 sticky top-16 z-40 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-2.5">
+          <form onSubmit={handleSearch} className="flex gap-2">
+            <div className="relative flex-1">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-dark-400 pointer-events-none" />
               <input
                 value={query}
                 onChange={e => setQuery(e.target.value)}
-                placeholder="Que recherchez-vous ? (ex : iPhone, voiture, appartement…)"
-                className="w-full pl-11 pr-4 py-3 border border-dark-200 rounded-xl text-sm bg-dark-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                placeholder="Que cherchez-vous ? téléphone, voiture, maison, emploi…"
+                className="w-full pl-10 pr-4 py-2 border border-dark-200 dark:border-dark-600 rounded-xl text-sm bg-dark-50 dark:bg-dark-800 dark:text-white focus:bg-white dark:focus:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
               />
             </div>
-            <button type="submit" className="btn-primary flex items-center gap-2 px-5 whitespace-nowrap text-sm">
-              <Search size={15} /> Rechercher
+            <select
+              value={selectedCity}
+              onChange={e => setSelectedCity(e.target.value)}
+              className="hidden sm:block border border-dark-200 dark:border-dark-600 rounded-xl px-3 py-2 text-sm bg-dark-50 dark:bg-dark-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+            >
+              <option value="">Toute la Guinée</option>
+              {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <button
+              type="submit"
+              className="flex items-center gap-1.5 px-4 py-2 bg-gold-400 hover:bg-gold-500 active:scale-95 text-dark-900 font-bold rounded-xl text-sm transition-all whitespace-nowrap shadow-sm"
+            >
+              <Search size={14} />
+              <span className="hidden sm:inline">Rechercher</span>
             </button>
             <Link
               href="/annonces/publier"
-              className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 active:scale-95 text-white font-semibold text-sm transition-all whitespace-nowrap"
+              className="hidden md:flex items-center gap-1.5 px-4 py-2 bg-primary-700 hover:bg-primary-800 active:scale-95 text-white font-bold rounded-xl text-sm transition-all whitespace-nowrap"
             >
-              Publier une annonce
+              <Plus size={14} /> Déposer une annonce
             </Link>
           </form>
-
-          {/* Filtres de tri */}
-          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-            {SORTS.map(s => {
-              const Icon = s.icon;
-              return (
-                <button
-                  key={s.key}
-                  onClick={() => setSort(s.key)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap border transition-all ${
-                    sort === s.key
-                      ? 'bg-primary-700 text-white border-primary-700 shadow-premium'
-                      : 'bg-white text-dark-600 border-dark-200 hover:border-primary-400 hover:text-primary-700'
-                  }`}
-                >
-                  <Icon size={13} /> {s.label}
-                </button>
-              );
-            })}
-          </div>
         </div>
       </div>
 
-      {/* ══ CARROUSEL PUBLICATIONS OFFICIELLES ══════════════════════ */}
+      {/* ══ 1. HERO ═══════════════════════════════════════════════════ */}
+      <section className="relative overflow-hidden min-h-[380px] sm:min-h-[420px] flex items-center py-10 sm:py-14">
+
+        {/* Carrousel d'images en arrière-plan — produits marketplace */}
+        {HERO_IMAGES.map((img, i) => (
+          <div
+            key={i}
+            className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+            style={{ opacity: i === heroSlide ? 1 : 0, zIndex: 0 }}
+            aria-hidden={i !== heroSlide}
+          >
+            <img
+              src={img.url}
+              alt={img.alt}
+              className="w-full h-full object-cover object-center"
+              loading={i === 0 ? 'eager' : 'lazy'}
+            />
+          </div>
+        ))}
+
+        {/* Voile sombre pour lisibilité */}
+        <div className="absolute inset-0" style={{ zIndex: 1 }}>
+          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-primary-900/40" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent hidden sm:block" />
+        </div>
+
+        {/* Motif de points discret */}
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '28px 28px', zIndex: 2 }}
+        />
+
+        {/* Contenu */}
+        <div className="relative w-full max-w-7xl mx-auto px-4" style={{ zIndex: 3 }}>
+          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+
+            {/* Texte */}
+            <div className="flex-1 text-center lg:text-left">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 bg-white/15 border border-white/25 rounded-full px-3.5 py-1 mb-4 backdrop-blur-sm">
+                <span className="text-gold-300 text-xs font-bold tracking-widest uppercase">Bienvenue sur</span>
+              </div>
+
+              {/* Logo + nom */}
+              <div className="flex items-center gap-3 justify-center lg:justify-start mb-3">
+                <Logo size={44} />
+                <h1
+                  className="font-display font-extrabold text-4xl sm:text-5xl leading-none"
+                  style={{ textShadow: '0 2px 20px rgba(0,0,0,0.9), 0 1px 6px rgba(0,0,0,0.7)' }}
+                >
+                  <span className="text-guinea-400">Trouve</span>
+                  <span className="text-gold-400">Tout</span>
+                  <span className="text-white">224</span>
+                </h1>
+              </div>
+
+              {/* Sous-titre */}
+              <p
+                className="text-white text-base sm:text-lg leading-relaxed mb-5 max-w-lg mx-auto lg:mx-0 font-medium"
+                style={{ textShadow: '0 1px 10px rgba(0,0,0,0.8)' }}
+              >
+                La marketplace 100% guinéenne pour acheter et vendre en toute confiance, partout en Guinée.
+              </p>
+
+              {/* Mini-badges */}
+              <div className="flex flex-wrap gap-2 justify-center lg:justify-start mb-6">
+                {[
+                  { icon: MessageCircle, text: 'Contact direct WhatsApp' },
+                  { icon: ShieldCheck,   text: 'Vendeurs vérifiés' },
+                  { icon: Zap,           text: 'Annonces gratuites' },
+                ].map(({ icon: Icon, text }) => (
+                  <span key={text} className="inline-flex items-center gap-1.5 bg-black/30 border border-white/25 text-white text-xs font-semibold px-3 py-1.5 rounded-full backdrop-blur-sm">
+                    <Icon size={12} className="text-gold-300 shrink-0" />
+                    {text}
+                  </span>
+                ))}
+              </div>
+
+              {/* CTAs */}
+              <div className="flex flex-wrap items-center gap-3 justify-center lg:justify-start">
+                <Link
+                  href="/annonces/lister"
+                  className="inline-flex items-center gap-2 bg-gold-400 hover:bg-gold-500 active:scale-95 text-dark-900 font-bold px-5 py-2.5 rounded-xl text-sm transition-all shadow-xl"
+                >
+                  <Eye size={16} /> Voir les annonces
+                </Link>
+                <Link
+                  href="/vendeur"
+                  className="inline-flex items-center gap-2 border-2 border-white/50 text-white font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-white/15 active:scale-95 transition-all backdrop-blur-sm"
+                >
+                  Devenir vendeur <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Dots de navigation */}
+        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2" style={{ zIndex: 3 }}>
+          {HERO_IMAGES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setHeroSlide(i)}
+              aria-label={`Image ${i + 1}`}
+              className={`h-1.5 rounded-full transition-all duration-300 ${i === heroSlide ? 'w-6 bg-white' : 'w-1.5 bg-white/40'}`}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* ══ PUBLICATIONS OFFICIELLES (si présentes) ═══════════════════ */}
       {publications.length > 0 && (
-        <div className="pt-4">
+        <div className="pt-6">
           <PublicationsCarousel pubs={publications} />
         </div>
       )}
 
-      {/* ══ CONTENU PRINCIPAL ═══════════════════════════════════════ */}
-      <div className="flex-1 max-w-7xl mx-auto px-4 py-6 w-full">
-
-        {/* Catégories mobiles (scroll horizontal, visible sur tablette sm→lg, caché sur mobile xs et desktop lg+) */}
-        <div className="hidden sm:block lg:hidden overflow-x-auto pb-3 mb-5 -mx-4 px-4">
-          <div className="flex gap-2 min-w-max">
-            {SIDEBAR_CATS.slice(0, 12).map(cat => {
-              const Icon = cat.icon;
-              const n = countBySlug[cat.slug];
-              return (
-                <Link
-                  key={cat.slug}
-                  href={`/categories/${cat.slug}`}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-white border border-dark-200 rounded-xl text-xs font-semibold text-dark-700 hover:border-primary-400 hover:text-primary-700 shadow-sm transition-all whitespace-nowrap"
-                >
-                  <Icon size={13} />
-                  {cat.label}
-                  {n !== undefined && n > 0 && (
-                    <span className="ml-0.5 text-dark-400 font-medium">({n})</span>
-                  )}
-                </Link>
-              );
-            })}
-            <Link
-              href="/annonces/lister"
-              className="flex items-center gap-1 px-3 py-2 bg-primary-50 border border-primary-200 rounded-xl text-xs font-semibold text-primary-700 whitespace-nowrap"
-            >
-              <MoreHorizontal size={13} /> Tout voir
-            </Link>
-          </div>
-        </div>
-
-        {/* ── Mise en page 2 colonnes ── */}
-        <div className="flex gap-6 items-start">
-
-          {/* SIDEBAR CATÉGORIES (desktop uniquement) */}
-          <aside className="hidden lg:block w-56 shrink-0">
-            <div className="bg-white rounded-2xl border border-dark-100 shadow-card overflow-hidden sticky top-40">
-              <div className="bg-primary-700 px-4 py-3">
-                <h2 className="font-display font-bold text-white text-sm tracking-wide">Catégories</h2>
-              </div>
-              <nav className="py-1.5 max-h-[calc(100vh-210px)] overflow-y-auto">
-                {SIDEBAR_CATS.map(cat => {
-                  const Icon = cat.icon;
-                  const n = countBySlug[cat.slug];
-                  return (
-                    <Link
-                      key={cat.slug}
-                      href={`/categories/${cat.slug}`}
-                      className="group flex items-center gap-2.5 px-4 py-2 text-sm text-dark-600 hover:bg-primary-50 hover:text-primary-700 transition-colors"
-                    >
-                      <Icon size={15} className="text-dark-400 group-hover:text-primary-600 transition-colors shrink-0" />
-                      <span className="flex-1 leading-tight">{cat.label}</span>
-                      {n !== undefined && (
-                        <span className="text-[10px] font-semibold text-dark-400 bg-dark-100 group-hover:bg-primary-100 group-hover:text-primary-700 px-1.5 py-0.5 rounded-full transition-colors min-w-[22px] text-center leading-tight">
-                          {n > 99 ? '99+' : n}
-                        </span>
-                      )}
-                      <ChevronRight size={12} className="text-dark-300 opacity-0 group-hover:opacity-100 group-hover:text-primary-400 transition-all shrink-0" />
-                    </Link>
-                  );
-                })}
-              </nav>
-              <div className="border-t border-dark-100 px-4 py-3">
-                <Link
-                  href="/annonces/lister"
-                  className="flex items-center gap-1.5 text-primary-700 font-semibold text-xs hover:gap-2.5 transition-all"
-                >
-                  Voir toutes les catégories <ArrowRight size={13} />
-                </Link>
-              </div>
-            </div>
-          </aside>
-
-          {/* COLONNE DROITE */}
-          <div className="flex-1 min-w-0">
-
-            {/* ── BANNIÈRE HÉRO ── */}
-            <HeroBanner />
-
-            {/* ── CATÉGORIES EN VEDETTE ── */}
-            <ScrollReveal className="grid grid-cols-4 sm:grid-cols-8 gap-3 mb-8">
-              {FEATURED_CATS.map(cat => {
-                const Icon = cat.icon;
-                const n = countBySlug[cat.slug];
-                return (
-                  <Link
-                    key={cat.slug}
-                    href={`/categories/${cat.slug}`}
-                    className="group flex flex-col items-center gap-1.5 p-3 bg-[#fdfcf8] dark:bg-dark-800 rounded-2xl border border-dark-100 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-1 hover:bg-primary-50/40 dark:hover:bg-primary-900/30 transition-all duration-200"
-                  >
-                    <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${cat.bg} flex items-center justify-center shadow-sm`}>
-                      <Icon size={20} className="text-white" strokeWidth={1.8} />
-                    </div>
-                    <span className="text-[10px] sm:text-[11px] font-semibold text-dark-700 text-center leading-tight group-hover:text-primary-700 transition-colors">
-                      {cat.label}
-                    </span>
-                    {n !== undefined && (
-                      <span className="text-[9px] text-dark-400 font-medium leading-none group-hover:text-primary-500 transition-colors">
-                        {n === 0 ? '0 offre' : `${n > 999 ? (n / 1000).toFixed(1) + 'k' : n} offre${n !== 1 ? 's' : ''}`}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-              {/* Carte "Plus" */}
-              <Link
-                href="/annonces/lister"
-                className="group flex flex-col items-center gap-1.5 p-3 bg-[#fdfcf8] dark:bg-dark-800 rounded-2xl border border-dark-100 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-1 hover:bg-primary-50/40 dark:hover:bg-primary-900/30 transition-all duration-200"
-              >
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-dark-500 to-dark-700 flex items-center justify-center shadow-sm">
-                  <MoreHorizontal size={20} className="text-white" />
-                </div>
-                <span className="text-[10px] sm:text-[11px] font-semibold text-dark-700 text-center group-hover:text-primary-700 transition-colors">
-                  Plus
-                </span>
-              </Link>
-            </ScrollReveal>
-
-            {/* ── ANNONCES RÉCENTES ── */}
-            <ScrollReveal>
-            <section>
-              <div className="flex items-end justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="h-1 w-6 rounded-full bg-gradient-to-r from-primary-500 to-primary-700" />
-                  </div>
-                  <h2 className="text-xl font-display font-bold text-dark-900">Annonces récentes</h2>
-                  <p className="text-dark-400 text-xs mt-0.5">Les dernières offres publiées sur la plateforme</p>
-                </div>
-                <Link
-                  href="/annonces/lister"
-                  className="flex items-center gap-1.5 text-primary-700 font-semibold text-sm hover:gap-2.5 transition-all"
-                >
-                  Voir tout <ArrowRight size={15} />
-                </Link>
-              </div>
-              <AnnonceGrid annonces={annonces?.data} isLoading={isLoading} cols={4} />
-            </section>
-            </ScrollReveal>
-
-          </div>{/* fin colonne droite */}
-        </div>{/* fin 2 colonnes */}
-
-        {/* ══ CATÉGORIES POPULAIRES (pleine largeur) ══════════════ */}
-        <ScrollReveal>
-        <section className="mt-10 mb-8 bg-gradient-to-b from-primary-50/70 to-transparent dark:from-primary-900/20 dark:to-transparent rounded-3xl px-6 py-8 border border-primary-100/50 dark:border-primary-800/30">
-          <div className="flex items-end justify-between mb-6">
+      {/* ══ 2. DERNIÈRES ANNONCES (priorité haute — juste après le hero) */}
+      <ScrollReveal>
+        <section className="max-w-7xl mx-auto px-4 py-7 w-full">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <div className="h-1 w-6 rounded-full bg-gradient-to-r from-primary-500 to-primary-700" />
+                <div className="h-1 w-4 bg-gold-500 rounded-full" />
+                <span className="text-xs font-bold text-gold-600 dark:text-gold-400 uppercase tracking-wider">Annonces</span>
               </div>
-              <h2 className="text-2xl font-display font-bold text-dark-900">Catégories populaires</h2>
-              <p className="text-dark-400 text-sm mt-0.5">Les catégories les plus actives sur la plateforme</p>
+              <h2 className="text-xl font-display font-bold text-dark-900 dark:text-white">Dernières annonces</h2>
+              <p className="text-dark-400 text-xs mt-0.5">Les dernières offres publiées sur la plateforme</p>
             </div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {SORTS.map(s => {
+                const Icon = s.icon;
+                return (
+                  <button
+                    key={s.key}
+                    onClick={() => setSort(s.key)}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border transition-all ${
+                      sort === s.key
+                        ? 'bg-primary-700 text-white border-primary-700 shadow-premium'
+                        : 'bg-white dark:bg-dark-800 text-dark-600 dark:text-dark-300 border-dark-200 dark:border-dark-600 hover:border-primary-400 hover:text-primary-700'
+                    }`}
+                  >
+                    <Icon size={11} /> {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <AnnonceGrid annonces={annonces?.data} isLoading={isLoading} cols={4} />
+
+          <div className="mt-5 text-center">
             <Link
               href="/annonces/lister"
-              className="flex items-center gap-1.5 text-primary-700 font-semibold text-sm hover:gap-2.5 transition-all"
+              className="inline-flex items-center gap-2 bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 text-dark-700 dark:text-dark-200 font-semibold px-6 py-2.5 rounded-xl text-sm hover:border-primary-400 hover:text-primary-700 transition-all"
             >
-              Tout parcourir <ArrowRight size={15} />
+              Voir toutes les annonces <ArrowRight size={14} />
             </Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        </section>
+      </ScrollReveal>
+
+      {/* ══ 3. CATÉGORIES ════════════════════════════════════════════ */}
+      <ScrollReveal>
+        <section className="max-w-7xl mx-auto px-4 py-7 w-full">
+          <div className="flex items-end justify-between mb-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="h-1 w-4 bg-primary-600 rounded-full" />
+                <span className="text-xs font-bold text-primary-700 dark:text-primary-400 uppercase tracking-wider">Catégories</span>
+              </div>
+              <h2 className="text-xl font-display font-bold text-dark-900 dark:text-white">Parcourir par catégorie</h2>
+              <p className="text-dark-400 text-xs mt-0.5">Trouvez exactement ce que vous cherchez</p>
+            </div>
+            <Link href="/annonces/lister" className="hidden sm:flex items-center gap-1 text-primary-700 dark:text-primary-400 font-semibold text-sm hover:gap-2 transition-all">
+              Tout parcourir <ArrowRight size={14} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
             {loadingCats
-              ? Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="skeleton h-[68px] rounded-2xl" />
-                ))
-              : popularCats.map(cat => {
+              ? Array.from({ length: 10 }).map((_, i) => <div key={i} className="skeleton h-20 rounded-xl" />)
+              : topCats.map(cat => {
                   const Icon = cat.icon;
                   return (
                     <Link
                       key={cat.slug}
-                      href={`/categories/${cat.slug}`}
-                      className={`group flex items-center gap-3 p-4 rounded-2xl border bg-white hover:-translate-y-1 hover:shadow-card-hover transition-all duration-200 ${cat.color}`}
+                      href={cat.href}
+                      className="group flex flex-col items-center gap-2 p-3 bg-white dark:bg-dark-800 rounded-xl border border-dark-100 dark:border-dark-700 hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 text-center"
                     >
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cat.color}`}>
-                        <Icon size={20} />
+                      <div className={`w-10 h-10 rounded-xl ${cat.bg} flex items-center justify-center shadow-sm`}>
+                        <Icon size={18} className="text-white" strokeWidth={1.8} />
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="font-bold text-sm truncate">{cat.label}</p>
-                        <p className="text-xs font-medium opacity-70">{formatCount(cat.count)} offre{cat.count !== 1 ? 's' : ''}</p>
+                      <div>
+                        <p className="font-semibold text-xs text-dark-900 dark:text-white leading-tight group-hover:text-primary-700 dark:group-hover:text-primary-400 transition-colors">
+                          {cat.label}
+                        </p>
+                        <p className="text-[11px] text-dark-400 mt-0.5">
+                          {cat.count > 0 ? `${cat.count.toLocaleString('fr-FR')} annonce${cat.count !== 1 ? 's' : ''}` : '—'}
+                        </p>
                       </div>
-                      <ArrowRight size={14} className="shrink-0 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all" />
                     </Link>
                   );
                 })
             }
-          </div>
-        </section>
-        </ScrollReveal>
-
-        {/* ══ LES PLUS POPULAIRES ═════════════════════════════════ */}
-        <ScrollReveal>
-        <section className="mb-10">
-          <div className="flex items-end justify-between mb-5">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <div className="h-1 w-6 rounded-full bg-gradient-to-r from-gold-400 to-gold-500" />
-              </div>
-              <h2 className="text-2xl font-display font-bold text-dark-900 flex items-center gap-2">
-                <TrendingUp size={22} className="text-primary-600" /> Les plus populaires
-              </h2>
-              <p className="text-dark-400 text-sm mt-0.5">Les annonces qui cartonnent en ce moment</p>
-            </div>
-            <Link
-              href="/annonces/lister?sort=popular"
-              className="flex items-center gap-1.5 text-primary-700 font-semibold text-sm hover:gap-2.5 transition-all"
-            >
-              Voir tout <ArrowRight size={15} />
-            </Link>
-          </div>
-          <AnnonceGrid annonces={popularAnnonces?.data} isLoading={loadingPopular} cols={4} />
-        </section>
-        </ScrollReveal>
-
-        {/* ══ POURQUOI TROUVETOUT224 ? ════════════════════════════ */}
-        <ScrollReveal>
-        <section className="mb-10 bg-gradient-to-br from-amber-50/60 via-[#fbf9f4] to-primary-50/20 dark:from-amber-900/15 dark:via-dark-900 dark:to-primary-900/15 rounded-3xl px-6 py-10 border border-amber-100/40">
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <div className="h-px w-10 bg-gradient-to-r from-transparent to-gold-400" />
-              <div className="h-1.5 w-1.5 rounded-full bg-gold-500" />
-              <div className="h-px w-10 bg-gradient-to-l from-transparent to-gold-400" />
-            </div>
-            <h2 className="text-2xl font-display font-bold text-dark-900 mb-2">
-              Pourquoi choisir TrouveTout224 ?
-            </h2>
-            <p className="text-dark-400 text-sm">La marketplace pensée par et pour les Guinéens</p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-            {[
-              {
-                icon: Zap,
-                title: '100% Gratuit',
-                desc: 'Publiez autant d\'annonces que vous voulez, sans frais ni aucune limite.',
-                iconCls: 'text-gold-600 bg-gold-50',
-                border: 'border-gold-100',
-              },
-              {
-                icon: ShieldCheck,
-                title: 'Sécurisé',
-                desc: 'Vos données personnelles sont protégées et restent strictement confidentielles.',
-                iconCls: 'text-blue-600 bg-blue-50',
-                border: 'border-blue-100',
-              },
-              {
-                icon: Clock,
-                title: 'Rapide',
-                desc: 'Créez et publiez votre annonce en quelques clics, en moins de 2 minutes.',
-                iconCls: 'text-primary-700 bg-primary-50',
-                border: 'border-primary-100',
-              },
-              {
-                icon: MapPin,
-                title: '100% Guinée',
-                desc: 'Une plateforme 100% locale, faite par et pour les Guinéens de toutes les régions.',
-                iconCls: 'text-guinea-600 bg-guinea-50',
-                border: 'border-guinea-100',
-              },
-            ].map((b, i) => (
-              <div
-                key={i}
-                className={`bg-white/80 backdrop-blur-sm rounded-2xl border p-6 hover:-translate-y-1 hover:shadow-card-hover hover:bg-white transition-all duration-200 ${b.border}`}
+            {!loadingCats && (
+              <Link
+                href="/annonces/lister"
+                className="group flex flex-col items-center gap-2 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-xl border border-primary-100 dark:border-primary-800 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 text-center"
               >
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${b.iconCls}`}>
-                  <b.icon size={22} />
+                <div className="w-10 h-10 rounded-xl bg-primary-700 flex items-center justify-center shadow-sm">
+                  <MoreHorizontal size={18} className="text-white" />
                 </div>
-                <h3 className="font-bold text-dark-900 mb-2">{b.title}</h3>
-                <p className="text-dark-500 text-sm leading-relaxed">{b.desc}</p>
-              </div>
-            ))}
+                <div>
+                  <p className="font-semibold text-xs text-primary-700 dark:text-primary-400 leading-tight">Voir tout</p>
+                  <p className="text-[11px] text-primary-500 mt-0.5">Toutes catégories</p>
+                </div>
+              </Link>
+            )}
           </div>
         </section>
-        </ScrollReveal>
+      </ScrollReveal>
 
-      </div>
+      {/* ══ 4. BANDE DE CONFIANCE ════════════════════════════════════ */}
+      <ScrollReveal delay={100}>
+        <section className="bg-primary-800 dark:bg-primary-900 py-6">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-5 text-center">
+              {[
+                { icon: Zap,           title: 'Annonces gratuites',      desc: 'Publie sans payer, autant que tu veux', iconCls: 'text-gold-400' },
+                { icon: ShieldCheck,   title: 'Vendeurs vérifiés',       desc: 'Badges de confiance officiels',          iconCls: 'text-green-300' },
+                { icon: MessageCircle, title: 'Contact direct WhatsApp', desc: 'Parle au vendeur tout de suite',          iconCls: 'text-green-300' },
+                { icon: MapPin,        title: '100% local',               desc: 'Fait pour la Guinée 🇬🇳',               iconCls: 'text-guinea-300' },
+              ].map(({ icon: Icon, title, desc, iconCls }) => (
+                <div key={title} className="flex flex-col items-center gap-1.5">
+                  <div className={`w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center ${iconCls}`}>
+                    <Icon size={18} />
+                  </div>
+                  <p className="font-bold text-white text-sm leading-tight">{title}</p>
+                  <p className="text-primary-200 text-xs leading-snug">{desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </ScrollReveal>
 
+      {/* ══ FOOTER ════════════════════════════════════════════════════ */}
       <Footer />
     </div>
   );
