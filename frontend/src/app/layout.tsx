@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { QueryProvider } from '@/components/providers/QueryProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import dynamic from 'next/dynamic';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 const SplashScreen        = dynamic(() => import('@/components/SplashScreen'),                    { ssr: false });
 const OnboardingGate      = dynamic(() => import('@/components/OnboardingGate'),                  { ssr: false });
@@ -166,6 +167,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <PWARegister />
           </ThemeProvider>
         </QueryProvider>
+        <GoogleAnalytics />
       </body>
     </html>
   );

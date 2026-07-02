@@ -34,6 +34,7 @@ import publicationRoutes from './routes/publication.routes';
 import onboardingRoutes from './routes/onboarding.routes';
 import subscriptionRoutes from './routes/subscription.routes';
 import configRoutes from './routes/config.routes';
+import analyticsRoutes from './routes/analytics.routes';
 
 dotenv.config();
 
@@ -172,6 +173,7 @@ app.use('/api/publications', publicationRoutes);
 app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/site-config',  configRoutes);
+app.use('/api/analytics',    analyticsRoutes);
 
 // Health check
 app.get('/api/health', (req: Request, res: Response) => {

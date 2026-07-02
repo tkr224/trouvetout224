@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useQuery } from 'react-query';
 import { Search, MapPin, Utensils, MessageCircle, Phone, Clock, ChefHat, ExternalLink, Plus, Truck } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
+import PageViewTracker from '@/components/PageViewTracker';
 import Footer from '@/components/layout/Footer';
 import { api } from '@/lib/api';
 import Link from 'next/link';
@@ -37,6 +38,7 @@ export default function RestaurantsPage() {
 
   return (
     <div className="min-h-screen bg-dark-50">
+      <PageViewTracker page="RESTAURANTS" />
       <Navbar />
 
       {/* Hero */}

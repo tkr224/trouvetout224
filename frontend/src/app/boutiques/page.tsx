@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
+import PageViewTracker from '@/components/PageViewTracker';
 import { api } from '@/lib/api';
 import {
   Search, Store, MapPin, ShieldCheck, Users, Package,
@@ -76,6 +77,7 @@ export default function BoutiquesPage() {
 
   return (
     <div className="min-h-screen bg-dark-50">
+      <PageViewTracker page="BOUTIQUES" />
       <Navbar />
 
       <div className="max-w-6xl mx-auto px-4 py-8">

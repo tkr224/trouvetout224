@@ -785,6 +785,61 @@ router.delete('/jobs/:id', async (req: any, res) => {
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
+// ─── STATISTIQUES DE VISITES (admin) ─────────────────────────────────────────
+
+const PAGE_LABELS: Record<string, string> = {
+  HOME: 'Accueil',
+  ANNONCES: 'Annonces',
+  BOUTIQUES: 'Boutiques',
+  EMPLOIS: 'Emplois',
+  RESTAURANTS: 'Restaurants',
+  HOTELS: 'Hôtels',
+};
+
+router.get('/analytics/pageviews', async (req, res) => {
+  try {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart  = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const [total, today, week, byPageRaw] = await Promise.all([
+      (prisma as any).pageView.count(),
+      (prisma as any).pageView.count({ where: { createdAt: { gte: todayStart } } }),
+      (prisma as any).pageView.count({ where: { createdAt: { gte: weekStart } } }),
+      (prisma as any).pageView.groupBy({
+        by: ['page'],
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+      }),
+    ]);
+
+    // Graphique des 7 derniers jours
+    const dailyChart = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      d.setHours(0, 0, 0, 0);
+      const next = new Date(d);
+      next.setDate(next.getDate() + 1);
+      const count = await (prisma as any).pageView.count({
+        where: { createdAt: { gte: d, lt: next } },
+      });
+      dailyChart.push({
+        date: d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+        views: count,
+      });
+    }
+
+    const byPage = byPageRaw.map((r: any) => ({
+      page: r.page,
+      label: PAGE_LABELS[r.page] || r.page,
+      count: r._count.id,
+    }));
+
+    res.json({ data: { total, today, week, byPage, dailyChart } });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
 // ─── RESTAURANTS (admin) ──────────────────────────────────────────────────────
 
 router.get('/restaurants/pending-count', async (req, res) => {

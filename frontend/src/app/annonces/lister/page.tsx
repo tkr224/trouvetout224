@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
+import PageViewTracker from '@/components/PageViewTracker';
 import Footer from '@/components/layout/Footer';
 import AnnonceGrid from '@/components/annonces/AnnonceGrid';
 import { useAnnonces } from '@/hooks/useAnnonces';
@@ -457,6 +458,7 @@ function AnnoncesList() {
 export default function AnnoncesListPage() {
   return (
     <div className="min-h-screen bg-dark-50 flex flex-col">
+      <PageViewTracker page="ANNONCES" />
       <Navbar />
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-8">
         <div className="flex items-center gap-3 mb-7">

@@ -7,6 +7,7 @@ import {
   Plus, X, ChevronLeft, Building2, FileText, Users,
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
+import PageViewTracker from '@/components/PageViewTracker';
 import Footer from '@/components/layout/Footer';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
@@ -165,6 +166,7 @@ export default function EmploisPage() {
 
   return (
     <div className="min-h-screen bg-dark-50">
+      <PageViewTracker page="EMPLOIS" />
       <Navbar />
 
       {/* Hero */}

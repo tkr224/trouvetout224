@@ -5,10 +5,12 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
+import PageViewTracker from '@/components/PageViewTracker';
 import Footer from '@/components/layout/Footer';
 import Logo from '@/components/Logo';
 import AnnonceGrid from '@/components/annonces/AnnonceGrid';
 import ScrollReveal from '@/components/ScrollReveal';
+import CulturalPattern from '@/components/CulturalPattern';
 import { useAnnonces } from '@/hooks/useAnnonces';
 import { useCategories } from '@/hooks/useCategories';
 import { api } from '@/lib/api';
@@ -206,7 +208,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-page)' }}>
-
+      <PageViewTracker page="HOME" />
       {/* ══ NAVBAR ════════════════════════════════════════════════════ */}
       <Navbar selectedCity={selectedCity} onCityChange={setSelectedCity} />
 
@@ -249,14 +251,17 @@ export default function HomePage() {
       </div>
 
       {/* ══ 1. HERO ═══════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden min-h-[380px] sm:min-h-[420px] flex items-center py-10 sm:py-14">
+      <section
+        className="relative overflow-hidden min-h-[380px] sm:min-h-[420px] flex items-center py-10 sm:py-14"
+        style={{ background: 'linear-gradient(135deg, rgb(var(--p-900)) 0%, rgb(var(--p-800)) 55%, rgb(var(--p-900)) 100%)' }}
+      >
 
-        {/* Carrousel d'images en arrière-plan — produits marketplace */}
+        {/* Carrousel d'images en arrière-plan — textures subtiles */}
         {HERO_IMAGES.map((img, i) => (
           <div
             key={i}
             className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
-            style={{ opacity: i === heroSlide ? 1 : 0, zIndex: 0 }}
+            style={{ opacity: i === heroSlide ? 0.15 : 0, zIndex: 0 }}
             aria-hidden={i !== heroSlide}
           >
             <img
@@ -268,21 +273,55 @@ export default function HomePage() {
           </div>
         ))}
 
-        {/* Voile sombre pour lisibilité */}
-        <div className="absolute inset-0" style={{ zIndex: 1 }}>
-          <div className="absolute inset-0 bg-black/60" />
-          <div className="absolute inset-0 bg-primary-900/40" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent hidden sm:block" />
+        {/* ─── Blobs animés — couleurs du thème actif ──────────────── */}
+        <div
+          className="hero-blob pointer-events-none absolute rounded-full"
+          style={{
+            width: '65%', height: '130%',
+            top: '-15%', left: '-18%',
+            background: 'radial-gradient(ellipse, rgb(var(--p-600) / 0.55) 0%, transparent 68%)',
+            filter: 'blur(52px)',
+            animation: 'hero-blob-drift-1 14s ease-in-out infinite',
+            zIndex: 1,
+          }}
+        />
+        <div
+          className="hero-blob pointer-events-none absolute rounded-full"
+          style={{
+            width: '50%', height: '110%',
+            top: '5%', right: '-12%',
+            background: 'radial-gradient(ellipse, rgb(var(--p-700) / 0.45) 0%, transparent 65%)',
+            filter: 'blur(56px)',
+            animation: 'hero-blob-drift-2 18s ease-in-out infinite',
+            zIndex: 1,
+          }}
+        />
+        <div
+          className="hero-blob pointer-events-none absolute rounded-full"
+          style={{
+            width: '38%', height: '80%',
+            bottom: '-8%', left: '33%',
+            background: 'radial-gradient(ellipse, rgba(245,197,24,0.20) 0%, transparent 65%)',
+            filter: 'blur(42px)',
+            animation: 'hero-blob-drift-3 11s ease-in-out infinite',
+            zIndex: 1,
+          }}
+        />
+
+        {/* Voile léger pour lisibilité du texte */}
+        <div className="absolute inset-0" style={{ zIndex: 2 }}>
+          <div className="absolute inset-0 bg-black/30" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-transparent to-transparent hidden sm:block" />
         </div>
 
         {/* Motif de points discret */}
         <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '28px 28px', zIndex: 2 }}
+          className="absolute inset-0 opacity-[0.05]"
+          style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '28px 28px', zIndex: 3 }}
         />
 
         {/* Contenu */}
-        <div className="relative w-full max-w-7xl mx-auto px-4" style={{ zIndex: 3 }}>
+        <div className="relative w-full max-w-7xl mx-auto px-4" style={{ zIndex: 4 }}>
           <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
 
             {/* Texte */}
@@ -348,7 +387,7 @@ export default function HomePage() {
         </div>
 
         {/* Dots de navigation */}
-        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2" style={{ zIndex: 3 }}>
+        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2" style={{ zIndex: 5 }}>
           {HERO_IMAGES.map((_, i) => (
             <button
               key={i}
@@ -360,118 +399,127 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ══ PUBLICATIONS OFFICIELLES (si présentes) ═══════════════════ */}
-      {publications.length > 0 && (
-        <div className="pt-6">
-          <PublicationsCarousel pubs={publications} />
-        </div>
-      )}
+      {/* ══ FOND CULTUREL — sections Annonces + Catégories ════════════
+           Le motif SVG (masque Nimba + carte Guinée) est posé en filigrane
+           derrière le contenu clair. z-index:-1 grâce à isolate sur le wrapper.
+      ════════════════════════════════════════════════════════════════ */}
+      <div className="relative isolate overflow-hidden">
+        <CulturalPattern />
 
-      {/* ══ 2. DERNIÈRES ANNONCES (priorité haute — juste après le hero) */}
-      <ScrollReveal>
-        <section className="max-w-7xl mx-auto px-4 py-7 w-full">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <div className="h-1 w-4 bg-gold-500 rounded-full" />
-                <span className="text-xs font-bold text-gold-600 dark:text-gold-400 uppercase tracking-wider">Annonces</span>
+        {/* ══ PUBLICATIONS OFFICIELLES (si présentes) ══════════════════ */}
+        {publications.length > 0 && (
+          <div className="pt-6">
+            <PublicationsCarousel pubs={publications} />
+          </div>
+        )}
+
+        {/* ══ 2. DERNIÈRES ANNONCES (priorité haute — juste après le hero) */}
+        <ScrollReveal>
+          <section className="max-w-7xl mx-auto px-4 py-7 w-full">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="h-1 w-4 bg-gold-500 rounded-full" />
+                  <span className="text-xs font-bold text-gold-600 dark:text-gold-400 uppercase tracking-wider">Annonces</span>
+                </div>
+                <h2 className="text-xl font-display font-bold text-dark-900 dark:text-white">Dernières annonces</h2>
+                <p className="text-dark-400 text-xs mt-0.5">Les dernières offres publiées sur la plateforme</p>
               </div>
-              <h2 className="text-xl font-display font-bold text-dark-900 dark:text-white">Dernières annonces</h2>
-              <p className="text-dark-400 text-xs mt-0.5">Les dernières offres publiées sur la plateforme</p>
-            </div>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {SORTS.map(s => {
-                const Icon = s.icon;
-                return (
-                  <button
-                    key={s.key}
-                    onClick={() => setSort(s.key)}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border transition-all ${
-                      sort === s.key
-                        ? 'bg-primary-700 text-white border-primary-700 shadow-premium'
-                        : 'bg-white dark:bg-dark-800 text-dark-600 dark:text-dark-300 border-dark-200 dark:border-dark-600 hover:border-primary-400 hover:text-primary-700'
-                    }`}
-                  >
-                    <Icon size={11} /> {s.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <AnnonceGrid annonces={annonces?.data} isLoading={isLoading} cols={4} />
-
-          <div className="mt-5 text-center">
-            <Link
-              href="/annonces/lister"
-              className="inline-flex items-center gap-2 bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 text-dark-700 dark:text-dark-200 font-semibold px-6 py-2.5 rounded-xl text-sm hover:border-primary-400 hover:text-primary-700 transition-all"
-            >
-              Voir toutes les annonces <ArrowRight size={14} />
-            </Link>
-          </div>
-        </section>
-      </ScrollReveal>
-
-      {/* ══ 3. CATÉGORIES ════════════════════════════════════════════ */}
-      <ScrollReveal>
-        <section className="max-w-7xl mx-auto px-4 py-7 w-full">
-          <div className="flex items-end justify-between mb-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <div className="h-1 w-4 bg-primary-600 rounded-full" />
-                <span className="text-xs font-bold text-primary-700 dark:text-primary-400 uppercase tracking-wider">Catégories</span>
-              </div>
-              <h2 className="text-xl font-display font-bold text-dark-900 dark:text-white">Parcourir par catégorie</h2>
-              <p className="text-dark-400 text-xs mt-0.5">Trouvez exactement ce que vous cherchez</p>
-            </div>
-            <Link href="/annonces/lister" className="hidden sm:flex items-center gap-1 text-primary-700 dark:text-primary-400 font-semibold text-sm hover:gap-2 transition-all">
-              Tout parcourir <ArrowRight size={14} />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
-            {loadingCats
-              ? Array.from({ length: 10 }).map((_, i) => <div key={i} className="skeleton h-20 rounded-xl" />)
-              : topCats.map(cat => {
-                  const Icon = cat.icon;
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {SORTS.map(s => {
+                  const Icon = s.icon;
                   return (
-                    <Link
-                      key={cat.slug}
-                      href={cat.href}
-                      className="group flex flex-col items-center gap-2 p-3 bg-white dark:bg-dark-800 rounded-xl border border-dark-100 dark:border-dark-700 hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 text-center"
+                    <button
+                      key={s.key}
+                      onClick={() => setSort(s.key)}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border transition-all ${
+                        sort === s.key
+                          ? 'bg-primary-700 text-white border-primary-700 shadow-premium'
+                          : 'bg-white dark:bg-dark-800 text-dark-600 dark:text-dark-300 border-dark-200 dark:border-dark-600 hover:border-primary-400 hover:text-primary-700'
+                      }`}
                     >
-                      <div className={`w-10 h-10 rounded-xl ${cat.bg} flex items-center justify-center shadow-sm`}>
-                        <Icon size={18} className="text-white" strokeWidth={1.8} />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-xs text-dark-900 dark:text-white leading-tight group-hover:text-primary-700 dark:group-hover:text-primary-400 transition-colors">
-                          {cat.label}
-                        </p>
-                        <p className="text-[11px] text-dark-400 mt-0.5">
-                          {cat.count > 0 ? `${cat.count.toLocaleString('fr-FR')} annonce${cat.count !== 1 ? 's' : ''}` : '—'}
-                        </p>
-                      </div>
-                    </Link>
+                      <Icon size={11} /> {s.label}
+                    </button>
                   );
-                })
-            }
-            {!loadingCats && (
+                })}
+              </div>
+            </div>
+
+            <AnnonceGrid annonces={annonces?.data} isLoading={isLoading} cols={4} />
+
+            <div className="mt-5 text-center">
               <Link
                 href="/annonces/lister"
-                className="group flex flex-col items-center gap-2 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-xl border border-primary-100 dark:border-primary-800 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 text-center"
+                className="inline-flex items-center gap-2 bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 text-dark-700 dark:text-dark-200 font-semibold px-6 py-2.5 rounded-xl text-sm hover:border-primary-400 hover:text-primary-700 transition-all"
               >
-                <div className="w-10 h-10 rounded-xl bg-primary-700 flex items-center justify-center shadow-sm">
-                  <MoreHorizontal size={18} className="text-white" />
-                </div>
-                <div>
-                  <p className="font-semibold text-xs text-primary-700 dark:text-primary-400 leading-tight">Voir tout</p>
-                  <p className="text-[11px] text-primary-500 mt-0.5">Toutes catégories</p>
-                </div>
+                Voir toutes les annonces <ArrowRight size={14} />
               </Link>
-            )}
-          </div>
-        </section>
-      </ScrollReveal>
+            </div>
+          </section>
+        </ScrollReveal>
+
+        {/* ══ 3. CATÉGORIES ══════════════════════════════════════════════ */}
+        <ScrollReveal>
+          <section className="max-w-7xl mx-auto px-4 py-7 w-full">
+            <div className="flex items-end justify-between mb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="h-1 w-4 bg-primary-600 rounded-full" />
+                  <span className="text-xs font-bold text-primary-700 dark:text-primary-400 uppercase tracking-wider">Catégories</span>
+                </div>
+                <h2 className="text-xl font-display font-bold text-dark-900 dark:text-white">Parcourir par catégorie</h2>
+                <p className="text-dark-400 text-xs mt-0.5">Trouvez exactement ce que vous cherchez</p>
+              </div>
+              <Link href="/annonces/lister" className="hidden sm:flex items-center gap-1 text-primary-700 dark:text-primary-400 font-semibold text-sm hover:gap-2 transition-all">
+                Tout parcourir <ArrowRight size={14} />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
+              {loadingCats
+                ? Array.from({ length: 10 }).map((_, i) => <div key={i} className="skeleton h-20 rounded-xl" />)
+                : topCats.map(cat => {
+                    const Icon = cat.icon;
+                    return (
+                      <Link
+                        key={cat.slug}
+                        href={cat.href}
+                        className="group flex flex-col items-center gap-2 p-3 bg-white dark:bg-dark-800 rounded-xl border border-dark-100 dark:border-dark-700 hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 text-center"
+                      >
+                        <div className={`w-10 h-10 rounded-xl ${cat.bg} flex items-center justify-center shadow-sm`}>
+                          <Icon size={18} className="text-white" strokeWidth={1.8} />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-xs text-dark-900 dark:text-white leading-tight group-hover:text-primary-700 dark:group-hover:text-primary-400 transition-colors">
+                            {cat.label}
+                          </p>
+                          <p className="text-[11px] text-dark-400 mt-0.5">
+                            {cat.count > 0 ? `${cat.count.toLocaleString('fr-FR')} annonce${cat.count !== 1 ? 's' : ''}` : '—'}
+                          </p>
+                        </div>
+                      </Link>
+                    );
+                  })
+              }
+              {!loadingCats && (
+                <Link
+                  href="/annonces/lister"
+                  className="group flex flex-col items-center gap-2 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-xl border border-primary-100 dark:border-primary-800 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 text-center"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-primary-700 flex items-center justify-center shadow-sm">
+                    <MoreHorizontal size={18} className="text-white" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-xs text-primary-700 dark:text-primary-400 leading-tight">Voir tout</p>
+                    <p className="text-[11px] text-primary-500 mt-0.5">Toutes catégories</p>
+                  </div>
+                </Link>
+              )}
+            </div>
+          </section>
+        </ScrollReveal>
+
+      </div>{/* fin wrapper motif culturel */}
 
       {/* ══ 4. BANDE DE CONFIANCE ════════════════════════════════════ */}
       <ScrollReveal delay={100}>

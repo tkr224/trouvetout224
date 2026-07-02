@@ -718,3 +718,17 @@ enum AdminDeletionType {
   ANNONCE
   ACCOUNT
 }
+
+// =============================================
+// STATISTIQUES DE VISITES (anonymes)
+// =============================================
+
+model PageView {
+  id        String   @id @default(cuid())
+  page      String   // HOME, ANNONCES, BOUTIQUES, EMPLOIS, RESTAURANTS, HOTELS
+  createdAt DateTime @default(now())
+
+  @@index([page])
+  @@index([createdAt])
+  @@map("page_views")
+}
