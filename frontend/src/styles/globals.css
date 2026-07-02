@@ -2245,3 +2245,51 @@ html.dark[data-color="cristal"] .bg-dark-50 { background-color: var(--bg-page); 
   .theme-aurora-wave, .theme-petal, .theme-matrix-char, .theme-candy,
   .theme-ash, .theme-lightning, .theme-sand, .theme-sparkle { display: none; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   HERO ANIMÉ — blobs ondulants adaptatifs au thème actif
+   Utilise les variables CSS du thème (--p-600, --p-700, etc.)
+   pour que les couleurs s'adaptent automatiquement à n'importe quel thème.
+   ══════════════════════════════════════════════════════════════════════ */
+
+@keyframes hero-blob-drift-1 {
+  0%,  100% { transform: translate(0px,   0px)  scale(1);    }
+  33%        { transform: translate(28px, -18px) scale(1.08); }
+  66%        { transform: translate(-18px, 14px) scale(0.93); }
+}
+
+@keyframes hero-blob-drift-2 {
+  0%,  100% { transform: translate(0px,  0px)   scale(1);    }
+  33%        { transform: translate(-22px, 16px) scale(1.06); }
+  66%        { transform: translate(16px, -22px) scale(0.92); }
+}
+
+@keyframes hero-blob-drift-3 {
+  0%,  100% { transform: translate(0px, 0px)  scale(1);    }
+  50%        { transform: translate(12px, 8px) scale(1.10); }
+}
+
+/* Respect de prefers-reduced-motion — hero blobs */
+@media (prefers-reduced-motion: reduce) {
+  .hero-blob { animation: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   MOTIF CULTUREL GUINÉEN — filigrane SVG (masque Nimba + carte Guinée)
+   La couleur suit le thème actif via --p-600 (mode clair) / --p-400 (dark).
+   ══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --cultural-stroke:          rgb(var(--p-600));
+  --cultural-pattern-opacity: 0.05;
+}
+
+html.dark {
+  --cultural-stroke:          rgb(var(--p-400));
+  --cultural-pattern-opacity: 0.045;
+}
+
+@media (max-width: 640px) {
+  :root       { --cultural-pattern-opacity: 0.04;  }
+  html.dark   { --cultural-pattern-opacity: 0.035; }
+}
