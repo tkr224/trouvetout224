@@ -177,10 +177,16 @@ router.put('/:jobId/candidatures/:appId/status', authenticate, async (req: any, 
     const { status } = req.body;
     const job = await prisma.job.findUnique({ where: { id: req.params.jobId } });
     if (!job || job.ownerId !== req.userId) return res.status(403).json({ error: 'Accès refusé.' });
-    const app = await prisma.jobApplication.update({
-      where: { id: req.params.appId },
+
+    // La candidature doit appartenir à CETTE offre précise (pas juste exister quelque part)
+    const result = await prisma.jobApplication.updateMany({
+      where: { id: req.params.appId, jobId: req.params.jobId },
       data: { status },
     });
+    if (result.count === 0) {
+      return res.status(404).json({ error: 'Candidature introuvable pour cette offre.' });
+    }
+    const app = await prisma.jobApplication.findUnique({ where: { id: req.params.appId } });
     res.json({ data: app });
   } catch { res.status(500).json({ error: 'Erreur.' }); }
 });

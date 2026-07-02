@@ -32,6 +32,17 @@ export const verifyRefreshToken = async (token: string): Promise<string | null> 
       where: { token, userId: decoded.userId, expiresAt: { gte: new Date() } },
     });
     if (!stored) return null;
+
+    // Un compte suspendu (ou désactivé) ne doit plus pouvoir renouveler sa session
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { isSuspended: true, isActive: true },
+    });
+    if (!user || user.isSuspended || !user.isActive) {
+      await prisma.refreshToken.delete({ where: { id: stored.id } });
+      return null;
+    }
+
     await prisma.refreshToken.delete({ where: { id: stored.id } });
     return decoded.userId;
   } catch {

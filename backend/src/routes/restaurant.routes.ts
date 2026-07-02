@@ -113,15 +113,38 @@ router.post('/', authenticate, async (req: any, res) => {
 });
 
 // ─── Mettre à jour un restaurant ─────────────────────────────────────────────
+// Champs que le PROPRIÉTAIRE a le droit de modifier lui-même.
+// status / isVerified / isActive / ownerId sont volontairement exclus : ce sont
+// des champs réservés à la modération admin (voir admin.routes.ts).
+const RESTAURANT_EDITABLE_FIELDS = [
+  'name', 'description', 'address', 'cityId', 'neighborhood',
+  'phone', 'whatsapp', 'email', 'website',
+  'cuisineType', 'avgPrice', 'hasDelivery', 'hasTakeaway',
+  'schedule', 'latitude', 'longitude',
+] as const;
+
 router.put('/:id', authenticate, async (req: any, res) => {
   try {
     const restaurant = await prisma.restaurant.findUnique({ where: { id: req.params.id } });
     if (!restaurant || restaurant.ownerId !== req.userId) {
       return res.status(403).json({ error: 'Accès refusé.' });
     }
+
+    const data: any = { updatedAt: new Date() };
+    for (const field of RESTAURANT_EDITABLE_FIELDS) {
+      if (req.body[field] === undefined) continue;
+      if (field === 'avgPrice' || field === 'latitude' || field === 'longitude') {
+        data[field] = req.body[field] === null ? null : parseFloat(req.body[field]);
+      } else if (field === 'hasDelivery' || field === 'hasTakeaway') {
+        data[field] = !!req.body[field];
+      } else {
+        data[field] = typeof req.body[field] === 'string' ? req.body[field].trim() : req.body[field];
+      }
+    }
+
     const updated = await prisma.restaurant.update({
       where: { id: req.params.id },
-      data: { ...req.body, updatedAt: new Date() },
+      data,
     });
     res.json({ data: updated });
   } catch { res.status(500).json({ error: 'Erreur.' }); }

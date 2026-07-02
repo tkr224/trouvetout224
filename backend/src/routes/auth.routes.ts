@@ -36,6 +36,12 @@ router.post(
       .matches(/[0-9]/).withMessage('Mot de passe : au moins un chiffre requis'),
     body('email').optional().isEmail().normalizeEmail().withMessage('Email invalide'),
     body('phone').optional().isMobilePhone('any').withMessage('Téléphone invalide'),
+    body().custom((_, { req }) => {
+      if (!req.body.email && !req.body.phone) {
+        throw new Error('Un email ou un numéro de téléphone est requis.');
+      }
+      return true;
+    }),
   ],
   validate,
   register

@@ -60,6 +60,12 @@ router.get('/conversations', authenticate, async (req: any, res) => {
 // Messages d'une conversation
 router.get('/conversations/:id/messages', authenticate, async (req: any, res) => {
   try {
+    const membership = await prisma.conversation.findFirst({
+      where: { id: req.params.id, participants: { some: { id: req.userId } } },
+      select: { id: true },
+    });
+    if (!membership) return res.status(403).json({ error: 'Accès refusé.' });
+
     const messages = await prisma.message.findMany({
       where: { conversationId: req.params.id },
       include: {
@@ -124,6 +130,12 @@ router.post('/conversations', authenticate, async (req: any, res) => {
 // Envoyer un message (avec reply optionnel)
 router.post('/conversations/:id/messages', authenticate, async (req: any, res) => {
   try {
+    const membership = await prisma.conversation.findFirst({
+      where: { id: req.params.id, participants: { some: { id: req.userId } } },
+      select: { id: true },
+    });
+    if (!membership) return res.status(403).json({ error: 'Accès refusé.' });
+
     const { content, imageUrl, replyToId } = req.body;
     if (!content && !imageUrl) return res.status(400).json({ error: 'Message vide.' });
 
@@ -204,6 +216,12 @@ router.delete('/msg/:id', authenticate, async (req: any, res) => {
 // Supprimer une conversation
 router.delete('/conversations/:id', authenticate, async (req: any, res) => {
   try {
+    const membership = await prisma.conversation.findFirst({
+      where: { id: req.params.id, participants: { some: { id: req.userId } } },
+      select: { id: true },
+    });
+    if (!membership) return res.status(403).json({ error: 'Accès refusé.' });
+
     await prisma.message.deleteMany({ where: { conversationId: req.params.id } });
     await prisma.conversation.delete({ where: { id: req.params.id } });
     res.json({ message: 'Conversation supprimée.' });

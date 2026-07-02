@@ -149,6 +149,10 @@ router.put('/users/:id/suspend', async (req, res) => {
         suspendedReason: suspended ? (reason?.trim() || null) : null,
       },
     });
+    // Coupe immédiatement toute session active : le compte ne pourra plus rafraîchir son jeton
+    if (suspended) {
+      await prisma.refreshToken.deleteMany({ where: { userId: req.params.id } });
+    }
     res.json({ message: `Compte ${suspended ? 'suspendu' : 'réactivé'}.`, data: user });
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
 });

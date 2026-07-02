@@ -1,10 +1,73 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '../config/database';
 import { generateTokens, verifyRefreshToken } from '../utils/tokens';
 import { sendVerificationEmail } from '../services/email.service';
 import { v4 as uuidv4 } from 'uuid';
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+interface VerifiedOAuthProfile {
+  providerId: string;
+  email?: string;
+  firstName: string;
+  lastName: string;
+  avatar?: string;
+}
+
+// Vérifie l'id_token Google directement auprès de Google — seule source de vérité
+async function verifyGoogleToken(idToken: string): Promise<VerifiedOAuthProfile> {
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    throw new Error('GOOGLE_CLIENT_ID non configuré côté serveur.');
+  }
+  const ticket = await googleClient.verifyIdToken({
+    idToken,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+  const payload = ticket.getPayload();
+  if (!payload?.sub) throw new Error('Token Google invalide.');
+  return {
+    providerId: payload.sub,
+    email: payload.email,
+    firstName: payload.given_name || '',
+    lastName: payload.family_name || '',
+    avatar: payload.picture,
+  };
+}
+
+// Vérifie l'access_token Facebook auprès du Graph API — seule source de vérité
+async function verifyFacebookToken(accessToken: string): Promise<VerifiedOAuthProfile> {
+  const appId = process.env.FACEBOOK_APP_ID;
+  const appSecret = process.env.FACEBOOK_APP_SECRET;
+  if (!appId || !appSecret) {
+    throw new Error('FACEBOOK_APP_ID/FACEBOOK_APP_SECRET non configurés côté serveur.');
+  }
+
+  // Le token doit être valide ET émis pour NOTRE application (empêche un token d'une autre app)
+  const debugRes = await fetch(
+    `https://graph.facebook.com/debug_token?input_token=${encodeURIComponent(accessToken)}&access_token=${appId}|${appSecret}`
+  );
+  const debugData: any = await debugRes.json();
+  if (!debugData?.data?.is_valid || debugData.data.app_id !== appId) {
+    throw new Error('Token Facebook invalide.');
+  }
+
+  const profileRes = await fetch(
+    `https://graph.facebook.com/me?fields=id,email,first_name,last_name,picture&access_token=${encodeURIComponent(accessToken)}`
+  );
+  const profile: any = await profileRes.json();
+  if (!profile?.id) throw new Error('Impossible de récupérer le profil Facebook.');
+
+  return {
+    providerId: profile.id,
+    email: profile.email,
+    firstName: profile.first_name || '',
+    lastName: profile.last_name || '',
+    avatar: profile.picture?.data?.url,
+  };
+}
 
 // ============================
 // INSCRIPTION
@@ -160,8 +223,25 @@ export const logout = async (req: Request, res: Response) => {
 // ============================
 export const oauthLogin = async (req: Request, res: Response) => {
   try {
-    const { provider, providerId, email: rawEmail, firstName, lastName, avatar } = req.body;
-    const email = rawEmail ? rawEmail.toLowerCase().trim() : undefined;
+    const { provider, token } = req.body;
+    if (!token || (provider !== 'google' && provider !== 'facebook')) {
+      return res.status(400).json({ error: 'Requête de connexion invalide.' });
+    }
+
+    // Étape critique : on ne fait confiance qu'à ce que Google/Facebook confirme,
+    // jamais aux champs (email, nom...) envoyés directement par le client.
+    let verified: VerifiedOAuthProfile;
+    try {
+      verified = provider === 'google'
+        ? await verifyGoogleToken(token)
+        : await verifyFacebookToken(token);
+    } catch (e: any) {
+      console.error('Erreur vérification OAuth:', e.message);
+      return res.status(401).json({ error: 'Connexion refusée : token invalide ou expiré.' });
+    }
+
+    const { providerId, firstName, lastName, avatar } = verified;
+    const email = verified.email ? verified.email.toLowerCase().trim() : undefined;
 
     let user = await prisma.user.findFirst({
       where: {
@@ -176,11 +256,28 @@ export const oauthLogin = async (req: Request, res: Response) => {
     if (!user) {
       user = await prisma.user.create({
         data: {
-          email, firstName, lastName, avatar,
+          email, firstName: firstName || 'Utilisateur', lastName: lastName || '', avatar,
           googleId: provider === 'google' ? providerId : undefined,
           facebookId: provider === 'facebook' ? providerId : undefined,
           isVerified: true,
         },
+      });
+    } else if (
+      (provider === 'google' && !user.googleId) ||
+      (provider === 'facebook' && !user.facebookId)
+    ) {
+      // Compte existant (créé par email/mdp) qui se connecte pour la 1ère fois via ce fournisseur : on lie l'identifiant
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: provider === 'google' ? { googleId: providerId } : { facebookId: providerId },
+      });
+    }
+
+    if (user.isSuspended) {
+      return res.status(403).json({
+        error: 'Votre compte a été suspendu.',
+        suspended: true,
+        suspendedReason: (user as any).suspendedReason || null,
       });
     }
 
