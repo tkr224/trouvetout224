@@ -64,7 +64,12 @@
       "PowerShell(Invoke-RestMethod -Uri \"https://trouvetout224-production.up.railway.app/api/health\" -TimeoutSec 15)",
       "Skill(claude-in-chrome)",
       "PowerShell(Invoke-RestMethod -Uri \"https://trouvetout224-production.up.railway.app/api/annonces?page=1&limit=5\" -TimeoutSec 15 | ConvertTo-Json -Depth 3 | Select-Object -First 60)",
-      "PowerShell(Invoke-WebRequest -Uri \"https://trouvetout224-production.up.railway.app/api/categories\" -UseBasicParsing -TimeoutSec 10 | Select-Object StatusCode)"
+      "PowerShell(Invoke-WebRequest -Uri \"https://trouvetout224-production.up.railway.app/api/categories\" -UseBasicParsing -TimeoutSec 10 | Select-Object StatusCode)",
+      "PowerShell(head *)",
+      "PowerShell(cd \"C:\\\\Users\\\\celso\\\\OneDrive\\\\Desktop\\\\Trouvetout224\\\\backend\"; node -e \"const { PrismaClient } = require\\('@prisma/client'\\); const p = new PrismaClient\\(\\); p.pageView.count\\(\\).then\\(n => { console.log\\('page_views count:', n\\); p.$disconnect\\(\\); }\\).catch\\(e => { console.error\\('ERREUR:', e.message\\); p.$disconnect\\(\\); }\\);\" 2>&1)",
+      "Bash(grep -rn \"reset-password\\\\|reinitialis\\\\|resetPassword\" app --include=*.tsx -l)",
+      "Bash(grep -rln \"wa.me\\\\|whatsapp.com\" . --include=*.tsx --include=*.ts)",
+      "Bash(grep -i \"^backend/\\\\.env$\")"
     ]
   }
 }
