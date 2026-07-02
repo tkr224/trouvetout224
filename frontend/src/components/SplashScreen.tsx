@@ -4,21 +4,28 @@ import Logo from './Logo';
 
 type Phase = 'hidden' | 'in' | 'peak' | 'exit';
 
+// Flag module-level : bloque la 2e exécution du useEffect en React Strict Mode
+// (dev uniquement — en prod le problème n'existe pas)
+let _splashDone = false;
+
 export default function SplashScreen() {
   const [phase, setPhase] = useState<Phase>('hidden');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (sessionStorage.getItem('tt224-splash')) return;
+    if (_splashDone) return;                              // Strict Mode guard
+    if (sessionStorage.getItem('tt224-splash')) return;  // Re-navigation guard
+
+    _splashDone = true;
     sessionStorage.setItem('tt224-splash', '1');
 
-    const timers = [
-      setTimeout(() => setPhase('in'),     60),
-      setTimeout(() => setPhase('peak'),   600),
-      setTimeout(() => setPhase('exit'),  1900),
-      setTimeout(() => setPhase('hidden'),2520),
-    ];
-    return () => timers.forEach(clearTimeout);
+    // PAS de return cleanup : si on retourne une fonction ici, React Strict Mode
+    // l'appelle entre les deux passes et annule les timers avant qu'ils partent.
+    // Sans cleanup, les timers survivent à la 2e passe et l'animation se lance.
+    setTimeout(() => setPhase('in'),     60);
+    setTimeout(() => setPhase('peak'),   600);
+    setTimeout(() => setPhase('exit'),  1900);
+    setTimeout(() => setPhase('hidden'),2520);
   }, []);
 
   if (phase === 'hidden') return null;
