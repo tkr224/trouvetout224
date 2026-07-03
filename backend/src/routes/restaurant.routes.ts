@@ -5,27 +5,32 @@ const router = Router();
 
 // ─── Liste des restaurants (publique) ────────────────────────────────────────
 router.get('/', async (req, res) => {
-  const { q, cityId, cuisineType, hasDelivery, page = '1', limit = '24' } = req.query;
-  const where: any = { status: 'ACTIVE', isActive: true };
-  if (q) where.name = { contains: q, mode: 'insensitive' };
-  if (cityId) where.cityId = cityId;
-  if (cuisineType) where.cuisineType = { contains: cuisineType, mode: 'insensitive' };
-  if (hasDelivery === 'true') where.hasDelivery = true;
+  try {
+    const { q, cityId, cuisineType, hasDelivery, page = '1', limit = '24' } = req.query;
+    const where: any = { status: 'ACTIVE', isActive: true };
+    if (q) where.name = { contains: q, mode: 'insensitive' };
+    if (cityId) where.cityId = cityId;
+    if (cuisineType) where.cuisineType = { contains: cuisineType, mode: 'insensitive' };
+    if (hasDelivery === 'true') where.hasDelivery = true;
 
-  const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
-  const [restaurants, total] = await Promise.all([
-    prisma.restaurant.findMany({
-      where, skip, take: parseInt(limit as string),
-      orderBy: { createdAt: 'desc' },
-      include: {
-        images: { orderBy: { order: 'asc' }, take: 1 },
-        city: true,
-        _count: { select: { menu: true } },
-      },
-    }),
-    prisma.restaurant.count({ where }),
-  ]);
-  res.json({ data: restaurants, pagination: { total, page: parseInt(page as string), pages: Math.ceil(total / parseInt(limit as string)) } });
+    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+    const [restaurants, total] = await Promise.all([
+      prisma.restaurant.findMany({
+        where, skip, take: parseInt(limit as string),
+        orderBy: { createdAt: 'desc' },
+        include: {
+          images: { orderBy: { order: 'asc' }, take: 1 },
+          city: true,
+          _count: { select: { menu: true } },
+        },
+      }),
+      prisma.restaurant.count({ where }),
+    ]);
+    res.json({ data: restaurants, pagination: { total, page: parseInt(page as string), pages: Math.ceil(total / parseInt(limit as string)) } });
+  } catch (e) {
+    console.error('Erreur liste restaurants:', e);
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
 });
 
 // ─── Mes restaurants (propriétaire) ──────────────────────────────────────────
@@ -46,17 +51,22 @@ router.get('/mes-restaurants', authenticate, async (req: any, res) => {
 
 // ─── Détail d'un restaurant ───────────────────────────────────────────────────
 router.get('/:id', async (req, res) => {
-  const r = await prisma.restaurant.findUnique({
-    where: { id: req.params.id },
-    include: {
-      images: { orderBy: { order: 'asc' } },
-      menu: { orderBy: [{ category: 'asc' }, { name: 'asc' }] },
-      city: true,
-      owner: { select: { id: true, firstName: true, lastName: true } },
-    },
-  });
-  if (!r) return res.status(404).json({ error: 'Restaurant non trouvé.' });
-  res.json({ data: r });
+  try {
+    const r = await prisma.restaurant.findUnique({
+      where: { id: req.params.id },
+      include: {
+        images: { orderBy: { order: 'asc' } },
+        menu: { orderBy: [{ category: 'asc' }, { name: 'asc' }] },
+        city: true,
+        owner: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+    if (!r) return res.status(404).json({ error: 'Restaurant non trouvé.' });
+    res.json({ data: r });
+  } catch (e) {
+    console.error('Erreur détail restaurant:', e);
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
 });
 
 // ─── Créer un restaurant ──────────────────────────────────────────────────────

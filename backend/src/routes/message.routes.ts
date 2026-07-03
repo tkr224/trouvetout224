@@ -5,6 +5,20 @@ import { io } from '../index';
 
 const router = Router();
 
+// Vrai si l'un des deux utilisateurs a bloqué l'autre (dans n'importe quel sens)
+async function isBlockedPair(userIdA: string, userIdB: string): Promise<boolean> {
+  const blocked = await prisma.block.findFirst({
+    where: {
+      OR: [
+        { blockedById: userIdA, blockedId: userIdB },
+        { blockedById: userIdB, blockedId: userIdA },
+      ],
+    },
+    select: { id: true },
+  });
+  return !!blocked;
+}
+
 // Nombre total de messages non lus (pour le badge de la navbar)
 router.get('/unread-count', authenticate, async (req: any, res) => {
   try {
@@ -66,14 +80,29 @@ router.get('/conversations/:id/messages', authenticate, async (req: any, res) =>
     });
     if (!membership) return res.status(403).json({ error: 'Accès refusé.' });
 
+    // Charge les N derniers messages (les plus récents), remis dans l'ordre chronologique.
+    // `before` (id d'un message) permet de charger la page précédente, plus ancienne.
+    const limit = Math.min(parseInt(req.query.limit as string) || 100, 200);
+    const beforeId = req.query.before as string | undefined;
+    let beforeDate: Date | undefined;
+    if (beforeId) {
+      const beforeMsg = await prisma.message.findUnique({ where: { id: beforeId }, select: { createdAt: true } });
+      beforeDate = beforeMsg?.createdAt;
+    }
+
     const messages = await prisma.message.findMany({
-      where: { conversationId: req.params.id },
+      where: {
+        conversationId: req.params.id,
+        ...(beforeDate ? { createdAt: { lt: beforeDate } } : {}),
+      },
       include: {
         sender: { select: { id: true, firstName: true, avatar: true } },
         replyTo: { select: { id: true, content: true, imageUrl: true, sender: { select: { firstName: true } } } },
       },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
     });
+    messages.reverse();
 
     const visible = messages.filter(m => !m.deletedFor.includes(req.userId));
 
@@ -95,6 +124,10 @@ router.post('/conversations', authenticate, async (req: any, res) => {
     const { recipientId, annonceId } = req.body;
     if (recipientId === req.userId) {
       return res.status(400).json({ error: 'Vous ne pouvez pas vous envoyer un message.' });
+    }
+
+    if (await isBlockedPair(req.userId, recipientId)) {
+      return res.status(403).json({ error: 'Impossible de contacter cet utilisateur.' });
     }
 
     const allConvs = await prisma.conversation.findMany({
@@ -130,11 +163,16 @@ router.post('/conversations', authenticate, async (req: any, res) => {
 // Envoyer un message (avec reply optionnel)
 router.post('/conversations/:id/messages', authenticate, async (req: any, res) => {
   try {
-    const membership = await prisma.conversation.findFirst({
+    const conversation = await prisma.conversation.findFirst({
       where: { id: req.params.id, participants: { some: { id: req.userId } } },
-      select: { id: true },
+      include: { participants: { select: { id: true } } },
     });
-    if (!membership) return res.status(403).json({ error: 'Accès refusé.' });
+    if (!conversation) return res.status(403).json({ error: 'Accès refusé.' });
+
+    const recipient = conversation.participants.find(p => p.id !== req.userId);
+    if (recipient && await isBlockedPair(req.userId, recipient.id)) {
+      return res.status(403).json({ error: 'Impossible d\'envoyer un message à cet utilisateur.' });
+    }
 
     const { content, imageUrl, replyToId } = req.body;
     if (!content && !imageUrl) return res.status(400).json({ error: 'Message vide.' });
@@ -153,11 +191,6 @@ router.post('/conversations/:id/messages', authenticate, async (req: any, res) =
 
     io.to(`conversation:${req.params.id}`).emit('new_message', message);
 
-    const conv = await prisma.conversation.findUnique({
-      where: { id: req.params.id },
-      include: { participants: { select: { id: true } } },
-    });
-    const recipient = conv?.participants.find(p => p.id !== req.userId);
     if (recipient) {
       io.to(`user:${recipient.id}`).emit('message_notification', {
         conversationId: req.params.id,

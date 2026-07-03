@@ -76,6 +76,7 @@ router.get('/me', authenticate, async (req: any, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
+      omit: { password: true },
     });
     res.json({ data: user });
   } catch { res.status(500).json({ error: 'Erreur.' }); }
@@ -88,6 +89,7 @@ router.put('/me', authenticate, async (req: any, res) => {
     const user = await prisma.user.update({
       where: { id: req.userId },
       data: { firstName, lastName, bio, cityId, avatar, banner },
+      omit: { password: true },
     });
     res.json({ message: 'Profil mis à jour.', data: user });
   } catch { res.status(500).json({ error: 'Erreur.' }); }
@@ -110,6 +112,7 @@ router.put('/me/shop', authenticate, async (req: any, res) => {
         shopColor: shopColor ?? undefined,
         shopSlogan: shopSlogan ?? undefined,
       },
+      omit: { password: true },
     });
     res.json({ message: 'Boutique mise à jour.', data: user });
   } catch { res.status(500).json({ error: 'Erreur.' }); }

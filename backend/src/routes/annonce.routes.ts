@@ -1,6 +1,8 @@
 import { Router } from 'express';
+import { body } from 'express-validator';
 import { authenticate } from '../middleware/auth';
 import { optionalAuthenticate } from '../middleware/optionalAuth';
+import { validate } from '../middleware/validate';
 import { prisma } from '../config/database';
 import {
   getAnnonces,
@@ -54,7 +56,20 @@ router.get('/banner', async (req, res) => {
 router.get('/:id', optionalAuthenticate, getAnnonceById);
 router.get('/:id/saved', authenticate, checkSaved);
 router.get('/:id/similaires', getSimilarAnnonces);
-router.post('/', authenticate, createAnnonce);
+router.post(
+  '/',
+  authenticate,
+  [
+    body('title').trim().notEmpty().withMessage('Le titre est requis.')
+      .isLength({ max: 200 }).withMessage('Le titre est trop long (200 caractères max).'),
+    body('description').trim().notEmpty().withMessage('La description est requise.')
+      .isLength({ max: 5000 }).withMessage('La description est trop longue (5000 caractères max).'),
+    body('categoryId').notEmpty().withMessage('La catégorie est requise.'),
+    body('cityId').notEmpty().withMessage('La ville est requise.'),
+  ],
+  validate,
+  createAnnonce
+);
 router.put('/:id', authenticate, updateAnnonce);
 router.delete('/:id', authenticate, deleteAnnonce);
 router.post('/:id/save', authenticate, toggleSaveAnnonce);
@@ -151,9 +166,11 @@ router.put('/:id/reactivate', authenticate, async (req: any, res) => {
     if (!annonce) return res.status(404).json({ error: 'Annonce introuvable.' });
     if (annonce.userId !== req.userId) return res.status(403).json({ error: 'Non autorisé.' });
     if (annonce.status !== 'SOLD') return res.status(400).json({ error: "Cette annonce n'est pas vendue." });
+    const newExpiresAt = new Date();
+    newExpiresAt.setDate(newExpiresAt.getDate() + 30);
     const updated = await prisma.annonce.update({
       where: { id: req.params.id },
-      data: { status: 'ACTIVE', soldPrice: null, soldAt: null },
+      data: { status: 'ACTIVE', soldPrice: null, soldAt: null, expiresAt: newExpiresAt },
     });
     res.json({ message: 'Annonce réactivée avec succès.', data: updated });
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }

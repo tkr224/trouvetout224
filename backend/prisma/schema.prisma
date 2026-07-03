@@ -2,7 +2,8 @@
 // Base de données complète de TrouveTout224
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["omitApi"]
 }
 
 datasource db {
@@ -15,68 +16,69 @@ datasource db {
 // =============================================
 
 model User {
-  id            String   @id @default(cuid())
-  email         String?  @unique
-  phone         String?  @unique
-  password      String?
-  firstName     String
-  lastName      String
-  dateOfBirth   DateTime?
-  gender        Gender?
-  avatar        String?
-  banner        String?
-  bio           String?
-  cityId        String?
-  city          City?    @relation(fields: [cityId], references: [id])
-  role          Role        @default(USER)
-  accountType   AccountType @default(ACHETEUR)
-  isVerified    Boolean  @default(false)
-  isActive      Boolean  @default(true)
-  isSuspended     Boolean  @default(false)
+  id              String      @id @default(cuid())
+  email           String?     @unique
+  phone           String?     @unique
+  password        String?
+  firstName       String
+  lastName        String
+  dateOfBirth     DateTime?
+  gender          Gender?
+  avatar          String?
+  banner          String?
+  bio             String?
+  cityId          String?
+  city            City?       @relation(fields: [cityId], references: [id])
+  role            Role        @default(USER)
+  accountType     AccountType @default(ACHETEUR)
+  isVerified      Boolean     @default(false)
+  isActive        Boolean     @default(true)
+  isSuspended     Boolean     @default(false)
   suspendedReason String?
-  googleId      String?  @unique
-  facebookId    String?  @unique
+  googleId        String?     @unique
+  facebookId      String?     @unique
   shopName        String?
   shopLogo        String?
   shopBanner      String?
   shopDescription String?
   shopWhatsapp    String?
-  shopActive      Boolean  @default(false)
-  shopCategories  String[] @default([])
-  shopHasPhysical Boolean  @default(false)
+  shopActive      Boolean     @default(false)
+  shopCategories  String[]    @default([])
+  shopHasPhysical Boolean     @default(false)
   shopAddress     String?
   shopHours       String?
-  isShopVerified  Boolean  @default(false)
-  shopColor       String?  @default("vert")
+  isShopVerified  Boolean     @default(false)
+  shopColor       String?     @default("vert")
   shopSlogan      String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
   // Relations
-  annonces        Annonce[]
-  sentMessages    Message[]       @relation("SentMessages")
-  conversations   Conversation[]  @relation("ConversationParticipants")
-  ratingsGiven    Rating[]        @relation("RatingsGiven")
-  ratingsReceived Rating[]        @relation("RatingsReceived")
-  notifications   Notification[]
-  jobApplications JobApplication[]
-  publishedJobs   Job[]            @relation("JobOwner")
-  restaurants     Restaurant[]     @relation("RestaurantOwner")
-  savedAnnonces   SavedAnnonce[]
-  savedSearches   SavedSearch[]
-  reports         Report[]        @relation("ReportedBy")
-  reportedUsers   Report[]        @relation("ReportedUser")
-  blockedUsers    Block[]         @relation("BlockedBy")
-  blockedByUsers  Block[]         @relation("BlockedUser")
-  payments        Payment[]
-  refreshTokens   RefreshToken[]
+  annonces         Annonce[]
+  sentMessages     Message[]          @relation("SentMessages")
+  conversations    Conversation[]     @relation("ConversationParticipants")
+  ratingsGiven     Rating[]           @relation("RatingsGiven")
+  ratingsReceived  Rating[]           @relation("RatingsReceived")
+  notifications    Notification[]
+  jobApplications  JobApplication[]
+  publishedJobs    Job[]              @relation("JobOwner")
+  restaurants      Restaurant[]       @relation("RestaurantOwner")
+  savedAnnonces    SavedAnnonce[]
+  savedSearches    SavedSearch[]
+  reports          Report[]           @relation("ReportedBy")
+  reportedUsers    Report[]           @relation("ReportedUser")
+  blockedUsers     Block[]            @relation("BlockedBy")
+  blockedByUsers   Block[]            @relation("BlockedUser")
+  payments         Payment[]
+  refreshTokens    RefreshToken[]
   onboardingSurvey OnboardingSurvey?
-  subscriptions   ShopSubscription[] @relation("SubscriberOf")
-  subscribers     ShopSubscription[] @relation("SubscribedTo")
-  themeAccesses   UserThemeAccess[]
+  subscriptions    ShopSubscription[] @relation("SubscriberOf")
+  subscribers      ShopSubscription[] @relation("SubscribedTo")
+  themeAccesses    UserThemeAccess[]
 
-  onboardingDone  Boolean  @default(false)
+  onboardingDone Boolean @default(false)
 
+  @@index([shopActive])
   @@map("users")
 }
 
@@ -115,15 +117,15 @@ model RefreshToken {
 // =============================================
 
 model City {
-  id        String    @id @default(cuid())
-  name      String    @unique
-  nameEn    String?
-  nameAr    String?
-  latitude  Float?
-  longitude Float?
-  isActive  Boolean   @default(true)
-  users     User[]
-  annonces  Annonce[]
+  id          String       @id @default(cuid())
+  name        String       @unique
+  nameEn      String?
+  nameAr      String?
+  latitude    Float?
+  longitude   Float?
+  isActive    Boolean      @default(true)
+  users       User[]
+  annonces    Annonce[]
   jobs        Job[]
   restaurants Restaurant[]
 
@@ -135,20 +137,20 @@ model City {
 // =============================================
 
 model Category {
-  id          String      @id @default(cuid())
-  name        String
-  nameFr      String
-  nameEn      String?
-  nameAr      String?
-  slug        String      @unique
-  icon        String
-  color       String?
-  parentId    String?
-  parent      Category?   @relation("SubCategories", fields: [parentId], references: [id])
-  children    Category[]  @relation("SubCategories")
-  annonces    Annonce[]
-  isActive    Boolean     @default(true)
-  order       Int         @default(0)
+  id       String     @id @default(cuid())
+  name     String
+  nameFr   String
+  nameEn   String?
+  nameAr   String?
+  slug     String     @unique
+  icon     String
+  color    String?
+  parentId String?
+  parent   Category?  @relation("SubCategories", fields: [parentId], references: [id])
+  children Category[] @relation("SubCategories")
+  annonces Annonce[]
+  isActive Boolean    @default(true)
+  order    Int        @default(0)
 
   @@map("categories")
 }
@@ -158,23 +160,23 @@ model Category {
 // =============================================
 
 model Annonce {
-  id          String        @id @default(cuid())
-  title       String
-  description String
-  price       Float?
-  currency    String        @default("GNF")
-  isNegotiable Boolean      @default(false)
-  categoryId  String
-  category    Category      @relation(fields: [categoryId], references: [id])
-  userId      String
-  user        User          @relation(fields: [userId], references: [id])
-  cityId      String
-  city        City          @relation(fields: [cityId], references: [id])
- neighborhood String?
-  phone       String?
-  whatsapp    String?
-  quantity    Int?
-  condition   String?
+  id           String   @id @default(cuid())
+  title        String
+  description  String
+  price        Float?
+  currency     String   @default("GNF")
+  isNegotiable Boolean  @default(false)
+  categoryId   String
+  category     Category @relation(fields: [categoryId], references: [id])
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  cityId       String
+  city         City     @relation(fields: [cityId], references: [id])
+  neighborhood String?
+  phone        String?
+  whatsapp     String?
+  quantity     Int?
+  condition    String?
   listingType  String?
   bedrooms     Int?
   surface      Float?
@@ -183,23 +185,23 @@ model Annonce {
   experience   String?
 
   // Hébergements (hôtels, résidences)
-  stars        Int?
-  amenities    String?
-  isFurnished  Boolean?
+  stars       Int?
+  amenities   String?
+  isFurnished Boolean?
 
   // Restaurants
-  cuisineType  String?
-  priceRange   String?
+  cuisineType String?
+  priceRange  String?
 
   // Terrains
   plotType     String?
   hasTitleDeed Boolean?
 
   // Services
-  serviceType  String?
+  serviceType String?
 
   // Événements
-  eventDate    DateTime?
+  eventDate DateTime?
 
   // Véhicules
   vehicleMake         String?
@@ -209,28 +211,33 @@ model Annonce {
   vehicleFuel         String?
   vehicleTransmission String?
 
-  images       AnnonceImage[]
-  status          AnnonceStatus @default(PENDING_REVIEW)
-  rejectionReason String?
-  expiresAt       DateTime
-  viewCount   Int           @default(0)
-  isPremium        Boolean       @default(false)
-  isFeatured       Boolean       @default(false)
-  isFeaturedBanner Boolean       @default(false)
+  images           AnnonceImage[]
+  status           AnnonceStatus  @default(PENDING_REVIEW)
+  rejectionReason  String?
+  expiresAt        DateTime
+  viewCount        Int            @default(0)
+  isPremium        Boolean        @default(false)
+  isFeatured       Boolean        @default(false)
+  isFeaturedBanner Boolean        @default(false)
   promoPrice       Float?
   promoEndsAt      DateTime?
-  isPinned         Boolean       @default(false)
+  isPinned         Boolean        @default(false)
   soldPrice        Float?
   soldAt           DateTime?
-  slug             String        @unique
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  slug             String         @unique
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   // Relations
-  savedBy     SavedAnnonce[]
-  reports     Report[]
+  savedBy       SavedAnnonce[]
+  reports       Report[]
   conversations Conversation[]
 
+  @@index([status, expiresAt])
+  @@index([categoryId])
+  @@index([cityId])
+  @@index([userId])
+  @@index([isFeatured])
   @@map("annonces")
 }
 
@@ -255,11 +262,11 @@ enum AnnonceStatus {
 }
 
 model SavedAnnonce {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   userId    String
-  user      User    @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
   annonceId String
-  annonce   Annonce @relation(fields: [annonceId], references: [id])
+  annonce   Annonce  @relation(fields: [annonceId], references: [id])
   createdAt DateTime @default(now())
 
   @@unique([userId, annonceId])
@@ -304,14 +311,14 @@ model ShopSubscription {
 // =============================================
 
 model Conversation {
-  id           String    @id @default(cuid())
-  participants User[]    @relation("ConversationParticipants")
-  annonceId    String?
-  annonce      Annonce?  @relation(fields: [annonceId], references: [id])
-  messages     Message[]
-  lastMessage  String?
+  id            String    @id @default(cuid())
+  participants  User[]    @relation("ConversationParticipants")
+  annonceId     String?
+  annonce       Annonce?  @relation(fields: [annonceId], references: [id])
+  messages      Message[]
+  lastMessage   String?
   lastMessageAt DateTime?
-  createdAt    DateTime  @default(now())
+  createdAt     DateTime  @default(now())
 
   @@map("conversations")
 }
@@ -333,6 +340,8 @@ model Message {
   deletedFor     String[]     @default([])
   createdAt      DateTime     @default(now())
 
+  @@index([conversationId])
+  @@index([senderId, isRead])
   @@map("messages")
 }
 
@@ -341,36 +350,38 @@ model Message {
 // =============================================
 
 model Job {
-  id              String      @id @default(cuid())
-  title           String
-  description     String
-  company         String
-  sector          String?     // VENTE, BTP, RESTAURATION, BUREAUTIQUE, CHAUFFEUR, SECURITE, SANTE, EDUCATION, INFORMATIQUE, AUTRE
-  salary          Float?
-  salaryMax       Float?
-  salaryNegotiable Boolean    @default(false)
-  currency        String      @default("GNF")
-  schedule        String?
-  cityId          String
-  city            City        @relation(fields: [cityId], references: [id])
-  neighborhood    String?
-  type            JobType     @default(FULL_TIME)
-  experience      String?
-  education       String?
-  phone           String?
-  whatsapp        String?
-  email           String?
-  deadline        DateTime?
-  howToApply      String?
-  status          JobStatus   @default(ACTIVE)
-  rejectionReason String?
-  ownerId         String?
-  owner           User?       @relation("JobOwner", fields: [ownerId], references: [id])
-  isActive        Boolean     @default(true)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  applications    JobApplication[]
+  id               String           @id @default(cuid())
+  title            String
+  description      String
+  company          String
+  sector           String? // VENTE, BTP, RESTAURATION, BUREAUTIQUE, CHAUFFEUR, SECURITE, SANTE, EDUCATION, INFORMATIQUE, AUTRE
+  salary           Float?
+  salaryMax        Float?
+  salaryNegotiable Boolean          @default(false)
+  currency         String           @default("GNF")
+  schedule         String?
+  cityId           String
+  city             City             @relation(fields: [cityId], references: [id])
+  neighborhood     String?
+  type             JobType          @default(FULL_TIME)
+  experience       String?
+  education        String?
+  phone            String?
+  whatsapp         String?
+  email            String?
+  deadline         DateTime?
+  howToApply       String?
+  status           JobStatus        @default(ACTIVE)
+  rejectionReason  String?
+  ownerId          String?
+  owner            User?            @relation("JobOwner", fields: [ownerId], references: [id])
+  isActive         Boolean          @default(true)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  applications     JobApplication[]
 
+  @@index([status, cityId])
+  @@index([ownerId])
   @@map("jobs")
 }
 
@@ -390,15 +401,15 @@ enum JobStatus {
 }
 
 model JobApplication {
-  id        String            @id @default(cuid())
-  jobId     String
-  job       Job               @relation(fields: [jobId], references: [id])
-  userId    String
-  user      User              @relation(fields: [userId], references: [id])
-  cvUrl     String?
+  id          String            @id @default(cuid())
+  jobId       String
+  job         Job               @relation(fields: [jobId], references: [id])
+  userId      String
+  user        User              @relation(fields: [userId], references: [id])
+  cvUrl       String?
   coverLetter String?
-  status    ApplicationStatus @default(PENDING)
-  createdAt DateTime          @default(now())
+  status      ApplicationStatus @default(PENDING)
+  createdAt   DateTime          @default(now())
 
   @@unique([jobId, userId])
   @@map("job_applications")
@@ -445,6 +456,8 @@ model Restaurant {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
+  @@index([status, cityId])
+  @@index([ownerId])
   @@map("restaurants")
 }
 
@@ -485,16 +498,16 @@ model MenuItem {
 // =============================================
 
 model Rating {
-  id         String   @id @default(cuid())
-  score      Int      // 1 à 5
-  comment    String?
-  reply      String?  // réponse du vendeur
-  replyAt    DateTime?
-  raterId    String
-  rater      User     @relation("RatingsGiven", fields: [raterId], references: [id])
-  ratedId    String
-  rated      User     @relation("RatingsReceived", fields: [ratedId], references: [id])
-  createdAt  DateTime @default(now())
+  id        String    @id @default(cuid())
+  score     Int // 1 à 5
+  comment   String?
+  reply     String? // réponse du vendeur
+  replyAt   DateTime?
+  raterId   String
+  rater     User      @relation("RatingsGiven", fields: [raterId], references: [id])
+  ratedId   String
+  rated     User      @relation("RatingsReceived", fields: [ratedId], references: [id])
+  createdAt DateTime  @default(now())
 
   @@unique([raterId, ratedId])
   @@map("ratings")
@@ -505,18 +518,19 @@ model Rating {
 // =============================================
 
 model Report {
-  id           String       @id @default(cuid())
-  reason       ReportReason
-  description  String?
-  reportedById String
-  reportedBy   User         @relation("ReportedBy", fields: [reportedById], references: [id])
+  id             String       @id @default(cuid())
+  reason         ReportReason
+  description    String?
+  reportedById   String
+  reportedBy     User         @relation("ReportedBy", fields: [reportedById], references: [id])
   reportedUserId String?
-  reportedUser User?        @relation("ReportedUser", fields: [reportedUserId], references: [id])
-  annonceId    String?
-  annonce      Annonce?     @relation(fields: [annonceId], references: [id])
-  status       ReportStatus @default(PENDING)
-  createdAt    DateTime     @default(now())
+  reportedUser   User?        @relation("ReportedUser", fields: [reportedUserId], references: [id])
+  annonceId      String?
+  annonce        Annonce?     @relation(fields: [annonceId], references: [id])
+  status         ReportStatus @default(PENDING)
+  createdAt      DateTime     @default(now())
 
+  @@index([status])
   @@map("reports")
 }
 
@@ -571,6 +585,7 @@ model Notification {
   isRead    Boolean          @default(false)
   createdAt DateTime         @default(now())
 
+  @@index([userId, isRead])
   @@map("notifications")
 }
 
@@ -627,21 +642,21 @@ enum PaymentStatus {
 // =============================================
 
 model Publication {
-  id              String          @id @default(cuid())
-  type            PublicationType
-  title           String
-  subtitle        String?
-  image           String?
-  imagePublicId   String?
-  description     String?
-  link            String?
-  eventDate       DateTime?
-  eventLocation   String?
-  isActive        Boolean         @default(true)
-  endsAt          DateTime?
-  order           Int             @default(0)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  id            String          @id @default(cuid())
+  type          PublicationType
+  title         String
+  subtitle      String?
+  image         String?
+  imagePublicId String?
+  description   String?
+  link          String?
+  eventDate     DateTime?
+  eventLocation String?
+  isActive      Boolean         @default(true)
+  endsAt        DateTime?
+  order         Int             @default(0)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 
   @@map("publications")
 }
@@ -658,10 +673,10 @@ enum PublicationType {
 
 model SiteConfig {
   id                String    @id @default("singleton")
-  globalTheme       String?   // thème imposé à tous (null = chacun son thème)
+  globalTheme       String? // thème imposé à tous (null = chacun son thème)
   themeEndsAt       DateTime? // expiration automatique du thème global
   siteSpecialThemes String[]  @default([]) // thèmes spéciaux débloqués pour tous
-  updatedAt         DateTime  @updatedAt @default(now())
+  updatedAt         DateTime  @default(now()) @updatedAt
 
   @@map("site_config")
 }
@@ -725,7 +740,7 @@ enum AdminDeletionType {
 
 model PageView {
   id        String   @id @default(cuid())
-  page      String   // HOME, ANNONCES, BOUTIQUES, EMPLOIS, RESTAURANTS, HOTELS
+  page      String // HOME, ANNONCES, BOUTIQUES, EMPLOIS, RESTAURANTS, HOTELS
   createdAt DateTime @default(now())
 
   @@index([page])

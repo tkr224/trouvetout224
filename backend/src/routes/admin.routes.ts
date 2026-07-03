@@ -44,7 +44,7 @@ router.get('/stats', async (req, res) => {
         recentAnnonces, prevWeekUsers, prevWeekAnnonces,
       },
     });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // Données graphique — 7 derniers jours
@@ -68,7 +68,7 @@ router.get('/stats/chart', async (req, res) => {
       });
     }
     res.json({ data: days });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // ─── Statistiques de ventes ───────────────────────────────────────────────────
@@ -109,7 +109,7 @@ router.get('/sales-stats', async (req, res) => {
         topCategories: topCategoriesRaw.map(c => ({ ...(catsMap[c.categoryId] || {}), revenue: c._sum.soldPrice || 0, count: c._count.id })),
       },
     });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // ─── Utilisateurs ─────────────────────────────────────────────────────────────
@@ -131,12 +131,13 @@ router.get('/users', async (req, res) => {
       prisma.user.findMany({
         where, skip, take: 20,
         orderBy: { createdAt: 'desc' },
+        omit: { password: true },
         include: { city: true, _count: { select: { annonces: true } } },
       }),
       prisma.user.count({ where }),
     ]);
     res.json({ data: users, pagination: { total, page: parseInt(page as string), pages: Math.ceil(total / 20) } });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.put('/users/:id/suspend', async (req, res) => {
@@ -148,13 +149,14 @@ router.put('/users/:id/suspend', async (req, res) => {
         isSuspended: suspended,
         suspendedReason: suspended ? (reason?.trim() || null) : null,
       },
+      omit: { password: true },
     });
     // Coupe immédiatement toute session active : le compte ne pourra plus rafraîchir son jeton
     if (suspended) {
       await prisma.refreshToken.deleteMany({ where: { userId: req.params.id } });
     }
     res.json({ message: `Compte ${suspended ? 'suspendu' : 'réactivé'}.`, data: user });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.put('/users/:id/verify', async (req, res) => {
@@ -163,9 +165,10 @@ router.put('/users/:id/verify', async (req, res) => {
     const user = await prisma.user.update({
       where: { id: req.params.id },
       data: { isVerified: verified },
+      omit: { password: true },
     });
     res.json({ message: `Vérification ${verified ? 'activée' : 'désactivée'}.`, data: user });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // Badge "Boutique vérifiée" (distinct de la vérification email)
@@ -175,9 +178,10 @@ router.put('/users/:id/shop-verify', async (req, res) => {
     const user = await prisma.user.update({
       where: { id: req.params.id },
       data: { isShopVerified: shopVerified },
+      omit: { password: true },
     });
     res.json({ message: `Boutique ${shopVerified ? 'vérifiée' : 'non vérifiée'}.`, data: user });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // ─── Annonces ─────────────────────────────────────────────────────────────────
@@ -187,7 +191,7 @@ router.get('/annonces/pending-count', async (req, res) => {
   try {
     const count = await prisma.annonce.count({ where: { status: 'PENDING_REVIEW' } });
     res.json({ count });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.get('/annonces', async (req, res) => {
@@ -212,7 +216,7 @@ router.get('/annonces', async (req, res) => {
       prisma.annonce.count({ where }),
     ]);
     res.json({ data: annonces, pagination: { total, pages: Math.ceil(total / take) } });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.post('/annonces/:id/approve', async (req, res) => {
@@ -277,7 +281,7 @@ router.post('/annonces/:id/approve', async (req, res) => {
     }
 
     res.json({ message: 'Annonce approuvée.', data: annonce });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.post('/annonces/:id/reject', async (req, res) => {
@@ -300,18 +304,39 @@ router.post('/annonces/:id/reject', async (req, res) => {
       },
     });
     res.json({ message: 'Annonce rejetée.', data: annonce });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
+
+// Endpoint générique utilisé par l'admin pour masquer/réactiver une annonce.
+// Volontairement limité à ACTIVE/SUSPENDED : les autres transitions (validation,
+// rejet, vente, expiration) passent par leurs propres routes dédiées.
+const ADMIN_TOGGLABLE_STATUSES = ['ACTIVE', 'SUSPENDED'];
 
 router.put('/annonces/:id/status', async (req, res) => {
   try {
     const { status } = req.body;
+    if (!ADMIN_TOGGLABLE_STATUSES.includes(status)) {
+      return res.status(400).json({ error: 'Statut invalide.' });
+    }
     const annonce = await prisma.annonce.update({
       where: { id: req.params.id },
       data: { status },
     });
+
+    await prisma.notification.create({
+      data: {
+        userId: annonce.userId,
+        type: 'SYSTEM' as any,
+        title: status === 'SUSPENDED' ? 'Annonce masquée' : 'Annonce réactivée',
+        body: status === 'SUSPENDED'
+          ? `Votre annonce "${annonce.title}" a été masquée par un administrateur.`
+          : `Votre annonce "${annonce.title}" est de nouveau visible sur le site.`,
+        data: { annonceId: annonce.id, slug: annonce.slug },
+      },
+    }).catch(() => {});
+
     res.json({ message: 'Statut mis à jour.', data: annonce });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.delete('/annonces/:id', async (req: any, res) => {
@@ -355,7 +380,7 @@ router.delete('/annonces/:id', async (req: any, res) => {
     });
 
     res.json({ message: 'Annonce supprimée.' });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // Supprimer un compte utilisateur avec motif
@@ -412,7 +437,7 @@ router.get('/deletions', async (req, res) => {
       (prisma as any).adminDeletion.count({ where }),
     ]);
     res.json({ data: items, pagination: { total, page: parseInt(page as string), pages: Math.ceil(total / 30) } });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // Toggle vedette bannière d'accueil
@@ -428,7 +453,7 @@ router.patch('/annonces/:id/featured-banner', async (req, res) => {
       data: { isFeaturedBanner: !current.isFeaturedBanner },
     });
     res.json({ data: updated });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // ─── Signalements ─────────────────────────────────────────────────────────────
@@ -446,7 +471,7 @@ router.get('/reports', async (req, res) => {
       },
     });
     res.json({ data: reports });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.put('/reports/:id', async (req, res) => {
@@ -457,7 +482,7 @@ router.put('/reports/:id', async (req, res) => {
       data: { status },
     });
     res.json({ data: report });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // ─── Catégories ───────────────────────────────────────────────────────────────
@@ -469,7 +494,7 @@ router.get('/categories', async (req, res) => {
       include: { _count: { select: { annonces: true } } },
     });
     res.json({ data: categories });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.post('/categories', async (req, res) => {
@@ -502,14 +527,14 @@ router.put('/categories/:id', async (req, res) => {
       data: { name, nameFr, slug, icon, color, isActive, order },
     });
     res.json({ data: category });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.delete('/categories/:id', async (req, res) => {
   try {
     await prisma.category.delete({ where: { id: req.params.id } });
     res.json({ message: 'Catégorie supprimée.' });
-  } catch { res.status(500).json({ error: 'Erreur serveur (des annonces y sont peut-être liées).' }); }
+  } catch (e) { console.error('Erreur suppression catégorie:', e); res.status(500).json({ error: 'Erreur serveur (des annonces y sont peut-être liées).' }); }
 });
 
 // ─── Statistiques sondage d'accueil ──────────────────────────────────────────
@@ -557,7 +582,7 @@ router.get('/onboarding/stats', async (req, res) => {
         topCities,
       },
     });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // ─── Publications officielles ─────────────────────────────────────────────────
@@ -568,7 +593,7 @@ router.get('/publications', async (req, res) => {
       orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
     });
     res.json({ data: pubs });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.post('/publications', async (req, res) => {
@@ -592,7 +617,7 @@ router.post('/publications', async (req, res) => {
       },
     });
     res.json({ data: pub });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.put('/publications/:id', async (req, res) => {
@@ -616,14 +641,14 @@ router.put('/publications/:id', async (req, res) => {
       },
     });
     res.json({ data: pub });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.delete('/publications/:id', async (req, res) => {
   try {
     await prisma.publication.delete({ where: { id: req.params.id } });
     res.json({ message: 'Publication supprimée.' });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // ─── Paiements ────────────────────────────────────────────────────────────────
@@ -636,7 +661,7 @@ router.get('/payments', async (req, res) => {
       include: { user: { select: { firstName: true, lastName: true, email: true } } },
     });
     res.json({ data: payments });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // ─── Accès aux thèmes spéciaux (par utilisateur) ─────────────────────────────
@@ -661,7 +686,7 @@ router.get('/users/search', async (req, res) => {
       take: 10,
     });
     res.json(users);
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // Liste tous les accès thèmes accordés
@@ -674,7 +699,7 @@ router.get('/theme-accesses', async (req, res) => {
       orderBy: { grantedAt: 'desc' },
     });
     res.json(accesses);
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // Accorder un thème à un utilisateur
@@ -689,7 +714,7 @@ router.post('/theme-accesses', async (req, res) => {
       include: { user: { select: { firstName: true, lastName: true, email: true } } },
     });
     res.json(access);
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // Révoquer un thème
@@ -699,7 +724,7 @@ router.delete('/theme-accesses/:userId/:themeId', async (req, res) => {
       where: { userId: req.params.userId, themeId: req.params.themeId },
     });
     res.json({ ok: true });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // ─── EMPLOIS (admin) ──────────────────────────────────────────────────────────
@@ -708,7 +733,7 @@ router.get('/jobs/pending-count', async (req, res) => {
   try {
     const count = await prisma.job.count({ where: { status: 'PENDING_REVIEW' } });
     res.json({ count });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.get('/jobs', async (req, res) => {
@@ -734,7 +759,7 @@ router.get('/jobs', async (req, res) => {
       prisma.job.count({ where }),
     ]);
     res.json({ data: jobs, pagination: { total, pages: Math.ceil(total / 20) } });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.post('/jobs/:id/approve', async (req: any, res) => {
@@ -755,7 +780,7 @@ router.post('/jobs/:id/approve', async (req: any, res) => {
       }).catch(() => {});
     }
     res.json({ message: 'Offre approuvée.', data: job });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.post('/jobs/:id/reject', async (req: any, res) => {
@@ -778,7 +803,7 @@ router.post('/jobs/:id/reject', async (req: any, res) => {
       }).catch(() => {});
     }
     res.json({ message: 'Offre rejetée.', data: job });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.delete('/jobs/:id', async (req: any, res) => {
@@ -786,7 +811,7 @@ router.delete('/jobs/:id', async (req: any, res) => {
     await prisma.jobApplication.deleteMany({ where: { jobId: req.params.id } });
     await prisma.job.delete({ where: { id: req.params.id } });
     res.json({ message: 'Offre supprimée.' });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // ─── STATISTIQUES DE VISITES (admin) ─────────────────────────────────────────
@@ -841,7 +866,7 @@ router.get('/analytics/pageviews', async (req, res) => {
     }));
 
     res.json({ data: { total, today, week, byPage, dailyChart } });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // ─── RESTAURANTS (admin) ──────────────────────────────────────────────────────
@@ -850,7 +875,7 @@ router.get('/restaurants/pending-count', async (req, res) => {
   try {
     const count = await prisma.restaurant.count({ where: { status: 'PENDING_REVIEW' } });
     res.json({ count });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.get('/restaurants', async (req, res) => {
@@ -873,7 +898,7 @@ router.get('/restaurants', async (req, res) => {
       prisma.restaurant.count({ where }),
     ]);
     res.json({ data: restaurants, pagination: { total, pages: Math.ceil(total / 20) } });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.post('/restaurants/:id/approve', async (req: any, res) => {
@@ -894,7 +919,7 @@ router.post('/restaurants/:id/approve', async (req: any, res) => {
       }).catch(() => {});
     }
     res.json({ message: 'Restaurant approuvé.', data: restaurant });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.post('/restaurants/:id/reject', async (req: any, res) => {
@@ -917,7 +942,7 @@ router.post('/restaurants/:id/reject', async (req: any, res) => {
       }).catch(() => {});
     }
     res.json({ message: 'Restaurant rejeté.', data: restaurant });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.delete('/restaurants/:id', async (req: any, res) => {
@@ -926,7 +951,7 @@ router.delete('/restaurants/:id', async (req: any, res) => {
     await prisma.restaurantImage.deleteMany({ where: { restaurantId: req.params.id } });
     await prisma.restaurant.delete({ where: { id: req.params.id } });
     res.json({ message: 'Restaurant supprimé.' });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 export default router;

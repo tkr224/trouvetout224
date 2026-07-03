@@ -10,31 +10,36 @@ const JOB_SECTORS = [
 
 // ─── Liste des offres (publique) ──────────────────────────────────────────────
 router.get('/', async (req, res) => {
-  const { cityId, type, sector, q, page = '1', limit = '20' } = req.query;
-  const where: any = { status: 'ACTIVE', isActive: true };
-  if (cityId) where.cityId = cityId;
-  if (type) where.type = type;
-  if (sector) where.sector = sector;
-  if (q) {
-    where.OR = [
-      { title: { contains: q, mode: 'insensitive' } },
-      { company: { contains: q, mode: 'insensitive' } },
-      { description: { contains: q, mode: 'insensitive' } },
-    ];
+  try {
+    const { cityId, type, sector, q, page = '1', limit = '20' } = req.query;
+    const where: any = { status: 'ACTIVE', isActive: true };
+    if (cityId) where.cityId = cityId;
+    if (type) where.type = type;
+    if (sector) where.sector = sector;
+    if (q) {
+      where.OR = [
+        { title: { contains: q, mode: 'insensitive' } },
+        { company: { contains: q, mode: 'insensitive' } },
+        { description: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+    const [jobs, total] = await Promise.all([
+      prisma.job.findMany({
+        where, skip, take: parseInt(limit as string),
+        orderBy: { createdAt: 'desc' },
+        include: {
+          city: true,
+          _count: { select: { applications: true } },
+        },
+      }),
+      prisma.job.count({ where }),
+    ]);
+    res.json({ data: jobs, pagination: { total, page: parseInt(page as string), pages: Math.ceil(total / parseInt(limit as string)) } });
+  } catch (e) {
+    console.error('Erreur liste jobs:', e);
+    res.status(500).json({ error: 'Erreur serveur.' });
   }
-  const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
-  const [jobs, total] = await Promise.all([
-    prisma.job.findMany({
-      where, skip, take: parseInt(limit as string),
-      orderBy: { createdAt: 'desc' },
-      include: {
-        city: true,
-        _count: { select: { applications: true } },
-      },
-    }),
-    prisma.job.count({ where }),
-  ]);
-  res.json({ data: jobs, pagination: { total, page: parseInt(page as string), pages: Math.ceil(total / parseInt(limit as string)) } });
 });
 
 // ─── Mes offres publiées (employeur) ─────────────────────────────────────────
@@ -54,16 +59,21 @@ router.get('/mes-offres', authenticate, async (req: any, res) => {
 
 // ─── Détail d'une offre ───────────────────────────────────────────────────────
 router.get('/:id', async (req, res) => {
-  const job = await prisma.job.findUnique({
-    where: { id: req.params.id },
-    include: {
-      city: true,
-      owner: { select: { id: true, firstName: true, lastName: true, shopName: true } },
-      _count: { select: { applications: true } },
-    },
-  });
-  if (!job) return res.status(404).json({ error: 'Offre non trouvée.' });
-  res.json({ data: job });
+  try {
+    const job = await prisma.job.findUnique({
+      where: { id: req.params.id },
+      include: {
+        city: true,
+        owner: { select: { id: true, firstName: true, lastName: true, shopName: true } },
+        _count: { select: { applications: true } },
+      },
+    });
+    if (!job) return res.status(404).json({ error: 'Offre non trouvée.' });
+    res.json({ data: job });
+  } catch (e) {
+    console.error('Erreur détail job:', e);
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
 });
 
 // ─── Candidatures pour une offre (employeur) ─────────────────────────────────
