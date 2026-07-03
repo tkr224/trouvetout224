@@ -82,14 +82,19 @@ export default function MessagesPage() {
   const sendMessage = async () => {
     if (!input.trim() || !conversationId) return;
     const content = input.trim();
+    const pendingReplyTo = replyTo;
     setInput('');
-    const replyId = replyTo?.id;
     setReplyTo(null);
     socket?.emit('stop_typing', { conversationId });
     try {
-      const res = await api.post(`/messages/conversations/${conversationId}/messages`, { content, replyToId: replyId });
+      const res = await api.post(`/messages/conversations/${conversationId}/messages`, { content, replyToId: pendingReplyTo?.id });
       setMessages((prev) => prev.find(m => m.id === res.data.data.id) ? prev : [...prev, res.data.data]);
-    } catch {}
+    } catch (err: any) {
+      // On restaure le texte tapé et la citation pour ne rien perdre, et on prévient clairement
+      setInput(content);
+      setReplyTo(pendingReplyTo);
+      toast.error(err.response?.data?.error || 'Message non envoyé. Vérifiez votre connexion et réessayez.');
+    }
   };
 
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {

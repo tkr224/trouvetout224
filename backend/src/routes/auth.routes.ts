@@ -10,6 +10,8 @@ import {
   logout,
   oauthLogin,
   changePassword,
+  forgotPassword,
+  resetPassword,
 } from '../controllers/auth.controller';
 
 const router = Router();
@@ -59,5 +61,36 @@ router.post('/refresh', refreshToken);
 router.post('/logout', logout);
 router.post('/oauth', oauthLogin);
 router.put('/change-password', authenticate, changePassword);
+
+// Anti-abus : max 5 demandes de réinitialisation par IP sur 15 min
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Trop de tentatives. Réessayez dans 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+router.post(
+  '/forgot-password',
+  forgotPasswordLimiter,
+  [body('identifier').notEmpty().trim().withMessage('Identifiant requis.')],
+  validate,
+  forgotPassword
+);
+
+router.post(
+  '/reset-password',
+  [
+    body('token').notEmpty().withMessage('Token requis.'),
+    body('newPassword')
+      .isLength({ min: 8 }).withMessage('Mot de passe : 8 caractères minimum')
+      .matches(/[A-Z]/).withMessage('Mot de passe : au moins une majuscule requise')
+      .matches(/[a-z]/).withMessage('Mot de passe : au moins une minuscule requise')
+      .matches(/[0-9]/).withMessage('Mot de passe : au moins un chiffre requis'),
+  ],
+  validate,
+  resetPassword
+);
 
 export default router;

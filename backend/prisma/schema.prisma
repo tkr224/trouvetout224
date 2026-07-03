@@ -16,42 +16,44 @@ datasource db {
 // =============================================
 
 model User {
-  id              String      @id @default(cuid())
-  email           String?     @unique
-  phone           String?     @unique
-  password        String?
-  firstName       String
-  lastName        String
-  dateOfBirth     DateTime?
-  gender          Gender?
-  avatar          String?
-  banner          String?
-  bio             String?
-  cityId          String?
-  city            City?       @relation(fields: [cityId], references: [id])
-  role            Role        @default(USER)
-  accountType     AccountType @default(ACHETEUR)
-  isVerified      Boolean     @default(false)
-  isActive        Boolean     @default(true)
-  isSuspended     Boolean     @default(false)
-  suspendedReason String?
-  googleId        String?     @unique
-  facebookId      String?     @unique
-  shopName        String?
-  shopLogo        String?
-  shopBanner      String?
-  shopDescription String?
-  shopWhatsapp    String?
-  shopActive      Boolean     @default(false)
-  shopCategories  String[]    @default([])
-  shopHasPhysical Boolean     @default(false)
-  shopAddress     String?
-  shopHours       String?
-  isShopVerified  Boolean     @default(false)
-  shopColor       String?     @default("vert")
-  shopSlogan      String?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  id                  String      @id @default(cuid())
+  email               String?     @unique
+  phone               String?     @unique
+  password            String?
+  firstName           String
+  lastName            String
+  dateOfBirth         DateTime?
+  gender              Gender?
+  avatar              String?
+  banner              String?
+  bio                 String?
+  cityId              String?
+  city                City?       @relation(fields: [cityId], references: [id])
+  role                Role        @default(USER)
+  accountType         AccountType @default(ACHETEUR)
+  isVerified          Boolean     @default(false)
+  isActive            Boolean     @default(true)
+  isSuspended         Boolean     @default(false)
+  suspendedReason     String?
+  googleId            String?     @unique
+  facebookId          String?     @unique
+  resetToken          String?     @unique
+  resetTokenExpiresAt DateTime?
+  shopName            String?
+  shopLogo            String?
+  shopBanner          String?
+  shopDescription     String?
+  shopWhatsapp        String?
+  shopActive          Boolean     @default(false)
+  shopCategories      String[]    @default([])
+  shopHasPhysical     Boolean     @default(false)
+  shopAddress         String?
+  shopHours           String?
+  isShopVerified      Boolean     @default(false)
+  shopColor           String?     @default("vert")
+  shopSlogan          String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
 
   // Relations
   annonces         Annonce[]

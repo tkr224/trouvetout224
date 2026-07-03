@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
   MapPin, Phone, MessageCircle, Heart, Share2, Eye, Clock,
@@ -48,6 +48,7 @@ export default function AnnonceDetailPage() {
   const [markingSold, setMarkingSold] = useState(false);
   const [similar, setSimilar] = useState<any[]>([]);
   const router = useRouter();
+  const pathname = usePathname();
   const { isAuthenticated, user } = useAuthStore();
   const { items: recentItems, addViewed, removeById, hasLoaded } = useRecentlyViewed();
   const [validatedRecent, setValidatedRecent] = useState<any[]>([]);
@@ -155,7 +156,7 @@ export default function AnnonceDetailPage() {
   const isOwner = user?.id === annonce.user?.id;
 
   const openContactModal = () => {
-    if (!isAuthenticated) { router.push('/auth/connexion'); return; }
+    if (!isAuthenticated) { router.push(`/auth/connexion?redirect=${encodeURIComponent(pathname)}`); return; }
     setContactMessage(`Bonjour, je suis intéressé(e) par votre annonce « ${annonce.title} ». Est-elle toujours disponible ?`);
     setShowContactModal(true);
   };
@@ -175,7 +176,7 @@ export default function AnnonceDetailPage() {
   };
 
   const handleSave = async () => {
-    if (!isAuthenticated) { toast.error('Connectez-vous pour sauvegarder'); router.push('/auth/connexion'); return; }
+    if (!isAuthenticated) { toast.error('Connectez-vous pour sauvegarder'); router.push(`/auth/connexion?redirect=${encodeURIComponent(pathname)}`); return; }
     try {
       const res = await api.post(`/annonces/${annonce.id}/save`);
       setSaved(res.data.saved);
@@ -234,7 +235,7 @@ export default function AnnonceDetailPage() {
 
   const submitReport = async () => {
     if (!reportReason) { toast.error('Choisissez une raison'); return; }
-    if (!isAuthenticated) { toast.error('Connectez-vous pour signaler'); router.push('/auth/connexion'); return; }
+    if (!isAuthenticated) { toast.error('Connectez-vous pour signaler'); router.push(`/auth/connexion?redirect=${encodeURIComponent(pathname)}`); return; }
     try {
       await api.post('/reports', { reason: reportReason, description: reportDesc, annonceId: annonce.id });
       toast.success('Signalement envoyé. Notre équipe va examiner.');

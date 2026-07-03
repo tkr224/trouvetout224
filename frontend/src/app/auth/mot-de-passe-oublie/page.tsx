@@ -20,11 +20,7 @@ export default function ForgotPasswordPage() {
       await api.post('/auth/forgot-password', { identifier: identifier.trim() });
       setSent(true);
     } catch (err: any) {
-      if (err.response?.status === 404 || err.response?.status === 405) {
-        setSent(true);
-      } else {
-        setError(err.response?.data?.error || 'Une erreur est survenue. Contactez le support.');
-      }
+      setError(err.response?.data?.error || 'Une erreur est survenue. Contactez le support.');
     } finally {
       setLoading(false);
     }

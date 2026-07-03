@@ -1,7 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { Loader2, Eye, EyeOff, ShoppingBag, Lock, Zap, Ban } from 'lucide-react';
@@ -9,11 +9,12 @@ import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
 
-export default function LoginPage() {
+function LoginContent() {
   const [loading, setLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
   const [suspended, setSuspended] = useState<{ reason: string | null } | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setUser, setTokens } = useAuthStore();
   const { register, handleSubmit } = useForm<any>();
 
@@ -28,7 +29,8 @@ export default function LoginPage() {
       setUser(res.data.user);
       setTokens(res.data.accessToken, res.data.refreshToken);
       toast.success('Connexion réussie !');
-      router.push('/');
+      const redirect = searchParams.get('redirect');
+      router.push(redirect && redirect.startsWith('/') ? redirect : '/');
     } catch (err: any) {
       const errData = err.response?.data;
       if (err.response?.status === 403 && errData?.suspended) {
@@ -192,5 +194,13 @@ export default function LoginPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
   );
 }

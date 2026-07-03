@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '../config/database';
 import { generateTokens, verifyRefreshToken } from '../utils/tokens';
-import { sendVerificationEmail } from '../services/email.service';
+import { sendVerificationEmail, sendResetPasswordEmail } from '../services/email.service';
 import { v4 as uuidv4 } from 'uuid';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -312,5 +313,72 @@ export const changePassword = async (req: Request, res: Response) => {
     res.json({ message: 'Mot de passe modifié avec succès.' });
   } catch (error) {
     res.status(500).json({ error: 'Erreur lors du changement de mot de passe.' });
+  }
+};
+
+// ============================
+// MOT DE PASSE OUBLIÉ
+// ============================
+const GENERIC_FORGOT_MESSAGE = 'Si un compte existe avec cet identifiant, un lien de réinitialisation a été envoyé.';
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { identifier } = req.body;
+    if (!identifier?.trim()) return res.status(400).json({ error: 'Identifiant requis.' });
+
+    const id = identifier.trim();
+    const user = await prisma.user.findFirst({
+      where: { OR: [{ email: { equals: id, mode: 'insensitive' } }, { phone: id }] },
+    });
+
+    // Réponse identique que le compte existe ou non — évite de révéler quels comptes existent.
+    // Idem si le compte n'a pas d'email (inscrit par téléphone) : on ne peut pas envoyer de lien.
+    if (!user || !user.email) {
+      return res.json({ message: GENERIC_FORGOT_MESSAGE });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1h
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { resetToken: token, resetTokenExpiresAt },
+    });
+
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/reset-password?token=${token}`;
+    sendResetPasswordEmail(user.email, user.firstName, resetUrl).catch(e => console.log('Email reset non envoyé:', e.message));
+
+    res.json({ message: GENERIC_FORGOT_MESSAGE });
+  } catch (error) {
+    console.error('Erreur forgotPassword:', error);
+    res.status(500).json({ error: 'Erreur lors de la demande de réinitialisation.' });
+  }
+};
+
+// ============================
+// RÉINITIALISER LE MOT DE PASSE (avec le token reçu par email)
+// ============================
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) return res.status(400).json({ error: 'Token et nouveau mot de passe requis.' });
+    if (newPassword.length < 8) return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 8 caractères.' });
+
+    const user = await prisma.user.findFirst({
+      where: { resetToken: token, resetTokenExpiresAt: { gte: new Date() } },
+    });
+    if (!user) return res.status(400).json({ error: 'Ce lien est invalide ou a expiré. Refaites une demande.' });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword, resetToken: null, resetTokenExpiresAt: null },
+    });
+    // Coupe toutes les sessions existantes par sécurité (si le compte a été compromis)
+    await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+
+    res.json({ message: 'Mot de passe réinitialisé avec succès. Vous pouvez vous connecter.' });
+  } catch (error) {
+    console.error('Erreur resetPassword:', error);
+    res.status(500).json({ error: 'Erreur lors de la réinitialisation.' });
   }
 };

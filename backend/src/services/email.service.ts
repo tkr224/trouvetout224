@@ -50,6 +50,35 @@ export const sendNewProductEmail = async (
   });
 };
 
+export const sendResetPasswordEmail = async (email: string, firstName: string, resetUrl: string) => {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return; // SMTP non configuré
+  await transporter.sendMail({
+    from: `"TrouveTout224 🇬🇳" <${process.env.FROM_EMAIL}>`,
+    to: email,
+    subject: 'Réinitialisez votre mot de passe — TrouveTout224',
+    html: `
+      <div style="font-family: Arial; max-width: 600px; margin: auto; padding: 20px;">
+        <div style="background: #1B8B3B; padding: 20px; border-radius: 8px; text-align: center;">
+          <h1 style="color: white; margin: 0;">🇬🇳 TrouveTout224</h1>
+        </div>
+        <div style="padding: 30px; background: #f9f9f9; border-radius: 8px; margin-top: 10px;">
+          <h2 style="color: #1B8B3B;">Bonjour ${firstName},</h2>
+          <p>Vous avez demandé à réinitialiser votre mot de passe sur TrouveTout224.</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetUrl}" style="background: #1B8B3B; color: white; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+              Choisir un nouveau mot de passe →
+            </a>
+          </div>
+          <p style="color: #6b7280; font-size: 13px;">Ce lien expire dans 1 heure. Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet email.</p>
+        </div>
+        <p style="color: #999; text-align: center; margin-top: 20px; font-size: 12px;">
+          © 2024 TrouveTout224 | Conakry, Guinée
+        </p>
+      </div>
+    `,
+  });
+};
+
 export const sendVerificationEmail = async (email: string, firstName: string) => {
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return;
   await transporter.sendMail({
