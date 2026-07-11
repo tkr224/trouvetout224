@@ -74,21 +74,32 @@ router.get('/profile/:id', async (req, res) => {
 // Mon profil complet
 router.get('/me', authenticate, async (req: any, res) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.userId },
-      omit: { password: true },
-    });
-    res.json({ data: user });
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé.' });
+    const { password, ...rest } = user;
+    res.json({ data: { ...rest, hasPassword: !!password } });
   } catch { res.status(500).json({ error: 'Erreur.' }); }
 });
 
 // Mettre à jour mon profil
 router.put('/me', authenticate, async (req: any, res) => {
   try {
-    const { firstName, lastName, bio, cityId, avatar, banner } = req.body;
+    const { firstName, lastName, bio, cityId, avatar, banner, accountType } = req.body;
+
+    const data: any = { firstName, lastName, bio, cityId, avatar, banner };
+
+    // Choix du type de compte (ex: étape post-inscription Google) : ne touche jamais un rôle admin.
+    if (accountType && ['ACHETEUR', 'VENDEUR', 'LES_DEUX'].includes(accountType)) {
+      const current = await prisma.user.findUnique({ where: { id: req.userId }, select: { role: true } });
+      data.accountType = accountType;
+      if (current && (current.role === 'USER' || current.role === 'VENDOR')) {
+        data.role = accountType === 'VENDEUR' || accountType === 'LES_DEUX' ? 'VENDOR' : 'USER';
+      }
+    }
+
     const user = await prisma.user.update({
       where: { id: req.userId },
-      data: { firstName, lastName, bio, cityId, avatar, banner },
+      data,
       omit: { password: true },
     });
     res.json({ message: 'Profil mis à jour.', data: user });

@@ -170,7 +170,14 @@ function ResetPasswordContent() {
                 </div>
 
                 {error && (
-                  <p className="text-sm text-guinea-600 bg-guinea-50 rounded-xl px-4 py-3">{error}</p>
+                  <div className="text-sm text-guinea-600 bg-guinea-50 rounded-xl px-4 py-3">
+                    <p>{error}</p>
+                    {error.toLowerCase().includes('expir') || error.toLowerCase().includes('invalide') ? (
+                      <Link href="/auth/mot-de-passe-oublie" className="inline-block mt-1.5 font-semibold underline">
+                        Refaire une demande de lien
+                      </Link>
+                    ) : null}
+                  </div>
                 )}
 
                 <button

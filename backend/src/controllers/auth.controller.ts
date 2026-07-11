@@ -181,7 +181,7 @@ export const login = async (req: Request, res: Response) => {
     const { accessToken, refreshToken } = await generateTokens(user.id);
     const { password: _, ...userWithoutPassword } = user;
 
-    res.json({ message: 'Connexion réussie !', user: userWithoutPassword, accessToken, refreshToken });
+    res.json({ message: 'Connexion réussie !', user: { ...userWithoutPassword, hasPassword: true }, accessToken, refreshToken });
   } catch (error) {
     console.error('Erreur login:', error);
     res.status(500).json({ error: 'Erreur lors de la connexion.' });
@@ -254,6 +254,7 @@ export const oauthLogin = async (req: Request, res: Response) => {
       },
     });
 
+    let isNewUser = false;
     if (!user) {
       user = await prisma.user.create({
         data: {
@@ -263,6 +264,7 @@ export const oauthLogin = async (req: Request, res: Response) => {
           isVerified: true,
         },
       });
+      isNewUser = true;
     } else if (
       (provider === 'google' && !user.googleId) ||
       (provider === 'facebook' && !user.facebookId)
@@ -283,9 +285,15 @@ export const oauthLogin = async (req: Request, res: Response) => {
     }
 
     const { accessToken, refreshToken } = await generateTokens(user.id);
-    const { password: _, ...userWithoutPassword } = user as any;
+    const { password, ...userWithoutPassword } = user as any;
 
-    res.json({ message: 'Connexion réussie !', user: userWithoutPassword, accessToken, refreshToken });
+    res.json({
+      message: 'Connexion réussie !',
+      user: { ...userWithoutPassword, hasPassword: !!password },
+      accessToken,
+      refreshToken,
+      isNewUser,
+    });
   } catch (error) {
     console.error('Erreur OAuth:', error);
     res.status(500).json({ error: 'Erreur lors de la connexion OAuth.' });
@@ -301,16 +309,23 @@ export const changePassword = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user || !user.password) return res.status(404).json({ error: 'Utilisateur non trouvé.' });
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé.' });
 
-    const isValid = await bcrypt.compare(currentPassword, user.password);
-    if (!isValid) return res.status(400).json({ error: 'Mot de passe actuel incorrect.' });
+    if (user.password) {
+      // Compte avec mot de passe existant : le mot de passe actuel est obligatoire.
+      const isValid = currentPassword && (await bcrypt.compare(currentPassword, user.password));
+      if (!isValid) return res.status(400).json({ error: 'Mot de passe actuel incorrect.' });
+    }
+    // Sinon (compte créé via Google/Facebook, sans mot de passe) : on autorise à en définir un directement.
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
     await prisma.user.update({ where: { id: userId }, data: { password: hashedPassword } });
-    await prisma.refreshToken.deleteMany({ where: { userId } });
+    // Ne coupe les autres sessions que si un mot de passe existait déjà (changement, pas 1ère création)
+    if (user.password) {
+      await prisma.refreshToken.deleteMany({ where: { userId } });
+    }
 
-    res.json({ message: 'Mot de passe modifié avec succès.' });
+    res.json({ message: user.password ? 'Mot de passe modifié avec succès.' : 'Mot de passe défini avec succès.' });
   } catch (error) {
     res.status(500).json({ error: 'Erreur lors du changement de mot de passe.' });
   }

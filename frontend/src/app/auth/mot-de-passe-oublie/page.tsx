@@ -145,7 +145,7 @@ export default function ForgotPasswordPage() {
                   Vérifiez vos spams ou contactez notre support directement.
                 </p>
                 <a
-                  href="https://wa.me/224620000000"
+                  href="https://wa.me/224627543486"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm"

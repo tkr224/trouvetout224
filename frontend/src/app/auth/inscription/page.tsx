@@ -12,6 +12,7 @@ import {
 import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
+import GoogleButton from '@/components/auth/GoogleButton';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 
@@ -212,6 +213,28 @@ export default function RegisterPage() {
     submit();
   };
 
+  // Inscription / connexion via Google : le token est un id_token JWT vérifié par le backend
+  // auprès de Google (jamais de confiance aveugle dans les données envoyées par le navigateur).
+  const handleGoogleCredential = async (idToken: string) => {
+    setLoading(true);
+    try {
+      const res = await api.post('/auth/oauth', { provider: 'google', token: idToken });
+      setUser(res.data.user);
+      setTokens(res.data.accessToken, res.data.refreshToken);
+      if (res.data.isNewUser) {
+        toast.success('Compte créé avec succès !');
+        router.push('/auth/choisir-profil');
+      } else {
+        toast.success('Connexion réussie !');
+        router.push('/');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Erreur de connexion avec Google.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ─────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen flex">
@@ -289,9 +312,23 @@ export default function RegisterPage() {
             {step === 1 && (
               <>
                 <h2 className="font-display font-bold text-3xl text-dark-900 mb-1">Créer un compte 🇬🇳</h2>
-                <p className="text-dark-500 text-sm mb-8">
+                <p className="text-dark-500 text-sm mb-6">
                   Rejoignez la communauté TrouveTout224 — c'est gratuit !
                 </p>
+
+                <GoogleButton onCredential={handleGoogleCredential} text="signup_with" />
+                <p className="text-[11px] text-dark-400 text-center mt-2.5 mb-6 leading-relaxed">
+                  En continuant avec Google, vous acceptez nos{' '}
+                  <Link href="/conditions" target="_blank" className="text-primary-700 hover:underline">Conditions d'utilisation</Link>
+                  {' '}et notre{' '}
+                  <Link href="/confidentialite" target="_blank" className="text-primary-700 hover:underline">Politique de confidentialité</Link>.
+                </p>
+
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="flex-1 h-px bg-dark-100" />
+                  <span className="text-xs text-dark-400 font-medium">ou avec votre email</span>
+                  <div className="flex-1 h-px bg-dark-100" />
+                </div>
 
                 <form onSubmit={goStep2} className="space-y-5">
 

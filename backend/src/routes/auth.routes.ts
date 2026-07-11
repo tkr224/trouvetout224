@@ -60,7 +60,19 @@ router.post(
 router.post('/refresh', refreshToken);
 router.post('/logout', logout);
 router.post('/oauth', oauthLogin);
-router.put('/change-password', authenticate, changePassword);
+router.put(
+  '/change-password',
+  authenticate,
+  [
+    body('newPassword')
+      .isLength({ min: 8 }).withMessage('Mot de passe : 8 caractères minimum')
+      .matches(/[A-Z]/).withMessage('Mot de passe : au moins une majuscule requise')
+      .matches(/[a-z]/).withMessage('Mot de passe : au moins une minuscule requise')
+      .matches(/[0-9]/).withMessage('Mot de passe : au moins un chiffre requis'),
+  ],
+  validate,
+  changePassword
+);
 
 // Anti-abus : max 5 demandes de réinitialisation par IP sur 15 min
 const forgotPasswordLimiter = rateLimit({

@@ -8,6 +8,7 @@ import { Loader2, Eye, EyeOff, ShoppingBag, Lock, Zap, Ban } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
+import GoogleButton from '@/components/auth/GoogleButton';
 
 function LoginContent() {
   const [loading, setLoading] = useState(false);
@@ -37,6 +38,32 @@ function LoginContent() {
         setSuspended({ reason: errData.suspendedReason || null });
       } else {
         toast.error(errData?.error || 'Erreur de connexion');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleCredential = async (idToken: string) => {
+    setLoading(true);
+    setSuspended(null);
+    try {
+      const res = await api.post('/auth/oauth', { provider: 'google', token: idToken });
+      setUser(res.data.user);
+      setTokens(res.data.accessToken, res.data.refreshToken);
+      toast.success('Connexion réussie !');
+      if (res.data.isNewUser) {
+        router.push('/auth/choisir-profil');
+      } else {
+        const redirect = searchParams.get('redirect');
+        router.push(redirect && redirect.startsWith('/') ? redirect : '/');
+      }
+    } catch (err: any) {
+      const errData = err.response?.data;
+      if (err.response?.status === 403 && errData?.suspended) {
+        setSuspended({ reason: errData.suspendedReason || null });
+      } else {
+        toast.error(errData?.error || 'Erreur de connexion avec Google.');
       }
     } finally {
       setLoading(false);
@@ -176,6 +203,14 @@ function LoginContent() {
                 : 'Se connecter'}
             </button>
           </form>
+
+          {/* Séparateur + connexion Google */}
+          <div className="flex items-center gap-3 my-6">
+            <div className="flex-1 h-px bg-dark-100" />
+            <span className="text-xs text-dark-400 font-medium">ou</span>
+            <div className="flex-1 h-px bg-dark-100" />
+          </div>
+          <GoogleButton onCredential={handleGoogleCredential} text="signin_with" />
 
           {/* Séparateur */}
           <div className="flex items-center gap-3 my-7">

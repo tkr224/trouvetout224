@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import {
   User, Lock, Bell, Shield, Globe, HelpCircle, FileText, Info, LogOut,
   Settings, CheckCircle, ArrowRight, Mail, CreditCard, ShieldCheck, Link2,
-  Palette, Sun, Moon, Monitor,
+  Palette, Sun, Moon, Monitor, Eye, EyeOff, Loader2, KeyRound,
 } from 'lucide-react';
 import { useTheme, COLOR_THEMES, SPECIAL_THEMES } from '@/components/providers/ThemeProvider';
 import Link from 'next/link';
@@ -56,8 +56,13 @@ export default function ParametresPage() {
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName]   = useState(user?.lastName || '');
   const [bio, setBio]             = useState('');
-  const [currentPwd, setCurrentPwd] = useState('');
-  const [newPwd, setNewPwd]         = useState('');
+  const [currentPwd, setCurrentPwd]   = useState('');
+  const [newPwd, setNewPwd]           = useState('');
+  const [confirmPwd, setConfirmPwd]   = useState('');
+  const [showPwdFields, setShowPwdFields] = useState(false);
+  const [pwdLoading, setPwdLoading]   = useState(false);
+  const [pwdError, setPwdError]       = useState('');
+  const [hasPassword, setHasPassword] = useState<boolean | null>(null);
   const [notifMsg, setNotifMsg]         = useState(true);
   const [notifAnnonce, setNotifAnnonce] = useState(true);
   const [notifVue, setNotifVue]         = useState(false);
@@ -77,6 +82,21 @@ export default function ParametresPage() {
     } catch {}
   }, []);
 
+  // Savoir si le compte a déjà un mot de passe (faux pour un compte créé via Google)
+  useEffect(() => {
+    if (!loggedIn) return;
+    api.get('/users/me').then(r => setHasPassword(!!r.data.data.hasPassword)).catch(() => {});
+  }, [loggedIn]);
+
+  const PWD_CRITERIA = [
+    { ok: (p: string) => p.length >= 8,   text: '8 caractères minimum' },
+    { ok: (p: string) => /[A-Z]/.test(p), text: 'Une majuscule' },
+    { ok: (p: string) => /[a-z]/.test(p), text: 'Une minuscule' },
+    { ok: (p: string) => /[0-9]/.test(p), text: 'Un chiffre' },
+  ];
+  const pwdCriteriaState = PWD_CRITERIA.map(c => ({ ...c, met: c.ok(newPwd) }));
+  const pwdScore = pwdCriteriaState.filter(c => c.met).length;
+
   const saveProfile = async () => {
     try { await api.put('/users/me', { firstName, lastName, bio }); toast.success('Profil mis à jour !'); }
     catch { toast.error('Erreur de mise à jour'); }
@@ -89,12 +109,44 @@ export default function ParametresPage() {
   };
 
   const changePwd = async () => {
-    if (!currentPwd || !newPwd) return toast.error('Remplissez tous les champs');
+    setPwdError('');
+
+    if (hasPassword && !currentPwd) {
+      setPwdError('Saisissez votre mot de passe actuel.');
+      return;
+    }
+    if (!newPwd || !confirmPwd) {
+      setPwdError('Remplissez tous les champs du nouveau mot de passe.');
+      return;
+    }
+    if (pwdScore < PWD_CRITERIA.length) {
+      setPwdError('Le nouveau mot de passe ne respecte pas encore toutes les règles ci-dessous.');
+      return;
+    }
+    if (newPwd !== confirmPwd) {
+      setPwdError('Les deux mots de passe ne correspondent pas.');
+      return;
+    }
+    if (hasPassword && newPwd === currentPwd) {
+      setPwdError("Le nouveau mot de passe doit être différent de l'actuel.");
+      return;
+    }
+
+    setPwdLoading(true);
     try {
-      await api.put('/auth/change-password', { currentPassword: currentPwd, newPassword: newPwd });
-      toast.success('Mot de passe changé !');
-      setCurrentPwd(''); setNewPwd('');
-    } catch (e: any) { toast.error(e.response?.data?.error || 'Erreur'); }
+      await api.put('/auth/change-password', {
+        currentPassword: hasPassword ? currentPwd : undefined,
+        newPassword: newPwd,
+      });
+      toast.success(hasPassword ? 'Mot de passe modifié !' : 'Mot de passe défini avec succès !');
+      setCurrentPwd(''); setNewPwd(''); setConfirmPwd('');
+      setHasPassword(true);
+    } catch (e: any) {
+      const d = e.response?.data;
+      setPwdError(d?.error || (Array.isArray(d?.errors) ? d.errors[0]?.msg : null) || 'Erreur lors du changement de mot de passe.');
+    } finally {
+      setPwdLoading(false);
+    }
   };
 
   const Toggle = ({ value, onChange }: { value: boolean; onChange: () => void }) => (
@@ -210,15 +262,103 @@ export default function ParametresPage() {
                   <ShieldCheck size={18} className="text-primary-700 shrink-0" />
                   <p className="text-primary-800 text-sm font-medium">Compte actif et sécurisé</p>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-dark-700 mb-1.5">Mot de passe actuel</label>
-                  <input type="password" value={currentPwd} onChange={e => setCurrentPwd(e.target.value)} placeholder="••••••••" className="input" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-dark-700 mb-1.5">Nouveau mot de passe</label>
-                  <input type="password" value={newPwd} onChange={e => setNewPwd(e.target.value)} placeholder="Minimum 6 caractères" className="input" />
-                </div>
-                <button onClick={changePwd} className="btn-primary px-8">Changer le mot de passe</button>
+
+                {hasPassword === null ? (
+                  <p className="text-dark-400 text-sm flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Chargement...</p>
+                ) : (
+                  <>
+                    <h3 className="font-semibold text-dark-900 flex items-center gap-2">
+                      <KeyRound size={16} className="text-primary-700" />
+                      {hasPassword ? 'Changer le mot de passe' : 'Définir un mot de passe'}
+                    </h3>
+
+                    {!hasPassword && (
+                      <p className="text-dark-500 text-sm bg-dark-50 rounded-2xl p-4">
+                        Votre compte a été créé avec Google, vous n&apos;avez pas encore de mot de passe.
+                        Définissez-en un ci-dessous pour pouvoir aussi vous connecter avec votre email.
+                      </p>
+                    )}
+
+                    {hasPassword && (
+                      <div>
+                        <label className="block text-sm font-semibold text-dark-700 mb-1.5">Mot de passe actuel</label>
+                        <div className="relative">
+                          <input
+                            type={showPwdFields ? 'text' : 'password'}
+                            value={currentPwd}
+                            onChange={e => setCurrentPwd(e.target.value)}
+                            placeholder="••••••••"
+                            className="input pr-11" />
+                          <button type="button" tabIndex={-1} onClick={() => setShowPwdFields(v => !v)}
+                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-600">
+                            {showPwdFields ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Nouveau mot de passe</label>
+                      <div className="relative">
+                        <input
+                          type={showPwdFields ? 'text' : 'password'}
+                          value={newPwd}
+                          onChange={e => setNewPwd(e.target.value)}
+                          placeholder="Minimum 8 caractères"
+                          className="input pr-11" />
+                        <button type="button" tabIndex={-1} onClick={() => setShowPwdFields(v => !v)}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-600">
+                          {showPwdFields ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                      {newPwd && (
+                        <div className="mt-2">
+                          <div className="flex gap-1 mb-1.5">
+                            {[0, 1, 2, 3].map(i => (
+                              <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${
+                                i < pwdScore
+                                  ? ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-primary-500'][pwdScore - 1]
+                                  : 'bg-dark-200'
+                              }`} />
+                            ))}
+                          </div>
+                          <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+                            {pwdCriteriaState.map((c, i) => (
+                              <span key={i} className={`flex items-center gap-1 text-[11px] font-medium ${c.met ? 'text-primary-600' : 'text-dark-400'}`}>
+                                <CheckCircle size={10} className={c.met ? 'text-primary-500' : 'text-dark-300'} /> {c.text}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Confirmer le nouveau mot de passe</label>
+                      <input
+                        type={showPwdFields ? 'text' : 'password'}
+                        value={confirmPwd}
+                        onChange={e => setConfirmPwd(e.target.value)}
+                        placeholder="Retapez le nouveau mot de passe"
+                        className="input" />
+                    </div>
+
+                    {pwdError && (
+                      <p className="text-sm text-guinea-600 bg-guinea-50 rounded-xl px-4 py-3">{pwdError}</p>
+                    )}
+
+                    <button onClick={changePwd} disabled={pwdLoading} className="btn-primary px-8 flex items-center gap-2 disabled:opacity-60">
+                      {pwdLoading && <Loader2 size={15} className="animate-spin" />}
+                      {hasPassword ? 'Changer le mot de passe' : 'Définir le mot de passe'}
+                    </button>
+
+                    {hasPassword && (
+                      <Link href="/auth/mot-de-passe-oublie" className="block text-sm text-primary-700 hover:underline pt-1">
+                        Mot de passe oublié ? Réinitialiser par email
+                      </Link>
+                    )}
+                  </>
+                )}
               </div>
             )}
 
