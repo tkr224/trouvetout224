@@ -20,7 +20,7 @@ import {
   UtensilsCrossed, Hotel, Shirt, Footprints, Sparkles, HeartPulse,
   GraduationCap, PartyPopper, Sofa, Wheat, PawPrint, Dumbbell,
   Package, MapPin, ShieldCheck, Zap, MessageCircle, Star, Plus,
-  MoreHorizontal, Calendar,
+  MoreHorizontal, Calendar, ChevronDown,
 } from 'lucide-react';
 
 /* ── Villes ──────────────────────────────────────────────────────── */
@@ -166,6 +166,7 @@ export default function HomePage() {
   const [sort, setSort]                 = useState('recent');
   const [publications, setPublications] = useState<Publication[]>([]);
   const [heroSlide, setHeroSlide]       = useState(0);
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
   const router = useRouter();
 
   const { data: annonces, isLoading }                = useAnnonces({ sort, limit: 12 });
@@ -425,7 +426,44 @@ export default function HomePage() {
                 <h2 className="text-xl font-display font-bold text-dark-900 dark:text-white">Dernières annonces</h2>
                 <p className="text-dark-400 text-xs mt-0.5">Les dernières offres publiées sur la plateforme</p>
               </div>
-              <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Mobile : menu de tri repliable (au lieu de 6 boutons toujours affichés) */}
+              <div className="relative sm:hidden">
+                <button
+                  onClick={() => setSortMenuOpen(v => !v)}
+                  onBlur={() => setTimeout(() => setSortMenuOpen(false), 150)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border border-dark-200 dark:border-dark-600 bg-white dark:bg-dark-800 text-dark-600 dark:text-dark-300"
+                >
+                  {(() => {
+                    const cur = SORTS.find(s => s.key === sort) || SORTS[0];
+                    const CurIcon = cur.icon;
+                    return <><CurIcon size={12} /> Trier : {cur.label}</>;
+                  })()}
+                  <ChevronDown size={12} className={`transition-transform ${sortMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {sortMenuOpen && (
+                  <div className="absolute right-0 top-full mt-1.5 z-30 bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl shadow-card-hover py-1.5 min-w-[190px]">
+                    {SORTS.map(s => {
+                      const Icon = s.icon;
+                      return (
+                        <button
+                          key={s.key}
+                          onClick={() => { setSort(s.key); setSortMenuOpen(false); }}
+                          className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors ${
+                            sort === s.key
+                              ? 'text-primary-700 font-semibold bg-primary-50 dark:bg-primary-900/20'
+                              : 'text-dark-700 dark:text-dark-200 hover:bg-dark-50 dark:hover:bg-dark-700'
+                          }`}
+                        >
+                          <Icon size={14} /> {s.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Tablette / desktop : ligne de boutons (inchangée) */}
+              <div className="hidden sm:flex items-center gap-1.5 flex-wrap">
                 {SORTS.map(s => {
                   const Icon = s.icon;
                   return (

@@ -7,6 +7,7 @@ interface User {
   phone?: string; avatar?: string; role: string; isVerified: boolean;
   onboardingDone?: boolean; createdAt?: string;
   accountType?: string; hasPassword?: boolean;
+  username?: string; cityId?: string; city?: { id: string; name: string };
 }
 
 interface AuthStore {

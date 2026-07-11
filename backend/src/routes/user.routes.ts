@@ -74,19 +74,50 @@ router.get('/profile/:id', async (req, res) => {
 // Mon profil complet
 router.get('/me', authenticate, async (req: any, res) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    const user = await prisma.user.findUnique({ where: { id: req.userId }, include: { city: true } });
     if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé.' });
     const { password, ...rest } = user;
     res.json({ data: { ...rest, hasPassword: !!password } });
   } catch { res.status(500).json({ error: 'Erreur.' }); }
 });
 
+const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/;
+
+// Vérifie en direct si un nom d'utilisateur est disponible (utilisé pendant la saisie)
+router.get('/username-available', authenticate, async (req: any, res) => {
+  try {
+    const normalized = String(req.query.username || '').trim().toLowerCase();
+    if (!USERNAME_REGEX.test(normalized)) {
+      return res.json({ available: false, reason: 'invalid' });
+    }
+    const existing = await prisma.user.findUnique({ where: { username: normalized } });
+    const available = !existing || existing.id === req.userId;
+    res.json({ available, reason: available ? null : 'taken' });
+  } catch { res.status(500).json({ error: 'Erreur.' }); }
+});
+
 // Mettre à jour mon profil
 router.put('/me', authenticate, async (req: any, res) => {
   try {
-    const { firstName, lastName, bio, cityId, avatar, banner, accountType } = req.body;
+    const { firstName, lastName, bio, cityId, avatar, banner, accountType, username } = req.body;
 
     const data: any = { firstName, lastName, bio, cityId, avatar, banner };
+
+    // Nom d'utilisateur : optionnel, mais unique et normalisé si fourni.
+    if (typeof username === 'string' && username.trim() !== '') {
+      const normalized = username.trim().toLowerCase();
+      if (!USERNAME_REGEX.test(normalized)) {
+        return res.status(400).json({
+          error: "Nom d'utilisateur invalide : 3 à 20 caractères (lettres minuscules, chiffres, _).",
+          field: 'username',
+        });
+      }
+      const existing = await prisma.user.findUnique({ where: { username: normalized } });
+      if (existing && existing.id !== req.userId) {
+        return res.status(409).json({ error: "Ce nom d'utilisateur est déjà pris.", field: 'username' });
+      }
+      data.username = normalized;
+    }
 
     // Choix du type de compte (ex: étape post-inscription Google) : ne touche jamais un rôle admin.
     if (accountType && ['ACHETEUR', 'VENDEUR', 'LES_DEUX'].includes(accountType)) {
@@ -100,10 +131,16 @@ router.put('/me', authenticate, async (req: any, res) => {
     const user = await prisma.user.update({
       where: { id: req.userId },
       data,
+      include: { city: true },
       omit: { password: true },
     });
     res.json({ message: 'Profil mis à jour.', data: user });
-  } catch { res.status(500).json({ error: 'Erreur.' }); }
+  } catch (error: any) {
+    if (error.code === 'P2002' && error.meta?.target?.includes('username')) {
+      return res.status(409).json({ error: "Ce nom d'utilisateur est déjà pris.", field: 'username' });
+    }
+    res.status(500).json({ error: 'Erreur.' });
+  }
 });
 
 // Mettre à jour / créer ma boutique

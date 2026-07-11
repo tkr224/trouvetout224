@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { useAuthStore } from '@/store/auth.store';
 import { useEffect } from 'react';
@@ -9,6 +9,7 @@ import {
   User, Lock, Bell, Shield, Globe, HelpCircle, FileText, Info, LogOut,
   Settings, CheckCircle, ArrowRight, Mail, CreditCard, ShieldCheck, Link2,
   Palette, Sun, Moon, Monitor, Eye, EyeOff, Loader2, KeyRound,
+  Camera, AtSign, XCircle, Phone,
 } from 'lucide-react';
 import { useTheme, COLOR_THEMES, SPECIAL_THEMES } from '@/components/providers/ThemeProvider';
 import Link from 'next/link';
@@ -41,7 +42,7 @@ const LANGS = [
 const PROTECTED_TABS = ['profil', 'securite', 'notifications', 'confidentialite'];
 
 export default function ParametresPage() {
-  const { user, logout, isAuthenticated, _hasHydrated } = useAuthStore();
+  const { user, logout, isAuthenticated, _hasHydrated, setUser } = useAuthStore();
   const loggedIn = _hasHydrated && isAuthenticated && !!user;
   const { theme, setTheme, colorAccent, setColorAccent, specialTheme, setSpecialTheme, isThemeLocked } = useTheme();
   const [tab, setTab] = useState('profil');
@@ -56,6 +57,15 @@ export default function ParametresPage() {
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName]   = useState(user?.lastName || '');
   const [bio, setBio]             = useState('');
+  const [username, setUsername]   = useState('');
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid' | 'unchanged'>('idle');
+  const [cityId, setCityId]       = useState('');
+  const [cities, setCities]       = useState<{ id: string; name: string }[]>([]);
+  const [meData, setMeData]       = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [localAvatar, setLocalAvatar] = useState<string | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const [currentPwd, setCurrentPwd]   = useState('');
   const [newPwd, setNewPwd]           = useState('');
   const [confirmPwd, setConfirmPwd]   = useState('');
@@ -82,11 +92,57 @@ export default function ParametresPage() {
     } catch {}
   }, []);
 
-  // Savoir si le compte a déjà un mot de passe (faux pour un compte créé via Google)
+  // Charge le profil complet (bio, username, ville, hasPassword — absents du store d'auth léger)
   useEffect(() => {
     if (!loggedIn) return;
-    api.get('/users/me').then(r => setHasPassword(!!r.data.data.hasPassword)).catch(() => {});
+    api.get('/users/me').then(r => {
+      const d = r.data.data;
+      setMeData(d);
+      setHasPassword(!!d.hasPassword);
+      setFirstName(d.firstName || '');
+      setLastName(d.lastName || '');
+      setBio(d.bio || '');
+      setUsername(d.username || '');
+      setCityId(d.cityId || '');
+    }).catch(() => {});
   }, [loggedIn]);
+
+  // Liste des villes pour le sélecteur (route publique, déjà utilisée ailleurs dans l'app)
+  useEffect(() => {
+    api.get('/cities').then(r => setCities(r.data.data || [])).catch(() => {});
+  }, []);
+
+  // Vérification en direct de la disponibilité du nom d'utilisateur (debounce 450ms)
+  useEffect(() => {
+    const trimmed = username.trim().toLowerCase();
+    if (!trimmed) { setUsernameStatus('idle'); return; }
+    if (meData?.username && trimmed === meData.username.toLowerCase()) { setUsernameStatus('unchanged'); return; }
+    if (!/^[a-z0-9_]{3,20}$/.test(trimmed)) { setUsernameStatus('invalid'); return; }
+    setUsernameStatus('checking');
+    const t = setTimeout(() => {
+      api.get('/users/username-available', { params: { username: trimmed } })
+        .then(r => setUsernameStatus(r.data.available ? 'available' : 'taken'))
+        .catch(() => setUsernameStatus('idle'));
+    }, 450);
+    return () => clearTimeout(t);
+  }, [username, meData]);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await api.post('/upload/image', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const url = res.data.url;
+      await api.put('/users/me', { avatar: url });
+      setLocalAvatar(`${url}?t=${Date.now()}`);
+      if (user) setUser({ ...user, avatar: url });
+      toast.success('Photo de profil mise à jour !');
+    } catch { toast.error("Erreur lors de l'upload de la photo."); }
+    finally { setAvatarUploading(false); }
+  };
 
   const PWD_CRITERIA = [
     { ok: (p: string) => p.length >= 8,   text: '8 caractères minimum' },
@@ -98,8 +154,26 @@ export default function ParametresPage() {
   const pwdScore = pwdCriteriaState.filter(c => c.met).length;
 
   const saveProfile = async () => {
-    try { await api.put('/users/me', { firstName, lastName, bio }); toast.success('Profil mis à jour !'); }
-    catch { toast.error('Erreur de mise à jour'); }
+    if (usernameStatus === 'taken') return toast.error("Ce nom d'utilisateur est déjà pris.");
+    if (usernameStatus === 'invalid') return toast.error("Nom d'utilisateur invalide (3 à 20 caractères : lettres, chiffres, _).");
+    if (usernameStatus === 'checking') return toast.error("Vérification du nom d'utilisateur en cours, patientez...");
+
+    setProfileLoading(true);
+    try {
+      const payload: Record<string, unknown> = { firstName, lastName, bio, cityId: cityId || undefined };
+      if (username.trim() && usernameStatus !== 'unchanged') payload.username = username.trim().toLowerCase();
+
+      const { data } = await api.put('/users/me', payload);
+      setMeData(data.data);
+      if (user) setUser({ ...user, firstName, lastName });
+      toast.success('Profil mis à jour !');
+    } catch (e: any) {
+      const d = e.response?.data;
+      if (d?.field === 'username') setUsernameStatus('taken');
+      toast.error(d?.error || 'Erreur de mise à jour');
+    } finally {
+      setProfileLoading(false);
+    }
   };
 
   const savePrivacy = (key: string, val: boolean) => {
@@ -168,34 +242,67 @@ export default function ParametresPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
-          {/* Sidebar navigation */}
-          <div className="bg-white rounded-2xl border border-dark-100 shadow-card p-2 h-fit space-y-0.5">
-            {TABS.map(t => {
-              const isProtected = PROTECTED_TABS.includes(t.key);
-              return (
-                <button key={t.key} onClick={() => setTab(t.key)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors
-                    ${tab === t.key ? 'bg-primary-700 text-white shadow-sm' : 'text-dark-600 hover:bg-dark-50'}`}>
-                  <t.icon size={15} className="shrink-0" />
-                  <span className="flex-1 text-left">{t.label}</span>
-                  {isProtected && !loggedIn && (
-                    <Lock size={11} className="shrink-0 opacity-40" />
-                  )}
-                </button>
-              );
-            })}
-            <div className="pt-2 border-t border-dark-100 mt-2">
+          {/* Sidebar navigation — barre d'onglets défilante sur mobile, colonne verticale sur desktop */}
+          <div className="bg-white rounded-2xl border border-dark-100 shadow-card h-fit overflow-hidden">
+
+            {/* Mobile : onglets en ligne défilante horizontalement */}
+            <div className="lg:hidden flex items-center gap-2 overflow-x-auto px-3 py-3">
+              {TABS.map(t => {
+                const isProtected = PROTECTED_TABS.includes(t.key);
+                return (
+                  <button key={t.key} onClick={() => setTab(t.key)}
+                    className={`flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-colors
+                      ${tab === t.key ? 'bg-primary-700 text-white shadow-sm' : 'bg-dark-50 text-dark-600'}`}>
+                    <t.icon size={14} className="shrink-0" />
+                    {t.label}
+                    {isProtected && !loggedIn && (
+                      <Lock size={10} className="shrink-0 opacity-50" />
+                    )}
+                  </button>
+                );
+              })}
               {loggedIn ? (
                 <button onClick={logout}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
-                  <LogOut size={15} className="shrink-0" /> Déconnexion
+                  className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-red-600 bg-red-50 whitespace-nowrap">
+                  <LogOut size={14} className="shrink-0" /> Déconnexion
                 </button>
               ) : (
                 <Link href="/auth/connexion"
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-primary-700 hover:bg-primary-50 transition-colors">
-                  <User size={15} className="shrink-0" /> Se connecter
+                  className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-primary-700 bg-primary-50 whitespace-nowrap">
+                  <User size={14} className="shrink-0" /> Se connecter
                 </Link>
               )}
+            </div>
+
+            {/* Desktop : colonne verticale (inchangée) */}
+            <div className="hidden lg:block p-2 space-y-0.5">
+              {TABS.map(t => {
+                const isProtected = PROTECTED_TABS.includes(t.key);
+                return (
+                  <button key={t.key} onClick={() => setTab(t.key)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors
+                      ${tab === t.key ? 'bg-primary-700 text-white shadow-sm' : 'text-dark-600 hover:bg-dark-50'}`}>
+                    <t.icon size={15} className="shrink-0" />
+                    <span className="flex-1 text-left">{t.label}</span>
+                    {isProtected && !loggedIn && (
+                      <Lock size={11} className="shrink-0 opacity-40" />
+                    )}
+                  </button>
+                );
+              })}
+              <div className="pt-2 border-t border-dark-100 mt-2">
+                {loggedIn ? (
+                  <button onClick={logout}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+                    <LogOut size={15} className="shrink-0" /> Déconnexion
+                  </button>
+                ) : (
+                  <Link href="/auth/connexion"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-primary-700 hover:bg-primary-50 transition-colors">
+                    <User size={15} className="shrink-0" /> Se connecter
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
 
@@ -223,19 +330,40 @@ export default function ParametresPage() {
             ) : null}
 
             {!showGate && tab === 'profil' && (
-              <div className="space-y-4">
-                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">Modifier le profil</h2>
-                <div className="flex items-center gap-4 p-4 bg-dark-50 rounded-2xl mb-2">
-                  <div className="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center font-bold text-primary-700 text-xl">
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
+              <div className="space-y-5">
+                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-1">Modifier le profil</h2>
+
+                {/* Photo de profil — bien visible en haut */}
+                <div className="flex items-center gap-4 p-4 bg-dark-50 rounded-2xl">
+                  <div
+                    className="relative group cursor-pointer shrink-0"
+                    onClick={() => avatarInputRef.current?.click()}
+                  >
+                    <div className="w-20 h-20 rounded-2xl bg-primary-100 flex items-center justify-center font-bold text-primary-700 text-2xl overflow-hidden shadow-sm">
+                      {avatarUploading
+                        ? <Loader2 size={24} className="animate-spin text-primary-700" />
+                        : (localAvatar || meData?.avatar)
+                          ? <img src={localAvatar || meData.avatar} alt="" className="w-full h-full object-cover" />
+                          : `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`}
+                    </div>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 rounded-2xl transition-all flex items-center justify-center">
+                      <Camera size={18} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
                   </div>
                   <div>
                     <p className="font-semibold text-dark-900">{user?.firstName} {user?.lastName}</p>
-                    <Link href="/profil" className="text-primary-700 text-sm hover:underline mt-1 inline-block">
-                      Changer la photo de profil
-                    </Link>
+                    {meData?.username && <p className="text-dark-400 text-xs mt-0.5">@{meData.username}</p>}
+                    <button
+                      type="button"
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="text-primary-700 text-sm hover:underline mt-1.5 inline-flex items-center gap-1.5"
+                    >
+                      <Camera size={13} /> Changer la photo de profil
+                    </button>
                   </div>
                 </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-dark-700 mb-1.5">Prénom</label>
@@ -246,12 +374,75 @@ export default function ParametresPage() {
                     <input value={lastName} onChange={e => setLastName(e.target.value)} className="input" />
                   </div>
                 </div>
+
+                {/* Nom d'utilisateur — pseudo unique */}
+                <div>
+                  <label className="text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
+                    <AtSign size={13} className="text-primary-700" /> Nom d&apos;utilisateur
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-400 text-sm font-semibold pointer-events-none">@</span>
+                    <input
+                      value={username}
+                      onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                      placeholder="pseudo"
+                      className="input pl-8 pr-9"
+                      maxLength={20}
+                    />
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                      {usernameStatus === 'checking' && <Loader2 size={15} className="animate-spin text-dark-400" />}
+                      {usernameStatus === 'available' && <CheckCircle size={15} className="text-primary-600" />}
+                      {usernameStatus === 'taken' && <XCircle size={15} className="text-guinea-500" />}
+                    </span>
+                  </div>
+                  {usernameStatus === 'taken' && <p className="text-xs text-guinea-600 mt-1.5">Ce nom d&apos;utilisateur est déjà pris.</p>}
+                  {usernameStatus === 'invalid' && <p className="text-xs text-guinea-600 mt-1.5">3 à 20 caractères : lettres minuscules, chiffres, _ uniquement.</p>}
+                  {usernameStatus === 'available' && <p className="text-xs text-primary-600 mt-1.5">Disponible !</p>}
+                  {usernameStatus === 'idle' && <p className="text-xs text-dark-400 mt-1.5">Optionnel — votre identifiant unique sur TrouveTout224.</p>}
+                </div>
+
                 <div>
                   <label className="block text-sm font-semibold text-dark-700 mb-1.5">Bio</label>
                   <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3}
                     placeholder="Parlez de vous en quelques mots..." className="input resize-none" />
                 </div>
-                <button onClick={saveProfile} className="btn-primary px-8">Sauvegarder les modifications</button>
+
+                {/* Infos existantes : email, téléphone (non modifiables ici), ville */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
+                      <Mail size={13} className="text-dark-400" /> Email
+                    </label>
+                    <input
+                      value={meData?.email || 'Non renseigné'}
+                      disabled
+                      className="input bg-dark-50 text-dark-500 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
+                      <Phone size={13} className="text-dark-400" /> Téléphone
+                    </label>
+                    <input
+                      value={meData?.phone || 'Non renseigné'}
+                      disabled
+                      className="input bg-dark-50 text-dark-500 cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-dark-700 mb-1.5">Ville</label>
+                  <select value={cityId} onChange={e => setCityId(e.target.value)} className="input">
+                    <option value="">Non renseignée</option>
+                    {cities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+
+                <button onClick={saveProfile} disabled={profileLoading} className="btn-primary px-8 flex items-center gap-2 disabled:opacity-60">
+                  {profileLoading && <Loader2 size={15} className="animate-spin" />}
+                  Sauvegarder les modifications
+                </button>
               </div>
             )}
 
