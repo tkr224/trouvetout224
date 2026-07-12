@@ -26,11 +26,14 @@ export default function GoogleButton({ onCredential, text = 'signin_with' }: Goo
       client_id: clientId,
       callback: (response: { credential: string }) => onCredential(response.credential),
     });
+    // Largeur calculée depuis le conteneur réel (GIS accepte 200 à 400px) pour éviter
+    // que le bouton déborde sur petits écrans mobiles (ex: 360px fixe > largeur dispo sur iPhone SE).
+    const width = Math.min(400, Math.max(200, containerRef.current.offsetWidth));
     g.accounts.id.renderButton(containerRef.current, {
       type: 'standard',
       theme: 'outline',
       size: 'large',
-      width: 360,
+      width,
       text,
       logo_alignment: 'left',
     });

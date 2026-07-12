@@ -20,19 +20,22 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       // Next.js injecte des scripts inline pour l'hydratation ; Three.js nécessite unsafe-eval pour les shaders WebGL
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      // accounts.google.com : SDK Google Identity Services (bouton "Continuer avec Google")
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com",
       // Tailwind + Google Fonts utilisent des styles inline
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Polices Google Fonts
       "font-src 'self' data: https://fonts.gstatic.com",
       // Images : Cloudinary (annonces), Google (avatars OAuth), Unsplash (placeholders), blobs (canvas Three.js)
       "img-src 'self' data: blob: https://res.cloudinary.com https://lh3.googleusercontent.com https://images.unsplash.com",
-      // API backend + WebSocket (prod + dev)
-      "connect-src 'self' https://api.trouvetout224.site wss://api.trouvetout224.site https://trouvetout224-production.up.railway.app wss://trouvetout224-production.up.railway.app http://localhost:5000 ws://localhost:5000",
+      // API backend + WebSocket (prod + dev) + Google Identity Services
+      "connect-src 'self' https://api.trouvetout224.site wss://api.trouvetout224.site https://trouvetout224-production.up.railway.app wss://trouvetout224-production.up.railway.app http://localhost:5000 ws://localhost:5000 https://accounts.google.com",
       // Workers Three.js peuvent utiliser des blobs
       "worker-src blob: 'self'",
       "media-src 'self' blob:",
-      // Aucune frame externe autorisée
+      // Iframe du bouton/popup Google Identity Services
+      "frame-src https://accounts.google.com",
+      // Aucune frame externe autorisée (sauf Google ci-dessus)
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self'",
