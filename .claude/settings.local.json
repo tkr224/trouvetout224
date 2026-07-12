@@ -72,7 +72,31 @@
       "Bash(grep -i \"^backend/\\\\.env$\")",
       "Bash(npm install *)",
       "Bash(node -e \"console.log\\(require\\('@prisma/client/package.json'\\).version\\)\")",
-      "Bash(tasklist //FI \"IMAGENAME eq node.exe\")"
+      "Bash(tasklist //FI \"IMAGENAME eq node.exe\")",
+      "Bash(grep -rn \"NEXT_PUBLIC_API_URL\" src/lib/api.ts)",
+      "Bash(ls .env.local)",
+      "Bash(powershell -Command \"Get-Process -Id 17136 | Select-Object Id,ProcessName,Path,StartTime\")",
+      "Bash(tasklist //FI \"PID eq 17136\")",
+      "Bash(curl *)",
+      "Bash(nslookup *)",
+      "Bash(find frontend/src/app/auth -type f)",
+      "Bash(find frontend/src/app -maxdepth 1 -type d)",
+      "Bash(find frontend/src/app/parametres -type f)",
+      "Bash(grep -rn \"onboardingDone\" frontend/src backend/src)",
+      "Bash(grep -rln \"accountType\" frontend/src backend/src)",
+      "Bash(node -e \"const i=require\\('lucide-react'\\); console.log\\(typeof i.KeyRound, typeof i.Eye, typeof i.EyeOff, typeof i.Loader2\\)\")",
+      "Bash(echo \"EXIT:$?\")",
+      "Read(//tmp/**)",
+      "Bash(echo \"curl exit: $?\")",
+      "Bash(powershell -Command 'Get-Process -Name node -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowTitle -eq '\\\\'''\\\\''} | Select-Object Id,Path')",
+      "Bash(grep \"^GOOGLE_CLIENT_ID=\" backend/.env)",
+      "Bash(find frontend *)",
+      "Bash(grep \"^NEXT_PUBLIC_GOOGLE_CLIENT_ID=\" frontend/.env.local)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(echo \"backend started pid $!\")",
+      "Bash(echo \"frontend started pid $!\")",
+      "PowerShell(Get-CimInstance *)",
+      "Bash(disown)"
     ]
   }
 }
