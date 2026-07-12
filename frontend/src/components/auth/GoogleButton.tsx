@@ -40,7 +40,17 @@ export default function GoogleButton({ onCredential, text = 'signin_with' }: Goo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scriptReady, clientId, text]);
 
-  if (!clientId) return null;
+  // DEBUG TEMPORAIRE : au lieu de disparaître silencieusement si la variable
+  // est absente, on affiche un message visible pour distinguer un problème
+  // de rendu (import cassé) d'un problème de lecture de variable d'env.
+  // À retirer une fois le diagnostic terminé.
+  if (!clientId) {
+    return (
+      <div className="w-full border-2 border-dashed border-red-400 rounded-2xl py-3.5 text-center text-red-500 text-sm font-medium">
+        [DEBUG] NEXT_PUBLIC_GOOGLE_CLIENT_ID absent côté client
+      </div>
+    );
+  }
 
   return (
     <>
