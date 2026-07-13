@@ -14,6 +14,28 @@ type SendEmailArgs = {
   html: string;
 };
 
+// Sans le <meta charset="UTF-8"> et le wrapper <html>/<body>, certains clients mail
+// (Gmail notamment) devinent mal l'encodage et affichent les accents/emoji déformés,
+// et le centrage en div margin:auto n'est pas fiable partout — d'où la table centrée.
+const wrapEmailHtml = (bodyContent: string) => `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body style="margin:0; padding:0; background-color:#f3f4f6;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6; padding: 20px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; font-family: Arial, Helvetica, sans-serif;">
+          <tr><td>${bodyContent}</td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
 const sendEmail = async ({ to, subject, html }: SendEmailArgs) => {
   if (!resend) {
     console.log('Email non envoyé : RESEND_API_KEY manquante');
@@ -47,8 +69,8 @@ export const sendNewProductEmail = async (
   await sendEmail({
     to: email,
     subject: `Nouveau produit chez ${vendorName} — TrouveTout224`,
-    html: `
-      <div style="font-family: Arial; max-width: 600px; margin: auto; padding: 20px;">
+    html: wrapEmailHtml(`
+      <div style="font-family: Arial, Helvetica, sans-serif; padding: 20px;">
         <div style="background: #1B8B3B; padding: 20px; border-radius: 8px; text-align: center;">
           <h1 style="color: white; margin: 0;">🇬🇳 TrouveTout224</h1>
         </div>
@@ -72,7 +94,7 @@ export const sendNewProductEmail = async (
           © 2024 TrouveTout224 | Conakry, Guinée
         </p>
       </div>
-    `,
+    `),
   });
 };
 
@@ -80,8 +102,8 @@ export const sendResetPasswordEmail = async (email: string, firstName: string, r
   await sendEmail({
     to: email,
     subject: 'Réinitialisez votre mot de passe — TrouveTout224',
-    html: `
-      <div style="font-family: Arial; max-width: 600px; margin: auto; padding: 20px;">
+    html: wrapEmailHtml(`
+      <div style="font-family: Arial, Helvetica, sans-serif; padding: 20px;">
         <div style="background: #1B8B3B; padding: 20px; border-radius: 8px; text-align: center;">
           <h1 style="color: white; margin: 0;">🇬🇳 TrouveTout224</h1>
         </div>
@@ -99,7 +121,7 @@ export const sendResetPasswordEmail = async (email: string, firstName: string, r
           © 2024 TrouveTout224 | Conakry, Guinée
         </p>
       </div>
-    `,
+    `),
   });
 };
 
@@ -107,8 +129,8 @@ export const sendVerificationEmail = async (email: string, firstName: string) =>
   await sendEmail({
     to: email,
     subject: 'Bienvenue sur TrouveTout224 - Vérifiez votre email',
-    html: `
-      <div style="font-family: Arial; max-width: 600px; margin: auto; padding: 20px;">
+    html: wrapEmailHtml(`
+      <div style="font-family: Arial, Helvetica, sans-serif; padding: 20px;">
         <div style="background: #1B8B3B; padding: 20px; border-radius: 8px; text-align: center;">
           <h1 style="color: white; margin: 0;">🇬🇳 TrouveTout224</h1>
         </div>
@@ -131,6 +153,6 @@ export const sendVerificationEmail = async (email: string, firstName: string) =>
           © 2024 TrouveTout224 | Conakry, Guinée
         </p>
       </div>
-    `,
+    `),
   });
 };
