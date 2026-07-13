@@ -187,6 +187,9 @@ export default function RegisterPage() {
 
       setUser(user);
       toast.success('Compte créé avec succès ! Bienvenue sur TrouveTout224 🎉');
+      if (user.email) {
+        toast('📧 Vérifiez votre boîte mail pour confirmer votre adresse.', { duration: 6000 });
+      }
       router.push('/');
     } catch (err: any) {
       const d = err.response?.data;

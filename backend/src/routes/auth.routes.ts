@@ -3,6 +3,7 @@ import { body } from 'express-validator';
 import rateLimit from 'express-rate-limit';
 import { validate } from '../middleware/validate';
 import { authenticate } from '../middleware/auth';
+import { optionalAuthenticate } from '../middleware/optionalAuth';
 import {
   register,
   login,
@@ -12,6 +13,8 @@ import {
   changePassword,
   forgotPassword,
   resetPassword,
+  verifyEmail,
+  resendVerificationEmail,
 } from '../controllers/auth.controller';
 
 const router = Router();
@@ -103,6 +106,29 @@ router.post(
   ],
   validate,
   resetPassword
+);
+
+router.post(
+  '/verify-email',
+  [body('token').notEmpty().withMessage('Token requis.')],
+  validate,
+  verifyEmail
+);
+
+// Anti-abus : max 5 renvois par IP sur 15 min (en plus du cooldown de 60s par compte)
+const resendVerificationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Trop de tentatives. Réessayez dans 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+router.post(
+  '/resend-verification',
+  resendVerificationLimiter,
+  optionalAuthenticate,
+  resendVerificationEmail
 );
 
 export default router;

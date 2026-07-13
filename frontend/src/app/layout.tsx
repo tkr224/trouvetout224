@@ -9,6 +9,7 @@ import GoogleAnalytics from '@/components/GoogleAnalytics';
 const SplashScreen        = dynamic(() => import('@/components/SplashScreen'),                    { ssr: false });
 const OnboardingGate      = dynamic(() => import('@/components/OnboardingGate'),                  { ssr: false });
 const PWAInstallBanner    = dynamic(() => import('@/components/PWAInstallBanner'),                { ssr: false });
+const EmailVerificationBanner = dynamic(() => import('@/components/EmailVerificationBanner'),      { ssr: false });
 const PWARegister         = dynamic(() => import('@/components/PWARegister'),                     { ssr: false });
 const ThemeAnimations     = dynamic(() => import('@/components/ThemeAnimations'),                 { ssr: false });
 const Futur3DOrchestrator = dynamic(() => import('@/components/futur3d/Futur3DOrchestrator'),    { ssr: false });
@@ -161,6 +162,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Futur3DOrchestrator />
             <SplashScreen />
             <OnboardingGate />
+            <EmailVerificationBanner />
             {children}
             <Toaster position="top-center" />
             <PWAInstallBanner />

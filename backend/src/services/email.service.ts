@@ -125,10 +125,10 @@ export const sendResetPasswordEmail = async (email: string, firstName: string, r
   });
 };
 
-export const sendVerificationEmail = async (email: string, firstName: string) => {
+export const sendVerificationEmail = async (email: string, firstName: string, verifyUrl: string) => {
   await sendEmail({
     to: email,
-    subject: 'Bienvenue sur TrouveTout224 - Vérifiez votre email',
+    subject: 'Bienvenue sur TrouveTout224 - Confirmez votre email',
     html: wrapEmailHtml(`
       <div style="font-family: Arial, Helvetica, sans-serif; padding: 20px;">
         <div style="background: #1B8B3B; padding: 20px; border-radius: 8px; text-align: center;">
@@ -137,17 +137,19 @@ export const sendVerificationEmail = async (email: string, firstName: string) =>
         <div style="padding: 30px; background: #f9f9f9; border-radius: 8px; margin-top: 10px;">
           <h2>Bonjour ${firstName} ! 👋</h2>
           <p>Merci de rejoindre <strong>TrouveTout224</strong>, la plus grande plateforme d'annonces de Guinée !</p>
-          <p>Votre compte a été créé avec succès. Vous pouvez maintenant :</p>
+          <p>Pour sécuriser votre compte, confirmez votre adresse email en cliquant sur le bouton ci-dessous :</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${verifyUrl}" style="background: #1B8B3B; color: white; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+              Vérifier mon email →
+            </a>
+          </div>
+          <p style="color: #6b7280; font-size: 13px;">Ce lien expire dans 24 heures. Si vous n'êtes pas à l'origine de cette inscription, ignorez simplement cet email.</p>
+          <p style="margin-top: 24px;">Une fois votre email confirmé, vous pourrez profiter pleinement de TrouveTout224 :</p>
           <ul>
             <li>Publier des annonces gratuitement</li>
             <li>Contacter des vendeurs</li>
             <li>Trouver des emplois, logements, véhicules et plus encore</li>
           </ul>
-          <div style="text-align: center; margin-top: 30px;">
-            <a href="${process.env.FRONTEND_URL}" style="background: #1B8B3B; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold;">
-              Accéder à TrouveTout224 →
-            </a>
-          </div>
         </div>
         <p style="color: #999; text-align: center; margin-top: 20px; font-size: 12px;">
           © 2024 TrouveTout224 | Conakry, Guinée

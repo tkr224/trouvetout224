@@ -5,7 +5,7 @@ import Navbar from '@/components/layout/Navbar';
 import { AnnonceCard } from '@/components/annonces/AnnonceGrid';
 import ReviewSection from '@/components/ReviewSection';
 import { api } from '@/lib/api';
-import { MapPin, Star, MessageCircle, ShoppingBag, Eye, Award, CheckCircle, Calendar, TrendingUp, Store, User, Package, Sparkles, Flag, AlertTriangle, AlertCircle, HelpCircle, X, Loader2, Users } from 'lucide-react';
+import { MapPin, Star, MessageCircle, ShoppingBag, Eye, Award, CheckCircle, Calendar, TrendingUp, Store, User, Package, Sparkles, Flag, AlertTriangle, AlertCircle, HelpCircle, X, Loader2, Users, Mail } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useAuthStore } from '@/store/auth.store';
@@ -107,6 +107,7 @@ export default function PublicProfilPage() {
 
   const badges = [];
   if (profile.isVerified) badges.push({ icon: CheckCircle, label: 'Vendeur vérifié', color: 'bg-blue-100 text-blue-700' });
+  if (profile.emailVerified) badges.push({ icon: Mail, label: 'Email vérifié', color: 'bg-sky-100 text-sky-700' });
   if ((profile._count?.annonces || 0) >= 10 && avgRating >= 4.0) badges.push({ icon: Award, label: 'Top vendeur', color: 'bg-yellow-100 text-yellow-700' });
   if (avgRating >= 4.5 && ratingsCount >= 3) badges.push({ icon: Star, label: 'Excellent', color: 'bg-green-100 text-green-700' });
   if (totalViews >= 100) badges.push({ icon: TrendingUp, label: 'Populaire', color: 'bg-purple-100 text-purple-700' });

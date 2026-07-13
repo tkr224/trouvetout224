@@ -5,6 +5,7 @@ import { persist } from 'zustand/middleware';
 interface User {
   id: string; firstName: string; lastName: string; email?: string;
   phone?: string; avatar?: string; role: string; isVerified: boolean;
+  emailVerified?: boolean;
   onboardingDone?: boolean; createdAt?: string;
   accountType?: string; hasPassword?: boolean;
   username?: string; cityId?: string; city?: { id: string; name: string };

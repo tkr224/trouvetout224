@@ -9,7 +9,7 @@ import {
   Settings, Plus, Star, Eye, ShoppingBag, LogOut, Share2, Camera, Loader2,
   Store, BadgeCheck, Lock, ClipboardList, Heart, Bookmark, Trash2, Search,
   Clock, CheckCircle, XCircle, PauseCircle, AlertCircle,
-  TrendingUp, CheckCircle2, ImageIcon,
+  TrendingUp, CheckCircle2, ImageIcon, Mail,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -167,11 +167,24 @@ export default function ProfilPage() {
             </div>
 
             <h1 className="text-2xl font-display font-bold text-dark-900">{user.firstName} {user.lastName}</h1>
-            {user.isVerified && (
-              <span className="inline-flex items-center gap-1.5 text-primary-700 text-sm font-medium mt-0.5">
-                <BadgeCheck size={15} /> Compte vérifié
-              </span>
-            )}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
+              {user.isVerified && (
+                <span className="inline-flex items-center gap-1.5 text-primary-700 text-sm font-medium">
+                  <BadgeCheck size={15} /> Compte vérifié
+                </span>
+              )}
+              {user.email && (
+                user.emailVerified ? (
+                  <span className="inline-flex items-center gap-1.5 text-blue-600 text-sm font-medium">
+                    <Mail size={15} /> Email vérifié
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 text-dark-400 text-sm font-medium">
+                    <Mail size={15} /> Email non vérifié
+                  </span>
+                )
+              )}
+            </div>
             <p className="text-dark-400 text-xs mt-1.5 flex items-center gap-1">
               <Camera size={11} /> Cliquez sur la photo ou la bannière pour les modifier
             </p>

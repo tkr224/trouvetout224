@@ -40,6 +40,10 @@ model User {
   facebookId          String?     @unique
   resetToken          String?     @unique
   resetTokenExpiresAt DateTime?
+  emailVerified                Boolean    @default(false)
+  emailVerificationToken       String?    @unique
+  emailVerificationExpiresAt   DateTime?
+  emailVerificationLastSentAt  DateTime?
   shopName            String?
   shopLogo            String?
   shopBanner          String?

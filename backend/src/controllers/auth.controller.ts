@@ -113,6 +113,11 @@ export const register = async (req: Request, res: Response) => {
       realCityId = city?.id;
     }
 
+    // Email de vérification : token à durée limitée (24h), généré avant la création
+    // pour ne faire qu'une seule écriture en base.
+    const emailVerificationToken = normalizedEmail ? crypto.randomBytes(32).toString('hex') : undefined;
+    const emailVerificationExpiresAt = normalizedEmail ? new Date(Date.now() + 24 * 60 * 60 * 1000) : undefined;
+
     const isVendor = accountType === 'VENDEUR' || accountType === 'LES_DEUX';
     const user = await prisma.user.create({
       data: {
@@ -121,15 +126,18 @@ export const register = async (req: Request, res: Response) => {
         gender, cityId: realCityId, isVerified: false,
         accountType: accountType || 'ACHETEUR',
         role: isVendor ? 'VENDOR' : 'USER',
+        emailVerificationToken, emailVerificationExpiresAt,
+        emailVerificationLastSentAt: normalizedEmail ? new Date() : undefined,
       },
       select: {
         id: true, email: true, phone: true, firstName: true, lastName: true,
-        role: true, isVerified: true, createdAt: true, onboardingDone: true,
+        role: true, isVerified: true, emailVerified: true, createdAt: true, onboardingDone: true,
       },
     });
 
-    if (normalizedEmail) {
-      sendVerificationEmail(normalizedEmail, firstName).catch(e => console.log('Email non envoyé:', e.message));
+    if (normalizedEmail && emailVerificationToken) {
+      const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verifier-email?token=${emailVerificationToken}`;
+      sendVerificationEmail(normalizedEmail, firstName, verifyUrl).catch(e => console.log('Email non envoyé:', e.message));
     }
 
     const { accessToken, refreshToken } = await generateTokens(user.id);
@@ -262,6 +270,8 @@ export const oauthLogin = async (req: Request, res: Response) => {
           googleId: provider === 'google' ? providerId : undefined,
           facebookId: provider === 'facebook' ? providerId : undefined,
           isVerified: true,
+          // Google/Facebook ont déjà vérifié cette adresse email — pas besoin de re-vérifier.
+          emailVerified: !!email,
         },
       });
       isNewUser = true;
@@ -269,10 +279,14 @@ export const oauthLogin = async (req: Request, res: Response) => {
       (provider === 'google' && !user.googleId) ||
       (provider === 'facebook' && !user.facebookId)
     ) {
-      // Compte existant (créé par email/mdp) qui se connecte pour la 1ère fois via ce fournisseur : on lie l'identifiant
+      // Compte existant (créé par email/mdp) qui se connecte pour la 1ère fois via ce fournisseur : on lie l'identifiant.
+      // Le fournisseur confirme la même adresse email → on la marque vérifiée aussi.
       user = await prisma.user.update({
         where: { id: user.id },
-        data: provider === 'google' ? { googleId: providerId } : { facebookId: providerId },
+        data: {
+          ...(provider === 'google' ? { googleId: providerId } : { facebookId: providerId }),
+          ...(email && email.toLowerCase() === user.email?.toLowerCase() ? { emailVerified: true } : {}),
+        },
       });
     }
 
@@ -395,5 +409,93 @@ export const resetPassword = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Erreur resetPassword:', error);
     res.status(500).json({ error: 'Erreur lors de la réinitialisation.' });
+  }
+};
+
+// ============================
+// VÉRIFICATION D'EMAIL (lien reçu par email, valable 24h)
+// ============================
+export const verifyEmail = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ error: 'Token requis.' });
+
+    const user = await prisma.user.findFirst({ where: { emailVerificationToken: token } });
+    if (!user) return res.status(400).json({ error: 'Ce lien de vérification est invalide.' });
+
+    if (user.emailVerified) {
+      return res.json({ message: 'Votre email est déjà vérifié.', alreadyVerified: true });
+    }
+    if (!user.emailVerificationExpiresAt || user.emailVerificationExpiresAt < new Date()) {
+      return res.status(400).json({ error: 'Ce lien a expiré. Demandez-en un nouveau.', expired: true });
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerified: true, emailVerificationToken: null, emailVerificationExpiresAt: null },
+    });
+
+    res.json({ message: 'Email vérifié avec succès !' });
+  } catch (error) {
+    console.error('Erreur verifyEmail:', error);
+    res.status(500).json({ error: 'Erreur lors de la vérification.' });
+  }
+};
+
+// ============================
+// RENVOYER L'EMAIL DE VÉRIFICATION
+// ============================
+const RESEND_VERIFICATION_GENERIC_MESSAGE =
+  "Si un compte existe avec cet email et n'est pas encore vérifié, un lien de vérification vient d'être envoyé.";
+
+export const resendVerificationEmail = async (req: Request, res: Response) => {
+  try {
+    const authUserId = (req as any).userId as string | undefined;
+    const anonymous = !authUserId;
+    const bodyEmail = req.body?.email ? String(req.body.email).toLowerCase().trim() : undefined;
+
+    const user = authUserId
+      ? await prisma.user.findUnique({ where: { id: authUserId } })
+      : bodyEmail
+        ? await prisma.user.findFirst({ where: { email: { equals: bodyEmail, mode: 'insensitive' } } })
+        : null;
+
+    // Anonyme : réponse générique dans tous les cas — évite de révéler si un compte existe.
+    if (!user || !user.email) {
+      return anonymous
+        ? res.json({ message: RESEND_VERIFICATION_GENERIC_MESSAGE })
+        : res.status(404).json({ error: 'Compte introuvable ou sans adresse email.' });
+    }
+    if (user.emailVerified) {
+      return anonymous
+        ? res.json({ message: RESEND_VERIFICATION_GENERIC_MESSAGE })
+        : res.json({ message: 'Votre email est déjà vérifié.', alreadyVerified: true });
+    }
+
+    // Anti-spam : 1 envoi par minute maximum
+    if (user.emailVerificationLastSentAt) {
+      const secondsSince = (Date.now() - user.emailVerificationLastSentAt.getTime()) / 1000;
+      if (secondsSince < 60) {
+        const wait = Math.ceil(60 - secondsSince);
+        return anonymous
+          ? res.json({ message: RESEND_VERIFICATION_GENERIC_MESSAGE })
+          : res.status(429).json({ error: `Veuillez patienter ${wait} seconde(s) avant de renvoyer un email.` });
+      }
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const emailVerificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerificationToken: token, emailVerificationExpiresAt, emailVerificationLastSentAt: new Date() },
+    });
+
+    const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verifier-email?token=${token}`;
+    sendVerificationEmail(user.email, user.firstName, verifyUrl).catch(e => console.log('Email vérification non envoyé:', e.message));
+
+    res.json({ message: anonymous ? RESEND_VERIFICATION_GENERIC_MESSAGE : 'Email de vérification envoyé !' });
+  } catch (error) {
+    console.error('Erreur resendVerificationEmail:', error);
+    res.status(500).json({ error: "Erreur lors de l'envoi de l'email." });
   }
 };

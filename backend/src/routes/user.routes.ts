@@ -57,7 +57,7 @@ router.get('/profile/:id', async (req, res) => {
       where: { id: req.params.id },
       select: {
         id: true, firstName: true, lastName: true, avatar: true,
-        city: true, isVerified: true, isShopVerified: true, createdAt: true,
+        city: true, isVerified: true, isShopVerified: true, emailVerified: true, createdAt: true,
         shopName: true, shopLogo: true, shopBanner: true, shopDescription: true, shopWhatsapp: true, shopActive: true, shopColor: true, shopSlogan: true,
         _count: { select: { annonces: true, ratingsReceived: true, subscribers: true } },
         ratingsReceived: { select: { score: true } },
