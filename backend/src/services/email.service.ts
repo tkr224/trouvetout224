@@ -1,12 +1,40 @@
 // src/services/email.service.ts
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false,
-  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-});
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
+// Adresse de test fournie par Resend, à utiliser tant que le domaine trouvetout224.site
+// n'est pas vérifié sur Resend. Une fois vérifié, remplacer par :
+// 'TrouveTout224 🇬🇳 <contact@trouvetout224.site>'
+const FROM_ADDRESS = 'TrouveTout224 🇬🇳 <onboarding@resend.dev>';
+
+type SendEmailArgs = {
+  to: string;
+  subject: string;
+  html: string;
+};
+
+const sendEmail = async ({ to, subject, html }: SendEmailArgs) => {
+  if (!resend) {
+    console.log('Email non envoyé : RESEND_API_KEY manquante');
+    return;
+  }
+  try {
+    const { data, error } = await resend.emails.send({
+      from: FROM_ADDRESS,
+      to,
+      subject,
+      html,
+    });
+    if (error) {
+      console.log('Erreur envoi email (Resend):', error);
+      return;
+    }
+    console.log('Email envoyé avec succès (Resend), id:', data?.id);
+  } catch (e: any) {
+    console.log('Erreur envoi email (Resend):', e?.message || e);
+  }
+};
 
 // Email envoyé aux abonnés quand un vendeur publie un nouveau produit approuvé
 export const sendNewProductEmail = async (
@@ -16,9 +44,7 @@ export const sendNewProductEmail = async (
   productTitle: string,
   productUrl: string,
 ) => {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return; // SMTP non configuré
-  await transporter.sendMail({
-    from: `"TrouveTout224 🇬🇳" <${process.env.FROM_EMAIL}>`,
+  await sendEmail({
     to: email,
     subject: `Nouveau produit chez ${vendorName} — TrouveTout224`,
     html: `
@@ -51,9 +77,7 @@ export const sendNewProductEmail = async (
 };
 
 export const sendResetPasswordEmail = async (email: string, firstName: string, resetUrl: string) => {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return; // SMTP non configuré
-  await transporter.sendMail({
-    from: `"TrouveTout224 🇬🇳" <${process.env.FROM_EMAIL}>`,
+  await sendEmail({
     to: email,
     subject: 'Réinitialisez votre mot de passe — TrouveTout224',
     html: `
@@ -80,9 +104,7 @@ export const sendResetPasswordEmail = async (email: string, firstName: string, r
 };
 
 export const sendVerificationEmail = async (email: string, firstName: string) => {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return;
-  await transporter.sendMail({
-    from: `"TrouveTout224 🇬🇳" <${process.env.FROM_EMAIL}>`,
+  await sendEmail({
     to: email,
     subject: 'Bienvenue sur TrouveTout224 - Vérifiez votre email',
     html: `
