@@ -7,6 +7,7 @@ import { prisma } from '../config/database';
 import { generateTokens, verifyRefreshToken } from '../utils/tokens';
 import { sendVerificationEmail, sendResetPasswordEmail } from '../services/email.service';
 import { v4 as uuidv4 } from 'uuid';
+import { SECURITY_QUESTIONS, normalizeAnswer } from '../constants/securityQuestions';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -497,5 +498,170 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Erreur resendVerificationEmail:', error);
     res.status(500).json({ error: "Erreur lors de l'envoi de l'email." });
+  }
+};
+
+// ============================
+// RÉCUPÉRATION DE COMPTE PAR QUESTIONS DE SÉCURITÉ
+// ============================
+
+// Liste publique des questions proposées (affichée à l'inscription / dans les paramètres).
+export const getSecurityQuestionsList = (_req: Request, res: Response) => {
+  res.json({ data: SECURITY_QUESTIONS });
+};
+
+// Hash bcrypt "neutre" utilisé pour égaliser le temps de réponse quand il n'y a rien
+// à comparer réellement — évite qu'un attaquant devine l'existence d'un compte au timing.
+const DUMMY_HASH = bcrypt.hashSync('tt224-dummy-timing-normalizer', 10);
+
+// Choisit un jeu de questions "leurres" déterministe (basé sur l'identifiant fourni) pour
+// les comptes inexistants ou sans questions configurées. Le nombre (2 ou 3) et le tirage
+// sont stables pour un même identifiant, afin qu'une requête répétée reste cohérente pour
+// l'utilisateur — sans jamais révéler que le compte n'existe pas ou n'a rien configuré.
+function pickDecoyQuestions(identifier: string) {
+  const hash = crypto.createHash('sha256').update(identifier.toLowerCase().trim()).digest();
+  const count = hash[0] % 2 === 0 ? 2 : 3;
+  const pool = [...SECURITY_QUESTIONS];
+  const picked: typeof pool = [];
+  let i = 1;
+  while (picked.length < count && pool.length) {
+    const idx = hash[i % hash.length] % pool.length;
+    picked.push(pool.splice(idx, 1)[0]);
+    i++;
+  }
+  return picked;
+}
+
+const SQ_JWT_PURPOSE = 'sq-recovery';
+const SQ_GENERIC_FAIL = 'Une ou plusieurs réponses sont incorrectes.';
+
+// Étape 1 : l'utilisateur saisit son identifiant → on lui renvoie les questions à répondre.
+// Réponse de forme identique que le compte existe ou non (questions leurres sinon),
+// pour ne jamais révéler quels comptes existent.
+export const startSecurityQuestionRecovery = async (req: Request, res: Response) => {
+  try {
+    const { identifier } = req.body;
+    if (!identifier?.trim()) return res.status(400).json({ error: 'Identifiant requis.' });
+    const id = identifier.trim();
+
+    const user = await prisma.user.findFirst({
+      where: { OR: [{ email: { equals: id, mode: 'insensitive' } }, { phone: id }] },
+      include: { securityQuestions: true },
+    });
+
+    let questionIds: string[];
+    let fake = true;
+    let userId: string | null = null;
+
+    if (user && user.securityQuestions.length >= 2) {
+      questionIds = user.securityQuestions.map(q => q.questionId);
+      fake = false;
+      userId = user.id;
+    } else {
+      questionIds = pickDecoyQuestions(id).map(q => q.id);
+    }
+
+    const token = jwt.sign(
+      { purpose: SQ_JWT_PURPOSE, fake, userId, questionIds },
+      process.env.JWT_SECRET as string,
+      { expiresIn: '10m' }
+    );
+
+    const questions = questionIds.map(qid => ({
+      id: qid,
+      label: SECURITY_QUESTIONS.find(q => q.id === qid)?.label || qid,
+    }));
+
+    res.json({ token, questions });
+  } catch (error) {
+    console.error('Erreur startSecurityQuestionRecovery:', error);
+    res.status(500).json({ error: 'Erreur lors de la demande.' });
+  }
+};
+
+// Étape 2 : vérifie les réponses. Si correctes, délivre un token de réinitialisation
+// de mot de passe (même mécanisme que le lien envoyé par email — réutilise /auth/reset-password).
+export const verifySecurityQuestionRecovery = async (req: Request, res: Response) => {
+  try {
+    const { token, answers } = req.body;
+    if (!token || !Array.isArray(answers) || answers.length === 0) {
+      return res.status(400).json({ error: 'Requête invalide.' });
+    }
+
+    let payload: any;
+    try {
+      payload = jwt.verify(token, process.env.JWT_SECRET as string);
+      if (payload.purpose !== SQ_JWT_PURPOSE) throw new Error('mauvais token');
+    } catch {
+      return res.status(400).json({ error: 'Session expirée, refaites une demande.' });
+    }
+
+    const { fake, userId, questionIds } = payload as { fake: boolean; userId: string | null; questionIds: string[] };
+
+    if (!Array.isArray(questionIds) || answers.length !== questionIds.length) {
+      return res.status(400).json({ error: 'Réponses invalides.' });
+    }
+
+    // Compte inexistant ou sans questions configurées : on simule le travail de comparaison
+    // (même délai qu'un vrai compte) puis on échoue systématiquement, sans jamais bloquer.
+    if (fake || !userId) {
+      await bcrypt.compare('dummy', DUMMY_HASH);
+      return res.status(400).json({ error: SQ_GENERIC_FAIL });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      await bcrypt.compare('dummy', DUMMY_HASH);
+      return res.status(400).json({ error: SQ_GENERIC_FAIL });
+    }
+
+    if (user.securityQuestionsLockedUntil && user.securityQuestionsLockedUntil > new Date()) {
+      return res.status(429).json({ error: 'Trop de tentatives. Réessayez plus tard.' });
+    }
+
+    const stored = await prisma.userSecurityQuestion.findMany({
+      where: { userId, questionId: { in: questionIds } },
+    });
+
+    let allValid = stored.length === questionIds.length;
+    for (const a of answers) {
+      const match = stored.find(s => s.questionId === a?.questionId);
+      if (!match) { allValid = false; continue; }
+      const ok = await bcrypt.compare(normalizeAnswer(String(a.answer || '')), match.answerHash);
+      if (!ok) allValid = false;
+    }
+
+    if (!allValid) {
+      const attempts = user.securityQuestionsFailedAttempts + 1;
+      const locked = attempts >= 5;
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          securityQuestionsFailedAttempts: locked ? 0 : attempts,
+          securityQuestionsLockedUntil: locked ? new Date(Date.now() + 30 * 60 * 1000) : null,
+        },
+      });
+      return res.status(400).json({
+        error: locked ? 'Trop de tentatives. Réessayez dans 30 minutes.' : SQ_GENERIC_FAIL,
+      });
+    }
+
+    // Succès : réinitialise le compteur d'échecs et délivre un token de réinitialisation
+    // de mot de passe, valable 30 minutes (même champs que le flux par email).
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        securityQuestionsFailedAttempts: 0,
+        securityQuestionsLockedUntil: null,
+        resetToken,
+        resetTokenExpiresAt: new Date(Date.now() + 30 * 60 * 1000),
+      },
+    });
+
+    res.json({ resetToken });
+  } catch (error) {
+    console.error('Erreur verifySecurityQuestionRecovery:', error);
+    res.status(500).json({ error: 'Erreur lors de la vérification.' });
   }
 };

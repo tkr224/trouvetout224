@@ -15,6 +15,9 @@ import {
   resetPassword,
   verifyEmail,
   resendVerificationEmail,
+  getSecurityQuestionsList,
+  startSecurityQuestionRecovery,
+  verifySecurityQuestionRecovery,
 } from '../controllers/auth.controller';
 
 const router = Router();
@@ -113,6 +116,38 @@ router.post(
   [body('token').notEmpty().withMessage('Token requis.')],
   validate,
   verifyEmail
+);
+
+// Liste publique des questions de sécurité proposées
+router.get('/security-questions', getSecurityQuestionsList);
+
+// Anti-abus : max 10 par IP sur 15 min pour la récupération par questions de sécurité
+// (en plus du verrouillage par compte après 5 échecs, voir auth.controller.ts)
+const securityQuestionsLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Trop de tentatives. Réessayez dans 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+router.post(
+  '/forgot-password/security-questions',
+  securityQuestionsLimiter,
+  [body('identifier').notEmpty().trim().withMessage('Identifiant requis.')],
+  validate,
+  startSecurityQuestionRecovery
+);
+
+router.post(
+  '/forgot-password/verify-security-questions',
+  securityQuestionsLimiter,
+  [
+    body('token').notEmpty().withMessage('Token requis.'),
+    body('answers').isArray({ min: 2, max: 3 }).withMessage('Réponses invalides.'),
+  ],
+  validate,
+  verifySecurityQuestionRecovery
 );
 
 // Anti-abus : max 5 renvois par IP sur 15 min (en plus du cooldown de 60s par compte)

@@ -82,8 +82,13 @@ model User {
   subscriptions    ShopSubscription[] @relation("SubscriberOf")
   subscribers      ShopSubscription[] @relation("SubscribedTo")
   themeAccesses    UserThemeAccess[]
+  securityQuestions UserSecurityQuestion[]
 
   onboardingDone Boolean @default(false)
+
+  // Questions de sécurité — anti brute-force sur la récupération de compte
+  securityQuestionsFailedAttempts Int       @default(0)
+  securityQuestionsLockedUntil    DateTime?
 
   @@index([shopActive])
   @@map("users")
@@ -718,6 +723,22 @@ model OnboardingSurvey {
   createdAt DateTime @default(now())
 
   @@map("onboarding_surveys")
+}
+
+// =============================================
+// QUESTIONS DE SÉCURITÉ (récupération de compte)
+// =============================================
+
+model UserSecurityQuestion {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId String // clé de la question dans la liste prédéfinie (backend/src/constants/securityQuestions.ts)
+  answerHash String // réponse hashée avec bcrypt, jamais en clair
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, questionId])
+  @@map("user_security_questions")
 }
 
 // =============================================

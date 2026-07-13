@@ -73,6 +73,15 @@ export default function ParametresPage() {
   const [pwdLoading, setPwdLoading]   = useState(false);
   const [pwdError, setPwdError]       = useState('');
   const [hasPassword, setHasPassword] = useState<boolean | null>(null);
+  // Questions de sécurité
+  const [sqMaster, setSqMaster]         = useState<{ id: string; label: string }[]>([]);
+  const [sqConfigured, setSqConfigured] = useState<{ questionId: string; label: string }[] | null>(null);
+  const [sqEditing, setSqEditing]       = useState(false);
+  const [sqRows, setSqRows]             = useState<{ questionId: string; answer: string }[]>([
+    { questionId: '', answer: '' }, { questionId: '', answer: '' },
+  ]);
+  const [sqSaving, setSqSaving]         = useState(false);
+  const [sqError, setSqError]           = useState('');
   const [notifMsg, setNotifMsg]         = useState(true);
   const [notifAnnonce, setNotifAnnonce] = useState(true);
   const [notifVue, setNotifVue]         = useState(false);
@@ -111,6 +120,50 @@ export default function ParametresPage() {
   useEffect(() => {
     api.get('/cities').then(r => setCities(r.data.data || [])).catch(() => {});
   }, []);
+
+  // Questions de sécurité : liste prédéfinie + celles déjà configurées par l'utilisateur
+  useEffect(() => {
+    if (!loggedIn) return;
+    api.get('/auth/security-questions').then(r => setSqMaster(r.data.data || [])).catch(() => {});
+    api.get('/users/me/security-questions').then(r => setSqConfigured(r.data.data || [])).catch(() => setSqConfigured([]));
+  }, [loggedIn]);
+
+  const startEditSq = () => {
+    setSqError('');
+    setSqRows(
+      sqConfigured && sqConfigured.length >= 2
+        ? sqConfigured.map(q => ({ questionId: q.questionId, answer: '' }))
+        : [{ questionId: '', answer: '' }, { questionId: '', answer: '' }]
+    );
+    setSqEditing(true);
+  };
+
+  const updateSqRow = (i: number, field: 'questionId' | 'answer', value: string) => {
+    setSqRows(rows => rows.map((r, idx) => idx === i ? { ...r, [field]: value } : r));
+  };
+
+  const addSqRow = () => setSqRows(rows => rows.length < 3 ? [...rows, { questionId: '', answer: '' }] : rows);
+  const removeSqRow = (i: number) => setSqRows(rows => rows.length > 2 ? rows.filter((_, idx) => idx !== i) : rows);
+
+  const saveSq = async () => {
+    setSqError('');
+    if (sqRows.some(r => !r.questionId)) return setSqError('Choisissez une question pour chaque ligne.');
+    if (sqRows.some(r => r.answer.trim().length < 2)) return setSqError('Chaque réponse doit contenir au moins 2 caractères.');
+    const ids = sqRows.map(r => r.questionId);
+    if (new Set(ids).size !== ids.length) return setSqError('Choisissez des questions différentes les unes des autres.');
+
+    setSqSaving(true);
+    try {
+      await api.put('/users/me/security-questions', { questions: sqRows });
+      setSqConfigured(sqRows.map(r => ({ questionId: r.questionId, label: sqMaster.find(q => q.id === r.questionId)?.label || r.questionId })));
+      setSqEditing(false);
+      toast.success('Questions de sécurité enregistrées !');
+    } catch (e: any) {
+      setSqError(e.response?.data?.error || "Erreur lors de l'enregistrement.");
+    } finally {
+      setSqSaving(false);
+    }
+  };
 
   // Vérification en direct de la disponibilité du nom d'utilisateur (debounce 450ms)
   useEffect(() => {
@@ -550,6 +603,92 @@ export default function ParametresPage() {
                     )}
                   </>
                 )}
+
+                {/* ── Questions de sécurité ── */}
+                <div className="pt-6 mt-6 border-t border-dark-100">
+                  <h3 className="font-semibold text-dark-900 flex items-center gap-2 mb-1">
+                    <HelpCircle size={16} className="text-primary-700" /> Questions de sécurité
+                  </h3>
+                  <p className="text-dark-500 text-sm mb-4">
+                    Permettent de récupérer votre compte si vous perdez l'accès à votre email — pratique si vous consultez rarement votre boîte mail.
+                  </p>
+
+                  {sqConfigured === null ? (
+                    <p className="text-dark-400 text-sm flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Chargement...</p>
+                  ) : !sqEditing ? (
+                    sqConfigured.length >= 2 ? (
+                      <div className="bg-primary-50 border border-primary-200 rounded-2xl p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <ShieldCheck size={16} className="text-primary-700" />
+                          <p className="text-primary-800 text-sm font-semibold">{sqConfigured.length} questions configurées</p>
+                        </div>
+                        <ul className="text-dark-600 text-sm space-y-1 mb-3 list-disc list-inside">
+                          {sqConfigured.map(q => <li key={q.questionId}>{q.label}</li>)}
+                        </ul>
+                        <button onClick={startEditSq} className="text-primary-700 text-sm font-semibold hover:underline">
+                          Modifier mes questions de sécurité
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="bg-gold-50 border border-gold-200 rounded-2xl p-4 flex items-start gap-3">
+                        <Shield size={18} className="text-gold-600 shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-gold-800 text-sm font-semibold mb-1">Aucune question de sécurité configurée</p>
+                          <p className="text-gold-700 text-xs mb-3">
+                            Ajoutez-en 2 ou 3 pour pouvoir récupérer votre compte même sans accès à votre email.
+                          </p>
+                          <button onClick={startEditSq} className="btn-gold text-sm px-4 py-2">Configurer maintenant</button>
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    <div className="space-y-4">
+                      {sqRows.map((row, i) => (
+                        <div key={i} className="bg-dark-50 rounded-2xl p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <label className="text-sm font-semibold text-dark-700">Question {i + 1}</label>
+                            {sqRows.length > 2 && (
+                              <button onClick={() => removeSqRow(i)} className="text-guinea-500 text-xs font-semibold hover:underline">Retirer</button>
+                            )}
+                          </div>
+                          <select value={row.questionId} onChange={e => updateSqRow(i, 'questionId', e.target.value)} className="input">
+                            <option value="">Choisissez une question...</option>
+                            {sqMaster
+                              .filter(q => q.id === row.questionId || !sqRows.some(r => r.questionId === q.id))
+                              .map(q => <option key={q.id} value={q.id}>{q.label}</option>)}
+                          </select>
+                          <input
+                            value={row.answer}
+                            onChange={e => updateSqRow(i, 'answer', e.target.value)}
+                            placeholder="Votre réponse"
+                            className="input" />
+                        </div>
+                      ))}
+
+                      {sqRows.length < 3 && (
+                        <button onClick={addSqRow} className="text-primary-700 text-sm font-semibold hover:underline">
+                          + Ajouter une 3ᵉ question (optionnel)
+                        </button>
+                      )}
+
+                      {sqError && (
+                        <p className="text-sm text-guinea-600 bg-guinea-50 rounded-xl px-4 py-3">{sqError}</p>
+                      )}
+
+                      <div className="flex items-center gap-4">
+                        <button onClick={saveSq} disabled={sqSaving} className="btn-primary px-6 flex items-center gap-2 disabled:opacity-60">
+                          {sqSaving && <Loader2 size={15} className="animate-spin" />} Enregistrer
+                        </button>
+                        <button onClick={() => setSqEditing(false)} className="text-dark-500 text-sm font-semibold hover:text-dark-700">
+                          Annuler
+                        </button>
+                      </div>
+                      <p className="text-xs text-dark-400">
+                        Vos réponses sont stockées de façon chiffrée (comme un mot de passe) — personne ne peut les relire, seulement vérifier qu'elles correspondent.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

@@ -1,7 +1,9 @@
 // user.routes.ts
 import { Router } from 'express';
+import bcrypt from 'bcryptjs';
 import { authenticate } from '../middleware/auth';
 import { prisma } from '../config/database';
+import { SECURITY_QUESTIONS, normalizeAnswer } from '../constants/securityQuestions';
 
 const router = Router();
 
@@ -141,6 +143,66 @@ router.put('/me', authenticate, async (req: any, res) => {
     }
     res.status(500).json({ error: 'Erreur.' });
   }
+});
+
+// Mes questions de sécurité configurées (jamais les réponses — juste question + label)
+router.get('/me/security-questions', authenticate, async (req: any, res) => {
+  try {
+    const rows = await prisma.userSecurityQuestion.findMany({
+      where: { userId: req.userId },
+      select: { questionId: true, createdAt: true },
+      orderBy: { createdAt: 'asc' },
+    });
+    const data = rows.map(r => ({
+      questionId: r.questionId,
+      label: SECURITY_QUESTIONS.find(q => q.id === r.questionId)?.label || r.questionId,
+    }));
+    res.json({ data });
+  } catch { res.status(500).json({ error: 'Erreur.' }); }
+});
+
+// Configurer / remplacer mes questions de sécurité (2 ou 3 obligatoirement)
+router.put('/me/security-questions', authenticate, async (req: any, res) => {
+  try {
+    const items = req.body?.questions;
+    if (!Array.isArray(items) || items.length < 2 || items.length > 3) {
+      return res.status(400).json({ error: 'Choisissez entre 2 et 3 questions de sécurité.' });
+    }
+
+    const seen = new Set<string>();
+    for (const it of items) {
+      const qid = it?.questionId;
+      const answer = typeof it?.answer === 'string' ? it.answer.trim() : '';
+      if (!SECURITY_QUESTIONS.some(q => q.id === qid)) {
+        return res.status(400).json({ error: 'Question invalide.' });
+      }
+      if (seen.has(qid)) {
+        return res.status(400).json({ error: 'Choisissez des questions différentes les unes des autres.' });
+      }
+      seen.add(qid);
+      if (answer.length < 2) {
+        return res.status(400).json({ error: 'Chaque réponse doit contenir au moins 2 caractères.' });
+      }
+    }
+
+    const hashed = await Promise.all(items.map(async (it: any) => ({
+      questionId: it.questionId as string,
+      answerHash: await bcrypt.hash(normalizeAnswer(it.answer), 10),
+    })));
+
+    await prisma.$transaction([
+      prisma.userSecurityQuestion.deleteMany({ where: { userId: req.userId } }),
+      prisma.userSecurityQuestion.createMany({
+        data: hashed.map(h => ({ userId: req.userId, questionId: h.questionId, answerHash: h.answerHash })),
+      }),
+      prisma.user.update({
+        where: { id: req.userId },
+        data: { securityQuestionsFailedAttempts: 0, securityQuestionsLockedUntil: null },
+      }),
+    ]);
+
+    res.json({ message: 'Questions de sécurité enregistrées.' });
+  } catch { res.status(500).json({ error: "Erreur lors de l'enregistrement." }); }
 });
 
 // Mettre à jour / créer ma boutique

@@ -4,10 +4,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Loader2, Eye, EyeOff, CheckCircle, MessageCircle, MapPin,
-  ShoppingBag, Store, Repeat2, ArrowLeft, ArrowRight,
-  UploadCloud, Camera, X, Building2,
+  ShoppingBag, Store, Repeat2, ArrowLeft, ArrowRight, Check,
+  UploadCloud, Camera, X, Building2, ShieldCheck, Sparkles,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
@@ -15,7 +16,7 @@ import Logo from '@/components/Logo';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 
-const F = 'w-full border border-dark-200 rounded-2xl px-4 py-3 text-sm text-dark-900 placeholder-dark-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200';
+const F = 'w-full border border-dark-200 rounded-2xl px-4 py-3.5 text-[15px] text-dark-900 placeholder-dark-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200';
 const L = 'block text-sm font-semibold text-dark-700 mb-1.5';
 
 type AccountType = 'ACHETEUR' | 'VENDEUR' | 'LES_DEUX';
@@ -65,6 +66,8 @@ const ACCOUNT_OPTIONS: Array<{
     accBg: 'bg-gold-50',
   },
 ];
+
+const STEP_LABELS = ['Informations', 'Type de compte', 'Boutique'];
 
 export default function RegisterPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -217,7 +220,7 @@ export default function RegisterPage() {
 
   // ─────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-dark-50">
 
       {/* ── Panneau gauche décoratif (desktop) ───────────────────── */}
       <aside className="hidden lg:flex w-[420px] flex-shrink-0 sticky top-0 h-screen flex-col items-center justify-center p-10 overflow-hidden bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900">
@@ -250,51 +253,81 @@ export default function RegisterPage() {
       </aside>
 
       {/* ── Panneau droit : formulaire ───────────────────────────── */}
-      <main className="flex-1 bg-white overflow-y-auto">
-        <div className="min-h-full flex items-start justify-center px-6 py-10">
+      <main className="flex-1 overflow-y-auto">
+        {/* Liseré tricolore — visible uniquement sur mobile, en haut de l'écran */}
+        <div className="h-1.5 flex lg:hidden">
+          <div className="flex-1 bg-guinea-500" />
+          <div className="flex-1 bg-gold-400" />
+          <div className="flex-1 bg-primary-600" />
+        </div>
+
+        <div className="min-h-full flex items-start justify-center px-4 sm:px-6 py-8 sm:py-10">
           <div className="w-full max-w-lg">
 
             {/* Logo mobile */}
-            <div className="flex justify-center mb-8 lg:hidden">
-              <Link href="/"><Logo size={64} /></Link>
+            <div className="flex justify-center mb-6 lg:hidden">
+              <Link href="/"><Logo size={58} /></Link>
             </div>
 
-            {/* ── Barre de progression ─────────────────────────── */}
-            <div className="mb-8">
-              <div className="flex items-center mb-3">
-                {([1, 2, 3] as const).map((s, i) => (
-                  <div key={s} className="flex items-center flex-1 last:flex-none">
-                    <div className={`
-                      w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-all duration-300
-                      ${step > s ? 'bg-primary-700 text-white'
-                        : step === s ? 'bg-primary-700 text-white ring-4 ring-primary-100'
-                        : 'bg-dark-100 text-dark-400'}
-                    `}>
-                      {step > s ? '✓' : s}
+            {/* ── Carte formulaire ─────────────────────────────── */}
+            <div className="bg-white rounded-3xl shadow-card border border-dark-100 p-5 sm:p-8">
+
+              {/* ── Indicateur de progression ─────────────────── */}
+              <div className="mb-7">
+                <div className="flex items-center mb-2.5">
+                  {([1, 2, 3] as const).map((s, i) => (
+                    <div key={s} className="flex items-center flex-1 last:flex-none">
+                      <div className={`
+                        w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-all duration-300
+                        ${step > s ? 'bg-primary-700 text-white'
+                          : step === s ? 'bg-primary-700 text-white ring-4 ring-primary-100'
+                          : 'bg-dark-100 text-dark-400'}
+                      `}>
+                        {step > s ? <Check size={16} strokeWidth={3} /> : s}
+                      </div>
+                      {i < 2 && (
+                        <div className={`flex-1 h-1 mx-1 rounded-full transition-all duration-500 ${step > s ? 'bg-primary-700' : 'bg-dark-100'}`} />
+                      )}
                     </div>
-                    {i < 2 && (
-                      <div className={`flex-1 h-1 mx-1 rounded-full transition-all duration-500 ${step > s ? 'bg-primary-700' : 'bg-dark-100'}`} />
-                    )}
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <div className="grid grid-cols-3 gap-1">
+                  {STEP_LABELS.map((label, i) => {
+                    const s = (i + 1) as 1 | 2 | 3;
+                    return (
+                      <p key={label}
+                        className={`text-[11px] sm:text-xs font-semibold leading-tight transition-colors ${
+                          i === 0 ? 'text-left' : i === 2 ? 'text-right' : 'text-center'
+                        } ${step >= s ? 'text-primary-700' : 'text-dark-400'}`}>
+                        {label}
+                      </p>
+                    );
+                  })}
+                </div>
               </div>
-              <p className="text-xs text-dark-400 font-medium">
-                Étape {step}/3 —{' '}
-                <span className="text-dark-600">
-                  {step === 1 ? 'Informations personnelles' : step === 2 ? 'Type de compte' : 'Votre boutique'}
-                </span>
-              </p>
-            </div>
+
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={step}
+                  initial={{ opacity: 0, x: 12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -12 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                >
 
             {/* ═══════════════════════════════════════════════════════
                 ÉTAPE 1 — Informations personnelles
             ══════════════════════════════════════════════════════════ */}
             {step === 1 && (
               <>
-                <h2 className="font-display font-bold text-3xl text-dark-900 mb-1">Créer un compte 🇬🇳</h2>
-                <p className="text-dark-500 text-sm mb-6">
+                <h2 className="font-display font-bold text-2xl sm:text-3xl text-dark-900 mb-1.5">Créer un compte 🇬🇳</h2>
+                <p className="text-dark-500 text-sm mb-4">
                   Rejoignez la communauté TrouveTout224 — c'est gratuit !
                 </p>
+                <div className="flex flex-wrap items-center gap-2 mb-6">
+                  <span className="badge-green"><Sparkles size={11} /> 100% gratuit</span>
+                  <span className="badge-gold"><ShieldCheck size={11} /> Compte sécurisé</span>
+                </div>
 
                 <form onSubmit={goStep2} className="space-y-5">
 
@@ -305,14 +338,14 @@ export default function RegisterPage() {
                       <input
                         {...register('firstName', { required: 'Prénom obligatoire' })}
                         type="text" placeholder="Mamadou" className={F} />
-                      {errors.firstName && <p className="text-xs text-red-500 mt-1">{errors.firstName.message}</p>}
+                      {errors.firstName && <p className="text-xs text-guinea-600 mt-1">{errors.firstName.message}</p>}
                     </div>
                     <div>
                       <label className={L}>Nom *</label>
                       <input
                         {...register('lastName', { required: 'Nom obligatoire' })}
                         type="text" placeholder="Diallo" className={F} />
-                      {errors.lastName && <p className="text-xs text-red-500 mt-1">{errors.lastName.message}</p>}
+                      {errors.lastName && <p className="text-xs text-guinea-600 mt-1">{errors.lastName.message}</p>}
                     </div>
                   </div>
 
@@ -331,10 +364,10 @@ export default function RegisterPage() {
                         onChange: () => fieldError?.field === 'email' && setFieldError(null),
                       })}
                       type="email" placeholder="email@exemple.com"
-                      className={`${F} ${fieldError?.field === 'email' ? 'border-red-400 ring-2 ring-red-200' : ''}`} />
-                    {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
+                      className={`${F} ${fieldError?.field === 'email' ? 'border-guinea-400 ring-2 ring-guinea-100' : ''}`} />
+                    {errors.email && <p className="text-xs text-guinea-600 mt-1">{errors.email.message}</p>}
                     {fieldError?.field === 'email' && (
-                      <p className="text-xs text-red-600 mt-1 font-medium">{fieldError.msg}</p>
+                      <p className="text-xs text-guinea-600 mt-1 font-medium">{fieldError.msg}</p>
                     )}
                   </div>
 
@@ -350,10 +383,10 @@ export default function RegisterPage() {
                           onChange: () => fieldError?.field === 'phone' && setFieldError(null),
                         })}
                         type="tel" placeholder="620 00 00 00"
-                        className={`${F} flex-1 ${fieldError?.field === 'phone' ? 'border-red-400 ring-2 ring-red-200' : ''}`} />
+                        className={`${F} flex-1 ${fieldError?.field === 'phone' ? 'border-guinea-400 ring-2 ring-guinea-100' : ''}`} />
                     </div>
                     {fieldError?.field === 'phone' && (
-                      <p className="text-xs text-red-600 mt-1 font-medium">{fieldError.msg}</p>
+                      <p className="text-xs text-guinea-600 mt-1 font-medium">{fieldError.msg}</p>
                     )}
                     <p className="text-xs text-dark-400 mt-1">Au moins un des deux (email ou téléphone) est requis.</p>
                   </div>
@@ -398,9 +431,9 @@ export default function RegisterPage() {
                         { ok: /[0-9]/.test(pwd),  text: 'Chiffre' },
                       ];
                       const score = criteria.filter(c => c.ok).length;
-                      const colors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-primary-500'];
+                      const colors = ['bg-guinea-400', 'bg-orange-400', 'bg-gold-400', 'bg-primary-500'];
                       const labels = ['Très faible', 'Faible', 'Bon', 'Fort'];
-                      const textColors = ['text-red-500', 'text-orange-500', 'text-yellow-600', 'text-primary-700'];
+                      const textColors = ['text-guinea-500', 'text-orange-500', 'text-gold-600', 'text-primary-700'];
                       return (
                         <div className="mt-2">
                           <div className="flex gap-1 mb-1">
@@ -421,7 +454,7 @@ export default function RegisterPage() {
                         </div>
                       );
                     })()}
-                    {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
+                    {errors.password && <p className="text-xs text-guinea-600 mt-1">{errors.password.message}</p>}
                   </div>
 
                   {/* Confirmation mot de passe */}
@@ -441,7 +474,7 @@ export default function RegisterPage() {
                         {showConf ? <EyeOff size={17} /> : <Eye size={17} />}
                       </button>
                     </div>
-                    {errors.confirmPassword && <p className="text-xs text-red-500 mt-1">{errors.confirmPassword.message}</p>}
+                    {errors.confirmPassword && <p className="text-xs text-guinea-600 mt-1">{errors.confirmPassword.message}</p>}
                   </div>
 
                   {/* CGU obligatoires */}
@@ -464,7 +497,7 @@ export default function RegisterPage() {
                     </label>
                   </div>
                   {errors.cgu && (
-                    <p className="text-xs text-red-500">Vous devez accepter les conditions pour continuer.</p>
+                    <p className="text-xs text-guinea-600">Vous devez accepter les conditions pour continuer.</p>
                   )}
 
                   <button type="submit"
@@ -491,12 +524,12 @@ export default function RegisterPage() {
             {step === 2 && (
               <>
                 <button onClick={() => setStep(1)}
-                  className="flex items-center gap-1.5 text-dark-400 hover:text-dark-700 text-sm font-medium mb-6 transition-colors">
+                  className="flex items-center gap-1.5 text-dark-400 hover:text-dark-700 text-sm font-medium mb-5 transition-colors">
                   <ArrowLeft size={15} /> Retour
                 </button>
 
-                <h2 className="font-display font-bold text-3xl text-dark-900 mb-2">Je suis...</h2>
-                <p className="text-dark-500 text-sm mb-8">
+                <h2 className="font-display font-bold text-2xl sm:text-3xl text-dark-900 mb-2">Je suis...</h2>
+                <p className="text-dark-500 text-sm mb-7">
                   Choisissez le profil qui vous correspond. Vous pourrez le modifier depuis votre profil.
                 </p>
 
@@ -505,7 +538,7 @@ export default function RegisterPage() {
                     const active = accountType === type;
                     return (
                       <button key={type} onClick={() => setAccountType(type)}
-                        className={`w-full flex items-center gap-4 p-5 rounded-2xl border-2 text-left transition-all ${
+                        className={`w-full flex items-center gap-4 p-4 sm:p-5 rounded-2xl border-2 text-left transition-all ${
                           active ? 'border-primary-700 bg-primary-50/30' : 'border-dark-200 bg-white hover:border-dark-300'
                         }`}>
                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all ${active ? accBg : 'bg-dark-100'}`}>
@@ -560,12 +593,12 @@ export default function RegisterPage() {
             {step === 3 && (
               <>
                 <button onClick={() => setStep(2)}
-                  className="flex items-center gap-1.5 text-dark-400 hover:text-dark-700 text-sm font-medium mb-6 transition-colors">
+                  className="flex items-center gap-1.5 text-dark-400 hover:text-dark-700 text-sm font-medium mb-5 transition-colors">
                   <ArrowLeft size={15} /> Retour
                 </button>
 
-                <h2 className="font-display font-bold text-3xl text-dark-900 mb-2">Votre boutique 🏪</h2>
-                <p className="text-dark-500 text-sm mb-8">
+                <h2 className="font-display font-bold text-2xl sm:text-3xl text-dark-900 mb-2">Votre boutique 🏪</h2>
+                <p className="text-dark-500 text-sm mb-7">
                   Créez votre espace de vente. Ces informations seront visibles par tous les acheteurs.
                 </p>
 
@@ -615,7 +648,7 @@ export default function RegisterPage() {
                         </button>
                         {logoFile && (
                           <button type="button" onClick={() => { setLogoFile(null); setLogoPrev(''); }}
-                            className="flex items-center gap-1 text-xs text-red-500 mt-1 hover:text-red-700 transition-colors">
+                            className="flex items-center gap-1 text-xs text-guinea-500 mt-1 hover:text-guinea-700 transition-colors">
                             <X size={11} /> Retirer
                           </button>
                         )}
@@ -644,7 +677,7 @@ export default function RegisterPage() {
                     </div>
                     {bannerFile && (
                       <button type="button" onClick={() => { setBannerFile(null); setBannerPrev(''); }}
-                        className="flex items-center gap-1 text-xs text-red-500 mt-1 hover:text-red-700 transition-colors">
+                        className="flex items-center gap-1 text-xs text-guinea-500 mt-1 hover:text-guinea-700 transition-colors">
                         <X size={11} /> Retirer la bannière
                       </button>
                     )}
@@ -757,6 +790,11 @@ export default function RegisterPage() {
                 </div>
               </>
             )}
+
+                </motion.div>
+              </AnimatePresence>
+            </div>
+            {/* fin carte formulaire */}
 
           </div>
         </div>
