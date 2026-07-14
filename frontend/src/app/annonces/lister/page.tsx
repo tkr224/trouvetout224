@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
+import CulturalPattern from '@/components/CulturalPattern';
 import PageViewTracker from '@/components/PageViewTracker';
 import Footer from '@/components/layout/Footer';
 import AnnonceGrid from '@/components/annonces/AnnonceGrid';
@@ -460,7 +461,8 @@ export default function AnnoncesListPage() {
     <div className="min-h-screen bg-dark-50 flex flex-col">
       <PageViewTracker page="ANNONCES" />
       <Navbar />
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-8">
+      <main className="relative isolate overflow-hidden flex-1 max-w-7xl mx-auto w-full px-4 py-8">
+        <CulturalPattern />
         <div className="flex items-center gap-3 mb-7">
           <div className="w-10 h-10 bg-primary-700 rounded-2xl flex items-center justify-center shrink-0 shadow-premium">
             <Search size={18} className="text-white" />

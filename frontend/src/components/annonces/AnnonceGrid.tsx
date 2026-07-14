@@ -73,7 +73,7 @@ export function AnnonceCard({ annonce }: { annonce: Annonce }) {
             )}
           </div>
         ) : annonce.price != null ? (
-          <p className="text-primary-700 font-bold text-base mt-1">{annonce.price.toLocaleString('fr-GN')} <span className="text-xs font-medium">GNF</span></p>
+          <p className="text-gold-600 font-bold text-base mt-1">{annonce.price.toLocaleString('fr-GN')} <span className="text-xs font-medium">GNF</span></p>
         ) : (
           <p className="text-dark-400 text-sm mt-1 italic">Prix à négocier</p>
         )}

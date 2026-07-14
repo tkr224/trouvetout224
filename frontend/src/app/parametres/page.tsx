@@ -963,7 +963,7 @@ export default function ParametresPage() {
                     <p className="text-xs text-dark-500">Guinée</p>
                   </div>
                 </div>
-                <p className="text-dark-400 text-xs">© 2024 TrouveTout224 · Tous droits réservés</p>
+                <p className="text-dark-400 text-xs">© {new Date().getFullYear()} TrouveTout224 · Tous droits réservés</p>
               </div>
             )}
           </div>

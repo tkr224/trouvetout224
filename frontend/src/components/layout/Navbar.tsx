@@ -52,7 +52,7 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
   };
 
   return (
-    <nav className="bg-white border-b border-dark-100 sticky top-0 z-50 shadow-sm">
+    <nav className="site-navbar bg-white border-b border-dark-100 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
 
@@ -62,7 +62,7 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             <span className="font-display font-bold text-lg leading-none hidden sm:block">
               <span className="text-guinea-500">Trouve</span>
               <span className="text-gold-500">Tout</span>
-              <span className="text-primary-700">224</span>
+              <span className="nav-brand-224 text-primary-700">224</span>
             </span>
           </Link>
 
@@ -70,9 +70,9 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
           <div className="relative hidden md:block">
             <button
               onClick={() => setCityOpen(!cityOpen)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dark-200 text-dark-600 hover:border-primary-400 transition-colors text-sm"
+              className="nav-city-btn flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dark-200 text-dark-600 hover:border-primary-400 transition-colors text-sm"
             >
-              <MapPin size={14} className="text-primary-700" />
+              <MapPin size={14} className="nav-city-icon text-primary-700" />
               {selectedCity}
               <ChevronDown size={14} className={`transition-transform ${cityOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -97,7 +97,7 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
               <Link
                 key={link.href}
                 href={link.href}
-                className="px-3 py-2 text-dark-600 hover:text-primary-700 hover:bg-primary-50 rounded-xl text-sm font-medium transition-colors"
+                className="nav-link px-3 py-2 rounded-xl text-sm font-medium transition-colors"
               >
                 {link.label}
               </Link>
@@ -107,7 +107,7 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
               <button
                 onClick={() => setMoreOpen(!moreOpen)}
                 onBlur={() => setTimeout(() => setMoreOpen(false), 150)}
-                className="flex items-center gap-1 px-3 py-2 text-dark-600 hover:text-primary-700 hover:bg-primary-50 rounded-xl text-sm font-medium transition-colors"
+                className="nav-link flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors"
               >
                 Plus <ChevronDown size={13} className={`transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -129,14 +129,14 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
           <div className="flex items-center gap-2">
             <Link
               href="/annonces/publier"
-              className="btn-primary hidden sm:flex items-center gap-1.5 text-sm py-2"
+              className="nav-cta-gold btn-primary hidden sm:flex items-center gap-1.5 text-sm py-2"
             >
               <Plus size={16} />
               Publier
             </Link>
             <Link
               href="/messages"
-              className="hidden sm:flex relative w-9 h-9 items-center justify-center rounded-xl border border-dark-200 text-dark-500 hover:border-primary-400 hover:text-primary-700 transition-colors"
+              className="nav-icon-btn hidden sm:flex relative w-9 h-9 items-center justify-center rounded-xl border border-dark-200 text-dark-500 transition-colors"
               title="Messagerie"
             >
               <MessageCircle size={18} />
@@ -144,7 +144,7 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             {loggedIn && ['ADMIN', 'SUPER_ADMIN'].includes(user.role) && (
               <Link
                 href="/admin"
-                className="relative w-9 h-9 flex items-center justify-center rounded-xl border border-primary-300 text-primary-700 hover:bg-primary-50 hover:border-primary-500 transition-colors"
+                className="nav-icon-btn nav-icon-admin relative w-9 h-9 flex items-center justify-center rounded-xl border border-primary-300 text-primary-700 transition-colors"
                 title="Tableau de bord Admin"
               >
                 <Shield size={17} />
@@ -152,7 +152,7 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             )}
             <Link
               href="/notifications"
-              className="relative w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 hover:border-primary-400 hover:text-primary-700 transition-colors"
+              className="nav-icon-btn relative w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 transition-colors"
             >
               <Bell size={18} />
               {loggedIn && unreadNotifs > 0 && (
@@ -163,7 +163,7 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             </Link>
             <Link
               href="/parametres"
-              className="hidden sm:flex w-9 h-9 items-center justify-center rounded-xl border border-dark-200 text-dark-500 hover:border-primary-400 hover:text-primary-700 transition-colors"
+              className="nav-icon-btn hidden sm:flex w-9 h-9 items-center justify-center rounded-xl border border-dark-200 text-dark-500 transition-colors"
               title="Paramètres"
             >
               <Settings size={18} />
@@ -171,7 +171,7 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             {loggedIn ? (
               <Link
                 href="/profil"
-                className="w-9 h-9 flex items-center justify-center rounded-xl bg-primary-700 text-white font-bold text-xs overflow-hidden"
+                className="nav-avatar w-9 h-9 flex items-center justify-center rounded-xl bg-primary-700 text-white font-bold text-xs overflow-hidden"
                 title={`${user.firstName} ${user.lastName}`}
               >
                 {user.avatar
@@ -181,14 +181,14 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             ) : (
               <Link
                 href="/auth/connexion"
-                className="w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 hover:border-primary-400 hover:text-primary-700 transition-colors"
+                className="nav-icon-btn w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 transition-colors"
               >
                 <User size={18} />
               </Link>
             )}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 lg:hidden"
+              className="nav-icon-btn w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 lg:hidden"
             >
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
             </button>

@@ -2,8 +2,9 @@ import Link from 'next/link';
 import { MapPin, Heart, Globe, Camera, AtSign, PlayCircle } from 'lucide-react';
 
 export default function Footer() {
+  const year = new Date().getFullYear();
   return (
-    <footer className="bg-dark-900 text-white mt-20">
+    <footer className="site-footer bg-dark-900 text-white mt-20">
       <div className="max-w-7xl mx-auto px-4 py-14">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Logo & description */}
@@ -101,7 +102,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-dark-700 mt-10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-dark-500 text-sm">
-          <p>© 2026 TrouveTout224 · Conakry, République de Guinée 🇬🇳</p>
+          <p>© {year} TrouveTout224 · Conakry, République de Guinée 🇬🇳</p>
           <p className="flex items-center gap-1">Fait avec <Heart size={13} className="text-guinea-500 fill-guinea-500" /> pour la Guinée</p>
         </div>
       </div>

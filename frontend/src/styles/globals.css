@@ -13,9 +13,14 @@
   --font-inter:   'Inter', sans-serif;
   --font-poppins: 'Poppins', sans-serif;
 
-  /* Fonds par défaut (thème vert / neutre) */
-  --bg-page: #f5f2eb;
-  --card-bg: #fdfcf8;
+  /* Fonds par défaut — thème de base GUINÉEN : blanc-vert doux (pas de beige/blanc pur) */
+  --bg-page: #F2F8F4;
+  --card-bg: #FCFEFD;
+
+  /* Fonds navbar / footer — thème de base uniquement (vert fort) */
+  --nav-bg:        #156534;
+  --nav-bg-dark:   #0B2A19;
+  --footer-bg:     #0B2A19;
 
   /* Vert Guinée — palette complète */
   --p-50:  240 253 244;
@@ -698,9 +703,9 @@ body {
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #ede9e0; }
-::-webkit-scrollbar-thumb { background: #bfb9a8; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #9e9888; }
+::-webkit-scrollbar-track { background: #e6f0ea; }
+::-webkit-scrollbar-thumb { background: #a9c9b6; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #8ab19b; }
 
 /* Annonce card hover */
 .annonce-card {
@@ -724,7 +729,7 @@ body {
   100% { background-position:  200% 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, #ede9e0 25%, #e2ddd4 50%, #ede9e0 75%);
+  background: linear-gradient(90deg, #e6f0ea 25%, #d9ebe1 50%, #e6f0ea 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 8px;
@@ -1146,6 +1151,82 @@ html.dark {
   --bg-page: #0d1117;
   --card-bg: #1c2128;
 }
+
+/* ── Mode sombre — thème de base GUINÉEN : teinté vert (pas de gris neutre) ── */
+html.dark:not([data-color]) {
+  --bg-page: #0A130E;
+  --card-bg: #12241A;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   NAVBAR & FOOTER — VERT FORT (thème de base GUINÉEN uniquement)
+   Les 32 autres thèmes gardent leur navbar/footer inchangés (data-color défini)
+   ══════════════════════════════════════════════════════════════════════ */
+
+html:not([data-color]) .site-navbar {
+  background-color: var(--nav-bg);
+  border-bottom-color: rgba(0,0,0,0.12);
+}
+html.dark:not([data-color]) .site-navbar {
+  background-color: var(--nav-bg-dark);
+  border-bottom-color: rgba(255,255,255,0.08);
+}
+
+html:not([data-color]) .site-footer {
+  background-color: var(--footer-bg);
+}
+
+/* Logo texte "224" — doit rester lisible sur fond vert fort */
+html:not([data-color]) .site-navbar .nav-brand-224 { color: #ffffff; }
+
+/* Liens de navigation */
+.nav-link { color: #475569; }
+.nav-link:hover { color: rgb(var(--p-700)); background-color: rgb(var(--p-50)); }
+html.dark .nav-link { color: #8b949e; }
+html.dark .nav-link:hover { color: rgb(var(--p-700)); background-color: rgb(var(--p-700) / 0.14); }
+
+html:not([data-color]) .site-navbar .nav-link { color: rgba(255,255,255,0.88); }
+html:not([data-color]) .site-navbar .nav-link:hover { color: #ffffff; background-color: rgba(255,255,255,0.14); }
+
+/* Boutons/icônes (messages, notifications, paramètres, connexion, menu mobile) */
+.nav-icon-btn { border-color: #e2e8f0; color: #64748b; }
+.nav-icon-btn:hover { border-color: rgb(var(--p-400)); color: rgb(var(--p-700)); }
+html.dark .nav-icon-btn { border-color: #30363d; color: #8b949e; }
+html.dark .nav-icon-btn:hover { border-color: rgb(var(--p-700)); color: rgb(var(--p-700)); }
+
+html:not([data-color]) .site-navbar .nav-icon-btn { border-color: rgba(255,255,255,0.28); color: rgba(255,255,255,0.9); }
+html:not([data-color]) .site-navbar .nav-icon-btn:hover { border-color: #ffffff; color: #ffffff; background-color: rgba(255,255,255,0.1); }
+
+/* Bouton admin (icône bouclier) — accent or, mis en valeur */
+.nav-icon-admin { border-color: rgb(var(--p-300)); color: rgb(var(--p-700)); }
+.nav-icon-admin:hover { background-color: rgb(var(--p-50)); border-color: rgb(var(--p-500)); }
+html:not([data-color]) .site-navbar .nav-icon-admin { border-color: #F5C518; color: #F5C518; }
+html:not([data-color]) .site-navbar .nav-icon-admin:hover { background-color: rgba(245,197,24,0.16); border-color: #F5C518; }
+
+/* Sélecteur de ville */
+.nav-city-btn { border-color: #e2e8f0; color: #475569; }
+.nav-city-btn:hover { border-color: rgb(var(--p-400)); }
+.nav-city-icon { color: rgb(var(--p-700)); }
+html.dark .nav-city-btn { border-color: #30363d; color: #8b949e; }
+
+html:not([data-color]) .site-navbar .nav-city-btn { border-color: rgba(255,255,255,0.28); color: rgba(255,255,255,0.92); }
+html:not([data-color]) .site-navbar .nav-city-btn:hover { border-color: #ffffff; }
+html:not([data-color]) .site-navbar .nav-city-icon { color: #F5C518; }
+
+/* Bouton "Publier" (CTA principal) — accent or sur navbar verte */
+html:not([data-color]) .site-navbar .nav-cta-gold {
+  background-color: #F5C518;
+  color: #1e293b;
+}
+html:not([data-color]) .site-navbar .nav-cta-gold:hover { background-color: #e6b800; }
+
+/* Avatar utilisateur — liseré doré pour se détacher du fond vert */
+html:not([data-color]) .site-navbar .nav-avatar { box-shadow: 0 0 0 2px rgba(245,197,24,0.7); }
+
+/* Footer — icônes sociales et séparateur en harmonie avec le fond vert */
+html:not([data-color]) .site-footer .bg-dark-700 { background-color: rgba(255,255,255,0.12); }
+html:not([data-color]) .site-footer .bg-dark-700:hover { background-color: rgb(var(--p-500)); }
+html:not([data-color]) .site-footer .border-dark-700 { border-color: rgba(255,255,255,0.14); }
 
 html.dark body {
   background-color: var(--bg-page);

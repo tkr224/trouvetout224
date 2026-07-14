@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
+import CulturalPattern from '@/components/CulturalPattern';
 import PageViewTracker from '@/components/PageViewTracker';
 import { api } from '@/lib/api';
 import {
@@ -80,7 +81,8 @@ export default function BoutiquesPage() {
       <PageViewTracker page="BOUTIQUES" />
       <Navbar />
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="relative isolate overflow-hidden max-w-6xl mx-auto px-4 py-8">
+        <CulturalPattern />
 
         {/* En-tête */}
         <div className="flex items-center gap-3 mb-6">

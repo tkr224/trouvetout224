@@ -469,9 +469,9 @@ export default function AnnonceDetailPage() {
                       </div>
                     ) : annonce.price != null ? (
                       <div className="flex items-baseline gap-3 flex-wrap">
-                        <p className="text-3xl font-bold text-primary-700">
+                        <p className="text-3xl font-bold text-gold-600">
                           {annonce.price.toLocaleString('fr-GN')}
-                          <span className="text-lg ml-1.5 font-semibold text-primary-600">GNF</span>
+                          <span className="text-lg ml-1.5 font-semibold text-gold-600">GNF</span>
                         </p>
                         {annonce.isNegotiable && (
                           <span className="text-sm text-primary-700 bg-primary-100 font-semibold px-3 py-1 rounded-full">Négociable</span>
