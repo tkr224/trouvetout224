@@ -96,7 +96,8 @@
       "Bash(echo \"backend started pid $!\")",
       "Bash(echo \"frontend started pid $!\")",
       "PowerShell(Get-CimInstance *)",
-      "Bash(disown)"
+      "Bash(disown)",
+      "Bash(npm uninstall *)"
     ]
   }
 }

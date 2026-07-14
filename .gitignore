@@ -37,6 +37,7 @@ yarn-error.log*
 .cache/
 .turbo/
 .parcel-cache/
+*.tsbuildinfo
 
 # OS
 .DS_Store
