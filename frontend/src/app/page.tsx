@@ -332,30 +332,33 @@ export default function HomePage() {
 
             {/* Texte */}
             <div className="flex-1 text-center lg:text-left">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 bg-white/15 border border-white/25 rounded-full px-3.5 py-1 mb-4 backdrop-blur-sm">
-                <span className="text-gold-300 text-xs font-bold tracking-widest uppercase">Bienvenue sur</span>
-              </div>
-
-              {/* Logo + nom */}
-              <div className="flex items-center gap-3 justify-center lg:justify-start mb-3">
-                <Logo size={44} />
-                <h1
-                  className="font-display font-extrabold text-4xl sm:text-5xl leading-none"
-                  style={{ textShadow: '0 2px 20px rgba(0,0,0,0.9), 0 1px 6px rgba(0,0,0,0.7)' }}
+              {/* Badge de marque */}
+              <div className="flex items-center gap-2.5 justify-center lg:justify-start mb-4">
+                <Logo size={34} />
+                <span
+                  className="font-display font-extrabold text-lg leading-none"
+                  style={{ textShadow: '0 2px 12px rgba(0,0,0,0.9), 0 1px 6px rgba(0,0,0,0.7)' }}
                 >
                   <span className="text-guinea-400">Trouve</span>
                   <span className="text-gold-400">Tout</span>
                   <span className="text-white">224</span>
-                </h1>
+                </span>
               </div>
 
-              {/* Sous-titre */}
+              {/* Titre — la valeur, comprise en un coup d'œil */}
+              <h1
+                className="font-display font-extrabold text-3xl sm:text-4xl lg:text-[2.75rem] leading-tight text-white mb-4"
+                style={{ textShadow: '0 2px 20px rgba(0,0,0,0.9), 0 1px 6px rgba(0,0,0,0.7)' }}
+              >
+                Achète et vends facilement,<br className="hidden sm:block" /> partout en Guinée
+              </h1>
+
+              {/* Sous-titre — répond à l'objection "est-ce fiable ?" */}
               <p
                 className="text-white text-base sm:text-lg leading-relaxed mb-5 max-w-lg mx-auto lg:mx-0 font-medium"
                 style={{ textShadow: '0 1px 10px rgba(0,0,0,0.8)' }}
               >
-                La marketplace 100% guinéenne pour acheter et vendre en toute confiance, partout en Guinée.
+                La marketplace 100% guinéenne avec vendeurs vérifiés et contact direct — pour acheter et vendre l'esprit tranquille, gratuitement.
               </p>
 
               {/* Texte dynamique — donne du mouvement au hero */}
@@ -369,12 +372,12 @@ export default function HomePage() {
                 </span>
               </div>
 
-              {/* Mini-badges */}
+              {/* Mini-badges — bénéfices concrets, pas des fonctionnalités */}
               <div className="flex flex-wrap gap-2 justify-center lg:justify-start mb-6">
                 {[
-                  { icon: MessageCircle, text: 'Contact direct WhatsApp' },
+                  { icon: MessageCircle, text: 'Les acheteurs te contactent sur WhatsApp' },
                   { icon: ShieldCheck,   text: 'Vendeurs vérifiés' },
-                  { icon: Zap,           text: 'Annonces gratuites' },
+                  { icon: Zap,           text: '100% gratuit, sans limite' },
                 ].map(({ icon: Icon, text }) => (
                   <span key={text} className="inline-flex items-center gap-1.5 bg-black/30 border border-white/25 text-white text-xs font-semibold px-3 py-1.5 rounded-full backdrop-blur-sm">
                     <Icon size={12} className="text-gold-300 shrink-0" />
@@ -386,16 +389,16 @@ export default function HomePage() {
               {/* CTAs */}
               <div className="flex flex-wrap items-center gap-3 justify-center lg:justify-start">
                 <Link
-                  href="/annonces/lister"
+                  href="/annonces/publier"
                   className="inline-flex items-center gap-2 bg-gold-400 hover:bg-gold-500 active:scale-95 text-dark-900 font-bold px-5 py-2.5 rounded-xl text-sm transition-all shadow-xl"
                 >
-                  <Eye size={16} /> Voir les annonces
+                  <Zap size={16} /> Publier une annonce gratuitement
                 </Link>
                 <Link
-                  href="/vendeur"
+                  href="/annonces/lister"
                   className="inline-flex items-center gap-2 border-2 border-white/50 text-white font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-white/15 active:scale-95 transition-all backdrop-blur-sm"
                 >
-                  Devenir vendeur <ArrowRight size={14} />
+                  <Eye size={14} /> Voir les annonces <ArrowRight size={14} />
                 </Link>
               </div>
             </div>
@@ -622,10 +625,10 @@ export default function HomePage() {
           <div className="max-w-7xl mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-5 text-center">
               {[
-                { icon: Zap,           title: 'Annonces gratuites',      desc: 'Publie sans payer, autant que tu veux', iconCls: 'text-gold-400' },
-                { icon: ShieldCheck,   title: 'Vendeurs vérifiés',       desc: 'Badges de confiance officiels',          iconCls: 'text-green-300' },
-                { icon: MessageCircle, title: 'Contact direct WhatsApp', desc: 'Parle au vendeur tout de suite',          iconCls: 'text-green-300' },
-                { icon: MapPin,        title: '100% local',               desc: 'Fait pour la Guinée 🇬🇳',               iconCls: 'text-guinea-300' },
+                { icon: Zap,           title: 'Vends en quelques minutes',   desc: 'Annonce gratuite, publiée sans limite', iconCls: 'text-gold-400' },
+                { icon: ShieldCheck,   title: 'Achète en toute confiance',   desc: 'Vendeurs vérifiés par notre équipe',    iconCls: 'text-green-300' },
+                { icon: MessageCircle, title: 'Contact direct sur WhatsApp', desc: 'Parle au vendeur tout de suite',        iconCls: 'text-green-300' },
+                { icon: Store,         title: 'Ta boutique en ligne',        desc: 'Visible par toute la Guinée 🇬🇳',       iconCls: 'text-guinea-300' },
               ].map(({ icon: Icon, title, desc, iconCls }) => (
                 <div key={title} className="flex flex-col items-center gap-1.5">
                   <div className={`w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center ${iconCls}`}>

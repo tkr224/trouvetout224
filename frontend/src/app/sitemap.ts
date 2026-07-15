@@ -16,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/a-propos`,              lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${base}/contact`,               lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${base}/aide`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
+    { url: `${base}/faq`,                   lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${base}/auth/connexion`,        lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${base}/auth/inscription`,      lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${base}/conditions`,            lastModified: now, changeFrequency: 'monthly', priority: 0.3 },

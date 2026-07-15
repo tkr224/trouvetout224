@@ -1,7 +1,7 @@
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Link from 'next/link';
-import { HelpCircle, Mail } from 'lucide-react';
+import { HelpCircle, Mail, MessageCircle, ArrowRight } from 'lucide-react';
 
 const FAQS = [
   { q: 'Comment publier une annonce ?', a: 'Cliquez sur "Publier" dans la barre de navigation, remplissez le formulaire avec titre, description, prix, photos et coordonnées.' },
@@ -33,9 +33,23 @@ export default function AidePage() {
             </details>
           ))}
         </div>
+
+        <Link
+          href="/faq"
+          className="card p-5 mt-4 flex items-center justify-between hover:border-primary-400 border-2 border-transparent transition-colors"
+        >
+          <span className="font-semibold text-dark-900">Voir toutes les questions fréquentes</span>
+          <ArrowRight size={18} className="text-primary-700" />
+        </Link>
+
         <div className="card p-8 mt-10 text-center bg-primary-50 border border-primary-200">
           <p className="text-dark-700 font-semibold mb-2">Vous n'avez pas trouvé votre réponse ?</p>
-          <Link href="/contact" className="btn-primary inline-flex items-center gap-2 mt-2"><Mail size={15} /> Contacter le support</Link>
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
+            <a href="https://wa.me/224627543486" target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex items-center gap-2">
+              <MessageCircle size={15} /> WhatsApp
+            </a>
+            <Link href="/contact" className="btn-outline inline-flex items-center gap-2"><Mail size={15} /> Contacter le support</Link>
+          </div>
         </div>
       </div>
       <Footer />

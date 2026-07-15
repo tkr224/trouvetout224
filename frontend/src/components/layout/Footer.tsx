@@ -85,6 +85,7 @@ export default function Footer() {
               {[
                 { label: 'À propos', href: '/a-propos' },
                 { label: 'Comment ça marche', href: '/aide' },
+                { label: 'Questions fréquentes (FAQ)', href: '/faq' },
                 { label: 'Publier une annonce', href: '/annonces/publier' },
                 { label: 'Pack Premium', href: '/premium' },
                 { label: 'Contact', href: '/contact' },
