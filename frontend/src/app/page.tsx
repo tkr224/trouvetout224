@@ -11,8 +11,12 @@ import Logo from '@/components/Logo';
 import AnnonceGrid from '@/components/annonces/AnnonceGrid';
 import ScrollReveal from '@/components/ScrollReveal';
 import CulturalPattern from '@/components/CulturalPattern';
+import AnimatedCounter from '@/components/home/AnimatedCounter';
+import HeroRotatingText from '@/components/home/HeroRotatingText';
+import VillesSection from '@/components/home/VillesSection';
 import { useAnnonces } from '@/hooks/useAnnonces';
 import { useCategories } from '@/hooks/useCategories';
+import { useHomeStats } from '@/hooks/useHomeStats';
 import { api } from '@/lib/api';
 import {
   Search, ArrowRight, TrendingUp, Clock, Eye, ChevronLeft, ChevronRight,
@@ -20,7 +24,7 @@ import {
   UtensilsCrossed, Hotel, Shirt, Footprints, Sparkles, HeartPulse,
   GraduationCap, PartyPopper, Sofa, Wheat, PawPrint, Dumbbell,
   Package, MapPin, ShieldCheck, Zap, MessageCircle, Star, Plus,
-  MoreHorizontal, Calendar, ChevronDown,
+  MoreHorizontal, Calendar, ChevronDown, LayoutGrid, Store,
 } from 'lucide-react';
 
 /* ── Villes ──────────────────────────────────────────────────────── */
@@ -171,6 +175,7 @@ export default function HomePage() {
 
   const { data: annonces, isLoading }                = useAnnonces({ sort, limit: 12 });
   const { data: categories, isLoading: loadingCats } = useCategories();
+  const { data: stats }                               = useHomeStats();
 
   useEffect(() => {
     api.get('/publications').then(r => setPublications(r.data.data || [])).catch(() => {});
@@ -353,6 +358,17 @@ export default function HomePage() {
                 La marketplace 100% guinéenne pour acheter et vendre en toute confiance, partout en Guinée.
               </p>
 
+              {/* Texte dynamique — donne du mouvement au hero */}
+              <div
+                className="inline-flex items-center gap-2 bg-black/25 border border-white/20 rounded-full px-3.5 py-1.5 mb-5 backdrop-blur-sm"
+                style={{ textShadow: '0 1px 6px rgba(0,0,0,0.7)' }}
+              >
+                <Sparkles size={13} className="text-gold-300 shrink-0" />
+                <span className="text-white text-xs sm:text-sm font-semibold">
+                  <HeroRotatingText />
+                </span>
+              </div>
+
               {/* Mini-badges */}
               <div className="flex flex-wrap gap-2 justify-center lg:justify-start mb-6">
                 {[
@@ -397,6 +413,30 @@ export default function HomePage() {
               className={`h-1.5 rounded-full transition-all duration-300 ${i === heroSlide ? 'w-6 bg-white' : 'w-1.5 bg-white/40'}`}
             />
           ))}
+        </div>
+      </section>
+
+      {/* ══ BANDEAU DE CHIFFRES RÉELS (animés au chargement) ══════════ */}
+      <section className="bg-white dark:bg-dark-900 border-b border-dark-100 dark:border-dark-700 py-5">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[
+              { icon: LayoutGrid,     label: 'Catégories', value: stats?.categories ?? categories?.length ?? 0 },
+              { icon: MapPin,         label: 'Villes couvertes', value: stats?.cities ?? 8 },
+              { icon: Package,        label: 'Annonces actives', value: stats?.annonces ?? 0 },
+              { icon: Store,          label: 'Boutiques', value: stats?.boutiques ?? 0 },
+            ].map(({ icon: Icon, label, value }) => (
+              <div key={label} className="flex flex-col items-center text-center gap-1">
+                <div className="w-9 h-9 rounded-xl bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center mb-1">
+                  <Icon size={17} className="text-primary-700 dark:text-primary-400" />
+                </div>
+                <p className="font-display font-extrabold text-xl sm:text-2xl text-dark-900 dark:text-white leading-none">
+                  <AnimatedCounter value={value} />
+                </p>
+                <p className="text-dark-400 text-[11px] sm:text-xs font-medium">{label}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -483,7 +523,13 @@ export default function HomePage() {
               </div>
             </div>
 
-            <AnnonceGrid annonces={annonces?.data} isLoading={isLoading} cols={4} />
+            <AnnonceGrid
+              annonces={annonces?.data}
+              isLoading={isLoading}
+              cols={4}
+              emptyTitle="Sois le premier à publier ici !"
+              emptySubtitle="Aucune annonce pour le moment — la tienne pourrait être la toute première visible sur TrouveTout224."
+            />
 
             <div className="mt-5 text-center">
               <Link
@@ -515,24 +561,32 @@ export default function HomePage() {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
               {loadingCats
-                ? Array.from({ length: 10 }).map((_, i) => <div key={i} className="skeleton h-20 rounded-xl" />)
+                ? Array.from({ length: 10 }).map((_, i) => <div key={i} className="skeleton aspect-[4/3] rounded-xl" />)
                 : topCats.map(cat => {
                     const Icon = cat.icon;
                     return (
                       <Link
                         key={cat.slug}
                         href={cat.href}
-                        className="group flex flex-col items-center gap-2 p-3 bg-white dark:bg-dark-800 rounded-xl border border-dark-100 dark:border-dark-700 hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 text-center"
+                        className={`group relative aspect-[4/3] rounded-xl overflow-hidden ${cat.bg} border border-dark-100 dark:border-dark-700 shadow-sm hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300`}
                       >
-                        <div className={`w-10 h-10 rounded-xl ${cat.bg} flex items-center justify-center shadow-sm`}>
-                          <Icon size={18} className="text-white" strokeWidth={1.8} />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-xs text-dark-900 dark:text-white leading-tight group-hover:text-primary-700 dark:group-hover:text-primary-400 transition-colors">
+                        <img
+                          src={`/images/categories/${cat.slug}.jpg`}
+                          alt=""
+                          loading="lazy"
+                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
+                        <div className="absolute inset-0 flex flex-col items-center justify-end p-2.5 text-center">
+                          <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center mb-1.5 group-hover:bg-gold-400/90 transition-colors">
+                            <Icon size={16} className="text-white" strokeWidth={2} />
+                          </div>
+                          <p className="font-bold text-xs text-white leading-tight drop-shadow-sm">
                             {cat.label}
                           </p>
-                          <p className="text-[11px] text-dark-400 mt-0.5">
-                            {cat.count > 0 ? `${cat.count.toLocaleString('fr-FR')} annonce${cat.count !== 1 ? 's' : ''}` : '—'}
+                          <p className="text-[11px] text-white/85 mt-0.5">
+                            {cat.count > 0 ? `${cat.count.toLocaleString('fr-FR')} annonce${cat.count !== 1 ? 's' : ''}` : 'Bientôt'}
                           </p>
                         </div>
                       </Link>
@@ -542,19 +596,22 @@ export default function HomePage() {
               {!loadingCats && (
                 <Link
                   href="/annonces/lister"
-                  className="group flex flex-col items-center gap-2 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-xl border border-primary-100 dark:border-primary-800 hover:border-primary-300 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 text-center"
+                  className="group relative aspect-[4/3] rounded-xl overflow-hidden bg-gradient-to-br from-primary-700 to-primary-900 border border-primary-800 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300 flex flex-col items-center justify-center text-center p-2.5"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-primary-700 flex items-center justify-center shadow-sm">
-                    <MoreHorizontal size={18} className="text-white" />
+                  <div className="w-8 h-8 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center mb-1.5 group-hover:bg-gold-400/90 transition-colors">
+                    <MoreHorizontal size={16} className="text-white" />
                   </div>
-                  <div>
-                    <p className="font-semibold text-xs text-primary-700 dark:text-primary-400 leading-tight">Voir tout</p>
-                    <p className="text-[11px] text-primary-500 mt-0.5">Toutes catégories</p>
-                  </div>
+                  <p className="font-bold text-xs text-white leading-tight">Voir tout</p>
+                  <p className="text-[11px] text-white/70 mt-0.5">Toutes catégories</p>
                 </Link>
               )}
             </div>
           </section>
+        </ScrollReveal>
+
+        {/* ══ VILLES DE GUINÉE ═══════════════════════════════════════════ */}
+        <ScrollReveal delay={80}>
+          <VillesSection />
         </ScrollReveal>
 
       </div>{/* fin wrapper motif culturel */}

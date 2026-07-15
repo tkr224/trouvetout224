@@ -97,7 +97,12 @@
       "Bash(echo \"frontend started pid $!\")",
       "PowerShell(Get-CimInstance *)",
       "Bash(disown)",
-      "Bash(npm uninstall *)"
+      "Bash(npm uninstall *)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://trouvetout224-production.up.railway.app/api/health\" -UseBasicParsing -TimeoutSec 15; \"STATUS: $\\($r.StatusCode\\)\"; $r.Content } catch { \"ERROR: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(try { $body = @{identifier=\"test@nonexistent.example\";password=\"wrongpassword\"} | ConvertTo-Json; $r = Invoke-WebRequest -Uri \"https://trouvetout224-production.up.railway.app/api/auth/login\" -Method POST -Body $body -ContentType \"application/json\" -UseBasicParsing -TimeoutSec 15; \"STATUS: $\\($r.StatusCode\\)\"; $r.Content } catch { \"STATUS: $\\($_.Exception.Response.StatusCode.value__\\)\"; $_.ErrorDetails.Message })",
+      "Bash(node -e \"console.log\\(require\\('sharp'\\).versions\\)\")",
+      "Bash(node scripts/generate-category-images.js)",
+      "Bash(node -e \"const l = require\\('lucide-react'\\); console.log\\(typeof l.LayoutGrid, typeof l.Store\\);\")"
     ]
   }
 }

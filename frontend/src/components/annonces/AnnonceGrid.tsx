@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { Heart, Eye, MapPin, BadgeCheck, ImageIcon, Star, Sparkles, Tag, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Heart, Eye, MapPin, BadgeCheck, ImageIcon, Star, Sparkles, Tag, ShieldCheck, CheckCircle2, Plus, PartyPopper } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -111,7 +111,19 @@ export function AnnonceCard({ annonce }: { annonce: Annonce }) {
   );
 }
 
-export default function AnnonceGrid({ annonces, isLoading, cols = 6 }: { annonces?: Annonce[]; isLoading?: boolean; cols?: number }) {
+export default function AnnonceGrid({
+  annonces,
+  isLoading,
+  cols = 6,
+  emptyTitle = 'Sois le premier à publier ici !',
+  emptySubtitle = 'Cette section est encore vide — ta prochaine annonce pourrait être la première que les gens verront.',
+}: {
+  annonces?: Annonce[];
+  isLoading?: boolean;
+  cols?: number;
+  emptyTitle?: string;
+  emptySubtitle?: string;
+}) {
   const gridCols = cols === 4
     ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
     : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6';
@@ -135,12 +147,18 @@ export default function AnnonceGrid({ annonces, isLoading, cols = 6 }: { annonce
 
   if (!annonces || annonces.length === 0) {
     return (
-      <div className="card p-12 text-center">
-        <div className="w-16 h-16 bg-dark-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <ImageIcon size={28} className="text-dark-300" />
+      <div className="card p-10 sm:p-12 text-center bg-gradient-to-b from-primary-50/60 to-transparent dark:from-primary-900/10">
+        <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <PartyPopper size={28} className="text-primary-600 dark:text-primary-400" />
         </div>
-        <p className="font-semibold text-dark-700">Aucune annonce pour le moment</p>
-        <p className="text-dark-400 text-sm mt-1">Revenez bientôt ou publiez la première !</p>
+        <p className="font-bold text-dark-900 dark:text-white text-base">{emptyTitle}</p>
+        <p className="text-dark-400 text-sm mt-1 max-w-xs mx-auto">{emptySubtitle}</p>
+        <Link
+          href="/annonces/publier"
+          className="inline-flex items-center gap-1.5 mt-5 px-5 py-2.5 bg-primary-700 hover:bg-primary-800 active:scale-95 text-white font-bold rounded-xl text-sm transition-all shadow-sm"
+        >
+          <Plus size={15} /> Publier une annonce
+        </Link>
       </div>
     );
   }
