@@ -1,9 +1,10 @@
-// Script one-shot : génère les images de fond des cartes catégories.
+// Script one-shot : génère des dégradés de marque en secours pour les cartes catégories.
 // Exécuter avec : node scripts/generate-category-images.js (depuis frontend/)
 //
-// Ce sont des dégradés de marque (pas des photos) : légers, sans droit d'auteur,
-// et faciles à remplacer plus tard — il suffit de déposer un .jpg de même nom
-// dans public/images/categories/ pour écraser le placeholder généré ici.
+// ⚠️ public/images/categories/ contient désormais de vraies photos (voir
+// image-credits.json). Ne relancez ce script que si vous voulez régénérer
+// un placeholder pour une catégorie sans photo — il écrase le fichier .jpg
+// correspondant.
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');

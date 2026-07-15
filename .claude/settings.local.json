@@ -102,7 +102,20 @@
       "PowerShell(try { $body = @{identifier=\"test@nonexistent.example\";password=\"wrongpassword\"} | ConvertTo-Json; $r = Invoke-WebRequest -Uri \"https://trouvetout224-production.up.railway.app/api/auth/login\" -Method POST -Body $body -ContentType \"application/json\" -UseBasicParsing -TimeoutSec 15; \"STATUS: $\\($r.StatusCode\\)\"; $r.Content } catch { \"STATUS: $\\($_.Exception.Response.StatusCode.value__\\)\"; $_.ErrorDetails.Message })",
       "Bash(node -e \"console.log\\(require\\('sharp'\\).versions\\)\")",
       "Bash(node scripts/generate-category-images.js)",
-      "Bash(node -e \"const l = require\\('lucide-react'\\); console.log\\(typeof l.LayoutGrid, typeof l.Store\\);\")"
+      "Bash(node -e \"const l = require\\('lucide-react'\\); console.log\\(typeof l.LayoutGrid, typeof l.Store\\);\")",
+      "Bash(node fetch-candidates.js '[{\"slug\":\"telephones\",\"term\":\"smartphone\"},{\"slug\":\"vehicules\",\"term\":\"sedan car\"},{\"slug\":\"immobilier\",\"term\":\"house exterior\"}]')",
+      "Bash(node fetch-candidates.js '[{\"slug\":\"telephones\",\"term\":\"Smartphones\"},{\"slug\":\"vehicules\",\"term\":\"Sedans\"},{\"slug\":\"immobilier\",\"term\":\"Single-family detached homes\"}]')",
+      "Bash(rm -f candidates.json)",
+      "Bash(node fetch-candidates.js '[ *)",
+      "Bash(node fetch-candidates.js '[{\"slug\":\"terrains\",\"term\":\"vacant land grass field\"}]')",
+      "Bash(node montage.js)",
+      "Bash(node fetch-candidates.js '[{\"slug\":\"electronique\",\"term\":\"headphones speaker camera flatlay\"}]')",
+      "Bash(node fetch-candidates.js '[{\"slug\":\"electronique\",\"term\":\"home electronics appliances\"}]')",
+      "Bash(node fetch-candidates.js '[{\"slug\":\"electronique\",\"term\":\"electronic gadgets\"}]')",
+      "Bash(node -e \"const c=require\\('./candidates.json'\\); c.forEach\\(\\(e,i\\)=>console.log\\(i, e.slug, e.term, e.candidates.length\\)\\)\")",
+      "Bash(node fetch-candidates.js '[{\"slug\":\"electronique\",\"term\":\"electric fan appliance\"}]')",
+      "Bash(node fetch-candidates.js '[{\"slug\":\"electronique2\",\"term\":\"digital camera product photo\"}]')",
+      "Bash(node finalize.js)"
     ]
   }
 }

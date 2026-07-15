@@ -9,39 +9,48 @@ interface AnimatedCounterProps {
 
 export default function AnimatedCounter({ value, duration = 1400, suffix = '' }: AnimatedCounterProps) {
   const [display, setDisplay] = useState(0);
+  const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
-  const started = useRef(false);
 
+  // Détecte une seule fois l'entrée dans le viewport.
   useEffect(() => {
     const el = ref.current;
-    if (!el || started.current) return;
-
+    if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting || started.current) return;
-        started.current = true;
-        observer.disconnect();
-
-        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (reduceMotion || value <= 0) {
-          setDisplay(value);
-          return;
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
         }
-
-        const start = performance.now();
-        const tick = (now: number) => {
-          const progress = Math.min((now - start) / duration, 1);
-          const eased = 1 - Math.pow(1 - progress, 3);
-          setDisplay(Math.round(eased * value));
-          if (progress < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
       },
       { threshold: 0.3 }
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [value, duration]);
+  }, []);
+
+  // Anime à chaque changement de valeur une fois visible (ex : 0 → vrai chiffre une fois l'API chargée).
+  useEffect(() => {
+    if (!visible) return;
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion || value <= 0) {
+      setDisplay(value);
+      return;
+    }
+
+    let cancelled = false;
+    const start = performance.now();
+    const tick = (now: number) => {
+      if (cancelled) return;
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(eased * value));
+      if (progress < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+    return () => { cancelled = true; };
+  }, [visible, value, duration]);
 
   return (
     <span ref={ref}>

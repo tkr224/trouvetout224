@@ -90,6 +90,7 @@ export default function Footer() {
                 { label: 'Contact', href: '/contact' },
                 { label: "Conditions d'utilisation", href: '/conditions' },
                 { label: 'Politique de confidentialité', href: '/confidentialite' },
+                { label: 'Crédits photos', href: '/credits-images' },
               ].map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="hover:text-primary-400 transition-colors">
