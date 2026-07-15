@@ -26,6 +26,13 @@ const TABS = [
   { key: 'apropos',         label: 'À propos',                  icon: Info },
 ];
 
+// Regroupement visuel de la sidebar (desktop) — ne change ni les clés ni la logique des onglets
+const TAB_GROUPS: { label: string; keys: string[] }[] = [
+  { label: 'Compte',        keys: ['profil', 'securite', 'confidentialite', 'notifications'] },
+  { label: 'Préférences',   keys: ['apparence', 'langue'] },
+  { label: 'Support & infos', keys: ['aide', 'conditions', 'apropos'] },
+];
+
 const HELP_ITEMS = [
   { Icon: HelpCircle, text: 'Comment publier une annonce ?',   href: '/aide/publier' },
   { Icon: Shield,     text: 'Comment signaler un problème ?',  href: '/aide/signalement' },
@@ -276,37 +283,52 @@ export default function ParametresPage() {
     }
   };
 
-  const Toggle = ({ value, onChange }: { value: boolean; onChange: () => void }) => (
-    <button onClick={onChange} className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${value ? 'bg-primary-700' : 'bg-dark-300'}`}>
+  // Purement visuel — le clic est géré par la ligne entière qui l'entoure (cible tactile ≥ 44px)
+  const Toggle = ({ value }: { value: boolean }) => (
+    <span aria-hidden className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${value ? 'bg-primary-700' : 'bg-dark-300'}`}>
       <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${value ? 'translate-x-5' : 'translate-x-0.5'}`} />
-    </button>
+    </span>
   );
 
   return (
     <div className="min-h-screen bg-dark-50">
       <Navbar />
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-9 h-9 bg-primary-100 rounded-xl flex items-center justify-center">
-            <Settings size={18} className="text-primary-700" />
+
+      {/* ══ EN-TÊTE ═══════════════════════════════════════════════════ */}
+      <section
+        className="relative overflow-hidden py-8 sm:py-10"
+        style={{ background: 'linear-gradient(135deg, rgb(var(--p-900)) 0%, rgb(var(--p-800)) 55%, rgb(var(--p-900)) 100%)' }}
+      >
+        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+        <div className="relative max-w-5xl mx-auto px-4" style={{ zIndex: 2 }}>
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center shrink-0">
+              <Settings size={20} className="text-gold-300" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-display font-bold text-white" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.6)' }}>Paramètres</h1>
+              <p className="text-white/75 text-xs sm:text-sm">Gérez votre profil, votre sécurité et vos préférences</p>
+            </div>
           </div>
-          <h1 className="text-2xl font-display font-bold text-dark-900">Paramètres</h1>
         </div>
+      </section>
+
+      <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
           {/* Sidebar navigation — barre d'onglets défilante sur mobile, colonne verticale sur desktop */}
           <div className="bg-white rounded-2xl border border-dark-100 shadow-card h-fit overflow-hidden">
 
-            {/* Mobile : onglets en ligne défilante horizontalement */}
-            <div className="lg:hidden flex items-center gap-2 overflow-x-auto px-3 py-3">
+            {/* Mobile : onglets en ligne défilante horizontalement, cibles tactiles ≥ 44px */}
+            <div className="lg:hidden flex items-center gap-2 overflow-x-auto px-3 py-3 snap-x">
               {TABS.map(t => {
                 const isProtected = PROTECTED_TABS.includes(t.key);
                 return (
                   <button key={t.key} onClick={() => setTab(t.key)}
-                    className={`flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-colors
+                    className={`flex-shrink-0 flex items-center gap-2 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold whitespace-nowrap transition-colors snap-start
                       ${tab === t.key ? 'bg-primary-700 text-white shadow-sm' : 'bg-dark-50 text-dark-600'}`}>
-                    <t.icon size={14} className="shrink-0" />
+                    <t.icon size={15} className="shrink-0" />
                     {t.label}
                     {isProtected && !loggedIn && (
                       <Lock size={10} className="shrink-0 opacity-50" />
@@ -316,42 +338,51 @@ export default function ParametresPage() {
               })}
               {loggedIn ? (
                 <button onClick={logout}
-                  className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-red-600 bg-red-50 whitespace-nowrap">
-                  <LogOut size={14} className="shrink-0" /> Déconnexion
+                  className="flex-shrink-0 flex items-center gap-2 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold text-red-600 bg-red-50 whitespace-nowrap snap-start">
+                  <LogOut size={15} className="shrink-0" /> Déconnexion
                 </button>
               ) : (
                 <Link href="/auth/connexion"
-                  className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-primary-700 bg-primary-50 whitespace-nowrap">
-                  <User size={14} className="shrink-0" /> Se connecter
+                  className="flex-shrink-0 flex items-center gap-2 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold text-primary-700 bg-primary-50 whitespace-nowrap snap-start">
+                  <User size={15} className="shrink-0" /> Se connecter
                 </Link>
               )}
             </div>
 
-            {/* Desktop : colonne verticale (inchangée) */}
-            <div className="hidden lg:block p-2 space-y-0.5">
-              {TABS.map(t => {
-                const isProtected = PROTECTED_TABS.includes(t.key);
-                return (
-                  <button key={t.key} onClick={() => setTab(t.key)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors
-                      ${tab === t.key ? 'bg-primary-700 text-white shadow-sm' : 'text-dark-600 hover:bg-dark-50'}`}>
-                    <t.icon size={15} className="shrink-0" />
-                    <span className="flex-1 text-left">{t.label}</span>
-                    {isProtected && !loggedIn && (
-                      <Lock size={11} className="shrink-0 opacity-40" />
-                    )}
-                  </button>
-                );
-              })}
-              <div className="pt-2 border-t border-dark-100 mt-2">
+            {/* Desktop : colonne verticale groupée en sections claires */}
+            <div className="hidden lg:block p-3 space-y-4">
+              {TAB_GROUPS.map(group => (
+                <div key={group.label}>
+                  <p className="px-3 mb-1.5 text-[11px] font-bold text-dark-400 uppercase tracking-wider">{group.label}</p>
+                  <div className="space-y-0.5">
+                    {TABS.filter(t => group.keys.includes(t.key)).map(t => {
+                      const isProtected = PROTECTED_TABS.includes(t.key);
+                      return (
+                        <button key={t.key} onClick={() => setTab(t.key)}
+                          className={`w-full flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-xl text-sm font-medium transition-colors
+                            ${tab === t.key ? 'bg-primary-700 text-white shadow-sm' : 'text-dark-600 hover:bg-dark-50'}`}>
+                          <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${tab === t.key ? 'bg-white/20' : 'bg-primary-50'}`}>
+                            <t.icon size={14} className={tab === t.key ? 'text-white' : 'text-primary-700'} />
+                          </span>
+                          <span className="flex-1 text-left">{t.label}</span>
+                          {isProtected && !loggedIn && (
+                            <Lock size={11} className="shrink-0 opacity-40" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+              <div className="pt-3 border-t border-dark-100">
                 {loggedIn ? (
                   <button onClick={logout}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+                    className="w-full flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
                     <LogOut size={15} className="shrink-0" /> Déconnexion
                   </button>
                 ) : (
                   <Link href="/auth/connexion"
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-primary-700 hover:bg-primary-50 transition-colors">
+                    className="w-full flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-xl text-sm font-medium text-primary-700 hover:bg-primary-50 transition-colors">
                     <User size={15} className="shrink-0" /> Se connecter
                   </Link>
                 )}
@@ -360,7 +391,7 @@ export default function ParametresPage() {
           </div>
 
           {/* Content */}
-          <div className="lg:col-span-3 bg-white rounded-2xl border border-dark-100 shadow-card p-6">
+          <div className="lg:col-span-3 bg-white rounded-2xl border border-dark-100 shadow-card p-4 sm:p-6">
 
             {/* Gate : onglets protégés sans compte */}
             {showGate ? (
@@ -417,7 +448,7 @@ export default function ParametresPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-dark-700 mb-1.5">Prénom</label>
                     <input value={firstName} onChange={e => setFirstName(e.target.value)} className="input" />
@@ -700,13 +731,14 @@ export default function ParametresPage() {
                   { label: "Expiration d'annonce", sub: 'Rappel avant que votre annonce expire',       value: notifAnnonce, fn: () => setNotifAnnonce(!notifAnnonce) },
                   { label: 'Nouvelles vues',       sub: 'Quand quelqu\'un consulte vos annonces',      value: notifVue,     fn: () => setNotifVue(!notifVue) },
                 ].map((n, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 bg-dark-50 rounded-2xl">
+                  <button key={i} type="button" onClick={n.fn} role="switch" aria-checked={n.value}
+                    className="w-full flex items-center justify-between gap-3 p-4 min-h-[44px] bg-dark-50 rounded-2xl text-left hover:bg-dark-100 transition-colors">
                     <div>
                       <p className="font-semibold text-dark-900 text-sm">{n.label}</p>
                       <p className="text-dark-500 text-xs mt-0.5">{n.sub}</p>
                     </div>
-                    <Toggle value={n.value} onChange={n.fn} />
-                  </div>
+                    <Toggle value={n.value} />
+                  </button>
                 ))}
               </div>
             )}
@@ -720,13 +752,14 @@ export default function ParametresPage() {
                     { label: 'Afficher mon numéro',  sub: 'Votre numéro est visible sur vos annonces',         value: privPhone,    onChange: () => { const v = !privPhone;    setPrivPhone(v);    savePrivacy('showPhone', v); } },
                     { label: 'Recevoir des messages',sub: 'Les autres utilisateurs peuvent vous contacter',     value: privMessages, onChange: () => { const v = !privMessages; setPrivMessages(v); savePrivacy('acceptMessages', v); } },
                   ].map((item, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 bg-dark-50 rounded-2xl">
+                    <button key={i} type="button" onClick={item.onChange} role="switch" aria-checked={item.value}
+                      className="w-full flex items-center justify-between gap-3 p-4 min-h-[44px] bg-dark-50 rounded-2xl text-left hover:bg-dark-100 transition-colors">
                       <div>
                         <p className="font-semibold text-dark-900 text-sm">{item.label}</p>
                         <p className="text-dark-500 text-xs mt-0.5">{item.sub}</p>
                       </div>
-                      <Toggle value={item.value} onChange={item.onChange} />
-                    </div>
+                      <Toggle value={item.value} />
+                    </button>
                   ))}
                 </div>
               </div>

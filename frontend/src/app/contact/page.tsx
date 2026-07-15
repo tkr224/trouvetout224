@@ -24,11 +24,35 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-dark-50">
       <Navbar />
-      <div className="max-w-5xl mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-display font-bold text-dark-900 mb-3 flex items-center justify-center gap-3"><Mail size={36} className="text-primary-700" /> Contactez-nous</h1>
-          <p className="text-dark-500">Notre équipe vous répond dans les 24 heures</p>
+
+      {/* ══ HERO ═══════════════════════════════════════════════════════ */}
+      <section
+        className="relative overflow-hidden py-14 sm:py-16"
+        style={{ background: 'linear-gradient(135deg, rgb(var(--p-900)) 0%, rgb(var(--p-800)) 55%, rgb(var(--p-900)) 100%)' }}
+      >
+        <div
+          className="pointer-events-none absolute rounded-full"
+          style={{
+            width: '50%', height: '120%', top: '-15%', right: '-15%',
+            background: 'radial-gradient(ellipse, rgba(245,197,24,0.20) 0%, transparent 68%)',
+            filter: 'blur(52px)',
+          }}
+        />
+        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+        <div className="relative max-w-3xl mx-auto px-4 text-center" style={{ zIndex: 2 }}>
+          <div className="w-14 h-14 rounded-2xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center mx-auto mb-5">
+            <Mail size={26} className="text-gold-300" />
+          </div>
+          <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-white mb-3" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.9)' }}>
+            Contactez-nous
+          </h1>
+          <p className="text-white/90 text-base sm:text-lg" style={{ textShadow: '0 1px 10px rgba(0,0,0,0.8)' }}>
+            Notre équipe vous répond rapidement, en général sous 24 heures
+          </p>
         </div>
+      </section>
+
+      <div className="max-w-5xl mx-auto px-4 py-12 sm:py-14">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="space-y-4">
             <a href="mailto:contact.trouvetout224@gmail.com" className="card p-5 flex items-center gap-4 hover:border-primary-400 border-2 border-transparent transition-colors">
@@ -71,7 +95,7 @@ export default function ContactPage() {
           <div className="lg:col-span-2 card p-8">
             <h2 className="font-display font-bold text-dark-900 text-xl mb-6">Envoyer un message</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-dark-700 mb-1.5">Nom complet</label>
                   <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} required className="input" placeholder="Votre nom" />
