@@ -301,6 +301,7 @@ export const createAnnonce = async (req: Request, res: Response) => {
     // ci-dessus. L'IA ne bloque JAMAIS définitivement une annonce : elle peut au
     // pire la remettre en attente de validation admin, jamais la supprimer.
     setImmediate(async () => {
+      console.log(`[DEBUG-IA] Démarrage modération pour l'annonce ${annonce.id}`);
       try {
         const result = await moderateAnnonce({
           title: annonce.title,
@@ -309,6 +310,7 @@ export const createAnnonce = async (req: Request, res: Response) => {
           currency: annonce.currency,
           categoryName: (annonce as any).category?.nameFr,
         });
+        console.log(`[DEBUG-IA] Résultat pour ${annonce.id} :`, JSON.stringify(result));
         if (!result) return; // Gemini indisponible / erreur / réponse invalide → on ne touche à rien
 
         await prisma.annonce.update({
