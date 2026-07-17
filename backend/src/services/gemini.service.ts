@@ -59,7 +59,15 @@ Réponds uniquement avec le JSON demandé.`;
 function parseModerationResponse(raw: string | undefined): ModerationResult | null {
   if (!raw) return null;
   try {
-    const cleaned = raw.trim().replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '');
+    let cleaned = raw.trim().replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '');
+    // Gemini ajoute parfois une phrase avant/après le JSON malgré la consigne
+    // (ex: "Here is the JSON requested: {...}") — on extrait le premier objet
+    // JSON trouvé dans le texte plutôt que de supposer que la réponse entière
+    // n'est que du JSON.
+    if (cleaned[0] !== '{') {
+      const match = cleaned.match(/\{[\s\S]*\}/);
+      if (match) cleaned = match[0];
+    }
     const parsed = JSON.parse(cleaned);
     const verdict: ModerationVerdict = ['OK', 'SUSPECT', 'INTERDIT'].includes(parsed?.verdict) ? parsed.verdict : 'OK';
     const score = typeof parsed?.score === 'number' && isFinite(parsed.score) ? Math.min(1, Math.max(0, parsed.score)) : 0.5;
