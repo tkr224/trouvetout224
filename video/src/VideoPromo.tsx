@@ -1,11 +1,17 @@
 /**
  * VideoPromo — enchaîne les 5 scènes les unes après les autres.
+ * Reçoit `exemples` (le contenu du mockup téléphone, scène 3) en prop,
+ * ce qui permet de réutiliser exactement le même template pour
+ * plusieurs vidéos avec une annonce d'exemple différente à chaque fois
+ * (voir Composition.tsx et src/videos/).
+ *
  * Pour changer l'ORDRE ou la DURÉE des scènes, modifie ce fichier
  * (l'ordre des <Series.Sequence>) ou les durées dans config.ts.
  */
 import React from 'react';
 import { Series } from 'remotion';
 import { DUREES } from './config';
+import { Exemples } from './types';
 import { Scene } from './components/Scene';
 import { Scene1Accroche } from './scenes/Scene1Accroche';
 import { Scene2Solution } from './scenes/Scene2Solution';
@@ -13,7 +19,11 @@ import { Scene3Demo } from './scenes/Scene3Demo';
 import { Scene4Benefices } from './scenes/Scene4Benefices';
 import { Scene5Final } from './scenes/Scene5Final';
 
-export const VideoPromo: React.FC = () => {
+type Props = {
+  exemples: Exemples;
+};
+
+export const VideoPromo: React.FC<Props> = ({ exemples }) => {
   return (
     <Series>
       <Series.Sequence durationInFrames={DUREES.accroche}>
@@ -30,7 +40,7 @@ export const VideoPromo: React.FC = () => {
 
       <Series.Sequence durationInFrames={DUREES.demo}>
         <Scene dureeFrames={DUREES.demo}>
-          <Scene3Demo />
+          <Scene3Demo exemples={exemples} />
         </Scene>
       </Series.Sequence>
 

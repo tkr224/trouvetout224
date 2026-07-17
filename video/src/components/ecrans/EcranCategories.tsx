@@ -5,8 +5,7 @@
 import React from 'react';
 import { COULEURS } from '../../config';
 import { POLICE } from '../../fonts';
-
-type Categorie = { emoji: string; label: string };
+import { Categorie } from '../../types';
 
 type Props = {
   categories: Categorie[];

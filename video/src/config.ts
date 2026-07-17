@@ -3,17 +3,19 @@
  *  CONFIG.TS — LE SEUL FICHIER À MODIFIER POUR CRÉER UNE VIDÉO
  * ============================================================
  *
- * Pour faire une NOUVELLE vidéo :
- *   1. Change les textes dans la section TEXTES ci-dessous.
- *   2. Change les couleurs si besoin dans COULEURS.
- *   3. Change le contenu d'exemple du mockup téléphone dans EXEMPLES.
- *   4. Ajuste les durées dans DUREES_SECONDES si une scène doit durer
- *      plus ou moins longtemps.
- *   5. Enregistre, puis relance `npm run dev` (aperçu) ou `npm run render`
- *      (export MP4).
+ * Ce fichier contient le contenu PARTAGÉ par toutes les vidéos (identité
+ * TrouveTout224 : couleurs, format, textes d'accroche, bénéfices...).
  *
- * Tu n'as normalement JAMAIS besoin de toucher aux fichiers dans
- * src/scenes/ ou src/components/ pour une nouvelle vidéo.
+ * Pour changer l'ANNONCE D'EXEMPLE affichée dans le mockup téléphone
+ * (scène 3), va plutôt dans le dossier src/videos/ — chaque fichier
+ * là-bas est une variante (ex: exemplesIphone.ts, exemplesVoiture.ts).
+ * Voir Composition.tsx pour la liste des vidéos et comment en ajouter une.
+ *
+ * Pour changer le texte d'accroche, le slogan, les bénéfices ou l'appel
+ * à l'action pour TOUTES les vidéos : modifie TEXTES ci-dessous.
+ *
+ * Enregistre, puis relance `npm run dev` (aperçu) ou `npm run render`
+ * (export MP4).
  */
 
 // ------------------------------------------------------------
@@ -85,45 +87,5 @@ export const TEXTES = {
   final: {
     site: 'trouvetout224.site',
     appel: 'Publie ton annonce aujourd’hui',
-  },
-};
-
-// ------------------------------------------------------------
-// 5. EXEMPLES — contenu affiché dans les 3 écrans du mockup téléphone.
-//
-//    Le site n'a pas encore d'annonces publiées (marketplace neuve),
-//    donc les écrans sont recréés en code avec du contenu d'exemple
-//    plutôt qu'avec de vraies captures d'écran (qui seraient vides).
-//    Les catégories ci-dessous sont les vraies catégories du site
-//    (voir frontend/src/components/annonces/CategoryGrid.tsx).
-//
-//    Quand le site aura de vraies annonces, tu pourras remplacer ces
-//    écrans par de vraies captures : voir le commentaire en haut de
-//    src/components/MockupTelephone.tsx.
-// ------------------------------------------------------------
-export const EXEMPLES = {
-  recherche: {
-    requete: 'iPhone 13 Pro',
-    resultats: [
-      { titre: 'iPhone 13 Pro Max 256Go', prix: '4 500 000 GNF', lieu: 'Conakry, Kaloum', emoji: '📱' },
-      { titre: 'Samsung Galaxy S22', prix: '3 200 000 GNF', lieu: 'Conakry, Ratoma', emoji: '📱' },
-    ],
-  },
-  categories: [
-    { emoji: '📱', label: 'Téléphones' },
-    { emoji: '🚗', label: 'Véhicules' },
-    { emoji: '🏠', label: 'Immobilier' },
-    { emoji: '💼', label: 'Emplois' },
-    { emoji: '🔧', label: 'Services' },
-    { emoji: '🍽️', label: 'Restaurants' },
-    { emoji: '👗', label: 'Mode' },
-    { emoji: '🛋️', label: 'Maison' },
-  ],
-  annonce: {
-    titre: 'iPhone 13 Pro Max 256Go',
-    prix: '4 500 000 GNF',
-    lieu: 'Conakry, Kaloum',
-    vendeur: 'Mamadou D.',
-    emoji: '📱',
   },
 };

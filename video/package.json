@@ -23,7 +23,8 @@
   "scripts": {
     "dev": "remotion studio",
     "build": "remotion bundle",
-    "render": "remotion render VideoPromo out/video.mp4",
+    "render:iphone": "remotion render PromoIphone out/promo-iphone.mp4",
+    "render:voiture": "remotion render PromoVoiture out/promo-voiture.mp4",
     "upgrade": "remotion upgrade",
     "lint": "eslint src && tsc"
   },

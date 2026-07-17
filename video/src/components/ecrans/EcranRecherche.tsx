@@ -6,8 +6,7 @@
 import React from 'react';
 import { COULEURS } from '../../config';
 import { POLICE } from '../../fonts';
-
-type Resultat = { titre: string; prix: string; lieu: string; emoji: string };
+import { Resultat } from '../../types';
 
 type Props = {
   requete: string;

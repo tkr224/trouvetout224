@@ -5,16 +5,9 @@
 import React from 'react';
 import { COULEURS } from '../../config';
 import { POLICE } from '../../fonts';
+import { Annonce } from '../../types';
 
-type Props = {
-  titre: string;
-  prix: string;
-  lieu: string;
-  vendeur: string;
-  emoji: string;
-};
-
-export const EcranAnnonce: React.FC<Props> = ({ titre, prix, lieu, vendeur, emoji }) => {
+export const EcranAnnonce: React.FC<Annonce> = ({ titre, prix, lieu, vendeur, emoji }) => {
   return (
     <div style={{ width: '100%', height: '100%', background: '#FFFFFF', fontFamily: POLICE, display: 'flex', flexDirection: 'column' }}>
       <div
