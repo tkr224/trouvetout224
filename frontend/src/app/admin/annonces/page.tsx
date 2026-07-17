@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
+import AiVerdictBadge from '@/components/admin/AiVerdictBadge';
 
 type Annonce = {
   id: string;
@@ -19,6 +20,8 @@ type Annonce = {
   category?: { nameFr: string };
   city?: { name: string };
   images?: { url: string }[];
+  aiVerdict?: string | null;
+  aiScore?: number | null;
 };
 
 const STATUS_BADGE: Record<string, string> = {
@@ -203,7 +206,10 @@ export default function AdminAnnonces() {
                           </div>
                         )}
                         <div className="min-w-0">
-                          <p className="font-semibold text-dark-900 truncate max-w-44">{a.title}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-dark-900 truncate max-w-44">{a.title}</p>
+                            <AiVerdictBadge verdict={a.aiVerdict} score={a.aiScore} />
+                          </div>
                           <p className="text-dark-400 text-xs">
                             {new Date(a.createdAt).toLocaleDateString('fr-FR')}
                           </p>

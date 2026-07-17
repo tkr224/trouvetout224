@@ -219,11 +219,60 @@ router.get('/annonces', async (req, res) => {
   } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
+// ─── Signalements IA (modération Gemini) ──────────────────────────────────────
+// Doit être AVANT /:id pour ne pas être capturé comme id="signalees-ia"
+
+router.get('/annonces/signalees-ia/count', async (req, res) => {
+  try {
+    const count = await prisma.annonce.count({
+      where: { aiHandled: false, aiVerdict: { in: ['SUSPECT', 'INTERDIT'] } },
+    });
+    res.json({ count });
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.get('/annonces/signalees-ia', async (req, res) => {
+  try {
+    const { page = '1', limit = '20' } = req.query;
+    const take = Math.min(parseInt(limit as string) || 20, 100);
+    const skip = (parseInt(page as string) - 1) * take;
+    const where = { aiHandled: false, aiVerdict: { in: ['SUSPECT', 'INTERDIT'] as any } };
+    const [annonces, total] = await Promise.all([
+      prisma.annonce.findMany({
+        where, skip, take,
+        orderBy: { aiCheckedAt: 'desc' },
+        include: {
+          user: { select: { id: true, firstName: true, lastName: true, email: true } },
+          category: true,
+          city: true,
+          images: true,
+        },
+      }),
+      prisma.annonce.count({ where }),
+    ]);
+    // Les annonces INTERDIT remontent en priorité, quel que soit l'ordre chronologique
+    annonces.sort((a: any, b: any) => (a.aiVerdict === 'INTERDIT' ? -1 : 0) - (b.aiVerdict === 'INTERDIT' ? -1 : 0));
+    res.json({ data: annonces, pagination: { total, pages: Math.ceil(total / take) } });
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+// Marque un signalement IA comme traité sans changer le statut de publication
+// (ex : verdict SUSPECT jugé sans gravité par l'admin après relecture).
+router.post('/annonces/:id/ia-marquer-traite', async (req, res) => {
+  try {
+    const annonce = await prisma.annonce.update({
+      where: { id: req.params.id },
+      data: { aiHandled: true },
+    });
+    res.json({ message: 'Signalement IA marqué comme traité.', data: annonce });
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
 router.post('/annonces/:id/approve', async (req, res) => {
   try {
     const annonce = await prisma.annonce.update({
       where: { id: req.params.id },
-      data: { status: 'ACTIVE', rejectionReason: null },
+      data: { status: 'ACTIVE', rejectionReason: null, aiHandled: true },
       include: {
         user: { select: { firstName: true, lastName: true, shopName: true, email: true } },
       },
@@ -292,7 +341,7 @@ router.post('/annonces/:id/reject', async (req, res) => {
     }
     const annonce = await prisma.annonce.update({
       where: { id: req.params.id },
-      data: { status: 'REJECTED', rejectionReason: reason.trim() },
+      data: { status: 'REJECTED', rejectionReason: reason.trim(), aiHandled: true },
     });
     await prisma.notification.create({
       data: {

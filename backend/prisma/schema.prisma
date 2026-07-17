@@ -226,6 +226,15 @@ model Annonce {
   images           AnnonceImage[]
   status           AnnonceStatus  @default(PENDING_REVIEW)
   rejectionReason  String?
+
+  // Modération IA (Gemini) — voir backend/src/services/gemini.service.ts
+  // aiVerdict null = pas encore analysée (ou analyse échouée : on ne bloque jamais).
+  aiVerdict   AiVerdict?
+  aiReason    String?
+  aiScore     Float?
+  aiCheckedAt DateTime?
+  aiHandled   Boolean    @default(false)
+
   expiresAt        DateTime
   viewCount        Int            @default(0)
   isPremium        Boolean        @default(false)
@@ -250,6 +259,7 @@ model Annonce {
   @@index([cityId])
   @@index([userId])
   @@index([isFeatured])
+  @@index([aiHandled, aiVerdict])
   @@map("annonces")
 }
 
@@ -271,6 +281,12 @@ enum AnnonceStatus {
   SUSPENDED
   PENDING_REVIEW
   REJECTED
+}
+
+enum AiVerdict {
+  OK
+  SUSPECT
+  INTERDIT
 }
 
 model SavedAnnonce {
@@ -614,6 +630,7 @@ enum NotificationType {
   ACCOUNT_DELETED
   SYSTEM
   NEW_VENDOR_PRODUCT
+  ANNONCE_AI_FLAGGED
 }
 
 // =============================================

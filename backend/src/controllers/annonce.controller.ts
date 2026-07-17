@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import slugify from 'slugify';
 import { v4 as uuidv4 } from 'uuid';
+import { moderateAnnonce } from '../services/gemini.service';
 
 async function resolveCategoryId(value: string): Promise<string | null> {
   if (!value) return null;
@@ -294,6 +295,61 @@ export const createAnnonce = async (req: Request, res: Response) => {
           });
         }
       } catch { /* silent — don't fail the request */ }
+    });
+
+    // Modération IA (Gemini) — non bloquante, ne retarde jamais la réponse envoyée
+    // ci-dessus. L'IA ne bloque JAMAIS définitivement une annonce : elle peut au
+    // pire la remettre en attente de validation admin, jamais la supprimer.
+    setImmediate(async () => {
+      try {
+        const result = await moderateAnnonce({
+          title: annonce.title,
+          description: annonce.description,
+          price: annonce.price,
+          currency: annonce.currency,
+          categoryName: (annonce as any).category?.nameFr,
+        });
+        if (!result) return; // Gemini indisponible / erreur / réponse invalide → on ne touche à rien
+
+        await prisma.annonce.update({
+          where: { id: annonce.id },
+          data: {
+            aiVerdict: result.verdict,
+            aiReason: result.reason,
+            aiScore: result.score,
+            aiCheckedAt: new Date(),
+          },
+        });
+
+        if (result.verdict === 'OK') return;
+
+        if (result.verdict === 'INTERDIT') {
+          // Force la mise en attente — dépublie même si le vendeur était vérifié.
+          await prisma.annonce.update({
+            where: { id: annonce.id },
+            data: { status: 'PENDING_REVIEW' },
+          });
+        }
+
+        const admins = await prisma.user.findMany({
+          where: { role: { in: ['ADMIN', 'SUPER_ADMIN'] } },
+          select: { id: true },
+        });
+        if (admins.length > 0) {
+          await prisma.notification.createMany({
+            data: admins.map(a => ({
+              userId: a.id,
+              type: 'ANNONCE_AI_FLAGGED' as any,
+              title: result.verdict === 'INTERDIT' ? '🚫 Annonce bloquée par l’IA' : '⚠️ Annonce suspecte (IA)',
+              body: `"${annonce.title}" — ${result.reason}`,
+              data: { annonceId: annonce.id, slug: annonce.slug, verdict: result.verdict, score: result.score },
+            })),
+            skipDuplicates: true,
+          });
+        }
+      } catch (e) {
+        console.error('[createAnnonce] Erreur modération IA (annonce non affectée, publication normale) :', e);
+      }
     });
   } catch (error) {
     console.error('Erreur createAnnonce:', error);

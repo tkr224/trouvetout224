@@ -36,6 +36,8 @@ import subscriptionRoutes from './routes/subscription.routes';
 import configRoutes from './routes/config.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import statsRoutes from './routes/stats.routes';
+import aiRoutes from './routes/ai.routes';
+import { optionalAuthenticate } from './middleware/optionalAuth';
 
 dotenv.config();
 
@@ -139,6 +141,18 @@ app.use('/api/auth/register', strictLimiter);
 // Signalements (anti-spam)
 app.use('/api/reports', strictLimiter);
 
+// ── Rate Limiting du chatbot IA (anti-abus du quota Gemini) ────────────
+const aiChatLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: isDev ? 100 : 10,
+  keyGenerator: (req: any) => (req.userId ? `user:${req.userId}` : req.ip),
+  message: { error: 'Trop de messages. Merci de patienter une minute.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+// optionalAuthenticate doit tourner avant le limiter pour que req.userId soit disponible
+app.use('/api/ai/chat', optionalAuthenticate, aiChatLimiter);
+
 // ── Swagger — désactivé en production (évite l'exposition publique de l'API) ──
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 if (isDev) {
@@ -176,6 +190,7 @@ app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/site-config',  configRoutes);
 app.use('/api/analytics',    analyticsRoutes);
 app.use('/api/stats',        statsRoutes);
+app.use('/api/ai',           aiRoutes);
 
 // Health check
 app.get('/api/health', (req: Request, res: Response) => {
