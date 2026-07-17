@@ -2,7 +2,10 @@
 import { GoogleGenAI } from '@google/genai';
 
 const apiKey = process.env.GEMINI_API_KEY;
-const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+// 'gemini-flash-latest' est un alias maintenu par Google qui pointe toujours
+// vers le modèle flash courant — évite de se retrouver avec un nom de modèle
+// périmé (Google déprécie régulièrement les noms de modèles versionnés).
+const MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 if (!ai) {
