@@ -87,7 +87,16 @@ export async function moderateAnnonce(input: ModerationInput): Promise<Moderatio
     const response = await ai.models.generateContent({
       model: MODEL,
       contents: buildModerationPrompt(input),
-      config: { responseMimeType: 'application/json', temperature: 0.1, maxOutputTokens: 300 },
+      config: {
+        responseMimeType: 'application/json',
+        temperature: 0.1,
+        maxOutputTokens: 800,
+        // Les modèles Gemini récents "réfléchissent" avant de répondre, ce qui
+        // consommait tout le budget de tokens avant même d'écrire le JSON
+        // (réponse tronquée juste après "Here is the JSON..."). Cette tâche de
+        // classification simple n'a pas besoin de ce raisonnement étendu.
+        thinkingConfig: { thinkingBudget: 0 },
+      },
     });
     return parseModerationResponse(response.text);
   } catch (e: any) {
