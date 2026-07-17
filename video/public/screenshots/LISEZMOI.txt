@@ -1,0 +1,20 @@
+Ce dossier n'est PAS utilisé pour l'instant.
+
+Actuellement, la vidéo recrée les 3 écrans du mockup téléphone directement
+en code (avec du contenu d'exemple : fausses annonces, vraies catégories
+du site) au lieu d'utiliser de vraies captures d'écran. C'est volontaire :
+le site n'a pas encore d'annonces publiées, donc une vraie capture serait
+vide.
+
+Tu peux modifier ce contenu d'exemple dans video/src/config.ts,
+section EXEMPLES (titres, prix, catégories, etc.).
+
+QUAND TU AURAS DE VRAIES ANNONCES SUR LE SITE :
+  1. Fais des captures d'écran (PNG/JPG, format portrait ~1080x2340)
+     des pages recherche / catégories / une annonce.
+  2. Dépose-les ici, par exemple : recherche.png, categories.png, annonce.png
+  3. Ouvre video/src/components/MockupTelephone.tsx : le commentaire en
+     haut du fichier explique comment remplacer un écran par une vraie
+     image (`<Img src={staticFile('screenshots/recherche.png')} .../>`).
+  4. Ouvre video/src/scenes/Scene3Demo.tsx et remplace, par exemple,
+     <EcranRecherche .../> par ce <Img ... /> dans le tableau `ecrans`.
