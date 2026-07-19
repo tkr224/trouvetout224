@@ -199,7 +199,15 @@ export async function chatWithAssistant(message: string, history: ChatTurn[] = [
   const response = await ai.models.generateContent({
     model: MODEL,
     contents,
-    config: { systemInstruction: CHATBOT_SYSTEM_PROMPT, temperature: 0.4, maxOutputTokens: 400 },
+    config: {
+      systemInstruction: CHATBOT_SYSTEM_PROMPT,
+      temperature: 0.4,
+      maxOutputTokens: 700,
+      // Même correctif que pour la modération (voir moderateAnnonce) : sans ça,
+      // le modèle consomme une partie du budget de tokens à "réfléchir" avant
+      // d'écrire sa réponse, ce qui coupait les phrases en plein milieu.
+      thinkingConfig: { thinkingBudget: 0 },
+    },
   });
 
   const text = response.text?.trim();
