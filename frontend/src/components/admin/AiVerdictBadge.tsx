@@ -2,12 +2,14 @@
 
 const STYLE: Record<string, string> = {
   OK: 'bg-primary-100 text-primary-700',
+  RESERVE_ADULTES: 'bg-dark-900 text-white',
   SUSPECT: 'bg-gold-100 text-gold-600',
   INTERDIT: 'bg-guinea-100 text-guinea-700',
 };
 
 const LABEL: Record<string, string> = {
   OK: 'IA : OK',
+  RESERVE_ADULTES: 'IA : Réservé 18+',
   SUSPECT: 'IA : Suspect',
   INTERDIT: 'IA : Interdit',
 };

@@ -4,8 +4,9 @@ import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 import {
   Eye, Check, X, XCircle, ChevronLeft, ChevronRight,
-  ShoppingBag, Loader2, RefreshCw, CheckCircle, ClipboardCheck,
+  ShoppingBag, Loader2, RefreshCw, CheckCircle, ClipboardCheck, Crown,
 } from 'lucide-react';
+import AiVerdictBadge from '@/components/admin/AiVerdictBadge';
 
 type PendingAnnonce = {
   id: string;
@@ -16,6 +17,10 @@ type PendingAnnonce = {
   status: string;
   createdAt: string;
   rejectionReason?: string;
+  aiVerdict?: string | null;
+  aiReason?: string | null;
+  aiScore?: number | null;
+  priorityReview?: boolean;
   user: { id: string; firstName: string; lastName: string; email?: string };
   category?: { nameFr: string };
   city?: { name: string };
@@ -151,13 +156,24 @@ export default function AdminValidation() {
 
                 {/* Infos */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-dark-900 truncate">{a.title}</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-semibold text-dark-900 truncate">{a.title}</p>
+                    {a.priorityReview && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-gold-700 bg-gold-100 px-2 py-0.5 rounded-full shrink-0">
+                        <Crown size={10} /> Priorité
+                      </span>
+                    )}
+                    <AiVerdictBadge verdict={a.aiVerdict} score={a.aiScore} />
+                  </div>
                   <p className="text-dark-500 text-xs mt-0.5">
                     <span className="font-medium">{a.user.firstName} {a.user.lastName}</span>
                     {a.category?.nameFr ? ` · ${a.category.nameFr}` : ''}
                     {a.city?.name ? ` · ${a.city.name}` : ''}
                     {a.price ? ` · ${a.price.toLocaleString('fr-FR')} ${a.currency}` : ''}
                   </p>
+                  {a.aiReason && (
+                    <p className="text-dark-400 text-xs mt-1 italic">« {a.aiReason} »</p>
+                  )}
                   <p className="text-dark-400 text-xs mt-0.5">
                     Soumis le {new Date(a.createdAt).toLocaleDateString('fr-FR', {
                       day: '2-digit', month: 'long', year: 'numeric',
@@ -213,6 +229,14 @@ export default function AdminValidation() {
 
             {/* Corps modal scrollable */}
             <div className="overflow-y-auto flex-1 p-6 space-y-5">
+
+              {/* Verdict IA */}
+              {inspecting.aiVerdict && (
+                <div className="bg-dark-50 rounded-xl p-4 flex items-start gap-3">
+                  <AiVerdictBadge verdict={inspecting.aiVerdict} score={inspecting.aiScore} />
+                  <p className="text-sm text-dark-600 flex-1">{inspecting.aiReason || 'Pas de raison fournie.'}</p>
+                </div>
+              )}
 
               {/* Galerie photos */}
               {inspecting.images?.length > 0 && (

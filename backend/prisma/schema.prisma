@@ -57,6 +57,11 @@ model User {
   isShopVerified      Boolean     @default(false)
   shopColor           String?     @default("vert")
   shopSlogan          String?
+
+  // Pack Mansa (premium, pas encore actif) — préparé pour la "validation
+  // prioritaire" : les annonces des abonnés seront traitées en priorité par l'admin.
+  hasPriorityValidation Boolean @default(false)
+
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
 
@@ -235,6 +240,14 @@ model Annonce {
   aiCheckedAt DateTime?
   aiHandled   Boolean    @default(false)
 
+  // Produit réservé aux adultes (chicha, vape, tabac, alcool...) — autorisé mais
+  // affiché avec un badge "18+" et une confirmation d'âge avant consultation.
+  isAgeRestricted Boolean @default(false)
+
+  // Prépare le terrain pour le Pack Mansa (premium, pas encore actif) : les
+  // annonces des futurs abonnés seront traitées en priorité dans la file admin.
+  priorityReview Boolean @default(false)
+
   expiresAt        DateTime
   viewCount        Int            @default(0)
   isPremium        Boolean        @default(false)
@@ -260,6 +273,7 @@ model Annonce {
   @@index([userId])
   @@index([isFeatured])
   @@index([aiHandled, aiVerdict])
+  @@index([status, priorityReview])
   @@map("annonces")
 }
 
@@ -285,6 +299,7 @@ enum AnnonceStatus {
 
 enum AiVerdict {
   OK
+  RESERVE_ADULTES
   SUSPECT
   INTERDIT
 }

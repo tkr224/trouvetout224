@@ -195,15 +195,42 @@ export const createAnnonce = async (req: Request, res: Response) => {
     const baseSlug = slugify(title, { lower: true, strict: true });
     const slug = `${baseSlug}-${uuidv4().split('-')[0]}`;
 
-    // Vendeur vérifié (badge admin) → publication directe, sinon en attente de validation
-    // isVerified = badge "Compte vérifié" (vert) ; isShopVerified = badge "Boutique vérifiée" (doré)
-    // Les deux badges donnent le droit à la publication directe
+    // Vendeur vérifié (badge admin) : isVerified = badge "Compte vérifié" (vert) ;
+    // isShopVerified = badge "Boutique vérifiée" (doré). hasPriorityValidation
+    // prépare le futur Pack Mansa (validation prioritaire), pas encore actif.
     const seller = await prisma.user.findUnique({
       where: { id: userId },
-      select: { isVerified: true, isShopVerified: true },
+      select: { isVerified: true, isShopVerified: true, hasPriorityValidation: true },
     });
     const isVendorVerified = !!(seller?.isVerified || seller?.isShopVerified);
-    const initialStatus = isVendorVerified ? 'ACTIVE' : 'PENDING_REVIEW';
+
+    // Modération IA (Gemini) — appelée AVANT la publication pour décider du statut
+    // initial. Ne bloque JAMAIS la publication : moderateAnnonce ne lève jamais
+    // d'exception et a son propre timeout ; si elle échoue/est indisponible,
+    // aiResult reste null et on retombe sur le comportement basé sur la
+    // vérification du vendeur (fail-open).
+    const categoryForAi = await prisma.category.findUnique({ where: { id: realCategoryId }, select: { nameFr: true } }).catch(() => null);
+    const aiResult = await moderateAnnonce({
+      title, description,
+      price: price ? parseFloat(price) : null,
+      currency: 'GNF',
+      categoryName: categoryForAi?.nameFr,
+    }).catch(() => null);
+
+    // OK → publication directe, peu importe la vérification du vendeur.
+    // RESERVE_ADULTES / SUSPECT / INTERDIT → toujours en attente de validation admin.
+    // aiResult null (Gemini indisponible/erreur) → statut basé sur la vérification du vendeur, comme avant.
+    let initialStatus: 'ACTIVE' | 'PENDING_REVIEW' = isVendorVerified ? 'ACTIVE' : 'PENDING_REVIEW';
+    let isAgeRestricted = false;
+    if (aiResult) {
+      if (aiResult.verdict === 'OK') {
+        initialStatus = 'ACTIVE';
+      } else {
+        initialStatus = 'PENDING_REVIEW';
+        isAgeRestricted = aiResult.verdict === 'RESERVE_ADULTES';
+      }
+    }
+    const priorityReview = !!seller?.hasPriorityValidation;
 
     const annonce = await prisma.annonce.create({
       data: {
@@ -214,6 +241,11 @@ export const createAnnonce = async (req: Request, res: Response) => {
         userId,
         cityId: realCityId,
         neighborhood, phone, whatsapp, expiresAt, slug, status: initialStatus,
+        isAgeRestricted, priorityReview,
+        aiVerdict: aiResult?.verdict ?? null,
+        aiReason: aiResult?.reason ?? null,
+        aiScore: aiResult?.score ?? null,
+        aiCheckedAt: aiResult ? new Date() : null,
         quantity: quantity ? parseInt(quantity) : null,
         condition: condition || null,
         listingType: listingType || null,
@@ -244,7 +276,9 @@ export const createAnnonce = async (req: Request, res: Response) => {
 
     const responseMessage = initialStatus === 'ACTIVE'
       ? 'Annonce publiée directement !'
-      : 'Annonce envoyée — en attente de validation par notre équipe.';
+      : isAgeRestricted
+        ? 'Annonce envoyée — les produits réservés aux adultes sont vérifiés avant publication.'
+        : 'Annonce envoyée — en attente de validation par notre équipe.';
     res.status(201).json({ message: responseMessage, data: annonce });
 
     // Notifications post-publication (non bloquantes)
@@ -297,60 +331,36 @@ export const createAnnonce = async (req: Request, res: Response) => {
       } catch { /* silent — don't fail the request */ }
     });
 
-    // Modération IA (Gemini) — non bloquante, ne retarde jamais la réponse envoyée
-    // ci-dessus. L'IA ne bloque JAMAIS définitivement une annonce : elle peut au
-    // pire la remettre en attente de validation admin, jamais la supprimer.
-    setImmediate(async () => {
-      try {
-        const result = await moderateAnnonce({
-          title: annonce.title,
-          description: annonce.description,
-          price: annonce.price,
-          currency: annonce.currency,
-          categoryName: (annonce as any).category?.nameFr,
-        });
-        if (!result) return; // Gemini indisponible / erreur / réponse invalide → on ne touche à rien
-
-        await prisma.annonce.update({
-          where: { id: annonce.id },
-          data: {
-            aiVerdict: result.verdict,
-            aiReason: result.reason,
-            aiScore: result.score,
-            aiCheckedAt: new Date(),
-          },
-        });
-
-        if (result.verdict === 'OK') return;
-
-        if (result.verdict === 'INTERDIT') {
-          // Force la mise en attente — dépublie même si le vendeur était vérifié.
-          await prisma.annonce.update({
-            where: { id: annonce.id },
-            data: { status: 'PENDING_REVIEW' },
+    // Alerte admin si l'IA a signalé l'annonce à la création (RESERVE_ADULTES /
+    // SUSPECT / INTERDIT) — non bloquant, l'annonce a déjà le bon statut ci-dessus.
+    if (aiResult && aiResult.verdict !== 'OK') {
+      setImmediate(async () => {
+        try {
+          const admins = await prisma.user.findMany({
+            where: { role: { in: ['ADMIN', 'SUPER_ADMIN'] } },
+            select: { id: true },
           });
-        }
-
-        const admins = await prisma.user.findMany({
-          where: { role: { in: ['ADMIN', 'SUPER_ADMIN'] } },
-          select: { id: true },
-        });
-        if (admins.length > 0) {
+          if (admins.length === 0) return;
+          const titleByVerdict: Record<string, string> = {
+            INTERDIT: '🚫 Annonce bloquée par l’IA',
+            RESERVE_ADULTES: '🔞 Annonce réservée aux adultes (IA)',
+            SUSPECT: '⚠️ Annonce suspecte (IA)',
+          };
           await prisma.notification.createMany({
             data: admins.map(a => ({
               userId: a.id,
               type: 'ANNONCE_AI_FLAGGED' as any,
-              title: result.verdict === 'INTERDIT' ? '🚫 Annonce bloquée par l’IA' : '⚠️ Annonce suspecte (IA)',
-              body: `"${annonce.title}" — ${result.reason}`,
-              data: { annonceId: annonce.id, slug: annonce.slug, verdict: result.verdict, score: result.score },
+              title: titleByVerdict[aiResult.verdict] || '⚠️ Annonce signalée (IA)',
+              body: `"${annonce.title}" — ${aiResult.reason}`,
+              data: { annonceId: annonce.id, slug: annonce.slug, verdict: aiResult.verdict, score: aiResult.score },
             })),
             skipDuplicates: true,
           });
+        } catch (e) {
+          console.error('[createAnnonce] Erreur notification admin IA (annonce non affectée) :', e);
         }
-      } catch (e) {
-        console.error('[createAnnonce] Erreur modération IA (annonce non affectée, publication normale) :', e);
-      }
-    });
+      });
+    }
   } catch (error) {
     console.error('Erreur createAnnonce:', error);
     res.status(500).json({ error: "Erreur lors de la création de l'annonce." });

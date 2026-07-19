@@ -47,6 +47,7 @@ export default function AnnonceDetailPage() {
   const [soldAt, setSoldAt] = useState('');
   const [markingSold, setMarkingSold] = useState(false);
   const [similar, setSimilar] = useState<any[]>([]);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, user } = useAuthStore();
@@ -60,6 +61,14 @@ export default function AnnonceDetailPage() {
       api.get(`/annonces/${annonce.id}/saved`).then(r => setSaved(r.data.saved)).catch(() => {});
     }
   }, [annonce?.id, isAuthenticated]);
+
+  // Confirmation d'âge (produits 18+) : une fois confirmée pour cette annonce,
+  // on ne redemande plus pendant la session du navigateur.
+  useEffect(() => {
+    if (annonce?.id && sessionStorage.getItem(`tt224-age-confirm-${annonce.id}`) === '1') {
+      setAgeConfirmed(true);
+    }
+  }, [annonce?.id]);
 
   // Enregistrer la visite et charger les annonces similaires
   useEffect(() => {
@@ -146,6 +155,43 @@ export default function AnnonceDetailPage() {
     return (
       <div className="min-h-screen bg-dark-50 flex items-center justify-center">
         <p className="text-dark-500">Annonce non trouvée</p>
+      </div>
+    );
+  }
+
+  /* ── Confirmation d'âge (produit réservé aux 18+) ─────────── */
+  if (annonce.isAgeRestricted && !ageConfirmed) {
+    return (
+      <div className="min-h-screen bg-dark-50">
+        <Navbar />
+        <div className="max-w-md mx-auto px-4 py-16">
+          <div className="bg-white rounded-2xl border border-dark-100 p-8 shadow-card text-center">
+            <div className="w-16 h-16 bg-dark-900 rounded-2xl flex items-center justify-center mx-auto mb-5">
+              <ShieldAlert size={28} className="text-white" />
+            </div>
+            <h1 className="font-display font-bold text-dark-900 text-xl mb-2">Contenu réservé aux adultes</h1>
+            <p className="text-dark-500 text-sm mb-6">
+              Ce produit est réservé aux adultes. Avez-vous 18 ans ou plus ?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => router.push('/')}
+                className="flex-1 py-3 rounded-xl border border-dark-200 text-dark-600 font-semibold hover:bg-dark-50 transition-colors"
+              >
+                Non
+              </button>
+              <button
+                onClick={() => {
+                  sessionStorage.setItem(`tt224-age-confirm-${annonce.id}`, '1');
+                  setAgeConfirmed(true);
+                }}
+                className="flex-1 py-3 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-semibold transition-colors"
+              >
+                Oui, 18 ans ou plus
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -392,12 +438,19 @@ export default function AnnonceDetailPage() {
                   </button>
                 </div>
 
-                {/* Badge premium */}
-                {annonce.isPremium && (
-                  <div className="absolute top-3 left-3">
-                    <span className="flex items-center gap-1 bg-gold-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md">
-                      <Star size={10} className="fill-white" /> À la une
-                    </span>
+                {/* Badges premium / 18+ */}
+                {(annonce.isPremium || annonce.isAgeRestricted) && (
+                  <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+                    {annonce.isPremium && (
+                      <span className="flex items-center gap-1 bg-gold-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md">
+                        <Star size={10} className="fill-white" /> À la une
+                      </span>
+                    )}
+                    {annonce.isAgeRestricted && (
+                      <span className="flex items-center gap-1 bg-dark-900 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md">
+                        <ShieldAlert size={10} /> 18+
+                      </span>
+                    )}
                   </div>
                 )}
 

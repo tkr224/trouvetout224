@@ -134,7 +134,7 @@ export default function AdminSignalementsIA() {
 
       {/* ── Bandeau info ───────────────────────────────────────────── */}
       <div className="bg-guinea-50 border border-guinea-200 rounded-2xl px-5 py-3 text-sm text-guinea-800">
-        L'IA (Gemini) analyse automatiquement chaque nouvelle annonce. Celles jugées <strong>Suspectes</strong> ou <strong>Interdites</strong> apparaissent ici.
+        L'IA (Gemini) analyse automatiquement chaque nouvelle annonce. Celles jugées <strong>Réservées aux 18+</strong>, <strong>Suspectes</strong> ou <strong>Interdites</strong> apparaissent ici.
         L'IA ne bloque jamais définitivement une annonce — c'est toujours toi qui décides.
       </div>
 

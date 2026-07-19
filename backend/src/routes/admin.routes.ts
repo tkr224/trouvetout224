@@ -202,10 +202,15 @@ router.get('/annonces', async (req, res) => {
     if (q) where.title = { contains: q as string, mode: 'insensitive' };
     const take = Math.min(parseInt(limit as string) || 20, 100);
     const skip = (parseInt(page as string) - 1) * take;
+    // File d'attente : les annonces des futurs abonnés Pack Mansa (validation
+    // prioritaire) remontent en premier, puis les plus anciennes en attente.
+    const orderBy = status === 'PENDING_REVIEW'
+      ? [{ priorityReview: 'desc' as const }, { createdAt: 'asc' as const }]
+      : { createdAt: 'desc' as const };
     const [annonces, total] = await Promise.all([
       prisma.annonce.findMany({
         where, skip, take,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         include: {
           user: { select: { id: true, firstName: true, lastName: true, email: true } },
           category: true,
@@ -225,7 +230,7 @@ router.get('/annonces', async (req, res) => {
 router.get('/annonces/signalees-ia/count', async (req, res) => {
   try {
     const count = await prisma.annonce.count({
-      where: { aiHandled: false, aiVerdict: { in: ['SUSPECT', 'INTERDIT'] } },
+      where: { aiHandled: false, aiVerdict: { in: ['RESERVE_ADULTES', 'SUSPECT', 'INTERDIT'] } },
     });
     res.json({ count });
   } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
@@ -236,7 +241,7 @@ router.get('/annonces/signalees-ia', async (req, res) => {
     const { page = '1', limit = '20' } = req.query;
     const take = Math.min(parseInt(limit as string) || 20, 100);
     const skip = (parseInt(page as string) - 1) * take;
-    const where = { aiHandled: false, aiVerdict: { in: ['SUSPECT', 'INTERDIT'] as any } };
+    const where = { aiHandled: false, aiVerdict: { in: ['RESERVE_ADULTES', 'SUSPECT', 'INTERDIT'] as any } };
     const [annonces, total] = await Promise.all([
       prisma.annonce.findMany({
         where, skip, take,

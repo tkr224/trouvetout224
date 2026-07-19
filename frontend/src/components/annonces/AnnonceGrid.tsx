@@ -1,12 +1,12 @@
 'use client';
 import Link from 'next/link';
-import { Heart, Eye, MapPin, BadgeCheck, ImageIcon, Star, Sparkles, Tag, ShieldCheck, CheckCircle2, Plus, PartyPopper } from 'lucide-react';
+import { Heart, Eye, MapPin, BadgeCheck, ImageIcon, Star, Sparkles, Tag, ShieldCheck, ShieldAlert, CheckCircle2, Plus, PartyPopper } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 interface Annonce {
   id: string; slug: string; title: string; price?: number; currency?: string;
-  promoPrice?: number; promoEndsAt?: string; status?: string;
+  promoPrice?: number; promoEndsAt?: string; status?: string; isAgeRestricted?: boolean;
   images: { url: string }[]; city: { name: string }; category: { nameFr: string; icon: string };
   viewCount: number; createdAt: string; isPremium: boolean; isPinned?: boolean; neighborhood?: string;
   user: { firstName: string; lastName: string; isVerified: boolean; isShopVerified?: boolean; createdAt?: string };
@@ -46,6 +46,11 @@ export function AnnonceCard({ annonce }: { annonce: Annonce }) {
           {promoActive && annonce.status !== 'SOLD' && (
             <div className="bg-guinea-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
               <Tag size={10} /> Promo
+            </div>
+          )}
+          {annonce.isAgeRestricted && (
+            <div className="bg-dark-900 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+              <ShieldAlert size={10} /> 18+
             </div>
           )}
         </div>
