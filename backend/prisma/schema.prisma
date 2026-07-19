@@ -65,6 +65,21 @@ model User {
   // Onboarding gamifié — "a consulté au moins une annonce" (tâche checklist).
   hasViewedAnnonce Boolean @default(false)
 
+  // Délai de sécurité sur les infos sensibles (voir backend/src/config/security.ts) :
+  // date du dernier changement, utilisée pour bloquer une re-modification trop rapprochée.
+  passwordChangedAt          DateTime?
+  emailChangedAt             DateTime?
+  phoneChangedAt             DateTime?
+  securityQuestionsChangedAt DateTime?
+
+  // Changement d'email en attente de confirmation (lien envoyé à la NOUVELLE adresse).
+  pendingEmail          String?
+  pendingEmailToken     String?   @unique
+  pendingEmailExpiresAt DateTime?
+
+  // Préférence d'affichage — taille du texte du site.
+  textSize TextSize @default(BASE)
+
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
 
@@ -305,6 +320,12 @@ enum AiVerdict {
   RESERVE_ADULTES
   SUSPECT
   INTERDIT
+}
+
+enum TextSize {
+  SM
+  BASE
+  LG
 }
 
 model SavedAnnonce {

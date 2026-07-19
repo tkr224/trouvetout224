@@ -97,6 +97,8 @@ const themeScript = `(function(){try{
   var validSpecial=['noel','ramadan','independence'];
   if(s&&validSpecial.includes(s)){document.documentElement.setAttribute('data-color',s)}
   else if(c&&validColors.includes(c)){document.documentElement.setAttribute('data-color',c)}
+  var size=localStorage.getItem('tt224-textsize');
+  if(size==='sm'||size==='lg'){document.documentElement.setAttribute('data-text-size',size)}
 }catch(e){}})();`;
 
 /* ── Données structurées JSON-LD (Google Search) ────────────────── */

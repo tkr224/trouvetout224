@@ -1,6 +1,7 @@
 'use client';
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { api } from '@/lib/api';
+import { useAuthStore } from '@/store/auth.store';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -114,10 +115,14 @@ export const SPECIAL_THEMES: {
   { id: 'independence', label: "Fête nationale 🇬🇳", emoji: '🦅', hex: '#1B8B3B', description: 'Tricolore guinéen · confettis patriotiques 🎊' },
 ];
 
+// ─── Taille du texte ──────────────────────────────────────────────────────────
+export type TextSize = 'sm' | 'base' | 'lg';
+
 // ─── Clés localStorage ────────────────────────────────────────────────────────
-const KEY_THEME   = 'tt224-theme';
-const KEY_COLOR   = 'tt224-color';
-const KEY_SPECIAL = 'tt224-special';
+const KEY_THEME     = 'tt224-theme';
+const KEY_COLOR     = 'tt224-color';
+const KEY_SPECIAL   = 'tt224-special';
+const KEY_TEXT_SIZE = 'tt224-textsize';
 
 // ─── Contexte ─────────────────────────────────────────────────────────────────
 
@@ -131,6 +136,8 @@ interface ThemeContextType {
   globalTheme: string | null;
   isThemeLocked: (themeId: string) => boolean;
   unlockedSpecialThemes: string[]; // thèmes spéciaux auxquels l'utilisateur a accès
+  textSize: TextSize;
+  setTextSize: (s: TextSize) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
@@ -140,6 +147,7 @@ const ThemeContext = createContext<ThemeContextType>({
   globalTheme: null,
   isThemeLocked: () => false,
   unlockedSpecialThemes: [],
+  textSize: 'base', setTextSize: () => {},
 });
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
@@ -150,21 +158,39 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [specialTheme, setSpecialThemeState] = useState<SpecialTheme>(null);
   const [globalTheme, setGlobalTheme]        = useState<string | null>(null);
   const [unlockedSpecialThemes, setUnlocked] = useState<string[]>([]);
+  const [textSize, setTextSizeState]         = useState<TextSize>('base');
+  const { isAuthenticated, _hasHydrated }    = useAuthStore();
 
   // ── 1. Lecture des préférences sauvegardées ─────────────────────────
   useEffect(() => {
     const storedTheme   = localStorage.getItem(KEY_THEME)   as Theme | null;
     const storedColor   = localStorage.getItem(KEY_COLOR)   as ColorAccent | null;
     const storedSpecial = localStorage.getItem(KEY_SPECIAL) as SpecialTheme | null;
+    const storedSize    = localStorage.getItem(KEY_TEXT_SIZE) as TextSize | null;
 
     const validThemes  = ['light', 'dark', 'system'];
     const validColors  = COLOR_THEMES.map(t => t.id);
     const validSpecial = [...SPECIAL_THEMES.map(t => t.id), null];
+    const validSizes   = ['sm', 'base', 'lg'];
 
     if (storedTheme   && validThemes.includes(storedTheme))   setThemeState(storedTheme);
     if (storedColor   && validColors.includes(storedColor))   setColorAccentState(storedColor);
     if (validSpecial.includes(storedSpecial))                  setSpecialThemeState(storedSpecial);
+    if (storedSize    && validSizes.includes(storedSize))      setTextSizeState(storedSize);
   }, []);
+
+  // ── 1b. Utilisateur connecté : la taille de texte sauvegardée en base fait
+  // autorité (permet de retrouver sa préférence sur un autre appareil/navigateur).
+  useEffect(() => {
+    if (!_hasHydrated || !isAuthenticated) return;
+    api.get('/users/me').then(r => {
+      const size = String(r.data?.data?.textSize || '').toLowerCase() as TextSize;
+      if (['sm', 'base', 'lg'].includes(size)) {
+        setTextSizeState(size);
+        localStorage.setItem(KEY_TEXT_SIZE, size);
+      }
+    }).catch(() => {});
+  }, [_hasHydrated, isAuthenticated]);
 
   // ── 2. Thème global + accès utilisateur (depuis l'API) ──────────────
   useEffect(() => {
@@ -220,6 +246,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [colorAccent, specialTheme]);
 
+  // ── 5. Application de la taille de texte ────────────────────────────
+  useEffect(() => {
+    document.documentElement.setAttribute('data-text-size', textSize);
+  }, [textSize]);
+
   // ── isThemeLocked : vérifie si un thème nécessite un accès ──────────
   const isThemeLocked = useCallback((themeId: string): boolean => {
     const colorTheme  = COLOR_THEMES.find(t => t.id === themeId);
@@ -255,6 +286,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Visiteurs : sauvegardé en local uniquement. Connectés : sauvegardé aussi en
+  // base (silencieux si ça échoue — la préférence reste appliquée localement).
+  const setTextSize = (s: TextSize) => {
+    setTextSizeState(s);
+    localStorage.setItem(KEY_TEXT_SIZE, s);
+    if (isAuthenticated) {
+      api.put('/users/me', { textSize: s.toUpperCase() }).catch(() => {});
+    }
+  };
+
   return (
     <ThemeContext.Provider value={{
       theme, setTheme,
@@ -263,6 +304,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       globalTheme,
       isThemeLocked,
       unlockedSpecialThemes,
+      textSize, setTextSize,
     }}>
       {children}
     </ThemeContext.Provider>

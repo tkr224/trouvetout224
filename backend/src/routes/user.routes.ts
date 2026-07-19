@@ -1,9 +1,12 @@
 // user.routes.ts
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { authenticate } from '../middleware/auth';
 import { prisma } from '../config/database';
 import { SECURITY_QUESTIONS, normalizeAnswer } from '../constants/securityQuestions';
+import { checkCooldown, cooldownMessage } from '../config/security';
+import { sendSecurityAlertEmail, sendEmailChangeConfirmation } from '../services/email.service';
 
 const router = Router();
 
@@ -138,9 +141,14 @@ router.get('/username-available', authenticate, async (req: any, res) => {
 // Mettre à jour mon profil
 router.put('/me', authenticate, async (req: any, res) => {
   try {
-    const { firstName, lastName, bio, cityId, avatar, banner, accountType, username } = req.body;
+    const { firstName, lastName, bio, cityId, avatar, banner, accountType, username, textSize } = req.body;
 
     const data: any = { firstName, lastName, bio, cityId, avatar, banner };
+
+    // Préférence d'affichage (pas sensible, pas de délai de sécurité)
+    if (textSize && ['SM', 'BASE', 'LG'].includes(textSize)) {
+      data.textSize = textSize;
+    }
 
     // Nom d'utilisateur : optionnel, mais unique et normalisé si fourni.
     if (typeof username === 'string' && username.trim() !== '') {
@@ -182,6 +190,119 @@ router.put('/me', authenticate, async (req: any, res) => {
   }
 });
 
+// Format attendu côté Guinée : 9 chiffres commençant par 6 (ex "620 00 00 00"),
+// stocké avec le préfixe international +224.
+const GUINEA_PHONE_REGEX = /^6\d{8}$/;
+
+// Ajouter ou modifier mon numéro de téléphone (sert au contact WhatsApp).
+// Protégé par le délai de sécurité si un numéro existait déjà (1ère saisie toujours libre).
+router.put('/me/phone', authenticate, async (req: any, res) => {
+  try {
+    const digits = String(req.body?.phone || '').replace(/\D/g, '').replace(/^224/, '');
+    if (!GUINEA_PHONE_REGEX.test(digits)) {
+      return res.status(400).json({ error: 'Numéro invalide. Format attendu : 6XX XX XX XX (9 chiffres, commence par 6).' });
+    }
+    const phone = `+224${digits}`;
+
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé.' });
+
+    if (phone === user.phone) {
+      return res.status(400).json({ error: 'Ce numéro est déjà le vôtre.' });
+    }
+
+    if (user.phone) {
+      const cooldown = checkCooldown(user.phoneChangedAt);
+      if (cooldown.blocked) {
+        return res.status(403).json({
+          error: cooldownMessage(cooldown.daysRemaining, cooldown.nextAllowedAt!),
+          code: 'COOLDOWN_ACTIVE',
+          nextAllowedAt: cooldown.nextAllowedAt,
+        });
+      }
+    }
+
+    const existing = await prisma.user.findUnique({ where: { phone } });
+    if (existing && existing.id !== req.userId) {
+      return res.status(409).json({ error: 'Ce numéro est déjà utilisé par un autre compte.' });
+    }
+
+    const hadPhoneBefore = !!user.phone;
+    await prisma.user.update({ where: { id: req.userId }, data: { phone, phoneChangedAt: new Date() } });
+
+    if (hadPhoneBefore && user.email) {
+      sendSecurityAlertEmail(user.email, user.firstName, 'numéro de téléphone').catch(e => console.log('Email alerte non envoyé:', e.message));
+    }
+
+    res.json({ message: 'Numéro de téléphone mis à jour.', data: { phone } });
+  } catch (error: any) {
+    if (error.code === 'P2002') return res.status(409).json({ error: 'Ce numéro est déjà utilisé par un autre compte.' });
+    console.error('Erreur PUT /me/phone:', error);
+    res.status(500).json({ error: 'Erreur.' });
+  }
+});
+
+// Demander un changement d'email : envoie un lien de confirmation à la NOUVELLE
+// adresse (le changement n'est effectif qu'après avoir cliqué dessus).
+router.put('/me/email', authenticate, async (req: any, res) => {
+  try {
+    const newEmail = String(req.body?.newEmail || '').toLowerCase().trim();
+    const { currentPassword } = req.body;
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+      return res.status(400).json({ error: 'Adresse email invalide.' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé.' });
+
+    if (user.password) {
+      const isValid = currentPassword && (await bcrypt.compare(currentPassword, user.password));
+      if (!isValid) return res.status(400).json({ error: 'Mot de passe actuel incorrect.' });
+    }
+
+    if (newEmail === user.email?.toLowerCase()) {
+      return res.status(400).json({ error: 'Cette adresse est déjà la vôtre.' });
+    }
+
+    if (user.email) {
+      const cooldown = checkCooldown(user.emailChangedAt);
+      if (cooldown.blocked) {
+        return res.status(403).json({
+          error: cooldownMessage(cooldown.daysRemaining, cooldown.nextAllowedAt!),
+          code: 'COOLDOWN_ACTIVE',
+          nextAllowedAt: cooldown.nextAllowedAt,
+        });
+      }
+    }
+
+    const takenByOther = await prisma.user.findFirst({
+      where: { email: { equals: newEmail, mode: 'insensitive' }, id: { not: req.userId } },
+    });
+    if (takenByOther) {
+      return res.status(409).json({ error: 'Cette adresse email est déjà utilisée par un autre compte.' });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    await prisma.user.update({
+      where: { id: req.userId },
+      data: {
+        pendingEmail: newEmail,
+        pendingEmailToken: token,
+        pendingEmailExpiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1h
+      },
+    });
+
+    const confirmUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/confirmer-email?token=${token}`;
+    sendEmailChangeConfirmation(newEmail, user.firstName, confirmUrl).catch(e => console.log('Email non envoyé:', e.message));
+
+    res.json({ message: `Un lien de confirmation a été envoyé à ${newEmail}. Cliquez dessus pour valider le changement.` });
+  } catch (error) {
+    console.error('Erreur PUT /me/email:', error);
+    res.status(500).json({ error: 'Erreur.' });
+  }
+});
+
 // Mes questions de sécurité configurées (jamais les réponses — juste question + label)
 router.get('/me/security-questions', authenticate, async (req: any, res) => {
   try {
@@ -204,6 +325,24 @@ router.put('/me/security-questions', authenticate, async (req: any, res) => {
     const items = req.body?.questions;
     if (!Array.isArray(items) || items.length < 2 || items.length > 3) {
       return res.status(400).json({ error: 'Choisissez entre 2 et 3 questions de sécurité.' });
+    }
+
+    const me = await prisma.user.findUnique({
+      where: { id: req.userId },
+      select: { email: true, firstName: true, securityQuestionsChangedAt: true, _count: { select: { securityQuestions: true } } },
+    });
+    if (!me) return res.status(404).json({ error: 'Utilisateur non trouvé.' });
+
+    // Délai de sécurité seulement si des questions étaient déjà configurées (1ère config toujours libre).
+    if (me._count.securityQuestions > 0) {
+      const cooldown = checkCooldown(me.securityQuestionsChangedAt);
+      if (cooldown.blocked) {
+        return res.status(403).json({
+          error: cooldownMessage(cooldown.daysRemaining, cooldown.nextAllowedAt!),
+          code: 'COOLDOWN_ACTIVE',
+          nextAllowedAt: cooldown.nextAllowedAt,
+        });
+      }
     }
 
     const seen = new Set<string>();
@@ -234,9 +373,13 @@ router.put('/me/security-questions', authenticate, async (req: any, res) => {
       }),
       prisma.user.update({
         where: { id: req.userId },
-        data: { securityQuestionsFailedAttempts: 0, securityQuestionsLockedUntil: null },
+        data: { securityQuestionsFailedAttempts: 0, securityQuestionsLockedUntil: null, securityQuestionsChangedAt: new Date() },
       }),
     ]);
+
+    if (me.email) {
+      sendSecurityAlertEmail(me.email, me.firstName, 'questions de sécurité').catch(e => console.log('Email alerte non envoyé:', e.message));
+    }
 
     res.json({ message: 'Questions de sécurité enregistrées.' });
   } catch { res.status(500).json({ error: "Erreur lors de l'enregistrement." }); }

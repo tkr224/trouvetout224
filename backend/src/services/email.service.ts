@@ -125,6 +125,65 @@ export const sendResetPasswordEmail = async (email: string, firstName: string, r
   });
 };
 
+// Alerte de sécurité envoyée quand une info sensible du compte est modifiée
+// (email, mot de passe, téléphone, questions de sécurité). actionLabel ex :
+// "mot de passe", "adresse email", "numéro de téléphone", "questions de sécurité".
+export const sendSecurityAlertEmail = async (email: string, firstName: string, actionLabel: string) => {
+  const when = new Date().toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
+  await sendEmail({
+    to: email,
+    subject: `Alerte sécurité : ${actionLabel} modifié — TrouveTout224`,
+    html: wrapEmailHtml(`
+      <div style="font-family: Arial, Helvetica, sans-serif; padding: 20px;">
+        <div style="background: #CE1126; padding: 20px; border-radius: 8px; text-align: center;">
+          <h1 style="color: white; margin: 0;">🇬🇳 TrouveTout224</h1>
+        </div>
+        <div style="padding: 30px; background: #f9f9f9; border-radius: 8px; margin-top: 10px;">
+          <h2 style="color: #CE1126;">Bonjour ${firstName},</h2>
+          <p>Votre <strong>${actionLabel}</strong> vient d'être modifié sur votre compte TrouveTout224, le ${when}.</p>
+          <p>Si c'est bien vous, vous n'avez rien à faire.</p>
+          <p><strong>Si ce n'est pas vous</strong>, contactez-nous immédiatement :</p>
+          <ul style="color: #374151;">
+            <li>WhatsApp : <a href="https://wa.me/224627543486" style="color: #CE1126;">+224 627 54 34 86</a></li>
+            <li>Email : contact.trouvetout224@gmail.com</li>
+          </ul>
+        </div>
+        <p style="color: #999; text-align: center; margin-top: 20px; font-size: 12px;">
+          © 2024 TrouveTout224 | Conakry, Guinée
+        </p>
+      </div>
+    `),
+  });
+};
+
+// Lien de confirmation envoyé à la NOUVELLE adresse email lors d'un changement d'email.
+export const sendEmailChangeConfirmation = async (email: string, firstName: string, confirmUrl: string) => {
+  await sendEmail({
+    to: email,
+    subject: 'Confirmez votre nouvelle adresse email — TrouveTout224',
+    html: wrapEmailHtml(`
+      <div style="font-family: Arial, Helvetica, sans-serif; padding: 20px;">
+        <div style="background: #1B8B3B; padding: 20px; border-radius: 8px; text-align: center;">
+          <h1 style="color: white; margin: 0;">🇬🇳 TrouveTout224</h1>
+        </div>
+        <div style="padding: 30px; background: #f9f9f9; border-radius: 8px; margin-top: 10px;">
+          <h2 style="color: #1B8B3B;">Bonjour ${firstName},</h2>
+          <p>Vous avez demandé à utiliser cette adresse comme nouvel email de connexion sur TrouveTout224.</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${confirmUrl}" style="background: #1B8B3B; color: white; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+              Confirmer cette adresse →
+            </a>
+          </div>
+          <p style="color: #6b7280; font-size: 13px;">Ce lien expire dans 1 heure. Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet email — votre adresse actuelle restera inchangée.</p>
+        </div>
+        <p style="color: #999; text-align: center; margin-top: 20px; font-size: 12px;">
+          © 2024 TrouveTout224 | Conakry, Guinée
+        </p>
+      </div>
+    `),
+  });
+};
+
 export const sendVerificationEmail = async (email: string, firstName: string, verifyUrl: string) => {
   await sendEmail({
     to: email,

@@ -5,9 +5,10 @@ import crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '../config/database';
 import { generateTokens, verifyRefreshToken } from '../utils/tokens';
-import { sendVerificationEmail, sendResetPasswordEmail } from '../services/email.service';
+import { sendVerificationEmail, sendResetPasswordEmail, sendSecurityAlertEmail } from '../services/email.service';
 import { v4 as uuidv4 } from 'uuid';
 import { SECURITY_QUESTIONS, normalizeAnswer } from '../constants/securityQuestions';
+import { checkCooldown, cooldownMessage } from '../config/security';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -330,14 +331,27 @@ export const changePassword = async (req: Request, res: Response) => {
       // Compte avec mot de passe existant : le mot de passe actuel est obligatoire.
       const isValid = currentPassword && (await bcrypt.compare(currentPassword, user.password));
       if (!isValid) return res.status(400).json({ error: 'Mot de passe actuel incorrect.' });
+
+      // Délai de sécurité : pas de re-changement trop rapproché (1ère définition toujours libre).
+      const cooldown = checkCooldown(user.passwordChangedAt);
+      if (cooldown.blocked) {
+        return res.status(403).json({
+          error: cooldownMessage(cooldown.daysRemaining, cooldown.nextAllowedAt!),
+          code: 'COOLDOWN_ACTIVE',
+          nextAllowedAt: cooldown.nextAllowedAt,
+        });
+      }
     }
     // Sinon (compte créé via Google/Facebook, sans mot de passe) : on autorise à en définir un directement.
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
-    await prisma.user.update({ where: { id: userId }, data: { password: hashedPassword } });
+    await prisma.user.update({ where: { id: userId }, data: { password: hashedPassword, passwordChangedAt: new Date() } });
     // Ne coupe les autres sessions que si un mot de passe existait déjà (changement, pas 1ère création)
     if (user.password) {
       await prisma.refreshToken.deleteMany({ where: { userId } });
+      if (user.email) {
+        sendSecurityAlertEmail(user.email, user.firstName, 'mot de passe').catch(e => console.log('Email alerte non envoyé:', e.message));
+      }
     }
 
     res.json({ message: user.password ? 'Mot de passe modifié avec succès.' : 'Mot de passe défini avec succès.' });
@@ -401,10 +415,16 @@ export const resetPassword = async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(newPassword, 12);
     await prisma.user.update({
       where: { id: user.id },
-      data: { password: hashedPassword, resetToken: null, resetTokenExpiresAt: null },
+      // Le délai de sécurité n'est JAMAIS vérifié ici : c'est le flux légitime de
+      // récupération de compte (token reçu par email), il ne doit jamais être bloqué.
+      // On met quand même à jour passwordChangedAt pour protéger les changements suivants.
+      data: { password: hashedPassword, resetToken: null, resetTokenExpiresAt: null, passwordChangedAt: new Date() },
     });
     // Coupe toutes les sessions existantes par sécurité (si le compte a été compromis)
     await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+    if (user.email) {
+      sendSecurityAlertEmail(user.email, user.firstName, 'mot de passe').catch(e => console.log('Email alerte non envoyé:', e.message));
+    }
 
     res.json({ message: 'Mot de passe réinitialisé avec succès. Vous pouvez vous connecter.' });
   } catch (error) {
@@ -440,6 +460,54 @@ export const verifyEmail = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Erreur verifyEmail:', error);
     res.status(500).json({ error: 'Erreur lors de la vérification.' });
+  }
+};
+
+// ============================
+// CONFIRMER UN CHANGEMENT D'EMAIL (lien envoyé à la nouvelle adresse, valable 1h)
+// ============================
+export const confirmEmailChange = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ error: 'Token requis.' });
+
+    const user = await prisma.user.findFirst({ where: { pendingEmailToken: token } });
+    if (!user || !user.pendingEmail) return res.status(400).json({ error: 'Ce lien est invalide.' });
+    if (!user.pendingEmailExpiresAt || user.pendingEmailExpiresAt < new Date()) {
+      return res.status(400).json({ error: 'Ce lien a expiré. Refaites une demande depuis vos paramètres.', expired: true });
+    }
+
+    // Sécurité : vérifie qu'aucun autre compte n'a pris cette adresse entre-temps.
+    const takenByOther = await prisma.user.findFirst({
+      where: { email: { equals: user.pendingEmail, mode: 'insensitive' }, id: { not: user.id } },
+    });
+    if (takenByOther) {
+      return res.status(409).json({ error: 'Cette adresse a été prise entre-temps par un autre compte. Refaites une demande.' });
+    }
+
+    const oldEmail = user.email;
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        email: user.pendingEmail,
+        emailVerified: true,
+        emailChangedAt: new Date(),
+        pendingEmail: null,
+        pendingEmailToken: null,
+        pendingEmailExpiresAt: null,
+      },
+    });
+
+    // Alerte envoyée à l'ANCIENNE adresse — c'est elle qui doit être prévenue en cas de piratage.
+    if (oldEmail) {
+      sendSecurityAlertEmail(oldEmail, user.firstName, 'adresse email').catch(e => console.log('Email alerte non envoyé:', e.message));
+    }
+
+    res.json({ message: 'Votre email a été mis à jour avec succès !' });
+  } catch (error) {
+    console.error('Erreur confirmEmailChange:', error);
+    res.status(500).json({ error: 'Erreur lors de la confirmation.' });
   }
 };
 

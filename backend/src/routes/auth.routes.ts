@@ -14,6 +14,7 @@ import {
   forgotPassword,
   resetPassword,
   verifyEmail,
+  confirmEmailChange,
   resendVerificationEmail,
   getSecurityQuestionsList,
   startSecurityQuestionRecovery,
@@ -116,6 +117,13 @@ router.post(
   [body('token').notEmpty().withMessage('Token requis.')],
   validate,
   verifyEmail
+);
+
+router.post(
+  '/confirm-email-change',
+  [body('token').notEmpty().withMessage('Token requis.')],
+  validate,
+  confirmEmailChange
 );
 
 // Liste publique des questions de sécurité proposées

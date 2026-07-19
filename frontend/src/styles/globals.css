@@ -33,7 +33,14 @@
   --p-700:  27 139  59;
   --p-800:  22 101  52;
   --p-900:  20  83  45;
+
+  /* Taille de texte (réglage Apparence) — hérite dans tout le site via rem */
+  --base-font-size: 16px;
 }
+
+html[data-text-size="sm"] { --base-font-size: 14px; }
+html[data-text-size="lg"] { --base-font-size: 18px; }
+html { font-size: var(--base-font-size); }
 
 /* ── Thème Bleu Océan ──────────────────────────────────────────────── */
 :root[data-color="blue"] {

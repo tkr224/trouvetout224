@@ -9,7 +9,7 @@ import {
   User, Lock, Bell, Shield, Globe, HelpCircle, FileText, Info, LogOut,
   Settings, CheckCircle, ArrowRight, Mail, CreditCard, ShieldCheck, Link2,
   Palette, Sun, Moon, Monitor, Eye, EyeOff, Loader2, KeyRound,
-  Camera, AtSign, XCircle, Phone,
+  Camera, AtSign, XCircle, Phone, Type, Clock,
 } from 'lucide-react';
 import { useTheme, COLOR_THEMES, SPECIAL_THEMES } from '@/components/providers/ThemeProvider';
 import Link from 'next/link';
@@ -48,10 +48,24 @@ const LANGS = [
 
 const PROTECTED_TABS = ['profil', 'securite', 'notifications', 'confidentialite'];
 
+// Doit correspondre à SENSITIVE_CHANGE_COOLDOWN_DAYS côté backend
+// (backend/src/config/security.ts) — purement informatif ici, le backend reste
+// la seule source de vérité qui bloque réellement la requête.
+const COOLDOWN_DAYS = 7;
+
+function cooldownInfo(changedAt?: string | null): { days: number; dateStr: string } | null {
+  if (!changedAt) return null;
+  const next = new Date(new Date(changedAt).getTime() + COOLDOWN_DAYS * 24 * 60 * 60 * 1000);
+  if (next.getTime() <= Date.now()) return null;
+  const days = Math.max(1, Math.ceil((next.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
+  const dateStr = next.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  return { days, dateStr };
+}
+
 export default function ParametresPage() {
   const { user, logout, isAuthenticated, _hasHydrated, setUser } = useAuthStore();
   const loggedIn = _hasHydrated && isAuthenticated && !!user;
-  const { theme, setTheme, colorAccent, setColorAccent, specialTheme, setSpecialTheme, isThemeLocked } = useTheme();
+  const { theme, setTheme, colorAccent, setColorAccent, specialTheme, setSpecialTheme, isThemeLocked, textSize, setTextSize } = useTheme();
   const [tab, setTab] = useState('profil');
 
   // Si l'utilisateur non connecté arrive sur un onglet protégé, rediriger vers Apparence
@@ -89,6 +103,16 @@ export default function ParametresPage() {
   ]);
   const [sqSaving, setSqSaving]         = useState(false);
   const [sqError, setSqError]           = useState('');
+  // Téléphone (ajout/modification)
+  const [phoneInput, setPhoneInput]     = useState('');
+  const [phoneSaving, setPhoneSaving]   = useState(false);
+  const [phoneError, setPhoneError]     = useState('');
+  // Changement d'email
+  const [newEmailInput, setNewEmailInput] = useState('');
+  const [emailPwd, setEmailPwd]           = useState('');
+  const [emailChangeLoading, setEmailChangeLoading] = useState(false);
+  const [emailChangeError, setEmailChangeError]     = useState('');
+  const [emailChangeSent, setEmailChangeSent]       = useState(false);
   const [notifMsg, setNotifMsg]         = useState(true);
   const [notifAnnonce, setNotifAnnonce] = useState(true);
   const [notifVue, setNotifVue]         = useState(false);
@@ -283,12 +307,55 @@ export default function ParametresPage() {
     }
   };
 
+  const savePhone = async () => {
+    setPhoneError('');
+    if (!/^6\d{8}$/.test(phoneInput)) {
+      setPhoneError('Numéro invalide. Format attendu : 6XX XX XX XX (9 chiffres, commence par 6).');
+      return;
+    }
+    setPhoneSaving(true);
+    try {
+      const { data } = await api.put('/users/me/phone', { phone: phoneInput });
+      setMeData((m: any) => ({ ...m, phone: data.data.phone, phoneChangedAt: new Date().toISOString() }));
+      setPhoneInput('');
+      toast.success('Numéro de téléphone mis à jour !');
+    } catch (e: any) {
+      setPhoneError(e.response?.data?.error || 'Erreur lors de la mise à jour.');
+    } finally {
+      setPhoneSaving(false);
+    }
+  };
+
+  const requestEmailChange = async () => {
+    setEmailChangeError('');
+    const trimmed = newEmailInput.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setEmailChangeError('Adresse email invalide.');
+      return;
+    }
+    setEmailChangeLoading(true);
+    try {
+      const { data } = await api.put('/users/me/email', { newEmail: trimmed, currentPassword: emailPwd || undefined });
+      toast.success(data.message || 'Lien de confirmation envoyé !');
+      setEmailChangeSent(true);
+    } catch (e: any) {
+      setEmailChangeError(e.response?.data?.error || 'Erreur lors de la demande.');
+    } finally {
+      setEmailChangeLoading(false);
+    }
+  };
+
   // Purement visuel — le clic est géré par la ligne entière qui l'entoure (cible tactile ≥ 44px)
   const Toggle = ({ value }: { value: boolean }) => (
     <span aria-hidden className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${value ? 'bg-primary-700' : 'bg-dark-300'}`}>
       <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${value ? 'translate-x-5' : 'translate-x-0.5'}`} />
     </span>
   );
+
+  const phoneCooldown = cooldownInfo(meData?.phoneChangedAt);
+  const emailCooldown = cooldownInfo(meData?.emailChangedAt);
+  const pwdCooldown   = cooldownInfo(meData?.passwordChangedAt);
+  const sqCooldown    = cooldownInfo(meData?.securityQuestionsChangedAt);
 
   return (
     <div className="min-h-screen bg-dark-50">
@@ -491,28 +558,60 @@ export default function ParametresPage() {
                     placeholder="Parlez de vous en quelques mots..." className="input resize-none" />
                 </div>
 
-                {/* Infos existantes : email, téléphone (non modifiables ici), ville */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
-                      <Mail size={13} className="text-dark-400" /> Email
-                    </label>
-                    <input
-                      value={meData?.email || 'Non renseigné'}
-                      disabled
-                      className="input bg-dark-50 text-dark-500 cursor-not-allowed"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
-                      <Phone size={13} className="text-dark-400" /> Téléphone
-                    </label>
-                    <input
-                      value={meData?.phone || 'Non renseigné'}
-                      disabled
-                      className="input bg-dark-50 text-dark-500 cursor-not-allowed"
-                    />
-                  </div>
+                {/* Email (lecture seule ici — le changement se fait dans l'onglet Sécurité) */}
+                <div>
+                  <label className="text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
+                    <Mail size={13} className="text-dark-400" /> Email
+                  </label>
+                  <input
+                    value={meData?.email || 'Non renseigné'}
+                    disabled
+                    className="input bg-dark-50 text-dark-500 cursor-not-allowed"
+                  />
+                  <p className="text-xs text-dark-400 mt-1">
+                    Pour changer d&apos;adresse email, rendez-vous dans l&apos;onglet <strong>Sécurité &amp; Mot de passe</strong>.
+                  </p>
+                </div>
+
+                {/* Téléphone — ajout/modification directe, sert au contact WhatsApp */}
+                <div>
+                  <label className="text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
+                    <Phone size={13} className="text-dark-400" /> Téléphone
+                  </label>
+                  <p className="text-xs text-dark-500 mb-2">Ce numéro sert au contact WhatsApp sur vos annonces.</p>
+
+                  {phoneCooldown ? (
+                    <>
+                      <input value={meData?.phone || ''} disabled className="input bg-dark-50 text-dark-500 cursor-not-allowed" />
+                      <p className="text-xs text-gold-700 bg-gold-50 border border-gold-200 rounded-xl px-3 py-2 mt-2 flex items-center gap-1.5">
+                        <Clock size={12} className="shrink-0" /> Modifiable dans {phoneCooldown.days} jour{phoneCooldown.days > 1 ? 's' : ''} (le {phoneCooldown.dateStr}).
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      {meData?.phone && (
+                        <p className="text-sm text-dark-600 mb-2">Numéro actuel : <strong>{meData.phone}</strong></p>
+                      )}
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-dark-400 text-sm font-semibold pointer-events-none">+224</span>
+                        <input
+                          value={phoneInput}
+                          onChange={e => setPhoneInput(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                          placeholder="620 00 00 00"
+                          className="input pl-14"
+                        />
+                      </div>
+                      {phoneError && <p className="text-xs text-guinea-600 mt-1.5">{phoneError}</p>}
+                      <button
+                        onClick={savePhone}
+                        disabled={phoneSaving || phoneInput.length !== 9}
+                        className="mt-2 text-primary-700 text-sm font-semibold hover:underline disabled:opacity-50 disabled:no-underline flex items-center gap-1.5"
+                      >
+                        {phoneSaving && <Loader2 size={13} className="animate-spin" />}
+                        {meData?.phone ? 'Mettre à jour le numéro' : 'Ajouter mon numéro'}
+                      </button>
+                    </>
+                  )}
                 </div>
 
                 <div>
@@ -554,78 +653,87 @@ export default function ParametresPage() {
                       </p>
                     )}
 
-                    {hasPassword && (
-                      <div>
-                        <label className="block text-sm font-semibold text-dark-700 mb-1.5">Mot de passe actuel</label>
-                        <div className="relative">
+                    {hasPassword && pwdCooldown ? (
+                      <p className="text-sm text-gold-700 bg-gold-50 border border-gold-200 rounded-xl px-4 py-3 flex items-center gap-2">
+                        <Clock size={14} className="shrink-0" />
+                        Pour votre sécurité, vous pourrez modifier à nouveau votre mot de passe dans {pwdCooldown.days} jour{pwdCooldown.days > 1 ? 's' : ''} (le {pwdCooldown.dateStr}).
+                      </p>
+                    ) : (
+                      <>
+                        {hasPassword && (
+                          <div>
+                            <label className="block text-sm font-semibold text-dark-700 mb-1.5">Mot de passe actuel</label>
+                            <div className="relative">
+                              <input
+                                type={showPwdFields ? 'text' : 'password'}
+                                value={currentPwd}
+                                onChange={e => setCurrentPwd(e.target.value)}
+                                placeholder="••••••••"
+                                className="input pr-11" />
+                              <button type="button" tabIndex={-1} onClick={() => setShowPwdFields(v => !v)}
+                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-600">
+                                {showPwdFields ? <EyeOff size={16} /> : <Eye size={16} />}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        <div>
+                          <label className="block text-sm font-semibold text-dark-700 mb-1.5">Nouveau mot de passe</label>
+                          <div className="relative">
+                            <input
+                              type={showPwdFields ? 'text' : 'password'}
+                              value={newPwd}
+                              onChange={e => setNewPwd(e.target.value)}
+                              placeholder="Minimum 8 caractères"
+                              className="input pr-11" />
+                            <button type="button" tabIndex={-1} onClick={() => setShowPwdFields(v => !v)}
+                              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-600">
+                              {showPwdFields ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                          </div>
+                          {newPwd && (
+                            <div className="mt-2">
+                              <div className="flex gap-1 mb-1.5">
+                                {[0, 1, 2, 3].map(i => (
+                                  <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${
+                                    i < pwdScore
+                                      ? ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-primary-500'][pwdScore - 1]
+                                      : 'bg-dark-200'
+                                  }`} />
+                                ))}
+                              </div>
+                              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+                                {pwdCriteriaState.map((c, i) => (
+                                  <span key={i} className={`flex items-center gap-1 text-[11px] font-medium ${c.met ? 'text-primary-600' : 'text-dark-400'}`}>
+                                    <CheckCircle size={10} className={c.met ? 'text-primary-500' : 'text-dark-300'} /> {c.text}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-dark-700 mb-1.5">Confirmer le nouveau mot de passe</label>
                           <input
                             type={showPwdFields ? 'text' : 'password'}
-                            value={currentPwd}
-                            onChange={e => setCurrentPwd(e.target.value)}
-                            placeholder="••••••••"
-                            className="input pr-11" />
-                          <button type="button" tabIndex={-1} onClick={() => setShowPwdFields(v => !v)}
-                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-600">
-                            {showPwdFields ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
+                            value={confirmPwd}
+                            onChange={e => setConfirmPwd(e.target.value)}
+                            placeholder="Retapez le nouveau mot de passe"
+                            className="input" />
                         </div>
-                      </div>
-                    )}
 
-                    <div>
-                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Nouveau mot de passe</label>
-                      <div className="relative">
-                        <input
-                          type={showPwdFields ? 'text' : 'password'}
-                          value={newPwd}
-                          onChange={e => setNewPwd(e.target.value)}
-                          placeholder="Minimum 8 caractères"
-                          className="input pr-11" />
-                        <button type="button" tabIndex={-1} onClick={() => setShowPwdFields(v => !v)}
-                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-600">
-                          {showPwdFields ? <EyeOff size={16} /> : <Eye size={16} />}
+                        {pwdError && (
+                          <p className="text-sm text-guinea-600 bg-guinea-50 rounded-xl px-4 py-3">{pwdError}</p>
+                        )}
+
+                        <button onClick={changePwd} disabled={pwdLoading} className="btn-primary px-8 flex items-center gap-2 disabled:opacity-60">
+                          {pwdLoading && <Loader2 size={15} className="animate-spin" />}
+                          {hasPassword ? 'Changer le mot de passe' : 'Définir le mot de passe'}
                         </button>
-                      </div>
-                      {newPwd && (
-                        <div className="mt-2">
-                          <div className="flex gap-1 mb-1.5">
-                            {[0, 1, 2, 3].map(i => (
-                              <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${
-                                i < pwdScore
-                                  ? ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-primary-500'][pwdScore - 1]
-                                  : 'bg-dark-200'
-                              }`} />
-                            ))}
-                          </div>
-                          <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
-                            {pwdCriteriaState.map((c, i) => (
-                              <span key={i} className={`flex items-center gap-1 text-[11px] font-medium ${c.met ? 'text-primary-600' : 'text-dark-400'}`}>
-                                <CheckCircle size={10} className={c.met ? 'text-primary-500' : 'text-dark-300'} /> {c.text}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Confirmer le nouveau mot de passe</label>
-                      <input
-                        type={showPwdFields ? 'text' : 'password'}
-                        value={confirmPwd}
-                        onChange={e => setConfirmPwd(e.target.value)}
-                        placeholder="Retapez le nouveau mot de passe"
-                        className="input" />
-                    </div>
-
-                    {pwdError && (
-                      <p className="text-sm text-guinea-600 bg-guinea-50 rounded-xl px-4 py-3">{pwdError}</p>
+                      </>
                     )}
-
-                    <button onClick={changePwd} disabled={pwdLoading} className="btn-primary px-8 flex items-center gap-2 disabled:opacity-60">
-                      {pwdLoading && <Loader2 size={15} className="animate-spin" />}
-                      {hasPassword ? 'Changer le mot de passe' : 'Définir le mot de passe'}
-                    </button>
 
                     {hasPassword && (
                       <Link href="/auth/mot-de-passe-oublie" className="block text-sm text-primary-700 hover:underline pt-1">
@@ -634,6 +742,66 @@ export default function ParametresPage() {
                     )}
                   </>
                 )}
+
+                {/* ── Adresse email ── */}
+                <div className="pt-6 mt-6 border-t border-dark-100">
+                  <h3 className="font-semibold text-dark-900 flex items-center gap-2 mb-1">
+                    <Mail size={16} className="text-primary-700" /> Adresse email
+                  </h3>
+                  <p className="text-dark-500 text-sm mb-4">
+                    {meData?.email ? <>Email actuel : <strong>{meData.email}</strong></> : "Vous n'avez pas encore d'adresse email."}
+                  </p>
+
+                  {emailCooldown ? (
+                    <p className="text-sm text-gold-700 bg-gold-50 border border-gold-200 rounded-xl px-4 py-3 flex items-center gap-2">
+                      <Clock size={14} className="shrink-0" />
+                      Modifiable dans {emailCooldown.days} jour{emailCooldown.days > 1 ? 's' : ''} (le {emailCooldown.dateStr}).
+                    </p>
+                  ) : emailChangeSent ? (
+                    <p className="text-sm text-primary-700 bg-primary-50 border border-primary-200 rounded-xl px-4 py-3">
+                      Un lien de confirmation a été envoyé à <strong>{newEmailInput.trim()}</strong>. Cliquez dessus pour valider le changement.
+                    </p>
+                  ) : (
+                    <div className="space-y-3 max-w-md">
+                      <div>
+                        <label className="block text-sm font-semibold text-dark-700 mb-1.5">Nouvelle adresse email</label>
+                        <input
+                          type="email"
+                          value={newEmailInput}
+                          onChange={e => setNewEmailInput(e.target.value)}
+                          placeholder="nouvel-email@exemple.com"
+                          className="input"
+                        />
+                      </div>
+                      {hasPassword && (
+                        <div>
+                          <label className="block text-sm font-semibold text-dark-700 mb-1.5">Mot de passe actuel</label>
+                          <input
+                            type="password"
+                            value={emailPwd}
+                            onChange={e => setEmailPwd(e.target.value)}
+                            placeholder="••••••••"
+                            className="input"
+                          />
+                        </div>
+                      )}
+                      {emailChangeError && (
+                        <p className="text-sm text-guinea-600 bg-guinea-50 rounded-xl px-4 py-3">{emailChangeError}</p>
+                      )}
+                      <button
+                        onClick={requestEmailChange}
+                        disabled={emailChangeLoading || !newEmailInput.trim()}
+                        className="btn-primary px-6 flex items-center gap-2 disabled:opacity-60"
+                      >
+                        {emailChangeLoading && <Loader2 size={15} className="animate-spin" />}
+                        {meData?.email ? "Changer d'adresse" : 'Ajouter un email'}
+                      </button>
+                      <p className="text-xs text-dark-400">
+                        Un lien de confirmation sera envoyé à la nouvelle adresse — le changement n&apos;est effectif qu&apos;après avoir cliqué dessus.
+                      </p>
+                    </div>
+                  )}
+                </div>
 
                 {/* ── Questions de sécurité ── */}
                 <div className="pt-6 mt-6 border-t border-dark-100">
@@ -656,9 +824,15 @@ export default function ParametresPage() {
                         <ul className="text-dark-600 text-sm space-y-1 mb-3 list-disc list-inside">
                           {sqConfigured.map(q => <li key={q.questionId}>{q.label}</li>)}
                         </ul>
-                        <button onClick={startEditSq} className="text-primary-700 text-sm font-semibold hover:underline">
-                          Modifier mes questions de sécurité
-                        </button>
+                        {sqCooldown ? (
+                          <p className="text-xs text-gold-700 bg-gold-50 border border-gold-200 rounded-xl px-3 py-2 flex items-center gap-1.5">
+                            <Clock size={12} className="shrink-0" /> Modifiable dans {sqCooldown.days} jour{sqCooldown.days > 1 ? 's' : ''} (le {sqCooldown.dateStr}).
+                          </p>
+                        ) : (
+                          <button onClick={startEditSq} className="text-primary-700 text-sm font-semibold hover:underline">
+                            Modifier mes questions de sécurité
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <div className="bg-gold-50 border border-gold-200 rounded-2xl p-4 flex items-start gap-3">
@@ -791,6 +965,33 @@ export default function ParametresPage() {
                           <p className={`font-semibold text-sm ${active ? 'text-primary-700' : 'text-dark-700'}`}>{opt.label}</p>
                           <p className="text-dark-400 text-xs text-center leading-tight">{opt.desc}</p>
                           {active && <CheckCircle size={15} className="text-primary-700" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* ── Taille du texte ── */}
+                <div>
+                  <h3 className="font-semibold text-dark-900 mb-1 flex items-center gap-2">
+                    <Type size={15} className="text-primary-700" /> Taille du texte
+                  </h3>
+                  <p className="text-dark-500 text-xs mb-4">Ajuste la taille du texte sur tout le site.</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    {([
+                      { value: 'sm',   label: 'Petit',  px: 16 },
+                      { value: 'base', label: 'Normal', px: 21 },
+                      { value: 'lg',   label: 'Grand',  px: 26 },
+                    ] as const).map(opt => {
+                      const active = textSize === opt.value;
+                      return (
+                        <button key={opt.value} onClick={() => setTextSize(opt.value)}
+                          className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
+                            active ? 'border-primary-700 bg-primary-50' : 'border-dark-200 hover:border-primary-400 hover:bg-dark-50'
+                          }`}>
+                          <span className={`font-bold leading-none ${active ? 'text-primary-700' : 'text-dark-700'}`} style={{ fontSize: opt.px }}>Aa</span>
+                          <p className={`font-semibold text-sm ${active ? 'text-primary-700' : 'text-dark-700'}`}>{opt.label}</p>
+                          {active && <CheckCircle size={14} className="text-primary-700" />}
                         </button>
                       );
                     })}
