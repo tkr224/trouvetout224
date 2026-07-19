@@ -4,6 +4,7 @@ import Navbar from '@/components/layout/Navbar';
 import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
 import { AnnonceCard } from '@/components/annonces/AnnonceGrid';
+import ProfileChecklist from '@/components/onboarding/ProfileChecklist';
 import Link from 'next/link';
 import {
   Settings, Plus, Star, Eye, ShoppingBag, LogOut, Share2, Camera, Loader2,
@@ -190,6 +191,9 @@ export default function ProfilPage() {
             </p>
           </div>
         </div>
+
+        {/* Checklist "bien démarrer" (onboarding gamifié) */}
+        <ProfileChecklist />
 
         {/* Statistiques */}
         <div className="grid grid-cols-3 gap-3 mb-6">

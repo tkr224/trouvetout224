@@ -14,6 +14,7 @@ const PWARegister         = dynamic(() => import('@/components/PWARegister'),   
 const ThemeAnimations     = dynamic(() => import('@/components/ThemeAnimations'),                 { ssr: false });
 const Futur3DOrchestrator = dynamic(() => import('@/components/futur3d/Futur3DOrchestrator'),    { ssr: false });
 const AiChatWidget        = dynamic(() => import('@/components/AiChatWidget'),                    { ssr: false });
+const OnboardingNudge     = dynamic(() => import('@/components/onboarding/OnboardingNudge'),       { ssr: false });
 
 /* ── Métadonnées globales (SEO + Open Graph + PWA) ───────────────── */
 export const metadata: Metadata = {
@@ -169,6 +170,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <PWAInstallBanner />
             <PWARegister />
             <AiChatWidget />
+            <OnboardingNudge />
           </ThemeProvider>
         </QueryProvider>
         <GoogleAnalytics />

@@ -83,6 +83,43 @@ router.get('/me', authenticate, async (req: any, res) => {
   } catch { res.status(500).json({ error: 'Erreur.' }); }
 });
 
+// Onboarding gamifié : liste des tâches "bien démarrer" + % de complétion.
+// Adapté au type de compte (la tâche "boutique" n'apparaît que pour les
+// vendeurs) et à la présence d'un email (la tâche "vérifier email" n'a pas
+// de sens pour un compte créé uniquement avec un numéro de téléphone).
+router.get('/me/onboarding', authenticate, async (req: any, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId },
+      select: {
+        avatar: true, cityId: true, phone: true, email: true, emailVerified: true,
+        accountType: true, shopActive: true, shopLogo: true, shopDescription: true,
+        hasViewedAnnonce: true,
+        _count: { select: { annonces: true, savedAnnonces: true, securityQuestions: true } },
+      },
+    });
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé.' });
+
+    const isVendor = user.accountType === 'VENDEUR' || user.accountType === 'LES_DEUX';
+
+    const tasks = [
+      { id: 'avatar', label: 'Ajouter une photo de profil', done: !!user.avatar, href: '/profil' },
+      { id: 'info', label: 'Compléter vos informations (ville, téléphone)', done: !!user.cityId && !!user.phone, href: '/parametres' },
+      user.email ? { id: 'email', label: 'Vérifier votre email', done: user.emailVerified, href: '/profil' } : null,
+      { id: 'security', label: 'Configurer vos questions de sécurité', done: user._count.securityQuestions >= 2, href: '/parametres' },
+      { id: 'explore', label: 'Explorer les annonces', done: user.hasViewedAnnonce, href: '/annonces/lister' },
+      { id: 'favorite', label: 'Ajouter une annonce en favori', done: user._count.savedAnnonces > 0, href: '/annonces/lister' },
+      { id: 'first_annonce', label: 'Publier votre première annonce', done: user._count.annonces > 0, href: '/annonces/publier', highlight: true },
+      isVendor ? { id: 'shop', label: 'Créer votre boutique', done: !!(user.shopActive && user.shopLogo && user.shopDescription), href: '/vendeur/boutique' } : null,
+    ].filter(Boolean) as { id: string; label: string; done: boolean; href: string; highlight?: boolean }[];
+
+    const doneCount = tasks.filter(t => t.done).length;
+    const percent = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 100;
+
+    res.json({ data: { percent, tasks, isComplete: percent === 100 } });
+  } catch (e) { console.error('Erreur GET /me/onboarding:', e); res.status(500).json({ error: 'Erreur.' }); }
+});
+
 const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/;
 
 // Vérifie en direct si un nom d'utilisateur est disponible (utilisé pendant la saisie)

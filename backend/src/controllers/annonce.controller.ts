@@ -125,6 +125,15 @@ export const getAnnonceById = async (req: Request, res: Response) => {
     // Ne pas compter la vue si c'est le propriétaire qui consulte
     const isOwner = viewerId && viewerId === annonce.userId;
 
+    // Onboarding gamifié : marque la tâche "Explorer les annonces" comme faite
+    // (non bloquant, ne retarde jamais l'affichage de l'annonce).
+    if (!isOwner && viewerId) {
+      prisma.user.updateMany({
+        where: { id: viewerId, hasViewedAnnonce: false },
+        data: { hasViewedAnnonce: true },
+      }).catch(() => {});
+    }
+
     let newViewCount = annonce.viewCount;
     if (!isOwner) {
       // Clé anti-spam : userId si connecté, sinon IP
