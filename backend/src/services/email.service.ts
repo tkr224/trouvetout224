@@ -12,6 +12,9 @@ type SendEmailArgs = {
   to: string;
   subject: string;
   html: string;
+  // Étiquette courte affichée dans les logs (Railway) pour distinguer les
+  // différents types d'email envoyés — ex : 'CHANGEMENT_EMAIL', 'RESET_PASSWORD'.
+  context: string;
 };
 
 // Sans le <meta charset="UTF-8"> et le wrapper <html>/<body>, certains clients mail
@@ -36,9 +39,9 @@ const wrapEmailHtml = (bodyContent: string) => `<!DOCTYPE html>
 </body>
 </html>`;
 
-const sendEmail = async ({ to, subject, html }: SendEmailArgs) => {
+const sendEmail = async ({ to, subject, html, context }: SendEmailArgs) => {
   if (!resend) {
-    console.log('Email non envoyé : RESEND_API_KEY manquante');
+    console.log(`[Resend][${context}] Email NON envoyé à ${to} : RESEND_API_KEY manquante`);
     return;
   }
   try {
@@ -49,12 +52,14 @@ const sendEmail = async ({ to, subject, html }: SendEmailArgs) => {
       html,
     });
     if (error) {
-      console.log('Erreur envoi email (Resend):', error);
+      // error vient directement de l'API Resend (ex: sandbox non vérifié,
+      // destinataire refusé...) — on le logge en entier pour voir la raison exacte.
+      console.log(`[Resend][${context}] ERREUR envoi à ${to} :`, JSON.stringify(error));
       return;
     }
-    console.log('Email envoyé avec succès (Resend), id:', data?.id);
+    console.log(`[Resend][${context}] Email envoyé avec succès à ${to} (id: ${data?.id})`);
   } catch (e: any) {
-    console.log('Erreur envoi email (Resend):', e?.message || e);
+    console.log(`[Resend][${context}] EXCEPTION envoi à ${to} :`, e?.message || e);
   }
 };
 
@@ -68,6 +73,7 @@ export const sendNewProductEmail = async (
 ) => {
   await sendEmail({
     to: email,
+    context: 'NOUVEAU_PRODUIT',
     subject: `Nouveau produit chez ${vendorName} — TrouveTout224`,
     html: wrapEmailHtml(`
       <div style="font-family: Arial, Helvetica, sans-serif; padding: 20px;">
@@ -101,6 +107,7 @@ export const sendNewProductEmail = async (
 export const sendResetPasswordEmail = async (email: string, firstName: string, resetUrl: string) => {
   await sendEmail({
     to: email,
+    context: 'RESET_PASSWORD',
     subject: 'Réinitialisez votre mot de passe — TrouveTout224',
     html: wrapEmailHtml(`
       <div style="font-family: Arial, Helvetica, sans-serif; padding: 20px;">
@@ -132,6 +139,7 @@ export const sendSecurityAlertEmail = async (email: string, firstName: string, a
   const when = new Date().toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
   await sendEmail({
     to: email,
+    context: 'ALERTE_SECURITE',
     subject: `Alerte sécurité : ${actionLabel} modifié — TrouveTout224`,
     html: wrapEmailHtml(`
       <div style="font-family: Arial, Helvetica, sans-serif; padding: 20px;">
@@ -160,6 +168,7 @@ export const sendSecurityAlertEmail = async (email: string, firstName: string, a
 export const sendEmailChangeConfirmation = async (email: string, firstName: string, confirmUrl: string) => {
   await sendEmail({
     to: email,
+    context: 'CHANGEMENT_EMAIL',
     subject: 'Confirmez votre nouvelle adresse email — TrouveTout224',
     html: wrapEmailHtml(`
       <div style="font-family: Arial, Helvetica, sans-serif; padding: 20px;">
@@ -187,6 +196,7 @@ export const sendEmailChangeConfirmation = async (email: string, firstName: stri
 export const sendVerificationEmail = async (email: string, firstName: string, verifyUrl: string) => {
   await sendEmail({
     to: email,
+    context: 'VERIFICATION_EMAIL',
     subject: 'Bienvenue sur TrouveTout224 - Confirmez votre email',
     html: wrapEmailHtml(`
       <div style="font-family: Arial, Helvetica, sans-serif; padding: 20px;">
