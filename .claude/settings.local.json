@@ -115,7 +115,14 @@
       "Bash(node -e \"const c=require\\('./candidates.json'\\); c.forEach\\(\\(e,i\\)=>console.log\\(i, e.slug, e.term, e.candidates.length\\)\\)\")",
       "Bash(node fetch-candidates.js '[{\"slug\":\"electronique\",\"term\":\"electric fan appliance\"}]')",
       "Bash(node fetch-candidates.js '[{\"slug\":\"electronique2\",\"term\":\"digital camera product photo\"}]')",
-      "Bash(node finalize.js)"
+      "Bash(node finalize.js)",
+      "Bash(npm -v)",
+      "Bash(npx --yes create-video@latest video --template blank --package-manager npm)",
+      "Bash(npx --yes create-video@latest --help)",
+      "Bash(npx --yes create-video@latest --yes --blank --no-tailwind video)",
+      "Bash(npx remotion *)",
+      "PowerShell(Invoke-Item *)",
+      "Bash(xargs -I{} echo {})"
     ]
   }
 }
