@@ -2,11 +2,13 @@
 import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Loader2, Eye, EyeOff, CheckCircle, XCircle, ArrowLeft, ShoppingBag, Lock, Zap } from 'lucide-react';
 import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
 
 function ResetPasswordContent() {
+  const t = useTranslations('auth.resetPassword');
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token') || '';
@@ -23,11 +25,11 @@ function ResetPasswordContent() {
     setError('');
 
     if (password.length < 8) {
-      setError('Le mot de passe doit contenir au moins 8 caractères.');
+      setError(t('errorMinLength'));
       return;
     }
     if (password !== confirmPassword) {
-      setError('Les deux mots de passe ne correspondent pas.');
+      setError(t('errorMismatch'));
       return;
     }
 
@@ -37,7 +39,7 @@ function ResetPasswordContent() {
       setSuccess(true);
       setTimeout(() => router.push('/auth/connexion'), 2500);
     } catch (err: any) {
-      setError(err.response?.data?.errors?.[0]?.msg || err.response?.data?.error || 'Une erreur est survenue.');
+      setError(err.response?.data?.errors?.[0]?.msg || err.response?.data?.error || t('errorGeneric'));
     } finally {
       setLoading(false);
     }
@@ -63,13 +65,13 @@ function ResetPasswordContent() {
             Trouve<span className="text-gold-400">Tout</span><span className="text-guinea-300">224</span>
           </h1>
           <p className="text-primary-100 text-base mb-12">
-            Le plus grand marché en ligne de Guinée
+            {t('heroSubtitle')}
           </p>
           <div className="space-y-3 text-left">
             {[
-              { Icon: ShoppingBag, text: 'Des milliers d\'annonces partout en Guinée', cls: 'text-gold-300' },
-              { Icon: Lock, text: 'Compte sécurisé, données protégées', cls: 'text-primary-300' },
-              { Icon: Zap, text: 'Publiez une annonce en moins de 2 minutes', cls: 'text-guinea-300' },
+              { Icon: ShoppingBag, text: t('heroFeature1'), cls: 'text-gold-300' },
+              { Icon: Lock, text: t('heroFeature2'), cls: 'text-primary-300' },
+              { Icon: Zap, text: t('heroFeature3'), cls: 'text-guinea-300' },
             ].map(({ Icon, text, cls }) => (
               <div key={text} className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3.5">
                 <Icon size={20} className={cls} />
@@ -98,15 +100,15 @@ function ResetPasswordContent() {
               <div className="w-20 h-20 bg-guinea-50 rounded-full flex items-center justify-center mx-auto mb-6">
                 <XCircle size={40} className="text-guinea-500" />
               </div>
-              <h2 className="font-display font-bold text-2xl text-dark-900 mb-3">Lien invalide</h2>
+              <h2 className="font-display font-bold text-2xl text-dark-900 mb-3">{t('invalidLinkTitle')}</h2>
               <p className="text-dark-500 text-sm mb-6 leading-relaxed">
-                Ce lien de réinitialisation est incomplet. Refaites une demande depuis la page « Mot de passe oublié ».
+                {t('invalidLinkMessage')}
               </p>
               <Link
                 href="/auth/mot-de-passe-oublie"
                 className="inline-flex items-center gap-2 text-sm text-primary-700 hover:underline"
               >
-                <ArrowLeft size={14} /> Refaire une demande
+                <ArrowLeft size={14} /> {t('redoRequest')}
               </Link>
             </div>
           ) : success ? (
@@ -114,12 +116,12 @@ function ResetPasswordContent() {
               <div className="w-20 h-20 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle size={40} className="text-primary-600" />
               </div>
-              <h2 className="font-display font-bold text-2xl text-dark-900 mb-3">Mot de passe modifié !</h2>
+              <h2 className="font-display font-bold text-2xl text-dark-900 mb-3">{t('successTitle')}</h2>
               <p className="text-dark-500 text-sm mb-6 leading-relaxed">
-                Vous allez être redirigé vers la page de connexion...
+                {t('successMessage')}
               </p>
               <Link href="/auth/connexion" className="inline-flex items-center gap-2 text-sm text-primary-700 hover:underline">
-                <ArrowLeft size={14} /> Se connecter maintenant
+                <ArrowLeft size={14} /> {t('loginNow')}
               </Link>
             </div>
           ) : (
@@ -128,21 +130,21 @@ function ResetPasswordContent() {
                 <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center mb-5">
                   <Lock size={26} className="text-primary-700" />
                 </div>
-                <h2 className="font-display font-bold text-3xl text-dark-900">Nouveau mot de passe</h2>
+                <h2 className="font-display font-bold text-3xl text-dark-900">{t('title')}</h2>
                 <p className="text-dark-500 mt-1.5">
-                  Choisissez un nouveau mot de passe pour votre compte.
+                  {t('subtitle')}
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-semibold text-dark-700 mb-2">Nouveau mot de passe</label>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">{t('newPasswordLabel')}</label>
                   <div className="relative">
                     <input
                       type={showPwd ? 'text' : 'password'}
                       value={password}
                       onChange={e => setPassword(e.target.value)}
-                      placeholder="8 caractères minimum"
+                      placeholder={t('newPasswordPlaceholder')}
                       className={`${fieldCls} pr-12`}
                       required
                     />
@@ -158,12 +160,12 @@ function ResetPasswordContent() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-dark-700 mb-2">Confirmez le mot de passe</label>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">{t('confirmPasswordLabel')}</label>
                   <input
                     type={showPwd ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
-                    placeholder="Retapez le mot de passe"
+                    placeholder={t('confirmPasswordPlaceholder')}
                     className={fieldCls}
                     required
                   />
@@ -174,7 +176,7 @@ function ResetPasswordContent() {
                     <p>{error}</p>
                     {error.toLowerCase().includes('expir') || error.toLowerCase().includes('invalide') ? (
                       <Link href="/auth/mot-de-passe-oublie" className="inline-block mt-1.5 font-semibold underline">
-                        Refaire une demande de lien
+                        {t('redoLinkRequest')}
                       </Link>
                     ) : null}
                   </div>
@@ -186,8 +188,8 @@ function ResetPasswordContent() {
                   className="w-full bg-primary-700 hover:bg-primary-800 active:scale-[0.98] text-white font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 shadow-premium disabled:opacity-60 disabled:cursor-not-allowed text-base"
                 >
                   {loading
-                    ? <><Loader2 size={18} className="animate-spin" /> Modification...</>
-                    : 'Réinitialiser le mot de passe'}
+                    ? <><Loader2 size={18} className="animate-spin" /> {t('submitLoading')}</>
+                    : t('submit')}
                 </button>
               </form>
 
@@ -196,7 +198,7 @@ function ResetPasswordContent() {
                   href="/auth/connexion"
                   className="inline-flex items-center gap-2 text-sm text-dark-500 hover:text-primary-700 transition-colors"
                 >
-                  <ArrowLeft size={14} /> Retour à la connexion
+                  <ArrowLeft size={14} /> {t('backToLogin')}
                 </Link>
               </div>
             </>

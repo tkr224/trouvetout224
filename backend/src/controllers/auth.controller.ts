@@ -6,6 +6,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '../config/database';
 import { generateTokens, verifyRefreshToken } from '../utils/tokens';
 import { sendVerificationEmail, sendResetPasswordEmail, sendSecurityAlertEmail } from '../services/email.service';
+import { resolveEmailLocale } from '../i18n/emailLocales';
 import { v4 as uuidv4 } from 'uuid';
 import { SECURITY_QUESTIONS, normalizeAnswer } from '../constants/securityQuestions';
 import { checkCooldown, cooldownMessage } from '../config/security';
@@ -77,7 +78,7 @@ async function verifyFacebookToken(accessToken: string): Promise<VerifiedOAuthPr
 // ============================
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, phone, password, firstName, lastName, dateOfBirth, gender, cityId, accountType } = req.body;
+    const { email, phone, password, firstName, lastName, dateOfBirth, gender, cityId, accountType, preferredLanguage } = req.body;
 
     if (dateOfBirth) {
       const age = (Date.now() - new Date(dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365);
@@ -121,6 +122,10 @@ export const register = async (req: Request, res: Response) => {
     const emailVerificationExpiresAt = normalizedEmail ? new Date(Date.now() + 24 * 60 * 60 * 1000) : undefined;
 
     const isVendor = accountType === 'VENDEUR' || accountType === 'LES_DEUX';
+    // Langue déjà choisie par le visiteur avant son inscription (cookie NEXT_LOCALE
+    // côté frontend) — évite qu'un nouveau compte parte sur "FR" par défaut puis se
+    // fasse "recorriger" vers le français par LocaleSync juste après la connexion auto.
+    const registerLocale = ['FR', 'EN', 'ZH'].includes(preferredLanguage) ? preferredLanguage : undefined;
     const user = await prisma.user.create({
       data: {
         email: normalizedEmail, phone, password: hashedPassword, firstName, lastName,
@@ -130,16 +135,18 @@ export const register = async (req: Request, res: Response) => {
         role: isVendor ? 'VENDOR' : 'USER',
         emailVerificationToken, emailVerificationExpiresAt,
         emailVerificationLastSentAt: normalizedEmail ? new Date() : undefined,
+        ...(registerLocale ? { preferredLanguage: registerLocale } : {}),
       },
       select: {
         id: true, email: true, phone: true, firstName: true, lastName: true,
         role: true, isVerified: true, emailVerified: true, createdAt: true, onboardingDone: true,
+        preferredLanguage: true,
       },
     });
 
     if (normalizedEmail && emailVerificationToken) {
       const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verifier-email?token=${emailVerificationToken}`;
-      sendVerificationEmail(normalizedEmail, firstName, verifyUrl).catch(e => console.log('Email non envoyé:', e.message));
+      sendVerificationEmail(normalizedEmail, firstName, verifyUrl, resolveEmailLocale(user.preferredLanguage)).catch(e => console.log('Email non envoyé:', e.message));
     }
 
     const { accessToken, refreshToken } = await generateTokens(user.id);
@@ -350,7 +357,7 @@ export const changePassword = async (req: Request, res: Response) => {
     if (user.password) {
       await prisma.refreshToken.deleteMany({ where: { userId } });
       if (user.email) {
-        sendSecurityAlertEmail(user.email, user.firstName, 'mot de passe').catch(e => console.log('Email alerte non envoyé:', e.message));
+        sendSecurityAlertEmail(user.email, user.firstName, 'password', resolveEmailLocale(user.preferredLanguage)).catch(e => console.log('Email alerte non envoyé:', e.message));
       }
     }
 
@@ -389,7 +396,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     });
 
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/reset-password?token=${token}`;
-    sendResetPasswordEmail(user.email, user.firstName, resetUrl).catch(e => console.log('Email reset non envoyé:', e.message));
+    sendResetPasswordEmail(user.email, user.firstName, resetUrl, resolveEmailLocale(user.preferredLanguage)).catch(e => console.log('Email reset non envoyé:', e.message));
 
     res.json({ message: GENERIC_FORGOT_MESSAGE });
   } catch (error) {
@@ -423,7 +430,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     // Coupe toutes les sessions existantes par sécurité (si le compte a été compromis)
     await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
     if (user.email) {
-      sendSecurityAlertEmail(user.email, user.firstName, 'mot de passe').catch(e => console.log('Email alerte non envoyé:', e.message));
+      sendSecurityAlertEmail(user.email, user.firstName, 'password', resolveEmailLocale(user.preferredLanguage)).catch(e => console.log('Email alerte non envoyé:', e.message));
     }
 
     res.json({ message: 'Mot de passe réinitialisé avec succès. Vous pouvez vous connecter.' });
@@ -501,7 +508,7 @@ export const confirmEmailChange = async (req: Request, res: Response) => {
 
     // Alerte envoyée à l'ANCIENNE adresse — c'est elle qui doit être prévenue en cas de piratage.
     if (oldEmail) {
-      sendSecurityAlertEmail(oldEmail, user.firstName, 'adresse email').catch(e => console.log('Email alerte non envoyé:', e.message));
+      sendSecurityAlertEmail(oldEmail, user.firstName, 'email', resolveEmailLocale(user.preferredLanguage)).catch(e => console.log('Email alerte non envoyé:', e.message));
     }
 
     res.json({ message: 'Votre email a été mis à jour avec succès !' });
@@ -560,7 +567,7 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
     });
 
     const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verifier-email?token=${token}`;
-    sendVerificationEmail(user.email, user.firstName, verifyUrl).catch(e => console.log('Email vérification non envoyé:', e.message));
+    sendVerificationEmail(user.email, user.firstName, verifyUrl, resolveEmailLocale(user.preferredLanguage)).catch(e => console.log('Email vérification non envoyé:', e.message));
 
     res.json({ message: anonymous ? RESEND_VERIFICATION_GENERIC_MESSAGE : 'Email de vérification envoyé !' });
   } catch (error) {

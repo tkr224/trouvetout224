@@ -1,39 +1,34 @@
 'use client';
 import { useState } from 'react';
 import { X, CheckCircle2, Loader2, ChevronRight, MapPin } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import toast from 'react-hot-toast';
 
-const SOURCES = [
-  'Facebook',
-  'WhatsApp',
-  'TikTok',
-  'Un ami',
-  'Recherche Google',
-  'Autre',
-];
+const SOURCE_IDS = ['facebook', 'whatsapp', 'tiktok', 'friend', 'googleSearch', 'other'] as const;
 
-const INTERESTS = [
-  'Électronique',
-  'Téléphones',
-  'Véhicules',
-  'Immobilier',
-  'Mode & Vêtements',
-  'Maison & Jardin',
-  'Informatique',
-  'Emplois',
-  'Services',
-  'Alimentation',
-  'Sport & Loisirs',
-  'Animaux',
-];
+const INTEREST_IDS = [
+  'electronics',
+  'phones',
+  'vehicles',
+  'realEstate',
+  'fashion',
+  'homeGarden',
+  'computing',
+  'jobs',
+  'services',
+  'food',
+  'sports',
+  'animals',
+] as const;
 
 interface Props {
   onClose: () => void;
 }
 
 export default function OnboardingSurvey({ onClose }: Props) {
+  const t = useTranslations('onboarding.survey');
   const { user, setUser } = useAuthStore();
   const [step, setStep] = useState(0);
   const [source, setSource] = useState('');
@@ -58,10 +53,10 @@ export default function OnboardingSurvey({ onClose }: Props) {
         city: skipped ? null : city.trim() || null,
         skipped,
       });
-      if (!skipped) toast.success('Merci pour vos réponses !');
+      if (!skipped) toast.success(t('successToast'));
       markDone();
     } catch {
-      toast.error('Erreur réseau, réessayez.');
+      toast.error(t('errorToast'));
     } finally {
       setSaving(false);
     }
@@ -79,18 +74,19 @@ export default function OnboardingSurvey({ onClose }: Props) {
           <button
             onClick={() => submit(true)}
             disabled={saving}
+            aria-label={t('closeAriaLabel')}
             className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
           >
             <X size={16} />
           </button>
           <p className="text-primary-100 text-xs font-semibold uppercase tracking-widest mb-1">
-            Bienvenue !
+            {t('welcome')}
           </p>
           <h2 className="text-white font-display font-bold text-xl leading-snug">
-            Parlez-nous de vous 🇬🇳
+            {t('title')}
           </h2>
           <p className="text-primary-100 text-sm mt-1">
-            3 petites questions · moins de 1 minute
+            {t('subtitle')}
           </p>
 
           {/* Indicateur de progression */}
@@ -113,10 +109,10 @@ export default function OnboardingSurvey({ onClose }: Props) {
           {step === 0 && (
             <div className="space-y-3">
               <p className="font-semibold text-dark-900 dark:text-white text-base">
-                Comment avez-vous connu TrouveTout224 ?
+                {t('step0Question')}
               </p>
               <div className="grid grid-cols-2 gap-2">
-                {SOURCES.map(s => (
+                {SOURCE_IDS.map(s => (
                   <button
                     key={s}
                     onClick={() => setSource(s)}
@@ -127,7 +123,7 @@ export default function OnboardingSurvey({ onClose }: Props) {
                     }`}
                   >
                     {source === s && <CheckCircle2 size={13} className="inline mr-1.5 text-primary-600" />}
-                    {s}
+                    {t(`sources.${s}`)}
                   </button>
                 ))}
               </div>
@@ -138,11 +134,11 @@ export default function OnboardingSurvey({ onClose }: Props) {
           {step === 1 && (
             <div className="space-y-3">
               <p className="font-semibold text-dark-900 dark:text-white text-base">
-                Qu&apos;est-ce qui vous intéresse le plus ?
+                {t('step1Question')}
               </p>
-              <p className="text-dark-400 dark:text-dark-500 text-xs">Sélectionnez tout ce qui vous correspond</p>
+              <p className="text-dark-400 dark:text-dark-500 text-xs">{t('step1Hint')}</p>
               <div className="flex flex-wrap gap-2">
-                {INTERESTS.map(i => {
+                {INTEREST_IDS.map(i => {
                   const active = interests.includes(i);
                   return (
                     <button
@@ -155,7 +151,7 @@ export default function OnboardingSurvey({ onClose }: Props) {
                       }`}
                     >
                       {active && <CheckCircle2 size={12} className="inline mr-1" />}
-                      {i}
+                      {t(`interests.${i}`)}
                     </button>
                   );
                 })}
@@ -167,20 +163,20 @@ export default function OnboardingSurvey({ onClose }: Props) {
           {step === 2 && (
             <div className="space-y-3">
               <p className="font-semibold text-dark-900 dark:text-white text-base">
-                Vous êtes de quelle ville / quartier ?
+                {t('step2Question')}
               </p>
               <div className="relative">
                 <MapPin size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-dark-400" />
                 <input
                   value={city}
                   onChange={e => setCity(e.target.value)}
-                  placeholder="ex : Conakry — Ratoma"
+                  placeholder={t('cityPlaceholder')}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-dark-200 dark:border-dark-700 bg-white dark:bg-dark-800 text-dark-900 dark:text-white placeholder-dark-400 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
                   autoFocus
                 />
               </div>
               <p className="text-dark-400 dark:text-dark-500 text-xs">
-                Cela nous aide à vous montrer les annonces proches de chez vous.
+                {t('cityHint')}
               </p>
             </div>
           )}
@@ -193,7 +189,7 @@ export default function OnboardingSurvey({ onClose }: Props) {
             disabled={saving}
             className="flex-shrink-0 text-dark-400 dark:text-dark-500 text-sm hover:text-dark-600 dark:hover:text-dark-300 transition-colors disabled:opacity-50"
           >
-            Passer
+            {t('skip')}
           </button>
 
           <div className="flex-1" />
@@ -204,7 +200,7 @@ export default function OnboardingSurvey({ onClose }: Props) {
               disabled={saving}
               className="px-4 py-2.5 rounded-xl border border-dark-200 dark:border-dark-700 text-dark-700 dark:text-dark-300 text-sm font-semibold hover:bg-dark-50 dark:hover:bg-dark-800 transition-colors"
             >
-              Retour
+              {t('back')}
             </button>
           )}
 
@@ -213,7 +209,7 @@ export default function OnboardingSurvey({ onClose }: Props) {
               onClick={() => setStep(s => s + 1)}
               className="px-5 py-2.5 bg-primary-700 hover:bg-primary-800 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-1.5 shadow-premium"
             >
-              Suivant <ChevronRight size={15} />
+              {t('next')} <ChevronRight size={15} />
             </button>
           ) : (
             <button
@@ -222,8 +218,8 @@ export default function OnboardingSurvey({ onClose }: Props) {
               className="px-5 py-2.5 bg-primary-700 hover:bg-primary-800 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 shadow-premium disabled:opacity-70"
             >
               {saving
-                ? <><Loader2 size={15} className="animate-spin" /> Envoi…</>
-                : <>Terminer <CheckCircle2 size={15} /></>}
+                ? <><Loader2 size={15} className="animate-spin" /> {t('sending')}</>
+                : <>{t('finish')} <CheckCircle2 size={15} /></>}
             </button>
           )}
         </div>

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 import { Loader2, ShoppingBag, Store, Repeat2, CheckCircle, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
@@ -9,15 +10,18 @@ import Logo from '@/components/Logo';
 
 type AccountType = 'ACHETEUR' | 'VENDEUR' | 'LES_DEUX';
 
-const ACCOUNT_OPTIONS: Array<{
-  type: AccountType; label: string; desc: string; Icon: React.ElementType; accent: string; accBg: string;
+const ACCOUNT_OPTION_META: Array<{
+  type: AccountType; labelKey: 'buyerLabel' | 'sellerLabel' | 'bothLabel'; descKey: 'buyerDesc' | 'sellerDesc' | 'bothDesc';
+  Icon: React.ElementType; accent: string; accBg: string;
 }> = [
-  { type: 'ACHETEUR', label: 'Acheteur', desc: "Je cherche et j'achète des produits ou services", Icon: ShoppingBag, accent: 'text-sky-600', accBg: 'bg-sky-50' },
-  { type: 'VENDEUR', label: 'Vendeur', desc: 'Je vends mes produits ou services en ligne', Icon: Store, accent: 'text-primary-700', accBg: 'bg-primary-50' },
-  { type: 'LES_DEUX', label: 'Les deux', desc: "J'achète ET je vends — le profil complet", Icon: Repeat2, accent: 'text-gold-600', accBg: 'bg-gold-50' },
+  { type: 'ACHETEUR', labelKey: 'buyerLabel', descKey: 'buyerDesc', Icon: ShoppingBag, accent: 'text-sky-600', accBg: 'bg-sky-50' },
+  { type: 'VENDEUR', labelKey: 'sellerLabel', descKey: 'sellerDesc', Icon: Store, accent: 'text-primary-700', accBg: 'bg-primary-50' },
+  { type: 'LES_DEUX', labelKey: 'bothLabel', descKey: 'bothDesc', Icon: Repeat2, accent: 'text-gold-600', accBg: 'bg-gold-50' },
 ];
 
 export default function ChoisirProfilPage() {
+  const t = useTranslations('auth.chooseProfile');
+  const ACCOUNT_OPTIONS = ACCOUNT_OPTION_META.map((o) => ({ ...o, label: t(o.labelKey), desc: t(o.descKey) }));
   const router = useRouter();
   const { user, setUser, isAuthenticated, _hasHydrated } = useAuthStore();
   const [accountType, setAccountType] = useState<AccountType>('ACHETEUR');
@@ -33,14 +37,14 @@ export default function ChoisirProfilPage() {
       const { data } = await api.put('/users/me', { accountType });
       if (user) setUser({ ...user, ...data.data, accountType });
       if (accountType === 'ACHETEUR') {
-        toast.success('Bienvenue sur TrouveTout224 !');
+        toast.success(t('welcomeToast'));
         router.push('/');
       } else {
-        toast.success('Un dernier pas : configurez votre boutique !');
+        toast.success(t('oneLastStepToast'));
         router.push('/vendeur/boutique');
       }
     } catch {
-      toast.error("Erreur lors de l'enregistrement. Réessayez.");
+      toast.error(t('errorToast'));
     } finally {
       setLoading(false);
     }
@@ -55,10 +59,10 @@ export default function ChoisirProfilPage() {
           <Logo size={56} />
         </div>
         <h2 className="font-display font-bold text-3xl text-dark-900 text-center mb-2">
-          Bienvenue {user?.firstName} !
+          {t('welcomeTitle', { firstName: user?.firstName })}
         </h2>
         <p className="text-dark-500 text-sm text-center mb-8">
-          Votre compte Google est connecté. Dites-nous qui vous êtes pour finaliser votre profil.
+          {t('subtitle')}
         </p>
 
         <div className="space-y-3 mb-8">
@@ -89,10 +93,10 @@ export default function ChoisirProfilPage() {
         <button onClick={submit} disabled={loading}
           className="w-full bg-primary-700 hover:bg-primary-800 active:scale-[0.98] text-white font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 shadow-premium disabled:opacity-60 text-base">
           {loading
-            ? <><Loader2 size={18} className="animate-spin" /> Enregistrement...</>
+            ? <><Loader2 size={18} className="animate-spin" /> {t('saving')}</>
             : accountType === 'ACHETEUR'
-              ? <><CheckCircle size={18} /> Continuer</>
-              : <>Continuer <ArrowRight size={18} /></>}
+              ? <><CheckCircle size={18} /> {t('continueBtn')}</>
+              : <>{t('continueBtn')} <ArrowRight size={18} /></>}
         </button>
       </div>
     </div>

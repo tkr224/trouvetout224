@@ -1,0 +1,28 @@
+{
+  "links": {
+    "annonces": "广告",
+    "boutiques": "商店",
+    "emplois": "招聘",
+    "restaurants": "餐厅",
+    "hotels": "酒店"
+  },
+  "more": "更多",
+  "moreLinks": {
+    "services": "服务",
+    "evenements": "活动",
+    "immobilier": "房地产",
+    "vehicules": "车辆"
+  },
+  "publish": "发布广告",
+  "messaging": "消息",
+  "messages": "消息",
+  "adminDashboard": "管理后台",
+  "settings": "设置",
+  "logout": "退出登录",
+  "login": "登录",
+  "register": "注册",
+  "mySubscriptions": "我的订阅",
+  "sellerSpace": "卖家空间",
+  "myProfile": "我的资料",
+  "changeLanguage": "更改语言"
+}

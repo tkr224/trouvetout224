@@ -1,0 +1,29 @@
+{
+  "hero": {
+    "title": "Help Center",
+    "subtitle": "Everything you need to know to make the most of TrouveTout224"
+  },
+  "guidesTitle": "Quick guides",
+  "guides": {
+    "publish": { "title": "Post a listing", "desc": "Click \"Post a listing\" at the top of the site, choose a category, add photos, a title, a description, a price, and your city. It's free and unlimited.", "cta": "Post now" },
+    "shop": { "title": "Create my shop", "desc": "Go to \"Become a seller\", give your shop a name, add a photo, then post your items — they'll all appear in one place, visible to all of Guinea.", "cta": "Become a seller" },
+    "contact": { "title": "Contact a seller", "desc": "On a listing, click \"Send a message\" or directly on the WhatsApp button to chat with the seller with no middleman.", "cta": "View listings" },
+    "report": { "title": "Report a problem", "desc": "On the listing or profile in question, click \"Report\". Describe the issue and our team reviews it quickly to keep the platform safe.", "cta": "Learn more" },
+    "password": { "title": "Recover my password", "desc": "On the login page, click \"Forgot password\", enter your email, and follow the instructions to choose a new one.", "cta": "Reset" }
+  },
+  "faqTitle": "Frequently asked questions",
+  "faqs": [
+    { "q": "How do I post a listing?", "a": "Click \"Post\" in the navigation bar, fill in the form with title, description, price, photos, and contact details." },
+    { "q": "Is posting really free?", "a": "Yes, posting is 100% free and unlimited. You can post as many listings as you like." },
+    { "q": "How do I contact a seller?", "a": "On a listing, click \"Send a message\" or the Call/WhatsApp buttons." },
+    { "q": "How do I report fraud?", "a": "On the listing, click \"Report this listing\". Our team reviews it within 24 hours." },
+    { "q": "How do I delete my listing?", "a": "Profile → My listings → click the listing → Delete." },
+    { "q": "How do I change my city?", "a": "Click the city name in the navigation bar and choose yours." }
+  ],
+  "seeAllFaq": "See all frequently asked questions",
+  "helpBlock": {
+    "title": "Need help? We respond fast.",
+    "subtitle": "Our team is available on WhatsApp and by email to support you.",
+    "whatsapp": "WhatsApp"
+  }
+}

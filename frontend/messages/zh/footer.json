@@ -1,0 +1,36 @@
+{
+  "description": "几内亚最大的分类广告和市场平台。轻松买卖商品、寻找工作或住房。",
+  "socials": {
+    "website": "官网",
+    "instagram": "Instagram",
+    "twitter": "X（推特）",
+    "youtube": "YouTube"
+  },
+  "categoriesTitle": "分类",
+  "categories": {
+    "electronique": "手机",
+    "vehicules": "车辆",
+    "immobilier": "房地产",
+    "emplois": "招聘",
+    "restaurants": "餐厅",
+    "hotels": "酒店",
+    "mode": "时尚",
+    "services": "服务"
+  },
+  "citiesTitle": "城市",
+  "infoTitle": "TrouveTout224",
+  "links": {
+    "about": "关于我们",
+    "howItWorks": "使用指南",
+    "faq": "常见问题（FAQ）",
+    "publish": "发布广告",
+    "premium": "高级套餐",
+    "contact": "联系我们",
+    "terms": "使用条款",
+    "privacy": "隐私政策",
+    "credits": "图片版权"
+  },
+  "copyright": "© {year} TrouveTout224 · 几内亚共和国科纳克里 🇬🇳",
+  "madeWith": "用心制作",
+  "madeFor": "为几内亚"
+}

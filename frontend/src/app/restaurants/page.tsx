@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useQuery } from 'react-query';
+import { useTranslations } from 'next-intl';
 import { Search, MapPin, Utensils, MessageCircle, Phone, Clock, ChefHat, ExternalLink, Plus, Truck } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import PageViewTracker from '@/components/PageViewTracker';
@@ -10,12 +11,19 @@ import Link from 'next/link';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 
-const CUISINE_TYPES = [
-  'Cuisine Guinéenne', 'Cuisine Africaine', 'Fast-food',
-  'Grillades', 'Pizzeria', 'Boulangerie / Pâtisserie', 'Autre',
-];
+const CUISINE_META = [
+  { value: 'Cuisine Guinéenne', key: 'cuisineGuinean' },
+  { value: 'Cuisine Africaine', key: 'cuisineAfrican' },
+  { value: 'Fast-food', key: 'cuisineFastFood' },
+  { value: 'Grillades', key: 'cuisineGrill' },
+  { value: 'Pizzeria', key: 'cuisinePizzeria' },
+  { value: 'Boulangerie / Pâtisserie', key: 'cuisineBakery' },
+  { value: 'Autre', key: 'cuisineOther' },
+] as const;
 
 export default function RestaurantsPage() {
+  const t = useTranslations('restaurants.list');
+  const CUISINE_TYPES = CUISINE_META.map(c => ({ value: c.value, label: t(c.key) }));
   const [q, setQ] = useState('');
   const [cityId, setCityId] = useState('');
   const [cuisineType, setCuisineType] = useState('');
@@ -48,13 +56,13 @@ export default function RestaurantsPage() {
         </div>
         <div className="max-w-3xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 bg-white/15 text-white/90 text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
-            <ChefHat size={13} /> Restaurants & Gastronomie
+            <ChefHat size={13} /> {t('badge')}
           </div>
           <h1 className="text-4xl font-display font-bold text-white mb-3">
-            Restaurants en Guinée
+            {t('heroTitle')}
           </h1>
           <p className="text-orange-100 mb-8 text-lg">
-            Découvrez les saveurs de la Guinée
+            {t('heroSubtitle')}
           </p>
           {/* Barre de recherche */}
           <div className="flex bg-white rounded-2xl shadow-xl overflow-hidden max-w-2xl mx-auto">
@@ -62,13 +70,13 @@ export default function RestaurantsPage() {
               <Search size={18} className="text-dark-400 shrink-0" />
               <input
                 value={q} onChange={e => setQ(e.target.value)}
-                placeholder="Nom du restaurant, spécialité..."
+                placeholder={t('searchPlaceholder')}
                 className="flex-1 outline-none text-dark-900 text-sm bg-transparent"
               />
             </div>
             <div className="border-l border-dark-100 flex items-center">
               <select value={cityId} onChange={e => setCityId(e.target.value)} className="h-full px-4 text-sm text-dark-600 outline-none bg-transparent">
-                <option value="">Toutes les villes</option>
+                <option value="">{t('allCities')}</option>
                 {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
@@ -78,7 +86,7 @@ export default function RestaurantsPage() {
             <Link href="/restaurants/publier"
               className="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white font-semibold px-4 py-2 rounded-xl text-sm transition-colors"
             >
-              <Plus size={14} /> Ajouter mon restaurant
+              <Plus size={14} /> {t('addMyRestaurant')}
             </Link>
           </div>
         </div>
@@ -87,8 +95,8 @@ export default function RestaurantsPage() {
       {/* Filtres */}
       <div className="sticky top-16 z-30 bg-white border-b border-dark-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3 overflow-x-auto scrollbar-hide">
-          <span className="text-xs text-dark-400 font-semibold shrink-0">Cuisine :</span>
-          {[{ value: '', label: 'Tous' }, ...CUISINE_TYPES.map(c => ({ value: c, label: c }))].map(c => (
+          <span className="text-xs text-dark-400 font-semibold shrink-0">{t('cuisineLabel')}</span>
+          {[{ value: '', label: t('all') }, ...CUISINE_TYPES].map(c => (
             <button key={c.value} onClick={() => setCuisineType(c.value)}
               className={`shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
                 cuisineType === c.value
@@ -107,7 +115,7 @@ export default function RestaurantsPage() {
                 : 'bg-dark-50 hover:bg-green-50 text-dark-600 border border-dark-100'
             }`}
           >
-            <Truck size={12} /> Livraison
+            <Truck size={12} /> {t('delivery')}
           </button>
         </div>
       </div>
@@ -131,18 +139,18 @@ export default function RestaurantsPage() {
             <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-5">
               <Utensils size={36} className="text-red-400" />
             </div>
-            <h3 className="font-display font-bold text-dark-800 text-xl mb-2">Aucun restaurant trouvé</h3>
+            <h3 className="font-display font-bold text-dark-800 text-xl mb-2">{t('noResultsTitle')}</h3>
             <p className="text-dark-500 text-sm mb-6">
-              {q ? `Aucun résultat pour "${q}".` : 'Aucun restaurant pour ces filtres.'}
+              {q ? t('noResultsForQuery', { query: q }) : t('noResultsGeneric')}
             </p>
             <Link href="/restaurants/publier" className="btn-primary inline-flex items-center gap-2">
-              <Plus size={15} /> Ajouter le vôtre
+              <Plus size={15} /> {t('addYours')}
             </Link>
           </div>
         ) : (
           <>
             <p className="text-sm text-dark-500 mb-5">
-              {restaurants.length} restaurant{restaurants.length > 1 ? 's' : ''} trouvé{restaurants.length > 1 ? 's' : ''}
+              {t('resultsCount', { count: restaurants.length })}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {restaurants.map((r: any) => (
@@ -170,12 +178,12 @@ export default function RestaurantsPage() {
                     <div className="absolute top-3 right-3 flex gap-1.5">
                       {r._count?.menu > 0 && (
                         <div className="bg-white/95 backdrop-blur-sm text-dark-700 text-xs font-semibold px-2.5 py-1 rounded-xl shadow-sm">
-                          {r._count.menu} plat{r._count.menu > 1 ? 's' : ''}
+                          {t('dishesCount', { count: r._count.menu })}
                         </div>
                       )}
                       {r.hasDelivery && (
                         <div className="bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-xl shadow-sm flex items-center gap-1">
-                          <Truck size={10} /> Livraison
+                          <Truck size={10} /> {t('delivery')}
                         </div>
                       )}
                     </div>
@@ -217,14 +225,14 @@ export default function RestaurantsPage() {
                         href={`/restaurants/${r.id}`}
                         className="flex-1 flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-3 rounded-xl transition-colors"
                       >
-                        <ExternalLink size={14} /> Voir le menu
+                        <ExternalLink size={14} /> {t('viewMenu')}
                       </Link>
                       {r.whatsapp && (
                         <a
-                          href={`https://wa.me/224${r.whatsapp}?text=${encodeURIComponent(`Bonjour, je souhaite passer une commande chez ${r.name}.`)}`}
+                          href={`https://wa.me/224${r.whatsapp}?text=${encodeURIComponent(t('waOrderMessage', { name: r.name }))}`}
                           target="_blank" rel="noopener noreferrer"
                           className="w-10 h-10 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-colors shrink-0"
-                          title="Commander via WhatsApp"
+                          title={t('orderWhatsapp')}
                         >
                           <MessageCircle size={16} />
                         </a>
@@ -233,7 +241,7 @@ export default function RestaurantsPage() {
                         <a
                           href={`tel:+224${r.phone}`}
                           className="w-10 h-10 border border-dark-200 hover:bg-dark-50 text-dark-600 rounded-xl flex items-center justify-center transition-colors shrink-0"
-                          title="Appeler"
+                          title={t('call')}
                         >
                           <Phone size={16} />
                         </a>

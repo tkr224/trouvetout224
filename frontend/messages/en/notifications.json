@@ -1,0 +1,9 @@
+{
+  "loginRequiredMsg": "Log in to see your notifications",
+  "login": "Log in",
+  "pageTitle": "Notifications",
+  "unreadCount": "{count, plural, one {# unread} other {# unread}}",
+  "markAllRead": "Mark all as read",
+  "emptyTitle": "No notifications",
+  "emptyMsg": "Your messages and reviews will appear here"
+}

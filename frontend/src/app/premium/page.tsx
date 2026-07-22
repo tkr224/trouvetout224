@@ -1,10 +1,12 @@
 'use client';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Zap, Clock, Bell, X, Sparkles } from 'lucide-react';
 
 export default function PremiumPage() {
+  const t = useTranslations('premium.page');
   const [showModal, setShowModal] = useState(false);
 
   return (
@@ -13,13 +15,13 @@ export default function PremiumPage() {
       <div className="max-w-3xl mx-auto px-4 py-20">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-gold-100 text-gold-700 px-4 py-2 rounded-full text-sm font-semibold mb-6">
-            <Zap size={16} /> Pack Premium
+            <Zap size={16} /> {t('badge')}
           </div>
           <h1 className="text-4xl md:text-5xl font-display font-bold text-dark-900 mb-4">
-            Le <span className="text-gold-500">Pack Premium</span> arrive bientôt !
+            {t('titlePrefix')} <span className="text-gold-500">{t('titleHighlight')}</span> {t('titleSuffix')}
           </h1>
           <p className="text-dark-500 text-lg max-w-xl mx-auto">
-            Bientôt, boostez vos annonces et touchez encore plus d'acheteurs partout en Guinée.
+            {t('subtitle')}
           </p>
         </div>
 
@@ -28,12 +30,12 @@ export default function PremiumPage() {
           <div className="w-20 h-20 bg-gradient-to-br from-gold-400 to-gold-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
             <Sparkles size={36} className="text-white" />
           </div>
-          <h2 className="text-2xl font-display font-bold text-dark-900 mb-3">Bientôt disponible</h2>
+          <h2 className="text-2xl font-display font-bold text-dark-900 mb-3">{t('comingSoonTitle')}</h2>
           <p className="text-dark-600 max-w-md mx-auto mb-8">
-            Nous préparons quelque chose de spécial pour les vendeurs. Soyez parmi les premiers informés au lancement !
+            {t('comingSoonMsg')}
           </p>
           <button onClick={() => setShowModal(true)} className="bg-gold-500 hover:bg-gold-600 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors inline-flex items-center gap-2">
-            <Bell size={18} /> Me prévenir au lancement
+            <Bell size={18} /> {t('notifyMe')}
           </button>
         </div>
       </div>
@@ -46,11 +48,11 @@ export default function PremiumPage() {
             <div className="w-16 h-16 bg-gold-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Clock size={30} className="text-gold-500" />
             </div>
-            <h3 className="text-xl font-display font-bold text-dark-900 mb-2">Ça arrive très bientôt !</h3>
+            <h3 className="text-xl font-display font-bold text-dark-900 mb-2">{t('modalTitle')}</h3>
             <p className="text-dark-600 text-sm mb-6">
-              Le Pack Premium est en cours de préparation. Nous vous préviendrons dès son lancement. Merci de votre patience !
+              {t('modalMsg')}
             </p>
-            <button onClick={() => setShowModal(false)} className="btn-primary w-full">J'ai compris</button>
+            <button onClick={() => setShowModal(false)} className="btn-primary w-full">{t('understood')}</button>
           </div>
         </div>
       )}

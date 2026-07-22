@@ -1,0 +1,49 @@
+{
+  "badge": "Our story",
+  "hero": {
+    "titleLine1": "A platform born from a real problem,",
+    "titleLine2": "not a business plan",
+    "subtitle": "— the marketplace built in Conakry, for all of Guinea."
+  },
+  "story": {
+    "label": "How it all started",
+    "title": "My story",
+    "paragraph1": "I'm a young Guinean developer based in Conakry. It all started the day I wanted to get into online marketing: it was hard, frustrating, and I simply wasn't making any sales.",
+    "paragraph2": "The available platforms were either European or American — never designed for our reality — and nothing guaranteed a sale. So I looked for a real Guinean platform, made for us. I couldn't find one.",
+    "paragraph3Before": "So I built my own — to help everyone in the same situation I was in: helping Guineans to ",
+    "paragraph3Vendre": "SELL",
+    "paragraph3Mid": " and to ",
+    "paragraph3Trouver": "FIND EVERYTHING",
+    "paragraph3After": ", in Guinea. That's the idea behind the name: TrouveTout224."
+  },
+  "mission": {
+    "title": "Our mission",
+    "text": "Enable every Guinean to buy and sell easily and confidently, right at home — without going through platforms that don't know us."
+  },
+  "values": {
+    "label": "Our values",
+    "title": "What we believe in",
+    "items": [
+      { "title": "100% Guinean", "desc": "Designed, built, and made for Guinea — not an adapted copy." },
+      { "title": "Trust above all", "desc": "Verified sellers and transparency, so you can buy and sell with peace of mind." },
+      { "title": "Simple and accessible", "desc": "A platform that's easy to use for everyone, even without being a digital expert." }
+    ]
+  },
+  "difference": {
+    "label": "The difference",
+    "title": "What makes us different",
+    "items": [
+      { "title": "Made here, built for Guinea", "desc": "Our cities, our habits, our reality — not an imported platform simply translated into French." },
+      { "title": "Your own online shop", "desc": "Every seller can create their shop and showcase all their items in one place." },
+      { "title": "Direct contact on WhatsApp", "desc": "No complicated middleman: buyers and sellers talk to each other directly." },
+      { "title": "A community-driven platform", "desc": "Built with and for the Guinean community, evolving based on your feedback." }
+    ]
+  },
+  "cta": {
+    "title": "Join the TrouveTout224 adventure",
+    "text": "Whether you're here to buy or sell, you're right at home. Join thousands of Guineans who find everything in one place.",
+    "createAccount": "Create my free account",
+    "publish": "Post a listing"
+  },
+  "copyright": "© {year} TrouveTout224 · Conakry, Republic of Guinea 🇬🇳"
+}

@@ -1,0 +1,68 @@
+{
+  "survey": {
+    "welcome": "Welcome!",
+    "title": "Tell us about yourself 🇬🇳",
+    "subtitle": "3 quick questions · less than 1 minute",
+    "sources": {
+      "facebook": "Facebook",
+      "whatsapp": "WhatsApp",
+      "tiktok": "TikTok",
+      "friend": "A friend",
+      "googleSearch": "Google search",
+      "other": "Other"
+    },
+    "interests": {
+      "electronics": "Electronics",
+      "phones": "Phones",
+      "vehicles": "Vehicles",
+      "realEstate": "Real estate",
+      "fashion": "Fashion & Clothing",
+      "homeGarden": "Home & Garden",
+      "computing": "Computers",
+      "jobs": "Jobs",
+      "services": "Services",
+      "food": "Food",
+      "sports": "Sports & Leisure",
+      "animals": "Animals"
+    },
+    "step0Question": "How did you hear about TrouveTout224?",
+    "step1Question": "What are you most interested in?",
+    "step1Hint": "Select everything that applies to you",
+    "step2Question": "Which city / neighborhood are you from?",
+    "cityPlaceholder": "e.g. Conakry — Ratoma",
+    "cityHint": "This helps us show you listings near you.",
+    "skip": "Skip",
+    "back": "Back",
+    "next": "Next",
+    "sending": "Sending…",
+    "finish": "Finish",
+    "successToast": "Thanks for your answers!",
+    "errorToast": "Network error, please try again.",
+    "closeAriaLabel": "Close"
+  },
+  "nudge": {
+    "hints": {
+      "avatar": "📸 Add a profile photo to build trust!",
+      "info": "📍 Fill in your city and phone number to be more visible.",
+      "email": "✉️ Verify your email to secure your account.",
+      "security": "🔒 Set up your security questions — useful if you forget your password.",
+      "explore": "🔍 Take a look at the listings available near you!",
+      "favorite": "❤️ Add a listing to your favorites to find it easily.",
+      "firstAnnonce": "📦 Post your first listing, it's free!",
+      "shop": "🏪 Create your shop to showcase all your products."
+    },
+    "defaultHint": "💡 {label}",
+    "goThere": "Go there",
+    "later": "Later",
+    "dontShowAgain": "Don't show again",
+    "closeAriaLabel": "Close",
+    "taskDoneToast": "Well done! 🎉 \"{label}\" completed"
+  },
+  "checklist": {
+    "title": "Get started",
+    "percentComplete": "Profile {percent}% complete",
+    "important": "Important",
+    "completeTitle": "Profile complete",
+    "completeSubtitle": "Congrats, you've completed every step to get started on TrouveTout224!"
+  }
+}

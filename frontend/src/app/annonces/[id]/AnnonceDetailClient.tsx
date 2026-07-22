@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import {
   MapPin, Phone, MessageCircle, Heart, Share2, Eye, Clock,
   ChevronLeft, ChevronRight, Flag, X, Copy, Edit, EyeOff, Trash2,
@@ -21,16 +22,17 @@ import ReviewSection from '@/components/ReviewSection';
 import { AnnonceCard } from '@/components/annonces/AnnonceGrid';
 import { useRecentlyViewed, type RecentAnnonce } from '@/hooks/useRecentlyViewed';
 
-const REPORT_REASONS = [
-  { value: 'SCAM',                  label: 'Contenu frauduleux',     Icon: AlertTriangle },
-  { value: 'FORBIDDEN_PRODUCT',     label: 'Produit interdit',       Icon: PackageX },
-  { value: 'SUSPICIOUS_PRICE',      label: 'Prix suspect',           Icon: DollarSign },
-  { value: 'DUPLICATE',             label: 'Annonce en double',      Icon: Copy },
-  { value: 'INAPPROPRIATE_CONTENT', label: 'Contenu inapproprié',    Icon: AlertCircle },
-  { value: 'OTHER',                 label: 'Autre',                   Icon: HelpCircle },
-];
+const REPORT_REASON_KEYS = [
+  { value: 'SCAM',                  key: 'scam',                  Icon: AlertTriangle },
+  { value: 'FORBIDDEN_PRODUCT',     key: 'forbiddenProduct',      Icon: PackageX },
+  { value: 'SUSPICIOUS_PRICE',      key: 'suspiciousPrice',       Icon: DollarSign },
+  { value: 'DUPLICATE',             key: 'duplicate',             Icon: Copy },
+  { value: 'INAPPROPRIATE_CONTENT', key: 'inappropriateContent',  Icon: AlertCircle },
+  { value: 'OTHER',                 key: 'other',                 Icon: HelpCircle },
+] as const;
 
 export default function AnnonceDetailPage() {
+  const t = useTranslations('annonces.detail');
   const { id } = useParams();
   const { data, isLoading } = useAnnonce(id as string);
   const [imgIndex, setImgIndex] = useState(0);
@@ -154,7 +156,7 @@ export default function AnnonceDetailPage() {
   if (!annonce) {
     return (
       <div className="min-h-screen bg-dark-50 flex items-center justify-center">
-        <p className="text-dark-500">Annonce non trouvée</p>
+        <p className="text-dark-500">{t('notFound')}</p>
       </div>
     );
   }
@@ -169,16 +171,16 @@ export default function AnnonceDetailPage() {
             <div className="w-16 h-16 bg-dark-900 rounded-2xl flex items-center justify-center mx-auto mb-5">
               <ShieldAlert size={28} className="text-white" />
             </div>
-            <h1 className="font-display font-bold text-dark-900 text-xl mb-2">Contenu réservé aux adultes</h1>
+            <h1 className="font-display font-bold text-dark-900 text-xl mb-2">{t('ageGate.title')}</h1>
             <p className="text-dark-500 text-sm mb-6">
-              Ce produit est réservé aux adultes. Avez-vous 18 ans ou plus ?
+              {t('ageGate.message')}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => router.push('/')}
                 className="flex-1 py-3 rounded-xl border border-dark-200 text-dark-600 font-semibold hover:bg-dark-50 transition-colors"
               >
-                Non
+                {t('ageGate.no')}
               </button>
               <button
                 onClick={() => {
@@ -187,7 +189,7 @@ export default function AnnonceDetailPage() {
                 }}
                 className="flex-1 py-3 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-semibold transition-colors"
               >
-                Oui, 18 ans ou plus
+                {t('ageGate.yes')}
               </button>
             </div>
           </div>
@@ -203,7 +205,7 @@ export default function AnnonceDetailPage() {
 
   const openContactModal = () => {
     if (!isAuthenticated) { router.push(`/auth/connexion?redirect=${encodeURIComponent(pathname)}`); return; }
-    setContactMessage(`Bonjour, je suis intéressé(e) par votre annonce « ${annonce.title} ». Est-elle toujours disponible ?`);
+    setContactMessage(t('seller.contactMessage', { title: annonce.title }));
     setShowContactModal(true);
   };
 
@@ -214,23 +216,23 @@ export default function AnnonceDetailPage() {
       const res = await api.post('/messages/conversations', { recipientId: annonce.user.id, annonceId: annonce.id });
       const convId = res.data.data.id;
       await api.post(`/messages/conversations/${convId}/messages`, { content: contactMessage.trim() });
-      toast.success('Message envoyé !');
+      toast.success(t('toasts.messageSent'));
       setShowContactModal(false);
       router.push(`/messages/${convId}`);
-    } catch { toast.error("Impossible d'envoyer le message."); }
+    } catch { toast.error(t('toasts.messageSendError')); }
     finally { setSendingMsg(false); }
   };
 
   const handleSave = async () => {
-    if (!isAuthenticated) { toast.error('Connectez-vous pour sauvegarder'); router.push(`/auth/connexion?redirect=${encodeURIComponent(pathname)}`); return; }
+    if (!isAuthenticated) { toast.error(t('toasts.loginToSave')); router.push(`/auth/connexion?redirect=${encodeURIComponent(pathname)}`); return; }
     try {
       const res = await api.post(`/annonces/${annonce.id}/save`);
       setSaved(res.data.saved);
       toast.success(res.data.message);
-    } catch { toast.error('Erreur'); }
+    } catch { toast.error(t('toasts.genericError')); }
   };
 
-  const copyLink = () => { navigator.clipboard.writeText(shareUrl); toast.success('Lien copié !'); };
+  const copyLink = () => { navigator.clipboard.writeText(shareUrl); toast.success(t('toasts.linkCopied')); };
 
   const handleEdit = () => { router.push(`/annonces/publier?edit=${annonce.id}`); };
 
@@ -238,18 +240,18 @@ export default function AnnonceDetailPage() {
     const newStatus = annonce.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
     try {
       await api.put(`/annonces/${annonce.id}`, { status: newStatus });
-      toast.success(newStatus === 'SUSPENDED' ? 'Annonce masquée' : 'Annonce réaffichée');
+      toast.success(newStatus === 'SUSPENDED' ? t('toasts.hidden') : t('toasts.unhidden'));
       setTimeout(() => window.location.reload(), 800);
-    } catch { toast.error('Erreur'); }
+    } catch { toast.error(t('toasts.genericError')); }
   };
 
   const handleDeleteAnnonce = async () => {
-    if (!confirm('Supprimer définitivement cette annonce ?')) return;
+    if (!confirm(t('toasts.confirmDelete'))) return;
     try {
       await api.delete(`/annonces/${annonce.id}`);
-      toast.success('Annonce supprimée');
+      toast.success(t('toasts.deleted'));
       router.push('/profil');
-    } catch { toast.error('Erreur lors de la suppression'); }
+    } catch { toast.error(t('toasts.deleteError')); }
   };
 
   const openSoldModal = () => {
@@ -259,34 +261,34 @@ export default function AnnonceDetailPage() {
   };
 
   const handleMarkSold = async () => {
-    if (!soldPrice || Number(soldPrice) <= 0) { toast.error('Entrez un prix de vente valide.'); return; }
+    if (!soldPrice || Number(soldPrice) <= 0) { toast.error(t('toasts.invalidSalePrice')); return; }
     setMarkingSold(true);
     try {
       await api.put(`/annonces/${annonce.id}/mark-sold`, { soldPrice: Number(soldPrice), soldAt: soldAt || undefined });
-      toast.success('Annonce marquée comme vendue !');
+      toast.success(t('toasts.markedSold'));
       setShowSoldModal(false);
       setTimeout(() => window.location.reload(), 800);
-    } catch { toast.error('Erreur lors de la mise à jour.'); }
+    } catch { toast.error(t('toasts.markSoldError')); }
     finally { setMarkingSold(false); }
   };
 
   const handleReactivate = async () => {
-    if (!confirm('Réactiver cette annonce et la remettre en vente ?')) return;
+    if (!confirm(t('toasts.confirmReactivate'))) return;
     try {
       await api.put(`/annonces/${annonce.id}/reactivate`);
-      toast.success('Annonce réactivée avec succès.');
+      toast.success(t('toasts.reactivated'));
       setTimeout(() => window.location.reload(), 800);
-    } catch { toast.error('Erreur lors de la réactivation.'); }
+    } catch { toast.error(t('toasts.reactivateError')); }
   };
 
   const submitReport = async () => {
-    if (!reportReason) { toast.error('Choisissez une raison'); return; }
-    if (!isAuthenticated) { toast.error('Connectez-vous pour signaler'); router.push(`/auth/connexion?redirect=${encodeURIComponent(pathname)}`); return; }
+    if (!reportReason) { toast.error(t('toasts.chooseReason')); return; }
+    if (!isAuthenticated) { toast.error(t('toasts.loginToReport')); router.push(`/auth/connexion?redirect=${encodeURIComponent(pathname)}`); return; }
     try {
       await api.post('/reports', { reason: reportReason, description: reportDesc, annonceId: annonce.id });
-      toast.success('Signalement envoyé. Notre équipe va examiner.');
+      toast.success(t('toasts.reportSent'));
       setShowReport(false); setReportReason(''); setReportDesc('');
-    } catch { toast.error('Erreur lors du signalement'); }
+    } catch { toast.error(t('toasts.reportError')); }
   };
 
   /* ── Rendu des caractéristiques selon le type d'annonce ───── */
@@ -296,21 +298,21 @@ export default function AnnonceDetailPage() {
   const isListingImmo = a.listingType === 'immobilier';
 
   const specs = [
-    a.condition        && { label: 'État',              value: a.condition },
-    a.quantity         && { label: 'Quantité',           value: String(a.quantity) },
-    a.bedrooms         && { label: 'Chambres',           value: `${a.bedrooms} chambre${a.bedrooms > 1 ? 's' : ''}` },
-    a.surface          && { label: 'Surface',            value: `${a.surface} m²` },
-    (isCatHotel || isListingImmo) && a.isFurnished != null && { label: 'Meublé', value: a.isFurnished ? 'Oui' : 'Non' },
-    a.contractType     && { label: 'Type de contrat',    value: a.contractType },
-    a.salary           && { label: 'Salaire',            value: String(a.salary) },
-    a.experience       && { label: 'Expérience',         value: a.experience },
-    a.stars            && { label: 'Classement',         value: `${a.stars} étoile${a.stars > 1 ? 's' : ''}` },
-    a.cuisineType      && { label: 'Cuisine',            value: a.cuisineType },
-    a.priceRange       && { label: 'Gamme de prix',      value: a.priceRange },
-    isCatTerrain && a.plotType     && { label: 'Type de terrain', value: a.plotType },
-    isCatTerrain && a.hasTitleDeed != null && { label: 'Titre foncier', value: a.hasTitleDeed ? 'Disponible' : 'Non disponible' },
-    a.serviceType      && { label: 'Type de service',    value: a.serviceType },
-    a.amenities        && { label: 'Commodités',         value: a.amenities },
+    a.condition        && { label: t('specs.condition'),    value: a.condition },
+    a.quantity         && { label: t('specs.quantity'),     value: String(a.quantity) },
+    a.bedrooms         && { label: t('specs.bedrooms'),     value: t('specs.bedroomsValue', { count: a.bedrooms }) },
+    a.surface          && { label: t('specs.surface'),      value: `${a.surface} m²` },
+    (isCatHotel || isListingImmo) && a.isFurnished != null && { label: t('specs.furnished'), value: a.isFurnished ? t('specs.yes') : t('specs.no') },
+    a.contractType     && { label: t('specs.contractType'), value: a.contractType },
+    a.salary           && { label: t('specs.salary'),       value: String(a.salary) },
+    a.experience       && { label: t('specs.experience'),   value: a.experience },
+    a.stars            && { label: t('specs.rating'),       value: t('specs.ratingValue', { count: a.stars }) },
+    a.cuisineType      && { label: t('specs.cuisine'),      value: a.cuisineType },
+    a.priceRange       && { label: t('specs.priceRange'),   value: a.priceRange },
+    isCatTerrain && a.plotType     && { label: t('specs.plotType'), value: a.plotType },
+    isCatTerrain && a.hasTitleDeed != null && { label: t('specs.titleDeed'), value: a.hasTitleDeed ? t('specs.available') : t('specs.unavailable') },
+    a.serviceType      && { label: t('specs.serviceType'),  value: a.serviceType },
+    a.amenities        && { label: t('specs.amenities'),    value: a.amenities },
   ].filter(Boolean) as { label: string; value: string }[];
 
   return (
@@ -321,9 +323,9 @@ export default function AnnonceDetailPage() {
 
         {/* Fil d'Ariane */}
         <nav className="flex items-center gap-1.5 text-sm text-dark-400 mb-5">
-          <Link href="/" className="hover:text-primary-700 transition-colors">Accueil</Link>
+          <Link href="/" className="hover:text-primary-700 transition-colors">{t('breadcrumb.home')}</Link>
           <ChevronRight size={13} />
-          <Link href="/annonces/lister" className="hover:text-primary-700 transition-colors">Annonces</Link>
+          <Link href="/annonces/lister" className="hover:text-primary-700 transition-colors">{t('breadcrumb.annonces')}</Link>
           <ChevronRight size={13} />
           <span className="text-dark-700 font-medium">{annonce.category.nameFr}</span>
         </nav>
@@ -335,39 +337,39 @@ export default function AnnonceDetailPage() {
               <div className="w-7 h-7 bg-primary-100 rounded-lg flex items-center justify-center shrink-0">
                 <User size={14} className="text-primary-700" />
               </div>
-              C&apos;est votre annonce
+              {t('owner.yourListing')}
               {annonce.status === 'SUSPENDED' && (
-                <span className="bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-semibold">Masquée</span>
+                <span className="bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-semibold">{t('owner.hidden')}</span>
               )}
               {annonce.status === 'SOLD' && (
                 <span className="bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1">
-                  <CheckCircle2 size={11} /> Vendue
+                  <CheckCircle2 size={11} /> {t('owner.sold')}
                 </span>
               )}
             </p>
             <div className="flex gap-2 flex-wrap">
               {annonce.status !== 'SOLD' && (
                 <button onClick={handleEdit} className="flex items-center gap-1.5 bg-white border border-dark-200 text-dark-700 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-primary-50 hover:border-primary-300 transition-all shadow-sm">
-                  <Edit size={14} /> Modifier
+                  <Edit size={14} /> {t('owner.edit')}
                 </button>
               )}
               {annonce.status !== 'SOLD' && (
                 <button onClick={handleHide} className="flex items-center gap-1.5 bg-white border border-dark-200 text-dark-700 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-dark-50 transition-all shadow-sm">
-                  <EyeOff size={14} /> {annonce.status === 'ACTIVE' ? 'Masquer' : 'Réafficher'}
+                  <EyeOff size={14} /> {annonce.status === 'ACTIVE' ? t('owner.hide') : t('owner.unhide')}
                 </button>
               )}
               {annonce.status !== 'SOLD' && (
                 <button onClick={openSoldModal} className="flex items-center gap-1.5 bg-white border border-blue-200 text-blue-700 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-blue-50 transition-all shadow-sm">
-                  <CheckCircle2 size={14} /> Marquer vendu
+                  <CheckCircle2 size={14} /> {t('owner.markSold')}
                 </button>
               )}
               {annonce.status === 'SOLD' && (
                 <button onClick={handleReactivate} className="flex items-center gap-1.5 bg-white border border-primary-200 text-primary-700 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-primary-50 transition-all shadow-sm">
-                  <RotateCcw size={14} /> Réactiver
+                  <RotateCcw size={14} /> {t('owner.reactivate')}
                 </button>
               )}
               <button onClick={handleDeleteAnnonce} className="flex items-center gap-1.5 bg-white border border-guinea-200 text-guinea-600 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-guinea-50 transition-all shadow-sm">
-                <Trash2 size={14} /> Supprimer
+                <Trash2 size={14} /> {t('owner.delete')}
               </button>
             </div>
           </div>
@@ -425,14 +427,14 @@ export default function AnnonceDetailPage() {
                   <button
                     onClick={handleSave}
                     className="w-9 h-9 bg-white/95 backdrop-blur rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-all"
-                    title={saved ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                    title={saved ? t('gallery.removeFavorite') : t('gallery.addFavorite')}
                   >
                     <Heart size={16} className={saved ? 'text-guinea-500 fill-guinea-500' : 'text-dark-400'} />
                   </button>
                   <button
                     onClick={() => setShowShare(true)}
                     className="w-9 h-9 bg-white/95 backdrop-blur rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-all"
-                    title="Partager"
+                    title={t('gallery.share')}
                   >
                     <Share2 size={16} className="text-dark-400" />
                   </button>
@@ -443,7 +445,7 @@ export default function AnnonceDetailPage() {
                   <div className="absolute top-3 left-3 flex flex-col gap-1.5">
                     {annonce.isPremium && (
                       <span className="flex items-center gap-1 bg-gold-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md">
-                        <Star size={10} className="fill-white" /> À la une
+                        <Star size={10} className="fill-white" /> {t('badges.featured')}
                       </span>
                     )}
                     {annonce.isAgeRestricted && (
@@ -500,11 +502,11 @@ export default function AnnonceDetailPage() {
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <span className="flex items-center gap-1 bg-guinea-100 text-guinea-700 text-xs font-bold px-2.5 py-1 rounded-full">
-                            <Tag size={11} /> Promo
+                            <Tag size={11} /> {t('price.promo')}
                           </span>
                           {a2.promoEndsAt && (
                             <span className="text-dark-400 text-xs">
-                              jusqu'au {new Date(a2.promoEndsAt).toLocaleDateString('fr-FR')}
+                              {t('price.promoUntil', { date: new Date(a2.promoEndsAt).toLocaleDateString('fr-FR') })}
                             </span>
                           )}
                         </div>
@@ -527,11 +529,11 @@ export default function AnnonceDetailPage() {
                           <span className="text-lg ml-1.5 font-semibold text-gold-600">GNF</span>
                         </p>
                         {annonce.isNegotiable && (
-                          <span className="text-sm text-primary-700 bg-primary-100 font-semibold px-3 py-1 rounded-full">Négociable</span>
+                          <span className="text-sm text-primary-700 bg-primary-100 font-semibold px-3 py-1 rounded-full">{t('price.negotiable')}</span>
                         )}
                       </div>
                     ) : (
-                      <p className="text-xl text-dark-500 italic">Prix à négocier</p>
+                      <p className="text-xl text-dark-500 italic">{t('price.onRequest')}</p>
                     )}
                   </div>
                 );
@@ -545,7 +547,7 @@ export default function AnnonceDetailPage() {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Eye size={14} />
-                  {annonce.viewCount} vue{annonce.viewCount !== 1 ? 's' : ''}
+                  {t('meta.views', { count: annonce.viewCount })}
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Clock size={14} />
@@ -556,7 +558,7 @@ export default function AnnonceDetailPage() {
               {/* Caractéristiques dynamiques */}
               {specs.length > 0 && (
                 <div className="py-5 border-b border-dark-100">
-                  <h3 className="pl-2.5 border-l-2 border-primary-500 text-[10px] font-bold text-dark-600 uppercase tracking-widest mb-3">Caractéristiques</h3>
+                  <h3 className="pl-2.5 border-l-2 border-primary-500 text-[10px] font-bold text-dark-600 uppercase tracking-widest mb-3">{t('specs.title')}</h3>
                   <div className="grid grid-cols-2 gap-2">
                     {specs.map(({ label, value }) => (
                       <div key={label} className="bg-primary-50/60 border border-primary-100/70 rounded-xl px-4 py-3">
@@ -570,7 +572,7 @@ export default function AnnonceDetailPage() {
 
               {/* Description */}
               <div className="pt-5">
-                <h3 className="pl-2.5 border-l-2 border-primary-500 text-[10px] font-bold text-dark-600 uppercase tracking-widest mb-3">Description</h3>
+                <h3 className="pl-2.5 border-l-2 border-primary-500 text-[10px] font-bold text-dark-600 uppercase tracking-widest mb-3">{t('description.title')}</h3>
                 <p className="text-dark-600 leading-relaxed whitespace-pre-wrap text-sm">{annonce.description}</p>
               </div>
 
@@ -580,7 +582,7 @@ export default function AnnonceDetailPage() {
                   onClick={() => setShowReport(true)}
                   className="flex items-center gap-2 mt-6 text-dark-400 hover:text-guinea-500 text-sm transition-colors"
                 >
-                  <Flag size={13} /> Signaler cette annonce
+                  <Flag size={13} /> {t('report.link')}
                 </button>
               )}
             </div>
@@ -600,7 +602,7 @@ export default function AnnonceDetailPage() {
                 {/* Barre d'accent vert */}
                 <div className="h-1.5 bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700" />
                 <div className="p-5">
-                  <h3 className="pl-2.5 border-l-2 border-primary-500 text-[10px] font-bold text-dark-600 uppercase tracking-widest mb-4">Vendeur</h3>
+                  <h3 className="pl-2.5 border-l-2 border-primary-500 text-[10px] font-bold text-dark-600 uppercase tracking-widest mb-4">{t('seller.title')}</h3>
                   <div className="flex items-center gap-3 mb-5">
                     <div className="relative shrink-0">
                       {annonce.user.avatar ? (
@@ -624,11 +626,11 @@ export default function AnnonceDetailPage() {
                       </p>
                       {(annonce.user as any).isShopVerified && (
                         <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gold-600 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full mt-0.5">
-                          <ShieldCheck size={10} /> Boutique vérifiée
+                          <ShieldCheck size={10} /> {t('seller.verifiedShop')}
                         </span>
                       )}
                       <Link href={`/profil/${annonce.user.id}`} className="text-primary-700 text-sm font-medium hover:underline flex items-center gap-1 mt-1">
-                        Voir le profil →
+                        {t('seller.viewProfile')}
                       </Link>
                     </div>
                   </div>
@@ -637,7 +639,7 @@ export default function AnnonceDetailPage() {
                       onClick={openContactModal}
                       className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-sm"
                     >
-                      <MessageCircle size={17} /> Envoyer un message
+                      <MessageCircle size={17} /> {t('seller.sendMessage')}
                     </button>
                     {annonce.phone && (
                       <a
@@ -649,12 +651,12 @@ export default function AnnonceDetailPage() {
                     )}
                     {annonce.whatsapp && (
                       <a
-                        href={`https://wa.me/224${annonce.whatsapp}?text=${encodeURIComponent(`Bonjour, je suis intéressé(e) par votre annonce « ${annonce.title} ». Est-elle toujours disponible ?`)}`}
+                        href={`https://wa.me/224${annonce.whatsapp}?text=${encodeURIComponent(t('seller.contactMessage', { title: annonce.title }))}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center justify-center gap-2 w-full bg-[#25D366] hover:bg-[#1fbb58] text-white font-semibold py-2.5 rounded-xl transition-colors text-sm shadow-sm"
                       >
-                        <MessageCircle size={15} /> WhatsApp
+                        <MessageCircle size={15} /> {t('seller.whatsapp')}
                       </a>
                     )}
                   </div>
@@ -666,24 +668,24 @@ export default function AnnonceDetailPage() {
             <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4">
               <h4 className="font-bold text-amber-800 text-sm mb-3 flex items-center gap-1.5">
                 <ShieldAlert size={16} className="text-amber-600 shrink-0" />
-                Conseils anti-arnaque
+                {t('scamTips.title')}
               </h4>
               <ul className="text-xs text-amber-800 space-y-2">
                 <li className="flex items-start gap-2">
                   <span className="text-amber-500 mt-0.5 shrink-0 font-bold">!</span>
-                  Ne payez jamais d&apos;avance sans avoir vérifié le produit en personne.
+                  {t('scamTips.tip1')}
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-amber-500 mt-0.5 shrink-0 font-bold">!</span>
-                  Rencontrez le vendeur dans un lieu public et fréquenté.
+                  {t('scamTips.tip2')}
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-amber-500 mt-0.5 shrink-0 font-bold">!</span>
-                  N&apos;envoyez pas d&apos;argent par transfert à une personne inconnue.
+                  {t('scamTips.tip3')}
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-amber-500 mt-0.5 shrink-0 font-bold">!</span>
-                  Vérifiez bien le produit avant de payer.
+                  {t('scamTips.tip4')}
                 </li>
               </ul>
             </div>
@@ -700,16 +702,16 @@ export default function AnnonceDetailPage() {
                 </div>
                 <div>
                   <h2 className="font-display font-bold text-dark-900 text-lg leading-tight">
-                    Annonces similaires
+                    {t('similar.title')}
                   </h2>
-                  <p className="text-dark-400 text-xs">Dans la même catégorie · {annonce.category.nameFr}</p>
+                  <p className="text-dark-400 text-xs">{t('similar.subtitle', { category: annonce.category.nameFr })}</p>
                 </div>
               </div>
               <Link
                 href={`/annonces?categoryId=${annonce.categoryId}`}
                 className="hidden sm:flex items-center gap-1 text-primary-700 hover:text-primary-800 text-sm font-semibold transition-colors"
               >
-                Voir tout <ArrowRight size={14} />
+                {t('similar.seeAll')} <ArrowRight size={14} />
               </Link>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -721,7 +723,7 @@ export default function AnnonceDetailPage() {
               href={`/annonces?categoryId=${annonce.categoryId}`}
               className="sm:hidden mt-4 flex items-center justify-center gap-1 text-primary-700 text-sm font-semibold"
             >
-              Voir tout <ArrowRight size={14} />
+              {t('similar.seeAll')} <ArrowRight size={14} />
             </Link>
           </section>
         )}
@@ -735,9 +737,9 @@ export default function AnnonceDetailPage() {
               </div>
               <div>
                 <h2 className="font-display font-bold text-dark-900 text-lg leading-tight">
-                  Vues récemment
+                  {t('recent.title')}
                 </h2>
-                <p className="text-dark-400 text-xs">Vos dernières consultations</p>
+                <p className="text-dark-400 text-xs">{t('recent.subtitle')}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -756,7 +758,7 @@ export default function AnnonceDetailPage() {
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden" onClick={e => e.stopPropagation()}>
             {/* En-tête modal */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-dark-100">
-              <h3 className="font-display font-bold text-dark-900 text-base">Contacter le vendeur</h3>
+              <h3 className="font-display font-bold text-dark-900 text-base">{t('contactModal.title')}</h3>
               <button onClick={() => setShowContactModal(false)} className="w-8 h-8 rounded-full flex items-center justify-center text-dark-400 hover:bg-dark-100 transition-colors">
                 <X size={18} />
               </button>
@@ -788,7 +790,7 @@ export default function AnnonceDetailPage() {
             <div className="mx-5 mb-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
               <ShieldAlert size={14} className="text-amber-600 shrink-0 mt-0.5" />
               <p className="text-[11px] text-amber-800 leading-relaxed">
-                <strong>Conseil :</strong> Ne payez jamais avant de voir le produit. Rencontrez le vendeur dans un lieu public.
+                <strong>{t('contactModal.advice')}</strong> {t('contactModal.adviceText')}
               </p>
             </div>
 
@@ -799,7 +801,7 @@ export default function AnnonceDetailPage() {
                 onChange={e => setContactMessage(e.target.value)}
                 rows={4}
                 className="input resize-none text-sm w-full"
-                placeholder="Votre message..."
+                placeholder={t('contactModal.placeholder')}
               />
             </div>
 
@@ -809,7 +811,7 @@ export default function AnnonceDetailPage() {
                 onClick={() => setShowContactModal(false)}
                 className="flex-1 py-2.5 rounded-xl border border-dark-200 text-dark-600 text-sm font-semibold hover:bg-dark-50 transition-colors"
               >
-                Annuler
+                {t('contactModal.cancel')}
               </button>
               <button
                 onClick={handleSendInternalMessage}
@@ -817,7 +819,7 @@ export default function AnnonceDetailPage() {
                 className="flex-1 btn-primary flex items-center justify-center gap-2 py-2.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {sendingMsg ? <Loader2 size={16} className="animate-spin" /> : <Send size={15} />}
-                {sendingMsg ? 'Envoi...' : 'Envoyer'}
+                {sendingMsg ? t('contactModal.sending') : t('contactModal.send')}
               </button>
             </div>
           </div>
@@ -829,7 +831,7 @@ export default function AnnonceDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowShare(false)}>
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-display font-bold text-dark-900 text-lg">Partager l&apos;annonce</h3>
+              <h3 className="font-display font-bold text-dark-900 text-lg">{t('shareModal.title')}</h3>
               <button onClick={() => setShowShare(false)} className="w-8 h-8 rounded-full flex items-center justify-center text-dark-400 hover:bg-dark-100 transition-colors">
                 <X size={18} />
               </button>
@@ -840,7 +842,7 @@ export default function AnnonceDetailPage() {
                 className="w-full flex items-center gap-3 p-3.5 rounded-xl border border-dark-200 hover:bg-dark-50 hover:border-dark-300 transition-colors"
               >
                 <Copy size={17} className="text-dark-500 shrink-0" />
-                <span className="text-sm font-medium text-dark-700">Copier le lien</span>
+                <span className="text-sm font-medium text-dark-700">{t('shareModal.copyLink')}</span>
               </button>
               <a
                 href={`https://wa.me/?text=${encodeURIComponent(annonce.title + ' - ' + shareUrl)}`}
@@ -849,7 +851,7 @@ export default function AnnonceDetailPage() {
                 className="w-full flex items-center gap-3 p-3.5 rounded-xl border border-dark-200 hover:bg-green-50 hover:border-green-200 transition-colors"
               >
                 <MessageCircle size={17} className="text-green-600 shrink-0" />
-                <span className="text-sm font-medium text-dark-700">Partager sur WhatsApp</span>
+                <span className="text-sm font-medium text-dark-700">{t('shareModal.whatsapp')}</span>
               </a>
               <a
                 href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
@@ -858,7 +860,7 @@ export default function AnnonceDetailPage() {
                 className="w-full flex items-center gap-3 p-3.5 rounded-xl border border-dark-200 hover:bg-blue-50 hover:border-blue-200 transition-colors"
               >
                 <ExternalLink size={17} className="text-blue-600 shrink-0" />
-                <span className="text-sm font-medium text-dark-700">Partager sur Facebook</span>
+                <span className="text-sm font-medium text-dark-700">{t('shareModal.facebook')}</span>
               </a>
             </div>
           </div>
@@ -871,7 +873,7 @@ export default function AnnonceDetailPage() {
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-dark-100">
               <h3 className="font-display font-bold text-dark-900 text-base flex items-center gap-2">
-                <CheckCircle2 size={18} className="text-blue-600" /> Marquer comme vendu
+                <CheckCircle2 size={18} className="text-blue-600" /> {t('soldModal.title')}
               </h3>
               <button onClick={() => setShowSoldModal(false)} className="w-8 h-8 rounded-full flex items-center justify-center text-dark-400 hover:bg-dark-100 transition-colors">
                 <X size={18} />
@@ -890,7 +892,7 @@ export default function AnnonceDetailPage() {
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-dark-900 line-clamp-2 leading-snug">{annonce.title}</p>
                   {annonce.price != null && (
-                    <p className="text-dark-400 text-xs mt-0.5">Prix affiché : {annonce.price.toLocaleString('fr-GN')} GNF</p>
+                    <p className="text-dark-400 text-xs mt-0.5">{t('soldModal.displayedPrice', { price: annonce.price.toLocaleString('fr-GN') })}</p>
                   )}
                 </div>
               </div>
@@ -898,7 +900,7 @@ export default function AnnonceDetailPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-dark-800 mb-1.5">
-                    Prix réel de vente <span className="text-guinea-500">*</span>
+                    {t('soldModal.salePriceLabel')} <span className="text-guinea-500">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -906,17 +908,17 @@ export default function AnnonceDetailPage() {
                       min="1"
                       value={soldPrice}
                       onChange={e => setSoldPrice(e.target.value)}
-                      placeholder="Ex: 450000"
+                      placeholder={t('soldModal.salePricePlaceholder')}
                       className="input pr-14 w-full"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-dark-400">GNF</span>
                   </div>
-                  <p className="text-xs text-dark-400 mt-1">Modifiez si le prix négocié diffère du prix affiché.</p>
+                  <p className="text-xs text-dark-400 mt-1">{t('soldModal.salePriceHint')}</p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-dark-800 mb-1.5">
-                    Date de vente <span className="text-dark-400 font-normal">(optionnel)</span>
+                    {t('soldModal.saleDateLabel')} <span className="text-dark-400 font-normal">{t('soldModal.optional')}</span>
                   </label>
                   <input
                     type="date"
@@ -931,7 +933,7 @@ export default function AnnonceDetailPage() {
               <div className="mt-4 flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5">
                 <TrendingUp size={14} className="text-blue-600 shrink-0 mt-0.5" />
                 <p className="text-[11px] text-blue-800 leading-relaxed">
-                  Cette vente sera comptabilisée dans vos statistiques. L&apos;annonce sera retirée des recherches actives.
+                  {t('soldModal.info')}
                 </p>
               </div>
             </div>
@@ -941,7 +943,7 @@ export default function AnnonceDetailPage() {
                 onClick={() => setShowSoldModal(false)}
                 className="flex-1 py-2.5 rounded-xl border border-dark-200 text-dark-600 text-sm font-semibold hover:bg-dark-50 transition-colors"
               >
-                Annuler
+                {t('soldModal.cancel')}
               </button>
               <button
                 onClick={handleMarkSold}
@@ -949,7 +951,7 @@ export default function AnnonceDetailPage() {
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {markingSold ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={15} />}
-                {markingSold ? 'Enregistrement...' : 'Confirmer la vente'}
+                {markingSold ? t('soldModal.saving') : t('soldModal.confirm')}
               </button>
             </div>
           </div>
@@ -961,28 +963,28 @@ export default function AnnonceDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowReport(false)}>
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display font-bold text-dark-900 text-lg">Signaler l&apos;annonce</h3>
+              <h3 className="font-display font-bold text-dark-900 text-lg">{t('reportModal.title')}</h3>
               <button onClick={() => setShowReport(false)} className="w-8 h-8 rounded-full flex items-center justify-center text-dark-400 hover:bg-dark-100 transition-colors">
                 <X size={18} />
               </button>
             </div>
-            <p className="text-dark-500 text-sm mb-4">Pourquoi signalez-vous cette annonce ?</p>
+            <p className="text-dark-500 text-sm mb-4">{t('reportModal.question')}</p>
             <div className="space-y-1.5 mb-4">
-              {REPORT_REASONS.map(({ value, label, Icon }) => (
+              {REPORT_REASON_KEYS.map(({ value, key, Icon }) => (
                 <label
                   key={value}
                   className="flex items-center gap-3 p-3 rounded-xl border border-dark-200 hover:border-guinea-300 cursor-pointer has-[:checked]:border-guinea-500 has-[:checked]:bg-guinea-50 transition-colors"
                 >
                   <input type="radio" name="reason" value={value} onChange={e => setReportReason(e.target.value)} className="accent-guinea-500" />
                   <Icon size={15} className="text-dark-500 shrink-0" />
-                  <span className="text-sm font-medium text-dark-700">{label}</span>
+                  <span className="text-sm font-medium text-dark-700">{t(`reportModal.reasons.${key}`)}</span>
                 </label>
               ))}
             </div>
             <textarea
               value={reportDesc}
               onChange={e => setReportDesc(e.target.value)}
-              placeholder="Détails supplémentaires (optionnel)..."
+              placeholder={t('reportModal.detailsPlaceholder')}
               rows={3}
               className="input resize-none mb-4 text-sm"
             />
@@ -990,7 +992,7 @@ export default function AnnonceDetailPage() {
               onClick={submitReport}
               className="w-full bg-guinea-500 hover:bg-guinea-600 text-white font-semibold py-3 rounded-xl transition-colors"
             >
-              Envoyer le signalement
+              {t('reportModal.submit')}
             </button>
           </div>
         </div>

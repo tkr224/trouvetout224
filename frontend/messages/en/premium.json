@@ -1,0 +1,34 @@
+{
+  "page": {
+    "badge": "Premium Pack",
+    "titlePrefix": "The",
+    "titleHighlight": "Premium Pack",
+    "titleSuffix": "is coming soon!",
+    "subtitle": "Soon, boost your listings and reach even more buyers all across Guinea.",
+    "comingSoonTitle": "Coming soon",
+    "comingSoonMsg": "We're preparing something special for sellers. Be among the first to know when it launches!",
+    "notifyMe": "Notify me at launch",
+    "modalTitle": "Coming very soon!",
+    "modalMsg": "The Premium Pack is being prepared. We'll let you know as soon as it launches. Thanks for your patience!",
+    "understood": "Got it"
+  },
+  "abonnements": {
+    "loginRequiredMsg": "Log in to see your subscriptions",
+    "login": "Log in",
+    "pageTitle": "My subscriptions",
+    "shopsFollowed": "{count, plural, one {# shop followed} other {# shops followed}}",
+    "noShopsTitle": "No shop followed",
+    "noShopsMsg": "Follow shops to never miss a new product",
+    "discoverListings": "Discover listings",
+    "activeAdsCount": "{count, plural, one {# active listing} other {# active listings}}",
+    "disableNotifications": "Disable notifications",
+    "enableNotifications": "Enable notifications",
+    "viewShop": "View shop",
+    "unsubscribe": "Unfollow",
+    "toastUnsubscribed": "Unfollowed",
+    "toastUnsubscribeError": "Error while unfollowing",
+    "toastNotifyOn": "Notifications enabled",
+    "toastNotifyOff": "Notifications disabled",
+    "toastError": "Error"
+  }
+}

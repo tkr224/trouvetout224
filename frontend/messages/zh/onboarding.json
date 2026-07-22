@@ -1,0 +1,68 @@
+{
+  "survey": {
+    "welcome": "欢迎！",
+    "title": "介绍一下你自己吧 🇬🇳",
+    "subtitle": "3个小问题 · 不到1分钟",
+    "sources": {
+      "facebook": "Facebook",
+      "whatsapp": "WhatsApp",
+      "tiktok": "TikTok",
+      "friend": "朋友介绍",
+      "googleSearch": "谷歌搜索",
+      "other": "其他"
+    },
+    "interests": {
+      "electronics": "电子产品",
+      "phones": "手机",
+      "vehicles": "车辆",
+      "realEstate": "房地产",
+      "fashion": "时尚与服装",
+      "homeGarden": "家居与花园",
+      "computing": "电脑",
+      "jobs": "招聘",
+      "services": "服务",
+      "food": "食品",
+      "sports": "运动与休闲",
+      "animals": "宠物"
+    },
+    "step0Question": "您是如何了解到 TrouveTout224 的？",
+    "step1Question": "您最感兴趣的是什么？",
+    "step1Hint": "选择所有符合您的选项",
+    "step2Question": "您来自哪个城市/街区？",
+    "cityPlaceholder": "例如：Conakry — Ratoma",
+    "cityHint": "这有助于我们向您展示附近的商品信息。",
+    "skip": "跳过",
+    "back": "返回",
+    "next": "下一步",
+    "sending": "发送中…",
+    "finish": "完成",
+    "successToast": "感谢您的回答！",
+    "errorToast": "网络错误，请重试。",
+    "closeAriaLabel": "关闭"
+  },
+  "nudge": {
+    "hints": {
+      "avatar": "📸 添加头像以建立信任！",
+      "info": "📍 填写您的城市和电话号码以提高曝光率。",
+      "email": "✉️ 验证您的邮箱以保护账户安全。",
+      "security": "🔒 设置安全问题——忘记密码时会用到。",
+      "explore": "🔍 看看附近有哪些商品信息！",
+      "favorite": "❤️ 收藏一条信息，方便以后查找。",
+      "firstAnnonce": "📦 发布您的第一条信息，完全免费！",
+      "shop": "🏪 创建您的店铺，展示您的所有产品。"
+    },
+    "defaultHint": "💡 {label}",
+    "goThere": "前往",
+    "later": "稍后",
+    "dontShowAgain": "不再显示",
+    "closeAriaLabel": "关闭",
+    "taskDoneToast": "太棒了！🎉 “{label}”已完成"
+  },
+  "checklist": {
+    "title": "开始使用",
+    "percentComplete": "资料已完成 {percent}%",
+    "important": "重要",
+    "completeTitle": "资料已完善",
+    "completeSubtitle": "恭喜，您已完成在 TrouveTout224 上顺利起步的所有步骤！"
+  }
+}

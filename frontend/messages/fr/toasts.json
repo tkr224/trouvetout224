@@ -1,0 +1,9 @@
+{
+  "genericSuccess": "Opération réussie.",
+  "genericError": "Une erreur est survenue. Réessayez plus tard.",
+  "serverError": "Erreur serveur, veuillez réessayer plus tard.",
+  "linkCopied": "Lien copié dans le presse-papier !",
+  "loginRequired": "Vous devez être connecté pour effectuer cette action.",
+  "deleted": "Supprimé avec succès.",
+  "updated": "Mis à jour avec succès."
+}

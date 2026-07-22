@@ -2,23 +2,17 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { MessageCircle, X, Send } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { api } from '@/lib/api';
 
 type ChatMessage = { role: 'user' | 'model'; text: string };
 
-const GREETING: ChatMessage = {
-  role: 'model',
-  text: 'Salut 👋 Je suis l\'assistant TrouveTout224. Pose-moi une question sur le site : publier une annonce, créer une boutique, contacter un vendeur...',
-};
-
-const FALLBACK_MESSAGE: ChatMessage = {
-  role: 'model',
-  text: "Désolé, je suis indisponible pour le moment 😕 Contacte le support WhatsApp : +224 627 54 34 86.",
-};
-
 const DISMISS_KEY = 'tt224-chat-dismissed';
 
 export default function AiChatWidget() {
+  const t = useTranslations('chatbot');
+  const GREETING: ChatMessage = { role: 'model', text: t('greeting') };
+  const FALLBACK_MESSAGE: ChatMessage = { role: 'model', text: t('fallbackMessage') };
   const [dismissed, setDismissed] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([GREETING]);
@@ -73,7 +67,7 @@ export default function AiChatWidget() {
     return (
       <button
         onClick={() => { setDismissed(false); setIsOpen(true); }}
-        aria-label="Ouvrir l'assistant TrouveTout224"
+        aria-label={t('openAriaLabel')}
         className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 w-14 h-14 rounded-full bg-primary-700 dark:bg-primary-600 text-white shadow-card-hover flex items-center justify-center hover:scale-105 transition-transform"
       >
         <MessageCircle size={24} />
@@ -86,7 +80,7 @@ export default function AiChatWidget() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          aria-label="Ouvrir l'assistant TrouveTout224"
+          aria-label={t('openAriaLabel')}
           className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 w-14 h-14 rounded-full bg-primary-700 dark:bg-primary-600 text-white shadow-card-hover flex items-center justify-center hover:scale-105 transition-transform ring-4 ring-gold-400/30"
         >
           <MessageCircle size={24} />
@@ -102,14 +96,14 @@ export default function AiChatWidget() {
                 <MessageCircle size={18} />
               </div>
               <div>
-                <p className="font-semibold text-sm leading-tight">Assistant TrouveTout224</p>
-                <p className="text-xs text-primary-100 leading-tight">🇬🇳 Là pour t'aider</p>
+                <p className="font-semibold text-sm leading-tight">{t('title')}</p>
+                <p className="text-xs text-primary-100 leading-tight">{t('subtitle')}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
               <button
                 onClick={closeForSession}
-                aria-label="Masquer l'assistant"
+                aria-label={t('hideAriaLabel')}
                 className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/15 transition-colors"
               >
                 <X size={16} />
@@ -152,14 +146,14 @@ export default function AiChatWidget() {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Écris ta question..."
+              placeholder={t('placeholder')}
               disabled={isSending}
               className="flex-1 bg-dark-50 dark:bg-dark-700 text-dark-900 dark:text-white placeholder-dark-400 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30"
             />
             <button
               onClick={send}
               disabled={isSending || !input.trim()}
-              aria-label="Envoyer"
+              aria-label={t('sendAriaLabel')}
               className="w-10 h-10 shrink-0 rounded-xl bg-primary-700 text-white flex items-center justify-center disabled:opacity-40 transition-opacity"
             >
               <Send size={16} />

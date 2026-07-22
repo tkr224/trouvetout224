@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import PageViewTracker from '@/components/PageViewTracker';
 import Footer from '@/components/layout/Footer';
@@ -31,14 +32,14 @@ import {
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 
 /* ── Tris ────────────────────────────────────────────────────────── */
-const SORTS = [
-  { key: 'recent',     label: 'Récents',    icon: Clock },
-  { key: 'popular',   label: 'Populaires', icon: TrendingUp },
-  { key: 'views',     label: 'Consultés',  icon: Eye },
-  { key: 'price_asc', label: 'Prix ↑',     icon: ArrowRight },
-  { key: 'price_desc',label: 'Prix ↓',     icon: ArrowRight },
-  { key: 'rating',    label: 'Meilleures notes', icon: Star },
-];
+const SORT_KEYS = [
+  { key: 'recent',      sortKey: 'recent',    icon: Clock },
+  { key: 'popular',     sortKey: 'popular',   icon: TrendingUp },
+  { key: 'views',       sortKey: 'views',     icon: Eye },
+  { key: 'price_asc',   sortKey: 'priceAsc',  icon: ArrowRight },
+  { key: 'price_desc',  sortKey: 'priceDesc', icon: ArrowRight },
+  { key: 'rating',      sortKey: 'rating',    icon: Star },
+] as const;
 
 /* ── Images hero : produits marketplace ──────────────────────────────
    Pour changer les images, modifiez uniquement les URLs ci-dessous.
@@ -99,10 +100,10 @@ const PUB_GRADIENT: Record<PubType, string> = {
   EVENT:           'from-blue-700 to-blue-900',
   FEATURED_VENDOR: 'from-amber-500 to-amber-700',
 };
-const PUB_BADGE: Record<PubType, string> = {
-  BANNER:          '🎉 Promo officielle',
-  EVENT:           '📅 Événement',
-  FEATURED_VENDOR: '⭐ Vendeur en vedette',
+const PUB_BADGE_KEY: Record<PubType, 'banner' | 'event' | 'featuredVendor'> = {
+  BANNER:          'banner',
+  EVENT:           'event',
+  FEATURED_VENDOR: 'featuredVendor',
 };
 
 function PublicationsCarousel({ pubs }: { pubs: Publication[] }) {
@@ -140,6 +141,7 @@ function PublicationsCarousel({ pubs }: { pubs: Publication[] }) {
 }
 
 function SlideContent({ pub }: { pub: Publication }) {
+  const t = useTranslations('accueil.publications');
   return (
     <div className={`relative h-36 sm:h-44 bg-gradient-to-r ${PUB_GRADIENT[pub.type]} flex items-center px-6 sm:px-8 overflow-hidden`}>
       {pub.image && (
@@ -148,7 +150,7 @@ function SlideContent({ pub }: { pub: Publication }) {
         </div>
       )}
       <div className="relative z-10 max-w-xs sm:max-w-md">
-        <span className="inline-block px-2.5 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-xs font-semibold mb-2">{PUB_BADGE[pub.type]}</span>
+        <span className="inline-block px-2.5 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-xs font-semibold mb-2">{t(PUB_BADGE_KEY[pub.type])}</span>
         <h3 className="text-white font-display font-bold text-lg sm:text-xl leading-tight mb-1">{pub.title}</h3>
         {pub.eventDate && (
           <p className="text-white/70 text-xs mt-1.5 flex items-center gap-1">
@@ -165,6 +167,8 @@ function SlideContent({ pub }: { pub: Publication }) {
 /* ── Page principale ─────────────────────────────────────────────── */
 
 export default function HomePage() {
+  const t = useTranslations('accueil');
+  const SORTS = SORT_KEYS.map(s => ({ key: s.key, label: t(`sorts.${s.sortKey}`), icon: s.icon }));
   const [selectedCity, setSelectedCity] = useState('Conakry');
   const [query, setQuery]               = useState('');
   const [sort, setSort]                 = useState('recent');
@@ -227,7 +231,7 @@ export default function HomePage() {
               <input
                 value={query}
                 onChange={e => setQuery(e.target.value)}
-                placeholder="Que cherchez-vous ? téléphone, voiture, maison, emploi…"
+                placeholder={t('search.placeholder')}
                 className="w-full pl-10 pr-4 py-2 border border-dark-200 dark:border-dark-600 rounded-xl text-sm bg-dark-50 dark:bg-dark-800 dark:text-white focus:bg-white dark:focus:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
               />
             </div>
@@ -236,7 +240,7 @@ export default function HomePage() {
               onChange={e => setSelectedCity(e.target.value)}
               className="hidden sm:block border border-dark-200 dark:border-dark-600 rounded-xl px-3 py-2 text-sm bg-dark-50 dark:bg-dark-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
             >
-              <option value="">Toute la Guinée</option>
+              <option value="">{t('search.cityAll')}</option>
               {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             <button
@@ -244,13 +248,13 @@ export default function HomePage() {
               className="flex items-center gap-1.5 px-4 py-2 bg-gold-400 hover:bg-gold-500 active:scale-95 text-dark-900 font-bold rounded-xl text-sm transition-all whitespace-nowrap shadow-sm"
             >
               <Search size={14} />
-              <span className="hidden sm:inline">Rechercher</span>
+              <span className="hidden sm:inline">{t('search.button')}</span>
             </button>
             <Link
               href="/annonces/publier"
               className="hidden md:flex items-center gap-1.5 px-4 py-2 bg-primary-700 hover:bg-primary-800 active:scale-95 text-white font-bold rounded-xl text-sm transition-all whitespace-nowrap"
             >
-              <Plus size={14} /> Déposer une annonce
+              <Plus size={14} /> {t('search.publish')}
             </Link>
           </form>
         </div>
@@ -350,7 +354,7 @@ export default function HomePage() {
                 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-[2.75rem] leading-tight text-white mb-4"
                 style={{ textShadow: '0 2px 20px rgba(0,0,0,0.9), 0 1px 6px rgba(0,0,0,0.7)' }}
               >
-                Achète et vends facilement,<br className="hidden sm:block" /> partout en Guinée
+                {t('hero.titleLine1')}<br className="hidden sm:block" /> {t('hero.titleLine2')}
               </h1>
 
               {/* Sous-titre — répond à l'objection "est-ce fiable ?" */}
@@ -358,7 +362,7 @@ export default function HomePage() {
                 className="text-white text-base sm:text-lg leading-relaxed mb-5 max-w-lg mx-auto lg:mx-0 font-medium"
                 style={{ textShadow: '0 1px 10px rgba(0,0,0,0.8)' }}
               >
-                La marketplace 100% guinéenne avec vendeurs vérifiés et contact direct — pour acheter et vendre l'esprit tranquille, gratuitement.
+                {t('hero.subtitle')}
               </p>
 
               {/* Texte dynamique — donne du mouvement au hero */}
@@ -375,9 +379,9 @@ export default function HomePage() {
               {/* Mini-badges — bénéfices concrets, pas des fonctionnalités */}
               <div className="flex flex-wrap gap-2 justify-center lg:justify-start mb-6">
                 {[
-                  { icon: MessageCircle, text: 'Les acheteurs te contactent sur WhatsApp' },
-                  { icon: ShieldCheck,   text: 'Vendeurs vérifiés' },
-                  { icon: Zap,           text: '100% gratuit, sans limite' },
+                  { icon: MessageCircle, text: t('hero.badge1') },
+                  { icon: ShieldCheck,   text: t('hero.badge2') },
+                  { icon: Zap,           text: t('hero.badge3') },
                 ].map(({ icon: Icon, text }) => (
                   <span key={text} className="inline-flex items-center gap-1.5 bg-black/30 border border-white/25 text-white text-xs font-semibold px-3 py-1.5 rounded-full backdrop-blur-sm">
                     <Icon size={12} className="text-gold-300 shrink-0" />
@@ -392,13 +396,13 @@ export default function HomePage() {
                   href="/annonces/publier"
                   className="inline-flex items-center gap-2 bg-gold-400 hover:bg-gold-500 active:scale-95 text-dark-900 font-bold px-5 py-2.5 rounded-xl text-sm transition-all shadow-xl"
                 >
-                  <Zap size={16} /> Publier une annonce gratuitement
+                  <Zap size={16} /> {t('hero.ctaPublish')}
                 </Link>
                 <Link
                   href="/annonces/lister"
                   className="inline-flex items-center gap-2 border-2 border-white/50 text-white font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-white/15 active:scale-95 transition-all backdrop-blur-sm"
                 >
-                  <Eye size={14} /> Voir les annonces <ArrowRight size={14} />
+                  <Eye size={14} /> {t('hero.ctaBrowse')} <ArrowRight size={14} />
                 </Link>
               </div>
             </div>
@@ -412,7 +416,7 @@ export default function HomePage() {
             <button
               key={i}
               onClick={() => setHeroSlide(i)}
-              aria-label={`Image ${i + 1}`}
+              aria-label={t('hero.imageAlt', { number: i + 1 })}
               className={`h-1.5 rounded-full transition-all duration-300 ${i === heroSlide ? 'w-6 bg-white' : 'w-1.5 bg-white/40'}`}
             />
           ))}
@@ -424,10 +428,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { icon: LayoutGrid,     label: 'Catégories', value: stats?.categories ?? categories?.length ?? 0 },
-              { icon: MapPin,         label: 'Villes couvertes', value: stats?.cities ?? 8 },
-              { icon: Package,        label: 'Annonces actives', value: stats?.annonces ?? 0 },
-              { icon: Store,          label: 'Boutiques', value: stats?.boutiques ?? 0 },
+              { icon: LayoutGrid,     label: t('stats.categories'), value: stats?.categories ?? categories?.length ?? 0 },
+              { icon: MapPin,         label: t('stats.cities'), value: stats?.cities ?? 8 },
+              { icon: Package,        label: t('stats.annonces'), value: stats?.annonces ?? 0 },
+              { icon: Store,          label: t('stats.boutiques'), value: stats?.boutiques ?? 0 },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} className="flex flex-col items-center text-center gap-1">
                 <div className="w-9 h-9 rounded-xl bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center mb-1">
@@ -464,10 +468,10 @@ export default function HomePage() {
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <div className="h-1 w-4 bg-gold-500 rounded-full" />
-                  <span className="text-xs font-bold text-gold-600 dark:text-gold-400 uppercase tracking-wider">Annonces</span>
+                  <span className="text-xs font-bold text-gold-600 dark:text-gold-400 uppercase tracking-wider">{t('latestSection.kicker')}</span>
                 </div>
-                <h2 className="text-xl font-display font-bold text-dark-900 dark:text-white">Dernières annonces</h2>
-                <p className="text-dark-400 text-xs mt-0.5">Les dernières offres publiées sur la plateforme</p>
+                <h2 className="text-xl font-display font-bold text-dark-900 dark:text-white">{t('latestSection.title')}</h2>
+                <p className="text-dark-400 text-xs mt-0.5">{t('latestSection.subtitle')}</p>
               </div>
               {/* Mobile : menu de tri repliable (au lieu de 6 boutons toujours affichés) */}
               <div className="relative sm:hidden">
@@ -479,7 +483,7 @@ export default function HomePage() {
                   {(() => {
                     const cur = SORTS.find(s => s.key === sort) || SORTS[0];
                     const CurIcon = cur.icon;
-                    return <><CurIcon size={12} /> Trier : {cur.label}</>;
+                    return <><CurIcon size={12} /> {t('latestSection.sortLabel', { label: cur.label })}</>;
                   })()}
                   <ChevronDown size={12} className={`transition-transform ${sortMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -530,8 +534,8 @@ export default function HomePage() {
               annonces={annonces?.data}
               isLoading={isLoading}
               cols={4}
-              emptyTitle="Sois le premier à publier ici !"
-              emptySubtitle="Aucune annonce pour le moment — la tienne pourrait être la toute première visible sur TrouveTout224."
+              emptyTitle={t('latestSection.emptyTitle')}
+              emptySubtitle={t('latestSection.emptySubtitle')}
             />
 
             <div className="mt-5 text-center">
@@ -539,7 +543,7 @@ export default function HomePage() {
                 href="/annonces/lister"
                 className="inline-flex items-center gap-2 bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 text-dark-700 dark:text-dark-200 font-semibold px-6 py-2.5 rounded-xl text-sm hover:border-primary-400 hover:text-primary-700 transition-all"
               >
-                Voir toutes les annonces <ArrowRight size={14} />
+                {t('latestSection.viewAll')} <ArrowRight size={14} />
               </Link>
             </div>
           </section>
@@ -552,13 +556,13 @@ export default function HomePage() {
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <div className="h-1 w-4 bg-primary-600 rounded-full" />
-                  <span className="text-xs font-bold text-primary-700 dark:text-primary-400 uppercase tracking-wider">Catégories</span>
+                  <span className="text-xs font-bold text-primary-700 dark:text-primary-400 uppercase tracking-wider">{t('categoriesSection.kicker')}</span>
                 </div>
-                <h2 className="text-xl font-display font-bold text-dark-900 dark:text-white">Parcourir par catégorie</h2>
-                <p className="text-dark-400 text-xs mt-0.5">Trouvez exactement ce que vous cherchez</p>
+                <h2 className="text-xl font-display font-bold text-dark-900 dark:text-white">{t('categoriesSection.title')}</h2>
+                <p className="text-dark-400 text-xs mt-0.5">{t('categoriesSection.subtitle')}</p>
               </div>
               <Link href="/annonces/lister" className="hidden sm:flex items-center gap-1 text-primary-700 dark:text-primary-400 font-semibold text-sm hover:gap-2 transition-all">
-                Tout parcourir <ArrowRight size={14} />
+                {t('categoriesSection.browseAll')} <ArrowRight size={14} />
               </Link>
             </div>
 
@@ -589,7 +593,7 @@ export default function HomePage() {
                             {cat.label}
                           </p>
                           <p className="text-[11px] text-white/85 mt-0.5">
-                            {cat.count > 0 ? `${cat.count.toLocaleString('fr-FR')} annonce${cat.count !== 1 ? 's' : ''}` : 'Bientôt'}
+                            {cat.count > 0 ? t('categoriesSection.listingCount', { count: cat.count }) : t('categoriesSection.comingSoon')}
                           </p>
                         </div>
                       </Link>
@@ -604,8 +608,8 @@ export default function HomePage() {
                   <div className="w-8 h-8 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center mb-1.5 group-hover:bg-gold-400/90 transition-colors">
                     <MoreHorizontal size={16} className="text-white" />
                   </div>
-                  <p className="font-bold text-xs text-white leading-tight">Voir tout</p>
-                  <p className="text-[11px] text-white/70 mt-0.5">Toutes catégories</p>
+                  <p className="font-bold text-xs text-white leading-tight">{t('categoriesSection.seeAll')}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5">{t('categoriesSection.allCategories')}</p>
                 </Link>
               )}
             </div>
@@ -625,10 +629,10 @@ export default function HomePage() {
           <div className="max-w-7xl mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-5 text-center">
               {[
-                { icon: Zap,           title: 'Vends en quelques minutes',   desc: 'Annonce gratuite, publiée sans limite', iconCls: 'text-gold-400' },
-                { icon: ShieldCheck,   title: 'Achète en toute confiance',   desc: 'Vendeurs vérifiés par notre équipe',    iconCls: 'text-green-300' },
-                { icon: MessageCircle, title: 'Contact direct sur WhatsApp', desc: 'Parle au vendeur tout de suite',        iconCls: 'text-green-300' },
-                { icon: Store,         title: 'Ta boutique en ligne',        desc: 'Visible par toute la Guinée 🇬🇳',       iconCls: 'text-guinea-300' },
+                { icon: Zap,           title: t('trust.sell.title'),    desc: t('trust.sell.desc'),    iconCls: 'text-gold-400' },
+                { icon: ShieldCheck,   title: t('trust.buy.title'),     desc: t('trust.buy.desc'),     iconCls: 'text-green-300' },
+                { icon: MessageCircle, title: t('trust.contact.title'), desc: t('trust.contact.desc'), iconCls: 'text-green-300' },
+                { icon: Store,         title: t('trust.shop.title'),    desc: t('trust.shop.desc'),    iconCls: 'text-guinea-300' },
               ].map(({ icon: Icon, title, desc, iconCls }) => (
                 <div key={title} className="flex flex-col items-center gap-1.5">
                   <div className={`w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center ${iconCls}`}>

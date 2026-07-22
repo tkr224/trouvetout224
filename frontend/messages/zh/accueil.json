@@ -1,0 +1,63 @@
+{
+  "search": {
+    "placeholder": "您在找什么？手机、汽车、房子、工作……",
+    "cityAll": "几内亚全国",
+    "button": "搜索",
+    "publish": "发布广告"
+  },
+  "sorts": {
+    "recent": "最新",
+    "popular": "最受欢迎",
+    "views": "浏览最多",
+    "priceAsc": "价格从低到高",
+    "priceDesc": "价格从高到低",
+    "rating": "评分最高"
+  },
+  "publications": {
+    "banner": "🎉 官方促销",
+    "event": "📅 活动",
+    "featuredVendor": "⭐ 精选商家"
+  },
+  "hero": {
+    "titleLine1": "轻松买卖，",
+    "titleLine2": "遍布几内亚各地",
+    "subtitle": "100% 几内亚本土市场，卖家经过验证，可直接联系——放心买卖，完全免费。",
+    "badge1": "买家通过 WhatsApp 联系您",
+    "badge2": "卖家已验证",
+    "badge3": "100% 免费，无限制",
+    "ctaPublish": "免费发布广告",
+    "ctaBrowse": "浏览广告",
+    "imageAlt": "图片 {number}"
+  },
+  "stats": {
+    "categories": "分类",
+    "cities": "覆盖城市",
+    "annonces": "有效广告",
+    "boutiques": "店铺"
+  },
+  "latestSection": {
+    "kicker": "广告",
+    "title": "最新广告",
+    "subtitle": "平台上发布的最新广告",
+    "sortLabel": "排序：{label}",
+    "emptyTitle": "成为第一个发布的人！",
+    "emptySubtitle": "暂时还没有广告——您的广告可能是 TrouveTout224 上的第一条。",
+    "viewAll": "查看所有广告"
+  },
+  "categoriesSection": {
+    "kicker": "分类",
+    "title": "按分类浏览",
+    "subtitle": "找到您正需要的",
+    "browseAll": "浏览全部",
+    "listingCount": "{count} 条广告",
+    "comingSoon": "即将推出",
+    "seeAll": "查看全部",
+    "allCategories": "所有分类"
+  },
+  "trust": {
+    "sell": { "title": "几分钟内售出", "desc": "免费发布，不限数量" },
+    "buy": { "title": "放心购买", "desc": "卖家经过我们团队验证" },
+    "contact": { "title": "通过 WhatsApp 直接联系", "desc": "立即与卖家沟通" },
+    "shop": { "title": "您的在线店铺", "desc": "面向全几内亚展示 🇬🇳" }
+  }
+}

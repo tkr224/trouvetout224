@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import '../styles/globals.css';
 import { Toaster } from 'react-hot-toast';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 import { QueryProvider } from '@/components/providers/QueryProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import dynamic from 'next/dynamic';
@@ -15,6 +17,14 @@ const ThemeAnimations     = dynamic(() => import('@/components/ThemeAnimations')
 const Futur3DOrchestrator = dynamic(() => import('@/components/futur3d/Futur3DOrchestrator'),    { ssr: false });
 const AiChatWidget        = dynamic(() => import('@/components/AiChatWidget'),                    { ssr: false });
 const OnboardingNudge     = dynamic(() => import('@/components/onboarding/OnboardingNudge'),       { ssr: false });
+const LocaleSync          = dynamic(() => import('@/components/LocaleSync'),                       { ssr: false });
+
+// Namespaces réellement utilisés par des Client Components montés globalement
+// (Navbar, Footer, toasts...) — le reste (pages de contenu statique) passe par
+// getTranslations côté serveur et n'a pas besoin d'être envoyé au navigateur.
+// 'faq' et 'aide' sont ici car ces pages utilisent useState (accordéons) et
+// doivent donc rester des Client Components utilisant useTranslations.
+const CLIENT_NAMESPACES = ['common', 'nav', 'footer', 'toasts', 'chatbot', 'onboarding', 'faq', 'aide'] as const;
 
 /* ── Métadonnées globales (SEO + Open Graph + PWA) ───────────────── */
 export const metadata: Metadata = {
@@ -142,9 +152,15 @@ const jsonLd = {
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
+  const allMessages = await getMessages();
+  const clientMessages = Object.fromEntries(
+    CLIENT_NAMESPACES.map((ns) => [ns, (allMessages as Record<string, unknown>)[ns]])
+  );
+
   return (
-    <html lang="fr" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         {/* Anti-flash thème sombre — doit s'exécuter avant le premier paint */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
@@ -160,21 +176,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <QueryProvider>
-          <ThemeProvider>
-            <ThemeAnimations />
-            <Futur3DOrchestrator />
-            <SplashScreen />
-            <OnboardingGate />
-            <EmailVerificationBanner />
-            {children}
-            <Toaster position="top-center" />
-            <PWAInstallBanner />
-            <PWARegister />
-            <AiChatWidget />
-            <OnboardingNudge />
-          </ThemeProvider>
-        </QueryProvider>
+        <NextIntlClientProvider locale={locale} messages={clientMessages}>
+          <QueryProvider>
+            <ThemeProvider>
+              <ThemeAnimations />
+              <Futur3DOrchestrator />
+              <SplashScreen />
+              <OnboardingGate />
+              <EmailVerificationBanner />
+              <LocaleSync />
+              {children}
+              <Toaster position="top-center" />
+              <PWAInstallBanner />
+              <PWARegister />
+              <AiChatWidget />
+              <OnboardingNudge />
+            </ThemeProvider>
+          </QueryProvider>
+        </NextIntlClientProvider>
         <GoogleAnalytics />
       </body>
     </html>

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
+import { useTranslations } from 'next-intl';
 
 interface GoogleButtonProps {
   onCredential: (idToken: string) => void;
@@ -13,6 +14,7 @@ interface GoogleButtonProps {
 // Ne s'affiche pas si la clé publique n'est pas configurée (évite un bouton cassé en local
 // tant que l'utilisateur n'a pas encore rempli NEXT_PUBLIC_GOOGLE_CLIENT_ID).
 export default function GoogleButton({ onCredential, text = 'signin_with' }: GoogleButtonProps) {
+  const t = useTranslations('auth.googleButton');
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
   const containerRef = useRef<HTMLDivElement>(null);
   const [scriptReady, setScriptReady] = useState(false);
@@ -47,7 +49,7 @@ export default function GoogleButton({ onCredential, text = 'signin_with' }: Goo
   if (!clientId) {
     return (
       <div className="w-full border-2 border-dashed border-red-400 rounded-2xl py-3.5 text-center text-red-500 text-sm font-medium">
-        [DEBUG] NEXT_PUBLIC_GOOGLE_CLIENT_ID absent côté client
+        {t('debugMissingClientId')}
       </div>
     );
   }

@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from 'react-query';
+import { useTranslations } from 'next-intl';
 import {
   Briefcase, MapPin, Users, Clock, CheckCircle2, XCircle,
   ChevronLeft, Plus, Eye, EyeOff, ChevronDown, ChevronUp,
@@ -12,39 +13,31 @@ import { useAuthStore } from '@/store/auth.store';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
-const JOB_TYPES: Record<string, string> = {
-  FULL_TIME: 'Temps plein', PART_TIME: 'Temps partiel', FREELANCE: 'Freelance',
-  INTERNSHIP: 'Stage', VOLUNTEER: 'Bénévolat', DAILY: 'Journalier',
-};
-
 const STATUS_BADGE: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-700',
   PENDING_REVIEW: 'bg-amber-100 text-amber-700',
   REJECTED: 'bg-red-100 text-red-700',
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  ACTIVE: 'Active', PENDING_REVIEW: 'En attente', REJECTED: 'Rejetée',
-};
-
-const APP_STATUS_COLORS: Record<string, string> = {
-  PENDING: 'bg-amber-100 text-amber-700',
-  REVIEWED: 'bg-blue-100 text-blue-700',
-  ACCEPTED: 'bg-green-100 text-green-700',
-  REJECTED: 'bg-red-100 text-red-700',
-};
-
-const APP_STATUS_LABELS: Record<string, string> = {
-  PENDING: 'Reçue', REVIEWED: 'Vue', ACCEPTED: 'Acceptée', REJECTED: 'Refusée',
-};
-
 function ApplicantCard({ app, jobId, onStatusChange }: { app: any; jobId: string; onStatusChange: () => void }) {
+  const t = useTranslations('emplois.mesOffres');
+  const APP_STATUS_COLORS: Record<string, string> = {
+    PENDING: 'bg-amber-100 text-amber-700',
+    REVIEWED: 'bg-blue-100 text-blue-700',
+    ACCEPTED: 'bg-green-100 text-green-700',
+    REJECTED: 'bg-red-100 text-red-700',
+  };
+  const APP_STATUS_LABELS: Record<string, string> = {
+    PENDING: t('appStatusPending'), REVIEWED: t('appStatusReviewed'),
+    ACCEPTED: t('appStatusAccepted'), REJECTED: t('appStatusRejected'),
+  };
+
   const updateStatus = async (status: string) => {
     try {
       await api.put(`/jobs/${jobId}/candidatures/${app.id}/status`, { status });
-      toast.success('Statut mis à jour.');
+      toast.success(t('toastStatusUpdated'));
       onStatusChange();
-    } catch { toast.error('Erreur.'); }
+    } catch { toast.error(t('toastError')); }
   };
 
   return (
@@ -60,7 +53,7 @@ function ApplicantCard({ app, jobId, onStatusChange }: { app: any; jobId: string
         )}
         {app.cvUrl && (
           <a href={app.cvUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-sky-600 hover:underline mt-1 inline-block">
-            📎 Voir le CV
+            {t('viewCv')}
           </a>
         )}
       </div>
@@ -73,14 +66,14 @@ function ApplicantCard({ app, jobId, onStatusChange }: { app: any; jobId: string
             <button
               onClick={() => updateStatus('ACCEPTED')}
               className="w-7 h-7 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg flex items-center justify-center transition-colors"
-              title="Accepter"
+              title={t('accept')}
             >
               <CheckCircle2 size={13} />
             </button>
             <button
               onClick={() => updateStatus('REJECTED')}
               className="w-7 h-7 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg flex items-center justify-center transition-colors"
-              title="Refuser"
+              title={t('reject')}
             >
               <XCircle size={13} />
             </button>
@@ -92,6 +85,14 @@ function ApplicantCard({ app, jobId, onStatusChange }: { app: any; jobId: string
 }
 
 function JobCard({ job }: { job: any }) {
+  const t = useTranslations('emplois.mesOffres');
+  const JOB_TYPES: Record<string, string> = {
+    FULL_TIME: t('typeFullTime'), PART_TIME: t('typePartTime'), FREELANCE: t('typeFreelance'),
+    INTERNSHIP: t('typeInternship'), VOLUNTEER: t('typeVolunteer'), DAILY: t('typeDaily'),
+  };
+  const STATUS_LABEL: Record<string, string> = {
+    ACTIVE: t('statusActive'), PENDING_REVIEW: t('statusPending'), REJECTED: t('statusRejected'),
+  };
   const [showApplicants, setShowApplicants] = useState(false);
   const qc = useQueryClient();
   const { data, refetch } = useQuery(
@@ -129,7 +130,7 @@ function JobCard({ job }: { job: any }) {
 
         {job.status === 'REJECTED' && job.rejectionReason && (
           <div className="mt-3 bg-red-50 border border-red-100 rounded-xl p-3 text-xs text-red-700">
-            <strong>Motif de rejet :</strong> {job.rejectionReason}
+            <strong>{t('rejectionReasonLabel')}</strong> {job.rejectionReason}
           </div>
         )}
 
@@ -137,14 +138,14 @@ function JobCard({ job }: { job: any }) {
           <div className="flex items-center gap-1.5 text-sm text-dark-600">
             <Users size={14} className="text-sky-500" />
             <span className="font-semibold">{job._count?.applications ?? 0}</span>
-            <span>candidature{(job._count?.applications ?? 0) > 1 ? 's' : ''}</span>
+            <span>{t('applicationsCount', { count: job._count?.applications ?? 0 })}</span>
           </div>
           {job._count?.applications > 0 && (
             <button
               onClick={() => setShowApplicants(v => !v)}
               className="flex items-center gap-1.5 text-xs font-semibold text-sky-700 hover:text-sky-900 transition-colors"
             >
-              {showApplicants ? <><EyeOff size={13} /> Masquer</> : <><Eye size={13} /> Voir les candidats</>}
+              {showApplicants ? <><EyeOff size={13} /> {t('hideApplicants')}</> : <><Eye size={13} /> {t('viewApplicants')}</>}
               {showApplicants ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
             </button>
           )}
@@ -154,7 +155,7 @@ function JobCard({ job }: { job: any }) {
       {showApplicants && (
         <div className="px-5 pb-5 space-y-2 border-t border-dark-100 pt-4">
           {applicants.length === 0 ? (
-            <p className="text-dark-400 text-sm text-center py-2">Chargement...</p>
+            <p className="text-dark-400 text-sm text-center py-2">{t('loadingApplicants')}</p>
           ) : (
             applicants.map(app => (
               <ApplicantCard key={app.id} app={app} jobId={job.id} onStatusChange={refetch} />
@@ -167,6 +168,7 @@ function JobCard({ job }: { job: any }) {
 }
 
 export default function MesOffresPage() {
+  const t = useTranslations('emplois.mesOffres');
   const { isAuthenticated, _hasHydrated } = useAuthStore();
 
   const { data, isLoading } = useQuery(
@@ -185,9 +187,9 @@ export default function MesOffresPage() {
           <div className="w-20 h-20 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-5">
             <Briefcase size={36} className="text-sky-400" />
           </div>
-          <h1 className="text-2xl font-display font-bold text-dark-900 mb-3">Connexion requise</h1>
-          <p className="text-dark-500 mb-6 text-sm">Connectez-vous pour accéder à vos offres.</p>
-          <Link href="/auth/connexion" className="btn-primary inline-flex items-center gap-2">Se connecter</Link>
+          <h1 className="text-2xl font-display font-bold text-dark-900 mb-3">{t('loginRequiredTitle')}</h1>
+          <p className="text-dark-500 mb-6 text-sm">{t('loginRequiredMsg')}</p>
+          <Link href="/auth/connexion" className="btn-primary inline-flex items-center gap-2">{t('login')}</Link>
         </div>
         <Footer />
       </div>
@@ -202,15 +204,15 @@ export default function MesOffresPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <Link href="/emplois" className="flex items-center gap-1 text-sm text-dark-400 hover:text-primary-700 mb-1 transition-colors">
-              <ChevronLeft size={14} /> Retour aux emplois
+              <ChevronLeft size={14} /> {t('backToJobs')}
             </Link>
-            <h1 className="text-2xl font-display font-bold text-dark-900">Mes offres d'emploi</h1>
+            <h1 className="text-2xl font-display font-bold text-dark-900">{t('pageTitle')}</h1>
           </div>
           <Link
             href="/emplois/publier"
             className="flex items-center gap-2 px-4 py-2.5 bg-sky-700 hover:bg-sky-800 text-white font-semibold rounded-xl text-sm transition-colors"
           >
-            <Plus size={15} /> Nouvelle offre
+            <Plus size={15} /> {t('newOffer')}
           </Link>
         </div>
 
@@ -228,10 +230,10 @@ export default function MesOffresPage() {
             <div className="w-20 h-20 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-5">
               <Briefcase size={36} className="text-sky-300" />
             </div>
-            <h3 className="font-display font-bold text-dark-800 text-xl mb-2">Aucune offre publiée</h3>
-            <p className="text-dark-500 text-sm mb-6">Publiez votre première offre d'emploi pour trouver des candidats.</p>
+            <h3 className="font-display font-bold text-dark-800 text-xl mb-2">{t('noOffersTitle')}</h3>
+            <p className="text-dark-500 text-sm mb-6">{t('noOffersMsg')}</p>
             <Link href="/emplois/publier" className="btn-primary inline-flex items-center gap-2">
-              <Plus size={15} /> Publier une offre
+              <Plus size={15} /> {t('publishOffer')}
             </Link>
           </div>
         ) : (

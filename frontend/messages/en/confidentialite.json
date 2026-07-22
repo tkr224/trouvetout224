@@ -1,0 +1,73 @@
+{
+  "hero": {
+    "title": "Privacy Policy",
+    "subtitle": "Your data belongs to you. Here's, in plain terms, what we do — and don't do — with it.",
+    "updatedAt": "Last updated: {date}"
+  },
+  "sections": {
+    "collect": {
+      "title": "The data we collect",
+      "items": [
+        "Account information: first name, last name, email and/or phone number, city, profile photo.",
+        "Your listing content: title, description, photos, price, category.",
+        "Your conversations in the internal messaging system, to keep track between buyers and sellers.",
+        "Your security question answers, if you set them up (to help recover your account).",
+        "Technical browsing data: pages visited, anonymized visit statistics."
+      ]
+    },
+    "why": {
+      "title": "Why we use it",
+      "items": [
+        "To create and secure your account.",
+        "To display your listings and connect you with other users.",
+        "To power messaging between buyers and sellers.",
+        "To send you useful notifications (email, in-app).",
+        "To improve TrouveTout224 over time."
+      ]
+    },
+    "protection": {
+      "title": "How it's protected",
+      "items": [
+        "Your passwords and security question answers are encrypted (hashed) and never stored or readable in plain text — not even by our team.",
+        "All communication with the site goes through a secure connection (HTTPS).",
+        "Access to your data is strictly limited to what's technically needed for the service."
+      ]
+    },
+    "sharing": {
+      "title": "Who it's shared with",
+      "items": [
+        "With no one. We never sell or share your data for advertising purposes.",
+        "Only technical providers essential to running the site have access, each only for what concerns them."
+      ],
+      "partners": {
+        "cloudinary": "hosting your photos (listings, profile)",
+        "resend": "sending emails (confirmation, notifications)",
+        "google": "secure sign-in if you choose \"Sign in with Google\""
+      }
+    },
+    "cookies": {
+      "title": "Cookies and audience measurement",
+      "items": [
+        "Technical cookies keep your session logged in — essential to the site working.",
+        "When enabled, Google Analytics may collect anonymized traffic statistics, to help us improve the site.",
+        "You can disable non-essential cookies in your browser settings at any time."
+      ]
+    },
+    "rights": {
+      "title": "Your rights",
+      "items": [
+        "Access your data from your profile and settings at any time.",
+        "Edit your information (name, photo, city, password...) directly in Settings.",
+        "Delete your account and data whenever you wish.",
+        "Contact us for any specific request (data export, question about your account)."
+      ]
+    }
+  },
+  "contact": {
+    "title": "A question about your data?",
+    "subtitle": "Write to us, we respond quickly.",
+    "whatsapp": "WhatsApp",
+    "seeAlsoPrefix": "See also our",
+    "terms": "Terms of Use"
+  }
+}

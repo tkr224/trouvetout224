@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { X, Lightbulb } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
 
@@ -13,25 +14,18 @@ const LAST_NUDGE_KEY = 'tt224-onboarding-last-nudge';
 const COOLDOWN_MS = 3 * 60 * 1000; // 3 minutes minimum entre deux rappels
 const CHECK_DELAY_MS = 25 * 1000; // attend que l'utilisateur se pose sur une page avant de vérifier
 
-const TASK_HINTS: Record<string, string> = {
-  avatar: '📸 Ajoute une photo de profil pour inspirer confiance !',
-  info: '📍 Complète ta ville et ton téléphone pour être plus visible.',
-  email: '✉️ Vérifie ton email pour sécuriser ton compte.',
-  security: '🔒 Configure tes questions de sécurité — utile en cas de mot de passe oublié.',
-  explore: '🔍 Jette un œil aux annonces disponibles près de chez toi !',
-  favorite: '❤️ Ajoute une annonce en favori pour la retrouver facilement.',
-  first_annonce: '📦 Publie ta première annonce, c\'est gratuit !',
-  shop: '🏪 Crée ta boutique pour présenter tous tes produits.',
-};
+const TASK_HINT_IDS = ['avatar', 'info', 'email', 'security', 'explore', 'favorite', 'first_annonce', 'shop'];
 
 type Task = { id: string; label: string; done: boolean; href: string; highlight?: boolean };
 
-function showNudgeToast(task: Task) {
-  const hint = TASK_HINTS[task.id] || `💡 ${task.label}`;
+function showNudgeToast(task: Task, t: ReturnType<typeof useTranslations>) {
+  const hint = TASK_HINT_IDS.includes(task.id)
+    ? t(`nudge.hints.${task.id === 'first_annonce' ? 'firstAnnonce' : task.id}`)
+    : t('nudge.defaultHint', { label: task.label });
   toast.custom(
-    (t) => (
+    (tt) => (
       <div
-        className={`max-w-sm w-full bg-white dark:bg-gray-800 border border-primary-200 dark:border-gray-700 rounded-2xl shadow-lg p-4 flex items-start gap-3 ${t.visible ? 'animate-enter' : 'animate-leave'}`}
+        className={`max-w-sm w-full bg-white dark:bg-gray-800 border border-primary-200 dark:border-gray-700 rounded-2xl shadow-lg p-4 flex items-start gap-3 ${tt.visible ? 'animate-enter' : 'animate-leave'}`}
       >
         <div className="w-8 h-8 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center shrink-0">
           <Lightbulb size={15} className="text-primary-600 dark:text-primary-400" />
@@ -41,23 +35,23 @@ function showNudgeToast(task: Task) {
           <div className="flex items-center gap-3 mt-2 flex-wrap">
             <Link
               href={task.href}
-              onClick={() => toast.dismiss(t.id)}
+              onClick={() => toast.dismiss(tt.id)}
               className="text-xs font-semibold text-primary-700 dark:text-primary-400 hover:underline"
             >
-              J&apos;y vais
+              {t('nudge.goThere')}
             </Link>
-            <button onClick={() => toast.dismiss(t.id)} className="text-xs font-medium text-dark-400 hover:text-dark-600 dark:hover:text-gray-300">
-              Plus tard
+            <button onClick={() => toast.dismiss(tt.id)} className="text-xs font-medium text-dark-400 hover:text-dark-600 dark:hover:text-gray-300">
+              {t('nudge.later')}
             </button>
             <button
-              onClick={() => { localStorage.setItem(HIDE_KEY, '1'); toast.dismiss(t.id); }}
+              onClick={() => { localStorage.setItem(HIDE_KEY, '1'); toast.dismiss(tt.id); }}
               className="text-xs font-medium text-dark-400 hover:text-guinea-600"
             >
-              Ne plus me montrer
+              {t('nudge.dontShowAgain')}
             </button>
           </div>
         </div>
-        <button onClick={() => toast.dismiss(t.id)} aria-label="Fermer" className="shrink-0 text-dark-300 hover:text-dark-500">
+        <button onClick={() => toast.dismiss(tt.id)} aria-label={t('nudge.closeAriaLabel')} className="shrink-0 text-dark-300 hover:text-dark-500">
           <X size={14} />
         </button>
       </div>
@@ -69,6 +63,7 @@ function showNudgeToast(task: Task) {
 // Rappels doux pour compléter son profil : jamais bloquant, espacé dans le
 // temps, entièrement désactivable. Célèbre aussi les tâches accomplies.
 export default function OnboardingNudge() {
+  const t = useTranslations('onboarding');
   const { isAuthenticated, _hasHydrated } = useAuthStore();
   const pathname = usePathname();
   const prevTasksRef = useRef<Record<string, boolean> | null>(null);
@@ -91,20 +86,20 @@ export default function OnboardingNudge() {
 
         // Une tâche vient d'être accomplie depuis le dernier passage → petite célébration
         if (prevTasksRef.current) {
-          const justDone = tasks.find(t => t.done && prevTasksRef.current![t.id] === false);
-          if (justDone) toast.success(`Bravo ! 🎉 "${justDone.label}" terminé`, { duration: 4000 });
+          const justDone = tasks.find(tk => tk.done && prevTasksRef.current![tk.id] === false);
+          if (justDone) toast.success(t('nudge.taskDoneToast', { label: justDone.label }), { duration: 4000 });
         }
-        prevTasksRef.current = Object.fromEntries(tasks.map(t => [t.id, t.done]));
+        prevTasksRef.current = Object.fromEntries(tasks.map(tk => [tk.id, tk.done]));
 
         // Rappel doux — respecte le cooldown pour ne pas harceler
         const lastNudge = parseInt(localStorage.getItem(LAST_NUDGE_KEY) || '0', 10);
         if (Date.now() - lastNudge < COOLDOWN_MS) return;
 
-        const next = tasks.find(t => t.highlight && !t.done) || tasks.find(t => !t.done);
+        const next = tasks.find(tk => tk.highlight && !tk.done) || tasks.find(tk => !tk.done);
         if (!next) return;
 
         localStorage.setItem(LAST_NUDGE_KEY, String(Date.now()));
-        showNudgeToast(next);
+        showNudgeToast(next, t);
       } catch { /* silencieux — ne doit jamais gêner la navigation */ }
     }, CHECK_DELAY_MS);
 

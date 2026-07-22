@@ -1,0 +1,116 @@
+{
+  "notLoggedIn": {
+    "title": "You are not logged in",
+    "login": "Log in",
+    "signup": "Sign up"
+  },
+  "banner": {
+    "change": "Change banner"
+  },
+  "hint": "Click the photo or the banner to change them",
+  "verified": "Verified account",
+  "emailVerified": "Verified email",
+  "emailNotVerified": "Unverified email",
+  "shareLink": "Share my profile",
+  "linkCopied": "Link copied!",
+  "settings": "Settings",
+  "logout": "Log out",
+  "sellerSpacePrefix": "",
+  "sellerSpaceSuffix": "Seller Space",
+  "stats": {
+    "annonces": "Listings",
+    "totalViews": "Total views",
+    "favorites": "Favorites"
+  },
+  "tabs": {
+    "annonces": "My listings ({count})",
+    "favoris": "My favorites ({count})",
+    "recherches": "Searches ({count})",
+    "ventesBase": "My sales",
+    "ventesCount": "My sales ({count})"
+  },
+  "status": {
+    "ACTIVE": "Approved",
+    "PENDING_REVIEW": "Pending",
+    "REJECTED": "Rejected",
+    "SUSPENDED": "Suspended",
+    "EXPIRED": "Expired",
+    "SOLD": "Sold"
+  },
+  "annonces": {
+    "empty": "No listing published",
+    "publish": "Post a listing",
+    "newAnnonce": "New listing",
+    "count": "{count} listing(s)",
+    "rejectionReason": "Reason:"
+  },
+  "favoris": {
+    "empty": "No saved favorites",
+    "emptyHint": "Click the heart on a listing to save it here"
+  },
+  "recherches": {
+    "empty": "No saved search",
+    "emptyHint": "On the listings page, click \"Save\" to receive alerts",
+    "browse": "Browse listings",
+    "defaultName": "Saved search",
+    "view": "View",
+    "deleted": "Search deleted"
+  },
+  "ventes": {
+    "empty": "No sale recorded",
+    "emptyHint": "Mark a listing as sold from its page to track your sales.",
+    "total": "Total sales",
+    "thisMonth": "This month",
+    "thisWeek": "This week",
+    "soldProducts": "Sold products"
+  },
+  "toasts": {
+    "avatarUpdated": "Profile picture updated!",
+    "bannerUpdated": "Banner updated!",
+    "uploadError": "Upload error"
+  },
+  "public": {
+    "notFound": "Profile not found",
+    "officialShop": "Official shop",
+    "contact": "Contact",
+    "whatsapp": "WhatsApp",
+    "report": "Report",
+    "reportProfile": "Report this profile",
+    "memberSince": "Member since {time}",
+    "by": "by {name}",
+    "stats": {
+      "annonces": "Listings",
+      "views": "Views",
+      "rating": "Rating",
+      "reviews": "Reviews"
+    },
+    "badges": {
+      "verifiedSeller": "Verified seller",
+      "emailVerified": "Verified email",
+      "topSeller": "Top seller",
+      "excellent": "Excellent",
+      "popular": "Popular",
+      "new": "New"
+    },
+    "shopProducts": "Shop products",
+    "userAnnonces": "{name}'s listings",
+    "metaDescriptionFallback": "{name}'s shop on TrouveTout224 — Guinea's marketplace",
+    "reportReasons": {
+      "SCAM": "Scam / Fraud",
+      "SPAM": "Spam",
+      "INAPPROPRIATE_CONTENT": "Inappropriate behavior",
+      "FAKE_AD": "Fake profile",
+      "OTHER": "Other"
+    },
+    "reportModal": {
+      "question": "What is the problem with this profile?",
+      "detailsPlaceholder": "Additional details (optional)...",
+      "cancel": "Cancel",
+      "send": "Send report",
+      "selectReason": "Select a reason",
+      "loginRequired": "Log in to report",
+      "success": "Report sent. Thank you!",
+      "error": "Error while sending the report"
+    }
+  }
+}

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations, useLocale } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
@@ -10,7 +11,10 @@ import {
   CheckCircle, AlertTriangle, Briefcase, Lock, ShoppingBag,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import type { Locale } from 'date-fns';
+import { fr, enUS, zhCN } from 'date-fns/locale';
+
+const DATE_LOCALES: Record<string, Locale> = { fr, en: enUS, zh: zhCN };
 
 const NOTIF_CONFIG: Record<string, { icon: any; color: string }> = {
   NEW_MESSAGE:        { icon: MessageCircle, color: 'bg-primary-100 text-primary-700' },
@@ -48,6 +52,8 @@ function getNotifLink(notif: any): string | null {
 }
 
 export default function NotificationsPage() {
+  const t = useTranslations('notifications');
+  const locale = useLocale();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { isAuthenticated } = useAuthStore();
@@ -80,8 +86,8 @@ export default function NotificationsPage() {
       <div className="flex items-center justify-center min-h-[70vh] text-center">
         <div>
           <div className="w-14 h-14 bg-dark-100 rounded-2xl flex items-center justify-center mx-auto mb-4"><Lock size={26} className="text-dark-400" /></div>
-          <p className="font-semibold text-dark-700 text-xl mb-4">Connectez-vous pour voir vos notifications</p>
-          <Link href="/auth/connexion" className="btn-primary">Se connecter</Link>
+          <p className="font-semibold text-dark-700 text-xl mb-4">{t('loginRequiredMsg')}</p>
+          <Link href="/auth/connexion" className="btn-primary">{t('login')}</Link>
         </div>
       </div>
     </div>
@@ -97,10 +103,10 @@ export default function NotificationsPage() {
         {/* En-tête */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-display font-bold text-dark-900">Notifications</h1>
+            <h1 className="text-2xl font-display font-bold text-dark-900">{t('pageTitle')}</h1>
             {unreadCount > 0 && (
               <p className="text-primary-700 text-sm font-medium mt-0.5">
-                {unreadCount} non lue{unreadCount > 1 ? 's' : ''}
+                {t('unreadCount', { count: unreadCount })}
               </p>
             )}
           </div>
@@ -109,7 +115,7 @@ export default function NotificationsPage() {
               onClick={markAllRead}
               className="flex items-center gap-1.5 text-sm font-semibold text-primary-700 border border-primary-200 hover:border-primary-400 hover:bg-primary-50 px-3 py-2 rounded-xl transition-colors"
             >
-              <Check size={14} /> Tout marquer comme lu
+              <Check size={14} /> {t('markAllRead')}
             </button>
           )}
         </div>
@@ -130,8 +136,8 @@ export default function NotificationsPage() {
         ) : notifications.length === 0 ? (
           <div className="card p-16 text-center">
             <Bell size={52} className="text-dark-200 mx-auto mb-4" />
-            <p className="font-semibold text-dark-700 text-lg mb-1">Aucune notification</p>
-            <p className="text-dark-500 text-sm">Vos messages et avis apparaîtront ici</p>
+            <p className="font-semibold text-dark-700 text-lg mb-1">{t('emptyTitle')}</p>
+            <p className="text-dark-500 text-sm">{t('emptyMsg')}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -160,7 +166,7 @@ export default function NotificationsPage() {
                     </p>
                     <p className="text-dark-500 text-xs mt-0.5 leading-relaxed">{notif.body}</p>
                     <p className="text-dark-400 text-xs mt-1.5">
-                      {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true, locale: fr })}
+                      {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true, locale: DATE_LOCALES[locale] ?? fr })}
                     </p>
                   </div>
 

@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/auth.store';
 import { useEffect } from 'react';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 import {
   User, Lock, Bell, Shield, Globe, HelpCircle, FileText, Info, LogOut,
   Settings, CheckCircle, ArrowRight, Mail, CreditCard, ShieldCheck, Link2,
@@ -12,39 +13,40 @@ import {
   Camera, AtSign, XCircle, Phone, Type, Clock,
 } from 'lucide-react';
 import { useTheme, COLOR_THEMES, SPECIAL_THEMES } from '@/components/providers/ThemeProvider';
+import { useLanguageSwitch } from '@/hooks/useLanguageSwitch';
 import Link from 'next/link';
 
-const TABS = [
-  { key: 'profil',          label: 'Profil',                    icon: User },
-  { key: 'securite',        label: 'Sécurité & Mot de passe',  icon: Lock },
-  { key: 'notifications',   label: 'Notifications',             icon: Bell },
-  { key: 'confidentialite', label: 'Confidentialité',           icon: Shield },
-  { key: 'apparence',       label: 'Apparence',                 icon: Palette },
-  { key: 'langue',          label: 'Langue',                    icon: Globe },
-  { key: 'aide',            label: 'Aide & Support',            icon: HelpCircle },
-  { key: 'conditions',      label: "Conditions d'utilisation",  icon: FileText },
-  { key: 'apropos',         label: 'À propos',                  icon: Info },
-];
+const TAB_HREFS = [
+  { key: 'profil',          icon: User },
+  { key: 'securite',        icon: Lock },
+  { key: 'notifications',   icon: Bell },
+  { key: 'confidentialite', icon: Shield },
+  { key: 'apparence',       icon: Palette },
+  { key: 'langue',          icon: Globe },
+  { key: 'aide',            icon: HelpCircle },
+  { key: 'conditions',      icon: FileText },
+  { key: 'apropos',         icon: Info },
+] as const;
 
 // Regroupement visuel de la sidebar (desktop) — ne change ni les clés ni la logique des onglets
-const TAB_GROUPS: { label: string; keys: string[] }[] = [
-  { label: 'Compte',        keys: ['profil', 'securite', 'confidentialite', 'notifications'] },
-  { label: 'Préférences',   keys: ['apparence', 'langue'] },
-  { label: 'Support & infos', keys: ['aide', 'conditions', 'apropos'] },
+const TAB_GROUP_HREFS: { key: string; keys: string[] }[] = [
+  { key: 'compte',      keys: ['profil', 'securite', 'confidentialite', 'notifications'] },
+  { key: 'preferences', keys: ['apparence', 'langue'] },
+  { key: 'support',     keys: ['aide', 'conditions', 'apropos'] },
 ];
 
-const HELP_ITEMS = [
-  { Icon: HelpCircle, text: 'Comment publier une annonce ?',   href: '/aide/publier' },
-  { Icon: Shield,     text: 'Comment signaler un problème ?',  href: '/aide/signalement' },
-  { Icon: Mail,       text: 'Contacter le support',            href: '/contact' },
-  { Icon: Link2,      text: 'Centre d\'aide complet',          href: '/aide' },
-];
+const HELP_ITEM_HREFS = [
+  { Icon: HelpCircle, key: 'publier',      href: '/aide/publier' },
+  { Icon: Shield,     key: 'signalement',  href: '/aide/signalement' },
+  { Icon: Mail,       key: 'contact',      href: '/contact' },
+  { Icon: Link2,      key: 'centreAide',   href: '/aide' },
+] as const;
 
 const LANGS = [
-  { code: 'fr', label: 'Français',  badge: 'FR', note: 'Actuelle' },
-  { code: 'en', label: 'English',   badge: 'EN', note: '' },
-  { code: 'ar', label: 'العربية',   badge: 'AR', note: '' },
-];
+  { code: 'fr', flag: '🇫🇷', label: 'Français', badge: 'FR' },
+  { code: 'en', flag: '🇬🇧', label: 'English',  badge: 'EN' },
+  { code: 'zh', flag: '🇨🇳', label: '中文',      badge: 'ZH' },
+] as const;
 
 const PROTECTED_TABS = ['profil', 'securite', 'notifications', 'confidentialite'];
 
@@ -66,6 +68,12 @@ export default function ParametresPage() {
   const { user, logout, isAuthenticated, _hasHydrated, setUser } = useAuthStore();
   const loggedIn = _hasHydrated && isAuthenticated && !!user;
   const { theme, setTheme, colorAccent, setColorAccent, specialTheme, setSpecialTheme, isThemeLocked, textSize, setTextSize } = useTheme();
+  const { locale, switchLocale, isPending: localePending } = useLanguageSwitch();
+  const t = useTranslations('parametres');
+  const tSecurity = useTranslations('security');
+  const TABS = TAB_HREFS.map(tb => ({ ...tb, label: t(`tabs.${tb.key}`) }));
+  const TAB_GROUPS = TAB_GROUP_HREFS.map(g => ({ ...g, label: t(`tabGroups.${g.key}`) }));
+  const HELP_ITEMS = HELP_ITEM_HREFS.map(h => ({ ...h, text: t(`aide.items.${h.key}`) }));
   const [tab, setTab] = useState('profil');
 
   // Si l'utilisateur non connecté arrive sur un onglet protégé, rediriger vers Apparence
@@ -178,19 +186,19 @@ export default function ParametresPage() {
 
   const saveSq = async () => {
     setSqError('');
-    if (sqRows.some(r => !r.questionId)) return setSqError('Choisissez une question pour chaque ligne.');
-    if (sqRows.some(r => r.answer.trim().length < 2)) return setSqError('Chaque réponse doit contenir au moins 2 caractères.');
+    if (sqRows.some(r => !r.questionId)) return setSqError(t('securite.errors.sqQuestionRequired'));
+    if (sqRows.some(r => r.answer.trim().length < 2)) return setSqError(t('securite.errors.sqAnswerTooShort'));
     const ids = sqRows.map(r => r.questionId);
-    if (new Set(ids).size !== ids.length) return setSqError('Choisissez des questions différentes les unes des autres.');
+    if (new Set(ids).size !== ids.length) return setSqError(t('securite.errors.sqDuplicate'));
 
     setSqSaving(true);
     try {
       await api.put('/users/me/security-questions', { questions: sqRows });
       setSqConfigured(sqRows.map(r => ({ questionId: r.questionId, label: sqMaster.find(q => q.id === r.questionId)?.label || r.questionId })));
       setSqEditing(false);
-      toast.success('Questions de sécurité enregistrées !');
+      toast.success(t('toasts.sqSaved'));
     } catch (e: any) {
-      setSqError(e.response?.data?.error || "Erreur lors de l'enregistrement.");
+      setSqError(e.response?.data?.error || t('securite.errors.sqGeneric'));
     } finally {
       setSqSaving(false);
     }
@@ -203,12 +211,12 @@ export default function ParametresPage() {
     if (meData?.username && trimmed === meData.username.toLowerCase()) { setUsernameStatus('unchanged'); return; }
     if (!/^[a-z0-9_]{3,20}$/.test(trimmed)) { setUsernameStatus('invalid'); return; }
     setUsernameStatus('checking');
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       api.get('/users/username-available', { params: { username: trimmed } })
         .then(r => setUsernameStatus(r.data.available ? 'available' : 'taken'))
         .catch(() => setUsernameStatus('idle'));
     }, 450);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [username, meData]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -223,24 +231,24 @@ export default function ParametresPage() {
       await api.put('/users/me', { avatar: url });
       setLocalAvatar(`${url}?t=${Date.now()}`);
       if (user) setUser({ ...user, avatar: url });
-      toast.success('Photo de profil mise à jour !');
-    } catch { toast.error("Erreur lors de l'upload de la photo."); }
+      toast.success(t('toasts.avatarUpdated'));
+    } catch { toast.error(t('toasts.avatarUploadError')); }
     finally { setAvatarUploading(false); }
   };
 
   const PWD_CRITERIA = [
-    { ok: (p: string) => p.length >= 8,   text: '8 caractères minimum' },
-    { ok: (p: string) => /[A-Z]/.test(p), text: 'Une majuscule' },
-    { ok: (p: string) => /[a-z]/.test(p), text: 'Une minuscule' },
-    { ok: (p: string) => /[0-9]/.test(p), text: 'Un chiffre' },
+    { ok: (p: string) => p.length >= 8,   text: t('securite.criteria.length') },
+    { ok: (p: string) => /[A-Z]/.test(p), text: t('securite.criteria.uppercase') },
+    { ok: (p: string) => /[a-z]/.test(p), text: t('securite.criteria.lowercase') },
+    { ok: (p: string) => /[0-9]/.test(p), text: t('securite.criteria.digit') },
   ];
   const pwdCriteriaState = PWD_CRITERIA.map(c => ({ ...c, met: c.ok(newPwd) }));
   const pwdScore = pwdCriteriaState.filter(c => c.met).length;
 
   const saveProfile = async () => {
-    if (usernameStatus === 'taken') return toast.error("Ce nom d'utilisateur est déjà pris.");
-    if (usernameStatus === 'invalid') return toast.error("Nom d'utilisateur invalide (3 à 20 caractères : lettres, chiffres, _).");
-    if (usernameStatus === 'checking') return toast.error("Vérification du nom d'utilisateur en cours, patientez...");
+    if (usernameStatus === 'taken') return toast.error(t('toasts.usernameTakenError'));
+    if (usernameStatus === 'invalid') return toast.error(t('toasts.usernameInvalidError'));
+    if (usernameStatus === 'checking') return toast.error(t('toasts.usernameCheckingError'));
 
     setProfileLoading(true);
     try {
@@ -250,11 +258,11 @@ export default function ParametresPage() {
       const { data } = await api.put('/users/me', payload);
       setMeData(data.data);
       if (user) setUser({ ...user, firstName, lastName });
-      toast.success('Profil mis à jour !');
+      toast.success(t('toasts.profileUpdated'));
     } catch (e: any) {
       const d = e.response?.data;
       if (d?.field === 'username') setUsernameStatus('taken');
-      toast.error(d?.error || 'Erreur de mise à jour');
+      toast.error(d?.error || t('toasts.profileUpdateError'));
     } finally {
       setProfileLoading(false);
     }
@@ -270,23 +278,23 @@ export default function ParametresPage() {
     setPwdError('');
 
     if (hasPassword && !currentPwd) {
-      setPwdError('Saisissez votre mot de passe actuel.');
+      setPwdError(t('securite.errors.currentPasswordRequired'));
       return;
     }
     if (!newPwd || !confirmPwd) {
-      setPwdError('Remplissez tous les champs du nouveau mot de passe.');
+      setPwdError(t('securite.errors.newPasswordRequired'));
       return;
     }
     if (pwdScore < PWD_CRITERIA.length) {
-      setPwdError('Le nouveau mot de passe ne respecte pas encore toutes les règles ci-dessous.');
+      setPwdError(t('securite.errors.passwordCriteria'));
       return;
     }
     if (newPwd !== confirmPwd) {
-      setPwdError('Les deux mots de passe ne correspondent pas.');
+      setPwdError(t('securite.errors.passwordMismatch'));
       return;
     }
     if (hasPassword && newPwd === currentPwd) {
-      setPwdError("Le nouveau mot de passe doit être différent de l'actuel.");
+      setPwdError(t('securite.errors.passwordSameAsOld'));
       return;
     }
 
@@ -296,12 +304,12 @@ export default function ParametresPage() {
         currentPassword: hasPassword ? currentPwd : undefined,
         newPassword: newPwd,
       });
-      toast.success(hasPassword ? 'Mot de passe modifié !' : 'Mot de passe défini avec succès !');
+      toast.success(hasPassword ? t('toasts.passwordChanged') : t('toasts.passwordSet'));
       setCurrentPwd(''); setNewPwd(''); setConfirmPwd('');
       setHasPassword(true);
     } catch (e: any) {
       const d = e.response?.data;
-      setPwdError(d?.error || (Array.isArray(d?.errors) ? d.errors[0]?.msg : null) || 'Erreur lors du changement de mot de passe.');
+      setPwdError(d?.error || (Array.isArray(d?.errors) ? d.errors[0]?.msg : null) || t('securite.errors.passwordGeneric'));
     } finally {
       setPwdLoading(false);
     }
@@ -310,7 +318,7 @@ export default function ParametresPage() {
   const savePhone = async () => {
     setPhoneError('');
     if (!/^6\d{8}$/.test(phoneInput)) {
-      setPhoneError('Numéro invalide. Format attendu : 6XX XX XX XX (9 chiffres, commence par 6).');
+      setPhoneError(t('profil.phoneInvalid'));
       return;
     }
     setPhoneSaving(true);
@@ -318,9 +326,9 @@ export default function ParametresPage() {
       const { data } = await api.put('/users/me/phone', { phone: phoneInput });
       setMeData((m: any) => ({ ...m, phone: data.data.phone, phoneChangedAt: new Date().toISOString() }));
       setPhoneInput('');
-      toast.success('Numéro de téléphone mis à jour !');
+      toast.success(t('toasts.phoneUpdated'));
     } catch (e: any) {
-      setPhoneError(e.response?.data?.error || 'Erreur lors de la mise à jour.');
+      setPhoneError(e.response?.data?.error || t('securite.errors.phoneGeneric'));
     } finally {
       setPhoneSaving(false);
     }
@@ -330,16 +338,16 @@ export default function ParametresPage() {
     setEmailChangeError('');
     const trimmed = newEmailInput.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-      setEmailChangeError('Adresse email invalide.');
+      setEmailChangeError(t('securite.errors.emailInvalid'));
       return;
     }
     setEmailChangeLoading(true);
     try {
       const { data } = await api.put('/users/me/email', { newEmail: trimmed, currentPassword: emailPwd || undefined });
-      toast.success(data.message || 'Lien de confirmation envoyé !');
+      toast.success(data.message || t('toasts.emailLinkSent'));
       setEmailChangeSent(true);
     } catch (e: any) {
-      setEmailChangeError(e.response?.data?.error || 'Erreur lors de la demande.');
+      setEmailChangeError(e.response?.data?.error || t('securite.errors.emailGeneric'));
     } finally {
       setEmailChangeLoading(false);
     }
@@ -373,8 +381,8 @@ export default function ParametresPage() {
               <Settings size={20} className="text-gold-300" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-display font-bold text-white" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.6)' }}>Paramètres</h1>
-              <p className="text-white/75 text-xs sm:text-sm">Gérez votre profil, votre sécurité et vos préférences</p>
+              <h1 className="text-xl sm:text-2xl font-display font-bold text-white" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.6)' }}>{t('header.title')}</h1>
+              <p className="text-white/75 text-xs sm:text-sm">{t('header.subtitle')}</p>
             </div>
           </div>
         </div>
@@ -389,14 +397,14 @@ export default function ParametresPage() {
 
             {/* Mobile : onglets en ligne défilante horizontalement, cibles tactiles ≥ 44px */}
             <div className="lg:hidden flex items-center gap-2 overflow-x-auto px-3 py-3 snap-x">
-              {TABS.map(t => {
-                const isProtected = PROTECTED_TABS.includes(t.key);
+              {TABS.map(tb => {
+                const isProtected = PROTECTED_TABS.includes(tb.key);
                 return (
-                  <button key={t.key} onClick={() => setTab(t.key)}
+                  <button key={tb.key} onClick={() => setTab(tb.key)}
                     className={`flex-shrink-0 flex items-center gap-2 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold whitespace-nowrap transition-colors snap-start
-                      ${tab === t.key ? 'bg-primary-700 text-white shadow-sm' : 'bg-dark-50 text-dark-600'}`}>
-                    <t.icon size={15} className="shrink-0" />
-                    {t.label}
+                      ${tab === tb.key ? 'bg-primary-700 text-white shadow-sm' : 'bg-dark-50 text-dark-600'}`}>
+                    <tb.icon size={15} className="shrink-0" />
+                    {tb.label}
                     {isProtected && !loggedIn && (
                       <Lock size={10} className="shrink-0 opacity-50" />
                     )}
@@ -406,12 +414,12 @@ export default function ParametresPage() {
               {loggedIn ? (
                 <button onClick={logout}
                   className="flex-shrink-0 flex items-center gap-2 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold text-red-600 bg-red-50 whitespace-nowrap snap-start">
-                  <LogOut size={15} className="shrink-0" /> Déconnexion
+                  <LogOut size={15} className="shrink-0" /> {t('logout')}
                 </button>
               ) : (
                 <Link href="/auth/connexion"
                   className="flex-shrink-0 flex items-center gap-2 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold text-primary-700 bg-primary-50 whitespace-nowrap snap-start">
-                  <User size={15} className="shrink-0" /> Se connecter
+                  <User size={15} className="shrink-0" /> {t('login')}
                 </Link>
               )}
             </div>
@@ -419,19 +427,19 @@ export default function ParametresPage() {
             {/* Desktop : colonne verticale groupée en sections claires */}
             <div className="hidden lg:block p-3 space-y-4">
               {TAB_GROUPS.map(group => (
-                <div key={group.label}>
+                <div key={group.key}>
                   <p className="px-3 mb-1.5 text-[11px] font-bold text-dark-400 uppercase tracking-wider">{group.label}</p>
                   <div className="space-y-0.5">
-                    {TABS.filter(t => group.keys.includes(t.key)).map(t => {
-                      const isProtected = PROTECTED_TABS.includes(t.key);
+                    {TABS.filter(tb => group.keys.includes(tb.key)).map(tb => {
+                      const isProtected = PROTECTED_TABS.includes(tb.key);
                       return (
-                        <button key={t.key} onClick={() => setTab(t.key)}
+                        <button key={tb.key} onClick={() => setTab(tb.key)}
                           className={`w-full flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-xl text-sm font-medium transition-colors
-                            ${tab === t.key ? 'bg-primary-700 text-white shadow-sm' : 'text-dark-600 hover:bg-dark-50'}`}>
-                          <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${tab === t.key ? 'bg-white/20' : 'bg-primary-50'}`}>
-                            <t.icon size={14} className={tab === t.key ? 'text-white' : 'text-primary-700'} />
+                            ${tab === tb.key ? 'bg-primary-700 text-white shadow-sm' : 'text-dark-600 hover:bg-dark-50'}`}>
+                          <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${tab === tb.key ? 'bg-white/20' : 'bg-primary-50'}`}>
+                            <tb.icon size={14} className={tab === tb.key ? 'text-white' : 'text-primary-700'} />
                           </span>
-                          <span className="flex-1 text-left">{t.label}</span>
+                          <span className="flex-1 text-left">{tb.label}</span>
                           {isProtected && !loggedIn && (
                             <Lock size={11} className="shrink-0 opacity-40" />
                           )}
@@ -445,12 +453,12 @@ export default function ParametresPage() {
                 {loggedIn ? (
                   <button onClick={logout}
                     className="w-full flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
-                    <LogOut size={15} className="shrink-0" /> Déconnexion
+                    <LogOut size={15} className="shrink-0" /> {t('logout')}
                   </button>
                 ) : (
                   <Link href="/auth/connexion"
                     className="w-full flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-xl text-sm font-medium text-primary-700 hover:bg-primary-50 transition-colors">
-                    <User size={15} className="shrink-0" /> Se connecter
+                    <User size={15} className="shrink-0" /> {t('login')}
                   </Link>
                 )}
               </div>
@@ -466,23 +474,23 @@ export default function ParametresPage() {
                 <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mb-4">
                   <Lock size={26} className="text-primary-700" />
                 </div>
-                <h3 className="font-bold text-dark-900 text-lg mb-2">Connexion requise</h3>
+                <h3 className="font-bold text-dark-900 text-lg mb-2">{t('gate.title')}</h3>
                 <p className="text-dark-500 text-sm mb-6 max-w-xs leading-relaxed">
-                  Ce réglage est lié à votre compte. Connectez-vous pour y accéder.
+                  {t('gate.text')}
                 </p>
                 <div className="flex gap-3 flex-wrap justify-center">
-                  <Link href="/auth/connexion" className="btn-primary">Se connecter</Link>
-                  <Link href="/auth/inscription" className="btn-outline">Créer un compte</Link>
+                  <Link href="/auth/connexion" className="btn-primary">{t('gate.login')}</Link>
+                  <Link href="/auth/inscription" className="btn-outline">{t('gate.createAccount')}</Link>
                 </div>
                 <p className="text-dark-400 text-xs mt-5">
-                  Le réglage <strong>Apparence</strong> (thème clair/sombre) est accessible sans compte.
+                  {t('gate.appearanceNotePrefix')}<strong>{t('gate.appearanceNoteBold')}</strong>{t('gate.appearanceNoteSuffix')}
                 </p>
               </div>
             ) : null}
 
             {!showGate && tab === 'profil' && (
               <div className="space-y-5">
-                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-1">Modifier le profil</h2>
+                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-1">{t('profil.title')}</h2>
 
                 {/* Photo de profil — bien visible en haut */}
                 <div className="flex items-center gap-4 p-4 bg-dark-50 rounded-2xl">
@@ -510,18 +518,18 @@ export default function ParametresPage() {
                       onClick={() => avatarInputRef.current?.click()}
                       className="text-primary-700 text-sm hover:underline mt-1.5 inline-flex items-center gap-1.5"
                     >
-                      <Camera size={13} /> Changer la photo de profil
+                      <Camera size={13} /> {t('profil.changePhoto')}
                     </button>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Prénom</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('profil.firstName')}</label>
                     <input value={firstName} onChange={e => setFirstName(e.target.value)} className="input" />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Nom</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('profil.lastName')}</label>
                     <input value={lastName} onChange={e => setLastName(e.target.value)} className="input" />
                   </div>
                 </div>
@@ -529,14 +537,14 @@ export default function ParametresPage() {
                 {/* Nom d'utilisateur — pseudo unique */}
                 <div>
                   <label className="text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
-                    <AtSign size={13} className="text-primary-700" /> Nom d&apos;utilisateur
+                    <AtSign size={13} className="text-primary-700" /> {t('profil.username')}
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-400 text-sm font-semibold pointer-events-none">@</span>
                     <input
                       value={username}
                       onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                      placeholder="pseudo"
+                      placeholder={t('profil.usernamePlaceholder')}
                       className="input pl-8 pr-9"
                       maxLength={20}
                     />
@@ -546,58 +554,58 @@ export default function ParametresPage() {
                       {usernameStatus === 'taken' && <XCircle size={15} className="text-guinea-500" />}
                     </span>
                   </div>
-                  {usernameStatus === 'taken' && <p className="text-xs text-guinea-600 mt-1.5">Ce nom d&apos;utilisateur est déjà pris.</p>}
-                  {usernameStatus === 'invalid' && <p className="text-xs text-guinea-600 mt-1.5">3 à 20 caractères : lettres minuscules, chiffres, _ uniquement.</p>}
-                  {usernameStatus === 'available' && <p className="text-xs text-primary-600 mt-1.5">Disponible !</p>}
-                  {usernameStatus === 'idle' && <p className="text-xs text-dark-400 mt-1.5">Optionnel — votre identifiant unique sur TrouveTout224.</p>}
+                  {usernameStatus === 'taken' && <p className="text-xs text-guinea-600 mt-1.5">{t('profil.usernameTaken')}</p>}
+                  {usernameStatus === 'invalid' && <p className="text-xs text-guinea-600 mt-1.5">{t('profil.usernameInvalid')}</p>}
+                  {usernameStatus === 'available' && <p className="text-xs text-primary-600 mt-1.5">{t('profil.usernameAvailable')}</p>}
+                  {usernameStatus === 'idle' && <p className="text-xs text-dark-400 mt-1.5">{t('profil.usernameHint')}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-dark-700 mb-1.5">Bio</label>
+                  <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('profil.bio')}</label>
                   <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3}
-                    placeholder="Parlez de vous en quelques mots..." className="input resize-none" />
+                    placeholder={t('profil.bioPlaceholder')} className="input resize-none" />
                 </div>
 
                 {/* Email (lecture seule ici — le changement se fait dans l'onglet Sécurité) */}
                 <div>
                   <label className="text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
-                    <Mail size={13} className="text-dark-400" /> Email
+                    <Mail size={13} className="text-dark-400" /> {t('profil.email')}
                   </label>
                   <input
-                    value={meData?.email || 'Non renseigné'}
+                    value={meData?.email || t('profil.emailNotSet')}
                     disabled
                     className="input bg-dark-50 text-dark-500 cursor-not-allowed"
                   />
                   <p className="text-xs text-dark-400 mt-1">
-                    Pour changer d&apos;adresse email, rendez-vous dans l&apos;onglet <strong>Sécurité &amp; Mot de passe</strong>.
+                    {t('profil.emailChangeHintPrefix')}<strong>{t('profil.emailChangeHintBold')}</strong>{t('profil.emailChangeHintSuffix')}
                   </p>
                 </div>
 
                 {/* Téléphone — ajout/modification directe, sert au contact WhatsApp */}
                 <div>
                   <label className="text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
-                    <Phone size={13} className="text-dark-400" /> Téléphone
+                    <Phone size={13} className="text-dark-400" /> {t('profil.phone')}
                   </label>
-                  <p className="text-xs text-dark-500 mb-2">Ce numéro sert au contact WhatsApp sur vos annonces.</p>
+                  <p className="text-xs text-dark-500 mb-2">{t('profil.phoneHint')}</p>
 
                   {phoneCooldown ? (
                     <>
                       <input value={meData?.phone || ''} disabled className="input bg-dark-50 text-dark-500 cursor-not-allowed" />
                       <p className="text-xs text-gold-700 bg-gold-50 border border-gold-200 rounded-xl px-3 py-2 mt-2 flex items-center gap-1.5">
-                        <Clock size={12} className="shrink-0" /> Modifiable dans {phoneCooldown.days} jour{phoneCooldown.days > 1 ? 's' : ''} (le {phoneCooldown.dateStr}).
+                        <Clock size={12} className="shrink-0" /> {t('profil.cooldownGeneric', { days: phoneCooldown.days, plural: phoneCooldown.days > 1 ? 's' : '', date: phoneCooldown.dateStr })}
                       </p>
                     </>
                   ) : (
                     <>
                       {meData?.phone && (
-                        <p className="text-sm text-dark-600 mb-2">Numéro actuel : <strong>{meData.phone}</strong></p>
+                        <p className="text-sm text-dark-600 mb-2">{t('profil.phoneCurrent', { phone: '' })}<strong>{meData.phone}</strong></p>
                       )}
                       <div className="relative">
                         <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-dark-400 text-sm font-semibold pointer-events-none">+224</span>
                         <input
                           value={phoneInput}
                           onChange={e => setPhoneInput(e.target.value.replace(/\D/g, '').slice(0, 9))}
-                          placeholder="620 00 00 00"
+                          placeholder={t('profil.phonePlaceholder')}
                           className="input pl-14"
                         />
                       </div>
@@ -608,61 +616,60 @@ export default function ParametresPage() {
                         className="mt-2 text-primary-700 text-sm font-semibold hover:underline disabled:opacity-50 disabled:no-underline flex items-center gap-1.5"
                       >
                         {phoneSaving && <Loader2 size={13} className="animate-spin" />}
-                        {meData?.phone ? 'Mettre à jour le numéro' : 'Ajouter mon numéro'}
+                        {meData?.phone ? t('profil.phoneUpdate') : t('profil.phoneAdd')}
                       </button>
                     </>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-dark-700 mb-1.5">Ville</label>
+                  <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('profil.city')}</label>
                   <select value={cityId} onChange={e => setCityId(e.target.value)} className="input">
-                    <option value="">Non renseignée</option>
+                    <option value="">{t('profil.cityNotSet')}</option>
                     {cities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
 
                 <button onClick={saveProfile} disabled={profileLoading} className="btn-primary px-8 flex items-center gap-2 disabled:opacity-60">
                   {profileLoading && <Loader2 size={15} className="animate-spin" />}
-                  Sauvegarder les modifications
+                  {t('profil.save')}
                 </button>
               </div>
             )}
 
             {!showGate && tab === 'securite' && (
               <div className="space-y-5">
-                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">Sécurité du compte</h2>
+                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">{t('securite.title')}</h2>
                 <div className="flex items-center gap-3 p-4 bg-primary-50 rounded-2xl border border-primary-200 mb-4">
                   <ShieldCheck size={18} className="text-primary-700 shrink-0" />
-                  <p className="text-primary-800 text-sm font-medium">Compte actif et sécurisé</p>
+                  <p className="text-primary-800 text-sm font-medium">{t('securite.accountSecure')}</p>
                 </div>
 
                 {hasPassword === null ? (
-                  <p className="text-dark-400 text-sm flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Chargement...</p>
+                  <p className="text-dark-400 text-sm flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> {t('securite.loading')}</p>
                 ) : (
                   <>
                     <h3 className="font-semibold text-dark-900 flex items-center gap-2">
                       <KeyRound size={16} className="text-primary-700" />
-                      {hasPassword ? 'Changer le mot de passe' : 'Définir un mot de passe'}
+                      {hasPassword ? t('securite.changePassword') : t('securite.setPassword')}
                     </h3>
 
                     {!hasPassword && (
                       <p className="text-dark-500 text-sm bg-dark-50 rounded-2xl p-4">
-                        Votre compte a été créé avec Google, vous n&apos;avez pas encore de mot de passe.
-                        Définissez-en un ci-dessous pour pouvoir aussi vous connecter avec votre email.
+                        {t('securite.googleAccountHint')}
                       </p>
                     )}
 
                     {hasPassword && pwdCooldown ? (
                       <p className="text-sm text-gold-700 bg-gold-50 border border-gold-200 rounded-xl px-4 py-3 flex items-center gap-2">
                         <Clock size={14} className="shrink-0" />
-                        Pour votre sécurité, vous pourrez modifier à nouveau votre mot de passe dans {pwdCooldown.days} jour{pwdCooldown.days > 1 ? 's' : ''} (le {pwdCooldown.dateStr}).
+                        {t('profil.cooldownPassword', { days: pwdCooldown.days, plural: pwdCooldown.days > 1 ? 's' : '', date: pwdCooldown.dateStr })}
                       </p>
                     ) : (
                       <>
                         {hasPassword && (
                           <div>
-                            <label className="block text-sm font-semibold text-dark-700 mb-1.5">Mot de passe actuel</label>
+                            <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('securite.currentPassword')}</label>
                             <div className="relative">
                               <input
                                 type={showPwdFields ? 'text' : 'password'}
@@ -679,13 +686,13 @@ export default function ParametresPage() {
                         )}
 
                         <div>
-                          <label className="block text-sm font-semibold text-dark-700 mb-1.5">Nouveau mot de passe</label>
+                          <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('securite.newPassword')}</label>
                           <div className="relative">
                             <input
                               type={showPwdFields ? 'text' : 'password'}
                               value={newPwd}
                               onChange={e => setNewPwd(e.target.value)}
-                              placeholder="Minimum 8 caractères"
+                              placeholder={t('securite.newPasswordPlaceholder')}
                               className="input pr-11" />
                             <button type="button" tabIndex={-1} onClick={() => setShowPwdFields(v => !v)}
                               className="absolute right-3.5 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-600">
@@ -715,12 +722,12 @@ export default function ParametresPage() {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-semibold text-dark-700 mb-1.5">Confirmer le nouveau mot de passe</label>
+                          <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('securite.confirmPassword')}</label>
                           <input
                             type={showPwdFields ? 'text' : 'password'}
                             value={confirmPwd}
                             onChange={e => setConfirmPwd(e.target.value)}
-                            placeholder="Retapez le nouveau mot de passe"
+                            placeholder={t('securite.confirmPasswordPlaceholder')}
                             className="input" />
                         </div>
 
@@ -730,14 +737,14 @@ export default function ParametresPage() {
 
                         <button onClick={changePwd} disabled={pwdLoading} className="btn-primary px-8 flex items-center gap-2 disabled:opacity-60">
                           {pwdLoading && <Loader2 size={15} className="animate-spin" />}
-                          {hasPassword ? 'Changer le mot de passe' : 'Définir le mot de passe'}
+                          {hasPassword ? t('securite.changePassword') : t('securite.setPassword')}
                         </button>
                       </>
                     )}
 
                     {hasPassword && (
                       <Link href="/auth/mot-de-passe-oublie" className="block text-sm text-primary-700 hover:underline pt-1">
-                        Mot de passe oublié ? Réinitialiser par email
+                        {t('securite.forgotPassword')}
                       </Link>
                     )}
                   </>
@@ -746,36 +753,36 @@ export default function ParametresPage() {
                 {/* ── Adresse email ── */}
                 <div className="pt-6 mt-6 border-t border-dark-100">
                   <h3 className="font-semibold text-dark-900 flex items-center gap-2 mb-1">
-                    <Mail size={16} className="text-primary-700" /> Adresse email
+                    <Mail size={16} className="text-primary-700" /> {t('securite.emailTitle')}
                   </h3>
                   <p className="text-dark-500 text-sm mb-4">
-                    {meData?.email ? <>Email actuel : <strong>{meData.email}</strong></> : "Vous n'avez pas encore d'adresse email."}
+                    {meData?.email ? <>{t('securite.emailCurrent', { email: '' })}<strong>{meData.email}</strong></> : t('securite.emailNone')}
                   </p>
 
                   {emailCooldown ? (
                     <p className="text-sm text-gold-700 bg-gold-50 border border-gold-200 rounded-xl px-4 py-3 flex items-center gap-2">
                       <Clock size={14} className="shrink-0" />
-                      Modifiable dans {emailCooldown.days} jour{emailCooldown.days > 1 ? 's' : ''} (le {emailCooldown.dateStr}).
+                      {t('profil.cooldownGeneric', { days: emailCooldown.days, plural: emailCooldown.days > 1 ? 's' : '', date: emailCooldown.dateStr })}
                     </p>
                   ) : emailChangeSent ? (
                     <p className="text-sm text-primary-700 bg-primary-50 border border-primary-200 rounded-xl px-4 py-3">
-                      Un lien de confirmation a été envoyé à <strong>{newEmailInput.trim()}</strong>. Cliquez dessus pour valider le changement.
+                      {t('securite.emailSent', { email: newEmailInput.trim() })}
                     </p>
                   ) : (
                     <div className="space-y-3 max-w-md">
                       <div>
-                        <label className="block text-sm font-semibold text-dark-700 mb-1.5">Nouvelle adresse email</label>
+                        <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('securite.newEmail')}</label>
                         <input
                           type="email"
                           value={newEmailInput}
                           onChange={e => setNewEmailInput(e.target.value)}
-                          placeholder="nouvel-email@exemple.com"
+                          placeholder={t('securite.newEmailPlaceholder')}
                           className="input"
                         />
                       </div>
                       {hasPassword && (
                         <div>
-                          <label className="block text-sm font-semibold text-dark-700 mb-1.5">Mot de passe actuel</label>
+                          <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('securite.currentPassword')}</label>
                           <input
                             type="password"
                             value={emailPwd}
@@ -794,10 +801,10 @@ export default function ParametresPage() {
                         className="btn-primary px-6 flex items-center gap-2 disabled:opacity-60"
                       >
                         {emailChangeLoading && <Loader2 size={15} className="animate-spin" />}
-                        {meData?.email ? "Changer d'adresse" : 'Ajouter un email'}
+                        {meData?.email ? t('securite.changeEmail') : t('securite.addEmail')}
                       </button>
                       <p className="text-xs text-dark-400">
-                        Un lien de confirmation sera envoyé à la nouvelle adresse — le changement n&apos;est effectif qu&apos;après avoir cliqué dessus.
+                        {t('securite.emailChangeHint')}
                       </p>
                     </div>
                   )}
@@ -806,31 +813,31 @@ export default function ParametresPage() {
                 {/* ── Questions de sécurité ── */}
                 <div className="pt-6 mt-6 border-t border-dark-100">
                   <h3 className="font-semibold text-dark-900 flex items-center gap-2 mb-1">
-                    <HelpCircle size={16} className="text-primary-700" /> Questions de sécurité
+                    <HelpCircle size={16} className="text-primary-700" /> {t('securite.sqTitle')}
                   </h3>
                   <p className="text-dark-500 text-sm mb-4">
-                    Permettent de récupérer votre compte si vous perdez l'accès à votre email — pratique si vous consultez rarement votre boîte mail.
+                    {t('securite.sqHint')}
                   </p>
 
                   {sqConfigured === null ? (
-                    <p className="text-dark-400 text-sm flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Chargement...</p>
+                    <p className="text-dark-400 text-sm flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> {t('securite.loading')}</p>
                   ) : !sqEditing ? (
                     sqConfigured.length >= 2 ? (
                       <div className="bg-primary-50 border border-primary-200 rounded-2xl p-4">
                         <div className="flex items-center gap-2 mb-2">
                           <ShieldCheck size={16} className="text-primary-700" />
-                          <p className="text-primary-800 text-sm font-semibold">{sqConfigured.length} questions configurées</p>
+                          <p className="text-primary-800 text-sm font-semibold">{t('securite.sqConfiguredCount', { count: sqConfigured.length })}</p>
                         </div>
                         <ul className="text-dark-600 text-sm space-y-1 mb-3 list-disc list-inside">
-                          {sqConfigured.map(q => <li key={q.questionId}>{q.label}</li>)}
+                          {sqConfigured.map(q => <li key={q.questionId}>{tSecurity(`questions.${q.questionId}`)}</li>)}
                         </ul>
                         {sqCooldown ? (
                           <p className="text-xs text-gold-700 bg-gold-50 border border-gold-200 rounded-xl px-3 py-2 flex items-center gap-1.5">
-                            <Clock size={12} className="shrink-0" /> Modifiable dans {sqCooldown.days} jour{sqCooldown.days > 1 ? 's' : ''} (le {sqCooldown.dateStr}).
+                            <Clock size={12} className="shrink-0" /> {t('profil.cooldownGeneric', { days: sqCooldown.days, plural: sqCooldown.days > 1 ? 's' : '', date: sqCooldown.dateStr })}
                           </p>
                         ) : (
                           <button onClick={startEditSq} className="text-primary-700 text-sm font-semibold hover:underline">
-                            Modifier mes questions de sécurité
+                            {t('securite.sqEdit')}
                           </button>
                         )}
                       </div>
@@ -838,11 +845,11 @@ export default function ParametresPage() {
                       <div className="bg-gold-50 border border-gold-200 rounded-2xl p-4 flex items-start gap-3">
                         <Shield size={18} className="text-gold-600 shrink-0 mt-0.5" />
                         <div className="flex-1">
-                          <p className="text-gold-800 text-sm font-semibold mb-1">Aucune question de sécurité configurée</p>
+                          <p className="text-gold-800 text-sm font-semibold mb-1">{t('securite.sqNoneTitle')}</p>
                           <p className="text-gold-700 text-xs mb-3">
-                            Ajoutez-en 2 ou 3 pour pouvoir récupérer votre compte même sans accès à votre email.
+                            {t('securite.sqNoneHint')}
                           </p>
-                          <button onClick={startEditSq} className="btn-gold text-sm px-4 py-2">Configurer maintenant</button>
+                          <button onClick={startEditSq} className="btn-gold text-sm px-4 py-2">{t('securite.sqConfigureNow')}</button>
                         </div>
                       </div>
                     )
@@ -851,28 +858,28 @@ export default function ParametresPage() {
                       {sqRows.map((row, i) => (
                         <div key={i} className="bg-dark-50 rounded-2xl p-4 space-y-3">
                           <div className="flex items-center justify-between">
-                            <label className="text-sm font-semibold text-dark-700">Question {i + 1}</label>
+                            <label className="text-sm font-semibold text-dark-700">{t('securite.sqQuestionLabel', { n: i + 1 })}</label>
                             {sqRows.length > 2 && (
-                              <button onClick={() => removeSqRow(i)} className="text-guinea-500 text-xs font-semibold hover:underline">Retirer</button>
+                              <button onClick={() => removeSqRow(i)} className="text-guinea-500 text-xs font-semibold hover:underline">{t('securite.sqRemove')}</button>
                             )}
                           </div>
                           <select value={row.questionId} onChange={e => updateSqRow(i, 'questionId', e.target.value)} className="input">
-                            <option value="">Choisissez une question...</option>
+                            <option value="">{t('securite.sqChoosePlaceholder')}</option>
                             {sqMaster
                               .filter(q => q.id === row.questionId || !sqRows.some(r => r.questionId === q.id))
-                              .map(q => <option key={q.id} value={q.id}>{q.label}</option>)}
+                              .map(q => <option key={q.id} value={q.id}>{tSecurity(`questions.${q.id}`)}</option>)}
                           </select>
                           <input
                             value={row.answer}
                             onChange={e => updateSqRow(i, 'answer', e.target.value)}
-                            placeholder="Votre réponse"
+                            placeholder={t('securite.sqAnswerPlaceholder')}
                             className="input" />
                         </div>
                       ))}
 
                       {sqRows.length < 3 && (
                         <button onClick={addSqRow} className="text-primary-700 text-sm font-semibold hover:underline">
-                          + Ajouter une 3ᵉ question (optionnel)
+                          {t('securite.sqAddThird')}
                         </button>
                       )}
 
@@ -882,14 +889,14 @@ export default function ParametresPage() {
 
                       <div className="flex items-center gap-4">
                         <button onClick={saveSq} disabled={sqSaving} className="btn-primary px-6 flex items-center gap-2 disabled:opacity-60">
-                          {sqSaving && <Loader2 size={15} className="animate-spin" />} Enregistrer
+                          {sqSaving && <Loader2 size={15} className="animate-spin" />} {t('securite.sqSave')}
                         </button>
                         <button onClick={() => setSqEditing(false)} className="text-dark-500 text-sm font-semibold hover:text-dark-700">
-                          Annuler
+                          {t('securite.sqCancel')}
                         </button>
                       </div>
                       <p className="text-xs text-dark-400">
-                        Vos réponses sont stockées de façon chiffrée (comme un mot de passe) — personne ne peut les relire, seulement vérifier qu'elles correspondent.
+                        {t('securite.sqFooterHint')}
                       </p>
                     </div>
                   )}
@@ -899,11 +906,11 @@ export default function ParametresPage() {
 
             {!showGate && tab === 'notifications' && (
               <div className="space-y-4">
-                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">Préférences de notifications</h2>
+                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">{t('notifications.title')}</h2>
                 {[
-                  { label: 'Nouveaux messages',    sub: 'Être notifié quand vous recevez un message', value: notifMsg,     fn: () => setNotifMsg(!notifMsg) },
-                  { label: "Expiration d'annonce", sub: 'Rappel avant que votre annonce expire',       value: notifAnnonce, fn: () => setNotifAnnonce(!notifAnnonce) },
-                  { label: 'Nouvelles vues',       sub: 'Quand quelqu\'un consulte vos annonces',      value: notifVue,     fn: () => setNotifVue(!notifVue) },
+                  { label: t('notifications.newMessages.label'),    sub: t('notifications.newMessages.sub'),    value: notifMsg,     fn: () => setNotifMsg(!notifMsg) },
+                  { label: t('notifications.annonceExpiry.label'),  sub: t('notifications.annonceExpiry.sub'),  value: notifAnnonce, fn: () => setNotifAnnonce(!notifAnnonce) },
+                  { label: t('notifications.newViews.label'),       sub: t('notifications.newViews.sub'),       value: notifVue,     fn: () => setNotifVue(!notifVue) },
                 ].map((n, i) => (
                   <button key={i} type="button" onClick={n.fn} role="switch" aria-checked={n.value}
                     className="w-full flex items-center justify-between gap-3 p-4 min-h-[44px] bg-dark-50 rounded-2xl text-left hover:bg-dark-100 transition-colors">
@@ -919,12 +926,12 @@ export default function ParametresPage() {
 
             {!showGate && tab === 'confidentialite' && (
               <div>
-                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">Confidentialité</h2>
+                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">{t('confidentialite.title')}</h2>
                 <div className="space-y-4">
                   {[
-                    { label: 'Profil public',        sub: 'Votre profil est visible par tous les utilisateurs', value: privPublic,   onChange: () => { const v = !privPublic;   setPrivPublic(v);   savePrivacy('profPublic', v); } },
-                    { label: 'Afficher mon numéro',  sub: 'Votre numéro est visible sur vos annonces',         value: privPhone,    onChange: () => { const v = !privPhone;    setPrivPhone(v);    savePrivacy('showPhone', v); } },
-                    { label: 'Recevoir des messages',sub: 'Les autres utilisateurs peuvent vous contacter',     value: privMessages, onChange: () => { const v = !privMessages; setPrivMessages(v); savePrivacy('acceptMessages', v); } },
+                    { label: t('confidentialite.publicProfile.label'),   sub: t('confidentialite.publicProfile.sub'),   value: privPublic,   onChange: () => { const v = !privPublic;   setPrivPublic(v);   savePrivacy('profPublic', v); } },
+                    { label: t('confidentialite.showPhone.label'),       sub: t('confidentialite.showPhone.sub'),       value: privPhone,    onChange: () => { const v = !privPhone;    setPrivPhone(v);    savePrivacy('showPhone', v); } },
+                    { label: t('confidentialite.acceptMessages.label'), sub: t('confidentialite.acceptMessages.sub'), value: privMessages, onChange: () => { const v = !privMessages; setPrivMessages(v); savePrivacy('acceptMessages', v); } },
                   ].map((item, i) => (
                     <button key={i} type="button" onClick={item.onChange} role="switch" aria-checked={item.value}
                       className="w-full flex items-center justify-between gap-3 p-4 min-h-[44px] bg-dark-50 rounded-2xl text-left hover:bg-dark-100 transition-colors">
@@ -944,13 +951,13 @@ export default function ParametresPage() {
 
                 {/* ── Mode clair / sombre ── */}
                 <div>
-                  <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-2">Apparence</h2>
-                  <p className="text-dark-500 text-sm mb-5">Choisissez comment TrouveTout224 s&apos;affiche sur votre appareil.</p>
+                  <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-2">{t('apparence.title')}</h2>
+                  <p className="text-dark-500 text-sm mb-5">{t('apparence.subtitle')}</p>
                   <div className="grid grid-cols-3 gap-3">
                     {([
-                      { value: 'light',  label: 'Clair',       icon: Sun,     desc: 'Toujours clair',      bg: 'bg-white border-dark-200' },
-                      { value: 'dark',   label: 'Sombre',      icon: Moon,    desc: 'Toujours sombre',     bg: 'bg-dark-900 border-dark-700' },
-                      { value: 'system', label: 'Automatique', icon: Monitor, desc: 'Suit votre appareil', bg: 'bg-gradient-to-br from-white to-dark-800 border-dark-300' },
+                      { value: 'light',  label: t('apparence.modes.light.label'),  icon: Sun,     desc: t('apparence.modes.light.desc'),  bg: 'bg-white border-dark-200' },
+                      { value: 'dark',   label: t('apparence.modes.dark.label'),   icon: Moon,    desc: t('apparence.modes.dark.desc'),   bg: 'bg-dark-900 border-dark-700' },
+                      { value: 'system', label: t('apparence.modes.system.label'), icon: Monitor, desc: t('apparence.modes.system.desc'), bg: 'bg-gradient-to-br from-white to-dark-800 border-dark-300' },
                     ] as const).map(opt => {
                       const Icon = opt.icon;
                       const active = theme === opt.value;
@@ -974,14 +981,14 @@ export default function ParametresPage() {
                 {/* ── Taille du texte ── */}
                 <div>
                   <h3 className="font-semibold text-dark-900 mb-1 flex items-center gap-2">
-                    <Type size={15} className="text-primary-700" /> Taille du texte
+                    <Type size={15} className="text-primary-700" /> {t('apparence.textSize.title')}
                   </h3>
-                  <p className="text-dark-500 text-xs mb-4">Ajuste la taille du texte sur tout le site.</p>
+                  <p className="text-dark-500 text-xs mb-4">{t('apparence.textSize.subtitle')}</p>
                   <div className="grid grid-cols-3 gap-3">
                     {([
-                      { value: 'sm',   label: 'Petit',  px: 16 },
-                      { value: 'base', label: 'Normal', px: 21 },
-                      { value: 'lg',   label: 'Grand',  px: 26 },
+                      { value: 'sm',   label: t('apparence.textSize.sm'),   px: 16 },
+                      { value: 'base', label: t('apparence.textSize.base'), px: 21 },
+                      { value: 'lg',   label: t('apparence.textSize.lg'),   px: 26 },
                     ] as const).map(opt => {
                       const active = textSize === opt.value;
                       return (
@@ -1001,9 +1008,9 @@ export default function ParametresPage() {
                 {/* ── Couleur d'accent (base, libres) ── */}
                 <div>
                   <h3 className="font-semibold text-dark-900 mb-1 flex items-center gap-2">
-                    <Palette size={15} className="text-primary-700" /> Couleur d&apos;accent
+                    <Palette size={15} className="text-primary-700" /> {t('apparence.accentColor.title')}
                   </h3>
-                  <p className="text-dark-500 text-xs mb-4">Change la couleur principale des boutons, liens et éléments actifs.</p>
+                  <p className="text-dark-500 text-xs mb-4">{t('apparence.accentColor.subtitle')}</p>
                   <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
                     {COLOR_THEMES.filter(ct => !ct.isSpecial).map(ct => {
                       const active = colorAccent === ct.id && !specialTheme;
@@ -1036,10 +1043,10 @@ export default function ParametresPage() {
                   return (
                     <div>
                       <h3 className="font-semibold text-dark-900 mb-1 flex items-center gap-2">
-                        <span className="text-base">🎨</span> Thèmes spéciaux &amp; animés
+                        <span className="text-base">🎨</span> {t('apparence.specialThemes.title')}
                       </h3>
                       <p className="text-dark-500 text-xs mb-4">
-                        Ambiances immersives avec animations fluides.
+                        {t('apparence.specialThemes.subtitle')}
                       </p>
                       <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                         {visibleSpecial.map(ct => {
@@ -1073,9 +1080,9 @@ export default function ParametresPage() {
                   return (
                     <div>
                       <h3 className="font-semibold text-dark-900 mb-1 flex items-center gap-2">
-                        <span className="text-base">✨</span> Thèmes événementiels
+                        <span className="text-base">✨</span> {t('apparence.eventThemes.title')}
                       </h3>
-                      <p className="text-dark-500 text-xs mb-4">Ambiances festives avec banderole décorative en haut de page.</p>
+                      <p className="text-dark-500 text-xs mb-4">{t('apparence.eventThemes.subtitle')}</p>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {visibleEvents.map(st => {
                           const active = specialTheme === st.id;
@@ -1104,7 +1111,7 @@ export default function ParametresPage() {
                       {specialTheme && (
                         <button onClick={() => setSpecialTheme(null)}
                           className="mt-3 text-xs text-dark-500 hover:text-dark-700 underline">
-                          Revenir à la couleur normale
+                          {t('apparence.eventThemes.reset')}
                         </button>
                       )}
                     </div>
@@ -1118,17 +1125,28 @@ export default function ParametresPage() {
               <div>
                 <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">Langue de l'interface</h2>
                 <div className="space-y-2">
-                  {LANGS.map(({ code, label, badge, note }) => (
+                  {LANGS.map(({ code, flag, label, badge }) => (
                     <label key={code}
-                      className="flex items-center gap-3 p-4 rounded-xl border-2 border-dark-200 hover:border-primary-400 cursor-pointer has-[:checked]:border-primary-700 has-[:checked]:bg-primary-50 transition-colors">
-                      <input type="radio" name="lang" defaultChecked={code === 'fr'} className="accent-primary-700" />
+                      className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-colors ${
+                        locale === code
+                          ? 'border-primary-700 bg-primary-50'
+                          : 'border-dark-200 hover:border-primary-400'
+                      } ${localePending ? 'opacity-60 pointer-events-none' : ''}`}>
+                      <input
+                        type="radio"
+                        name="lang"
+                        checked={locale === code}
+                        onChange={() => switchLocale(code)}
+                        className="accent-primary-700"
+                      />
+                      <span className="text-lg leading-none">{flag}</span>
                       <span className="w-8 h-6 rounded bg-primary-100 flex items-center justify-center text-xs font-bold text-primary-700">{badge}</span>
                       <span className="font-medium text-dark-700">{label}</span>
-                      {note && <span className="ml-auto text-xs text-primary-700 font-semibold">{note}</span>}
+                      {locale === code && <CheckCircle size={16} className="ml-auto text-primary-700" />}
                     </label>
                   ))}
                 </div>
-                <p className="text-dark-400 text-xs mt-4">Les traductions en anglais et arabe seront disponibles prochainement.</p>
+                <p className="text-dark-400 text-xs mt-4">La langue choisie est enregistrée sur votre compte et réappliquée à chaque visite.</p>
               </div>
             )}
 

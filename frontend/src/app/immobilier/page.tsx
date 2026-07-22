@@ -1,6 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { api } from '@/lib/api';
@@ -15,9 +16,14 @@ import toast from 'react-hot-toast';
 
 const PROPERTY_TYPES = ['Maison', 'Appartement', 'Villa', 'Duplex', 'Studio'];
 const TERRAIN_TYPES  = ['Terrain', 'Local commercial', 'Bureau'];
-const TRANSACTION    = ['À louer', 'À vendre'];
+const TRANSACTION_META = [
+  { value: 'À louer', key: 'transactionRent' },
+  { value: 'À vendre', key: 'transactionSale' },
+] as const;
 
 export default function ImmobilierPage() {
+  const t = useTranslations('listings.immobilier');
+  const TRANSACTION = TRANSACTION_META.map(o => ({ value: o.value, label: t(o.key) }));
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
   const [annonces, setAnnonces] = useState<any[]>([]);
@@ -65,11 +71,11 @@ export default function ImmobilierPage() {
   }, [q, cityId, contractType, minPrice, maxPrice, minBedrooms, categories, page]);
 
   const startConversation = async (ownerId: string) => {
-    if (!isAuthenticated) { toast.error('Connectez-vous pour envoyer un message.'); return; }
+    if (!isAuthenticated) { toast.error(t('toastLoginToMessage')); return; }
     try {
       const res = await api.post('/messages/conversations', { participantId: ownerId });
       router.push(`/messages?conversation=${res.data.data?.id || ''}`);
-    } catch { toast.error('Impossible d\'ouvrir la messagerie.'); }
+    } catch { toast.error(t('toastMessagingError')); }
   };
 
   const pages = Math.ceil(total / 12);
@@ -86,8 +92,8 @@ export default function ImmobilierPage() {
               <Building2 size={20} />
             </div>
             <div>
-              <h1 className="text-2xl font-display font-bold">Immobilier</h1>
-              <p className="text-amber-100 text-sm">Maisons, appartements, terrains, locaux commerciaux</p>
+              <h1 className="text-2xl font-display font-bold">{t('heroTitle')}</h1>
+              <p className="text-amber-100 text-sm">{t('heroSubtitle')}</p>
             </div>
           </div>
           <div className="flex gap-2 mt-4">
@@ -95,12 +101,12 @@ export default function ImmobilierPage() {
               <Search size={16} className="text-white/70 shrink-0" />
               <input
                 value={q} onChange={e => { setQ(e.target.value); setPage(1); }}
-                placeholder="Quartier, type de bien..."
+                placeholder={t('searchPlaceholder')}
                 className="flex-1 bg-transparent text-white placeholder-white/60 outline-none text-sm"
               />
             </div>
             <Link href="/annonces/publier?cat=immobilier" className="bg-white text-amber-700 font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-amber-50 transition-colors whitespace-nowrap">
-              <Plus size={15} /> Publier un bien
+              <Plus size={15} /> {t('publishProperty')}
             </Link>
           </div>
         </div>
@@ -111,26 +117,26 @@ export default function ImmobilierPage() {
         <div className="bg-white rounded-2xl border border-dark-100 p-4 mb-5 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
             <SlidersHorizontal size={14} className="text-dark-400" />
-            <span className="text-sm font-semibold text-dark-700">Filtres</span>
+            <span className="text-sm font-semibold text-dark-700">{t('filtersLabel')}</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <select value={cityId} onChange={e => { setCityId(e.target.value); setPage(1); }}
               className="input py-2 text-sm">
-              <option value="">Toutes les villes</option>
+              <option value="">{t('allCities')}</option>
               {cities.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
             <select value={contractType} onChange={e => { setContractType(e.target.value); setPage(1); }}
               className="input py-2 text-sm">
-              <option value="">Location & Vente</option>
-              {TRANSACTION.map(t => <option key={t} value={t}>{t}</option>)}
+              <option value="">{t('rentAndSale')}</option>
+              {TRANSACTION.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
             <input value={minPrice} onChange={e => { setMinPrice(e.target.value); setPage(1); }}
-              type="number" placeholder="Prix min (GNF)" className="input py-2 text-sm" />
+              type="number" placeholder={t('priceMinPlaceholder')} className="input py-2 text-sm" />
             <input value={maxPrice} onChange={e => { setMaxPrice(e.target.value); setPage(1); }}
-              type="number" placeholder="Prix max (GNF)" className="input py-2 text-sm" />
+              type="number" placeholder={t('priceMaxPlaceholder')} className="input py-2 text-sm" />
           </div>
           <div className="flex gap-2 mt-3 flex-wrap">
-            <span className="text-xs text-dark-400 self-center">Chambres min :</span>
+            <span className="text-xs text-dark-400 self-center">{t('minBedrooms')}</span>
             {['1', '2', '3', '4', '5+'].map(n => (
               <button key={n} onClick={() => { setMinBedrooms(minBedrooms === n ? '' : n === '5+' ? '5' : n); setPage(1); }}
                 className={`px-3 py-1 rounded-xl text-xs font-semibold border-2 transition-colors ${
@@ -145,12 +151,12 @@ export default function ImmobilierPage() {
           {(q || cityId || contractType || minPrice || maxPrice || minBedrooms) && (
             <button onClick={() => { setQ(''); setCityId(''); setContractType(''); setMinPrice(''); setMaxPrice(''); setMinBedrooms(''); setPage(1); }}
               className="text-xs text-dark-400 hover:text-dark-600 underline mt-3 block">
-              Effacer tous les filtres
+              {t('clearFilters')}
             </button>
           )}
         </div>
 
-        <p className="text-dark-400 text-sm mb-4">{total} bien{total !== 1 ? 's' : ''} immobilier{total !== 1 ? 's' : ''} trouvé{total !== 1 ? 's' : ''}</p>
+        <p className="text-dark-400 text-sm mb-4">{t('resultsCount', { count: total })}</p>
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -167,10 +173,10 @@ export default function ImmobilierPage() {
             <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Home size={28} className="text-amber-500" />
             </div>
-            <p className="text-dark-500 font-semibold text-lg mb-2">Aucun bien trouvé</p>
-            <p className="text-dark-400 text-sm mb-5">Publiez votre bien immobilier gratuitement !</p>
+            <p className="text-dark-500 font-semibold text-lg mb-2">{t('noResultsTitle')}</p>
+            <p className="text-dark-400 text-sm mb-5">{t('noResultsMsg')}</p>
             <Link href="/annonces/publier" className="btn-primary inline-flex items-center gap-2">
-              <Plus size={15} /> Publier un bien
+              <Plus size={15} /> {t('publishProperty')}
             </Link>
           </div>
         ) : (
@@ -201,7 +207,7 @@ export default function ImmobilierPage() {
                   </Link>
                   <div className="flex gap-3 text-xs text-dark-500 mb-3">
                     {a.bedrooms && (
-                      <span className="flex items-center gap-0.5"><BedDouble size={11} /> {a.bedrooms} ch.</span>
+                      <span className="flex items-center gap-0.5"><BedDouble size={11} /> {a.bedrooms} {t('bedroomsShort')}</span>
                     )}
                     {a.surface && (
                       <span className="flex items-center gap-0.5"><Ruler size={11} /> {a.surface} m²</span>
@@ -215,9 +221,9 @@ export default function ImmobilierPage() {
                       {a.price ? (
                         <p className="font-bold text-amber-700 text-base">{Number(a.price).toLocaleString('fr-GN')} GNF</p>
                       ) : (
-                        <p className="text-dark-400 text-xs">Prix sur demande</p>
+                        <p className="text-dark-400 text-xs">{t('priceOnRequest')}</p>
                       )}
-                      {a.isNegotiable && <p className="text-dark-400 text-xs">Prix négociable</p>}
+                      {a.isNegotiable && <p className="text-dark-400 text-xs">{t('priceNegotiable')}</p>}
                     </div>
                     <div className="flex gap-1.5">
                       {a.user?.phone && (
@@ -246,7 +252,7 @@ export default function ImmobilierPage() {
               className="w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 disabled:opacity-40 hover:bg-dark-50 transition-colors">
               <ChevronLeft size={16} />
             </button>
-            <span className="text-sm text-dark-600 px-2">Page {page} / {pages}</span>
+            <span className="text-sm text-dark-600 px-2">{t('pageOf', { page, pages })}</span>
             <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages}
               className="w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 disabled:opacity-40 hover:bg-dark-50 transition-colors">
               <ChevronRight size={16} />

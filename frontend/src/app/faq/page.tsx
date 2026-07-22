@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Link from 'next/link';
@@ -11,78 +12,11 @@ import {
 type Faq = { q: string; a: string; icon: any };
 type Category = { title: string; items: Faq[] };
 
-const CATEGORIES: Category[] = [
-  {
-    title: 'Démarrer sur TrouveTout224',
-    items: [
-      {
-        icon: Megaphone,
-        q: 'TrouveTout224, c\'est vraiment gratuit ?',
-        a: 'Oui, totalement. Publier une annonce, créer ta boutique et contacter les vendeurs ne coûte rien. Aucun frais caché.',
-      },
-      {
-        icon: PackagePlus,
-        q: 'Comment je publie une annonce ?',
-        a: 'Clique sur "Publier une annonce" en haut du site, choisis une catégorie, ajoute des photos, un titre, une description, un prix et ta ville. C\'est prêt en quelques minutes.',
-      },
-      {
-        icon: Store,
-        q: 'Comment créer ma boutique ?',
-        a: 'Va dans "Devenir vendeur" ou ton profil, puis "Créer ma boutique". Ajoute un nom, une photo et commence à publier tes articles — ils apparaîtront tous au même endroit, visibles par toute la Guinée.',
-      },
-      {
-        icon: MapPin,
-        q: 'Puis-je vendre partout en Guinée ?',
-        a: 'Oui. Tu peux publier depuis n\'importe quelle ville — Conakry, Labé, Kindia, Kankan, Mamou, Boké, Faranah, Nzérékoré et plus — et les acheteurs peuvent filtrer par ville pour te trouver.',
-      },
-    ],
-  },
-  {
-    title: 'Acheter et vendre en confiance',
-    items: [
-      {
-        icon: MessageCircle,
-        q: 'Comment les acheteurs me contactent ?',
-        a: 'Directement sur WhatsApp ! Chaque annonce affiche un bouton pour écrire ou appeler le vendeur en un clic, sans passer par un intermédiaire.',
-      },
-      {
-        icon: Wallet,
-        q: 'Comment se passe le paiement ?',
-        a: 'TrouveTout224 ne gère aucun paiement. L\'acheteur et le vendeur s\'arrangent directement entre eux, en personne, comme un achat classique. Nous mettons en relation, la transaction se passe entre vous.',
-      },
-      {
-        icon: ShieldAlert,
-        q: 'Comment éviter les arnaques ?',
-        a: 'Quelques réflexes simples : rencontre-toi dans un lieu public et fréquenté, vérifie toujours le produit avant de payer, méfie-toi des prix trop beaux pour être vrais, et privilégie les vendeurs vérifiés (badge bleu). Ne fais jamais de virement avant d\'avoir vu l\'article.',
-      },
-      {
-        icon: BadgeCheck,
-        q: 'C\'est quoi un vendeur vérifié ?',
-        a: 'C\'est un vendeur dont l\'identité a été contrôlée par notre équipe. Son profil affiche un badge de confiance, un gage de sérieux supplémentaire pour les acheteurs.',
-      },
-    ],
-  },
-  {
-    title: 'Gérer mon compte',
-    items: [
-      {
-        icon: KeyRound,
-        q: 'J\'ai oublié mon mot de passe, que faire ?',
-        a: 'Sur la page de connexion, clique sur "Mot de passe oublié", renseigne ton email et suis les instructions pour en choisir un nouveau.',
-      },
-      {
-        icon: Trash2,
-        q: 'Comment supprimer mon compte ou mon annonce ?',
-        a: 'Pour une annonce : va dans Profil → Mes annonces → Supprimer. Pour ton compte : Paramètres → Confidentialité → Supprimer mon compte. L\'action est définitive.',
-      },
-      {
-        icon: Flag,
-        q: 'Comment signaler une annonce ou un utilisateur ?',
-        a: 'Sur l\'annonce ou le profil concerné, clique sur "Signaler". Décris le problème et notre équipe l\'examine rapidement pour garder la plateforme saine.',
-      },
-    ],
-  },
-];
+const CATEGORY_DEFS = [
+  { key: 'start', icons: [Megaphone, PackagePlus, Store, MapPin] },
+  { key: 'trust', icons: [MessageCircle, Wallet, ShieldAlert, BadgeCheck] },
+  { key: 'account', icons: [KeyRound, Trash2, Flag] },
+] as const;
 
 function FaqItem({ item }: { item: Faq }) {
   const [open, setOpen] = useState(false);
@@ -115,6 +49,15 @@ function FaqItem({ item }: { item: Faq }) {
 }
 
 export default function FaqPage() {
+  const t = useTranslations('faq');
+  const CATEGORIES: Category[] = CATEGORY_DEFS.map((def) => {
+    const items = t.raw(`categories.${def.key}.items`) as { q: string; a: string }[];
+    return {
+      title: t(`categories.${def.key}.title`),
+      items: items.map((item, i) => ({ ...item, icon: def.icons[i] })),
+    };
+  });
+
   return (
     <div className="min-h-screen bg-dark-50 dark:bg-dark-900">
       <Navbar />
@@ -138,10 +81,10 @@ export default function FaqPage() {
             <HelpCircle size={26} className="text-gold-300" />
           </div>
           <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-white mb-3" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.9)' }}>
-            Questions fréquentes
+            {t('hero.title')}
           </h1>
           <p className="text-white/90 text-base sm:text-lg" style={{ textShadow: '0 1px 10px rgba(0,0,0,0.8)' }}>
-            Tout ce qu'il faut savoir pour acheter et vendre sereinement sur TrouveTout224
+            {t('hero.subtitle')}
           </p>
         </div>
       </section>
@@ -166,18 +109,18 @@ export default function FaqPage() {
       {/* ══ CONTACT SUPPORT ════════════════════════════════════════════ */}
       <div className="max-w-3xl mx-auto px-4 pb-16">
         <div className="card p-8 text-center bg-gradient-to-br from-primary-50 to-white dark:from-primary-900/20 dark:to-dark-800 border border-primary-200 dark:border-primary-800/40">
-          <p className="text-dark-700 dark:text-white font-semibold text-lg mb-2">Vous n'avez pas trouvé votre réponse ?</p>
-          <p className="text-dark-500 dark:text-dark-400 text-sm mb-5">Notre équipe est disponible pour vous aider directement sur WhatsApp.</p>
+          <p className="text-dark-700 dark:text-white font-semibold text-lg mb-2">{t('contact.title')}</p>
+          <p className="text-dark-500 dark:text-dark-400 text-sm mb-5">{t('contact.subtitle')}</p>
           <a
             href="https://wa.me/224627543486"
             target="_blank"
             rel="noopener noreferrer"
             className="btn-primary inline-flex items-center gap-2"
           >
-            <MessageCircle size={16} /> Contacter le support WhatsApp
+            <MessageCircle size={16} /> {t('contact.cta')}
           </a>
           <p className="text-dark-400 dark:text-dark-500 text-xs mt-4">
-            Ou consultez notre <Link href="/aide" className="text-primary-700 dark:text-primary-400 font-semibold hover:underline">Centre d'aide</Link>
+            {t('contact.orPrefix')} <Link href="/aide" className="text-primary-700 dark:text-primary-400 font-semibold hover:underline">{t('contact.helpCenter')}</Link>
           </p>
         </div>
       </div>

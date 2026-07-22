@@ -1,0 +1,201 @@
+{
+  "header": {
+    "title": "Paramètres",
+    "subtitle": "Gérez votre profil, votre sécurité et vos préférences"
+  },
+  "tabs": {
+    "profil": "Profil",
+    "securite": "Sécurité & Mot de passe",
+    "notifications": "Notifications",
+    "confidentialite": "Confidentialité",
+    "apparence": "Apparence",
+    "langue": "Langue",
+    "aide": "Aide & Support",
+    "conditions": "Conditions d'utilisation",
+    "apropos": "À propos"
+  },
+  "tabGroups": {
+    "compte": "Compte",
+    "preferences": "Préférences",
+    "support": "Support & infos"
+  },
+  "logout": "Déconnexion",
+  "login": "Se connecter",
+  "gate": {
+    "title": "Connexion requise",
+    "text": "Ce réglage est lié à votre compte. Connectez-vous pour y accéder.",
+    "login": "Se connecter",
+    "createAccount": "Créer un compte",
+    "appearanceNotePrefix": "Le réglage ",
+    "appearanceNoteBold": "Apparence",
+    "appearanceNoteSuffix": " (thème clair/sombre) est accessible sans compte."
+  },
+  "profil": {
+    "title": "Modifier le profil",
+    "changePhoto": "Changer la photo de profil",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "username": "Nom d'utilisateur",
+    "usernamePlaceholder": "pseudo",
+    "usernameTaken": "Ce nom d'utilisateur est déjà pris.",
+    "usernameInvalid": "3 à 20 caractères : lettres minuscules, chiffres, _ uniquement.",
+    "usernameAvailable": "Disponible !",
+    "usernameHint": "Optionnel — votre identifiant unique sur TrouveTout224.",
+    "bio": "Bio",
+    "bioPlaceholder": "Parlez de vous en quelques mots...",
+    "email": "Email",
+    "emailNotSet": "Non renseigné",
+    "emailChangeHintPrefix": "Pour changer d'adresse email, rendez-vous dans l'onglet ",
+    "emailChangeHintBold": "Sécurité & Mot de passe",
+    "emailChangeHintSuffix": ".",
+    "phone": "Téléphone",
+    "phoneHint": "Ce numéro sert au contact WhatsApp sur vos annonces.",
+    "phoneCurrent": "Numéro actuel : {phone}",
+    "phonePlaceholder": "620 00 00 00",
+    "phoneUpdate": "Mettre à jour le numéro",
+    "phoneAdd": "Ajouter mon numéro",
+    "phoneInvalid": "Numéro invalide. Format attendu : 6XX XX XX XX (9 chiffres, commence par 6).",
+    "city": "Ville",
+    "cityNotSet": "Non renseignée",
+    "save": "Sauvegarder les modifications",
+    "cooldownGeneric": "Modifiable dans {days} jour{plural} (le {date}).",
+    "cooldownPassword": "Pour votre sécurité, vous pourrez modifier à nouveau votre mot de passe dans {days} jour{plural} (le {date})."
+  },
+  "securite": {
+    "title": "Sécurité du compte",
+    "accountSecure": "Compte actif et sécurisé",
+    "loading": "Chargement...",
+    "changePassword": "Changer le mot de passe",
+    "setPassword": "Définir un mot de passe",
+    "googleAccountHint": "Votre compte a été créé avec Google, vous n'avez pas encore de mot de passe. Définissez-en un ci-dessous pour pouvoir aussi vous connecter avec votre email.",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "newPasswordPlaceholder": "Minimum 8 caractères",
+    "confirmPassword": "Confirmer le nouveau mot de passe",
+    "confirmPasswordPlaceholder": "Retapez le nouveau mot de passe",
+    "criteria": {
+      "length": "8 caractères minimum",
+      "uppercase": "Une majuscule",
+      "lowercase": "Une minuscule",
+      "digit": "Un chiffre"
+    },
+    "forgotPassword": "Mot de passe oublié ? Réinitialiser par email",
+    "emailTitle": "Adresse email",
+    "emailCurrent": "Email actuel : {email}",
+    "emailNone": "Vous n'avez pas encore d'adresse email.",
+    "emailSent": "Un lien de confirmation a été envoyé à {email}. Cliquez dessus pour valider le changement.",
+    "newEmail": "Nouvelle adresse email",
+    "newEmailPlaceholder": "nouvel-email@exemple.com",
+    "changeEmail": "Changer d'adresse",
+    "addEmail": "Ajouter un email",
+    "emailChangeHint": "Un lien de confirmation sera envoyé à la nouvelle adresse — le changement n'est effectif qu'après avoir cliqué dessus.",
+    "sqTitle": "Questions de sécurité",
+    "sqHint": "Permettent de récupérer votre compte si vous perdez l'accès à votre email — pratique si vous consultez rarement votre boîte mail.",
+    "sqConfiguredCount": "{count} questions configurées",
+    "sqEdit": "Modifier mes questions de sécurité",
+    "sqNoneTitle": "Aucune question de sécurité configurée",
+    "sqNoneHint": "Ajoutez-en 2 ou 3 pour pouvoir récupérer votre compte même sans accès à votre email.",
+    "sqConfigureNow": "Configurer maintenant",
+    "sqQuestionLabel": "Question {n}",
+    "sqRemove": "Retirer",
+    "sqChoosePlaceholder": "Choisissez une question...",
+    "sqAnswerPlaceholder": "Votre réponse",
+    "sqAddThird": "+ Ajouter une 3ᵉ question (optionnel)",
+    "sqSave": "Enregistrer",
+    "sqCancel": "Annuler",
+    "sqFooterHint": "Vos réponses sont stockées de façon chiffrée (comme un mot de passe) — personne ne peut les relire, seulement vérifier qu'elles correspondent.",
+    "errors": {
+      "currentPasswordRequired": "Saisissez votre mot de passe actuel.",
+      "newPasswordRequired": "Remplissez tous les champs du nouveau mot de passe.",
+      "passwordCriteria": "Le nouveau mot de passe ne respecte pas encore toutes les règles ci-dessous.",
+      "passwordMismatch": "Les deux mots de passe ne correspondent pas.",
+      "passwordSameAsOld": "Le nouveau mot de passe doit être différent de l'actuel.",
+      "passwordGeneric": "Erreur lors du changement de mot de passe.",
+      "phoneGeneric": "Erreur lors de la mise à jour.",
+      "emailInvalid": "Adresse email invalide.",
+      "emailGeneric": "Erreur lors de la demande.",
+      "sqQuestionRequired": "Choisissez une question pour chaque ligne.",
+      "sqAnswerTooShort": "Chaque réponse doit contenir au moins 2 caractères.",
+      "sqDuplicate": "Choisissez des questions différentes les unes des autres.",
+      "sqGeneric": "Erreur lors de l'enregistrement."
+    }
+  },
+  "notifications": {
+    "title": "Préférences de notifications",
+    "newMessages": { "label": "Nouveaux messages", "sub": "Être notifié quand vous recevez un message" },
+    "annonceExpiry": { "label": "Expiration d'annonce", "sub": "Rappel avant que votre annonce expire" },
+    "newViews": { "label": "Nouvelles vues", "sub": "Quand quelqu'un consulte vos annonces" }
+  },
+  "confidentialite": {
+    "title": "Confidentialité",
+    "publicProfile": { "label": "Profil public", "sub": "Votre profil est visible par tous les utilisateurs" },
+    "showPhone": { "label": "Afficher mon numéro", "sub": "Votre numéro est visible sur vos annonces" },
+    "acceptMessages": { "label": "Recevoir des messages", "sub": "Les autres utilisateurs peuvent vous contacter" }
+  },
+  "apparence": {
+    "title": "Apparence",
+    "subtitle": "Choisissez comment TrouveTout224 s'affiche sur votre appareil.",
+    "modes": {
+      "light": { "label": "Clair", "desc": "Toujours clair" },
+      "dark": { "label": "Sombre", "desc": "Toujours sombre" },
+      "system": { "label": "Automatique", "desc": "Suit votre appareil" }
+    },
+    "textSize": {
+      "title": "Taille du texte",
+      "subtitle": "Ajuste la taille du texte sur tout le site.",
+      "sm": "Petit",
+      "base": "Normal",
+      "lg": "Grand"
+    },
+    "accentColor": {
+      "title": "Couleur d'accent",
+      "subtitle": "Change la couleur principale des boutons, liens et éléments actifs."
+    },
+    "specialThemes": {
+      "title": "Thèmes spéciaux & animés",
+      "subtitle": "Ambiances immersives avec animations fluides."
+    },
+    "eventThemes": {
+      "title": "Thèmes événementiels",
+      "subtitle": "Ambiances festives avec banderole décorative en haut de page.",
+      "reset": "Revenir à la couleur normale"
+    }
+  },
+  "aide": {
+    "title": "Aide & Support",
+    "items": {
+      "publier": "Comment publier une annonce ?",
+      "signalement": "Comment signaler un problème ?",
+      "contact": "Contacter le support",
+      "centreAide": "Centre d'aide complet"
+    }
+  },
+  "conditions": {
+    "title": "Conditions d'utilisation",
+    "intro": "En utilisant TrouveTout224, vous acceptez les présentes conditions.",
+    "section1": { "title": "1. Utilisation du service", "text": "TrouveTout224 est une plateforme d'annonces destinée aux résidents de Guinée. L'âge minimum est de 13 ans." },
+    "section2": { "title": "2. Contenu interdit", "text": "Il est strictement interdit de publier du contenu illégal, offensant, des arnaques, de la nudité ou de la violence." },
+    "section3": { "title": "3. Responsabilité", "text": "TrouveTout224 n'est pas responsable des transactions entre utilisateurs. Soyez vigilants et rencontrez les vendeurs dans des lieux publics." }
+  },
+  "apropos": {
+    "version": "Version 1.0.0 · Conakry, République de Guinée",
+    "mission": "La plus grande plateforme d'annonces et marketplace de Guinée. Notre mission est de connecter acheteurs et vendeurs partout en Guinée.",
+    "categories": "Catégories",
+    "villes": "Villes",
+    "copyright": "© {year} TrouveTout224 · Tous droits réservés"
+  },
+  "toasts": {
+    "avatarUpdated": "Photo de profil mise à jour !",
+    "avatarUploadError": "Erreur lors de l'upload de la photo.",
+    "profileUpdated": "Profil mis à jour !",
+    "profileUpdateError": "Erreur de mise à jour",
+    "usernameTakenError": "Ce nom d'utilisateur est déjà pris.",
+    "usernameInvalidError": "Nom d'utilisateur invalide (3 à 20 caractères : lettres, chiffres, _).",
+    "usernameCheckingError": "Vérification du nom d'utilisateur en cours, patientez...",
+    "passwordChanged": "Mot de passe modifié !",
+    "passwordSet": "Mot de passe défini avec succès !",
+    "phoneUpdated": "Numéro de téléphone mis à jour !",
+    "emailLinkSent": "Lien de confirmation envoyé !",
+    "sqSaved": "Questions de sécurité enregistrées !"
+  }
+}

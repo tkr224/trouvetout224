@@ -1,0 +1,49 @@
+{
+  "badge": "Notre histoire",
+  "hero": {
+    "titleLine1": "Une plateforme née d'un problème vécu,",
+    "titleLine2": "pas d'un plan d'affaires",
+    "subtitle": "— la marketplace pensée à Conakry, pour toute la Guinée."
+  },
+  "story": {
+    "label": "Comment tout a commencé",
+    "title": "Mon histoire",
+    "paragraph1": "Je suis un jeune développeur guinéen basé à Conakry. Tout a commencé le jour où j'ai voulu me lancer dans le marketing en ligne : c'était difficile, frustrant, et je ne faisais tout simplement pas de ventes.",
+    "paragraph2": "Les plateformes disponibles étaient soit européennes, soit américaines — jamais pensées pour notre réalité — et rien ne garantissait de vendre. J'ai alors cherché une vraie plateforme guinéenne, faite pour nous. Je n'en ai pas trouvé.",
+    "paragraph3Before": "Alors j'ai créé la mienne — pour aider toutes les personnes qui se retrouvent dans la même situation que moi : aider les Guinéens à ",
+    "paragraph3Vendre": "VENDRE",
+    "paragraph3Mid": " et à ",
+    "paragraph3Trouver": "TROUVER TOUT",
+    "paragraph3After": ", en Guinée. C'est de ce principe qu'est né le nom : TrouveTout224."
+  },
+  "mission": {
+    "title": "Notre mission",
+    "text": "Permettre à chaque Guinéen d'acheter et de vendre facilement, en confiance, chez lui — sans détour par des plateformes qui ne nous connaissent pas."
+  },
+  "values": {
+    "label": "Nos valeurs",
+    "title": "Ce en quoi nous croyons",
+    "items": [
+      { "title": "100% guinéen", "desc": "Pensée, créée et faite pour la Guinée — pas une copie adaptée." },
+      { "title": "La confiance avant tout", "desc": "Vendeurs vérifiés et transparence, pour acheter et vendre l'esprit tranquille." },
+      { "title": "Simple et accessible", "desc": "Une plateforme facile à utiliser, pour tous, même sans être un expert du digital." }
+    ]
+  },
+  "difference": {
+    "label": "La différence",
+    "title": "Ce qui nous rend différents",
+    "items": [
+      { "title": "Fait ici, pensé pour la Guinée", "desc": "Nos villes, nos habitudes, notre réalité — pas une plateforme importée qu'on a traduite en français." },
+      { "title": "Ta propre boutique en ligne", "desc": "Chaque vendeur peut créer sa boutique et présenter tous ses articles au même endroit." },
+      { "title": "Contact direct sur WhatsApp", "desc": "Pas d'intermédiaire compliqué : acheteurs et vendeurs se parlent directement." },
+      { "title": "Une plateforme de proximité", "desc": "Conçue avec et pour la communauté guinéenne, qui évolue selon vos retours." }
+    ]
+  },
+  "cta": {
+    "title": "Rejoins l'aventure TrouveTout224",
+    "text": "Que tu viennes acheter ou vendre, tu es chez toi ici. Rejoins des milliers de Guinéens qui trouvent tout, au même endroit.",
+    "createAccount": "Créer mon compte gratuit",
+    "publish": "Publier une annonce"
+  },
+  "copyright": "© {year} TrouveTout224 · Conakry, République de Guinée 🇬🇳"
+}

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import PublicProfilPage from './ProfilePageClient';
 
 export async function generateMetadata(
@@ -20,10 +21,11 @@ export async function generateMetadata(
       : `${profile.firstName} ${profile.lastName}`;
     const image: string | undefined =
       profile.shopLogo || profile.shopBanner || profile.avatar || undefined;
+    const t = await getTranslations('profil');
     const rawDesc: string = profile.shopDescription || '';
     const description = rawDesc.length > 0
       ? rawDesc.slice(0, 155) + (rawDesc.length > 155 ? '…' : '')
-      : `Boutique de ${name} sur TrouveTout224 — Marketplace de Guinée`;
+      : t('public.metaDescriptionFallback', { name });
 
     return {
       title: name,

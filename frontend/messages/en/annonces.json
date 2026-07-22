@@ -1,0 +1,218 @@
+{
+  "redirect": {
+    "loading": "Loading listings..."
+  },
+  "listPage": {
+    "title": "All listings",
+    "subtitle": "Find what you need in Guinea",
+    "searchPlaceholder": "Search a listing...",
+    "filters": {
+      "title": "Filters",
+      "category": "Category",
+      "allCategories": "All categories",
+      "subcategory": "Subcategory",
+      "all": "All",
+      "city": "City",
+      "allCities": "All cities",
+      "priceRange": "Price range (GNF)",
+      "min": "Minimum",
+      "max": "Maximum",
+      "to": "to",
+      "condition": "Item condition",
+      "conditionAll": "All",
+      "reset": "Reset filters",
+      "active": "{count, plural, one {active} other {active}}"
+    },
+    "conditions": {
+      "new": "New",
+      "likeNew": "Like new",
+      "goodCondition": "Good condition",
+      "used": "Used"
+    },
+    "sorts": {
+      "recent": "Most recent",
+      "popular": "Most popular",
+      "views": "Most viewed",
+      "priceAsc": "Price ascending",
+      "priceDesc": "Price descending",
+      "rating": "Top rated"
+    },
+    "clearAll": "Clear all",
+    "saveSearch": "Save",
+    "saveSearchSuccess": "Search saved!",
+    "saveSearchError": "Error while saving",
+    "saveSearchLoginRequired": "Log in to save a search",
+    "resultsCount": "{count, plural, one {listing} other {listings}}",
+    "resultsFor": "for",
+    "priceMin": "≥ {price} GNF",
+    "priceMax": "≤ {price} GNF",
+    "empty": {
+      "title": "No listings found",
+      "withFilters": "No listing matches your criteria. Try changing or resetting your filters.",
+      "noFilters": "There are no listings in this category yet."
+    },
+    "pagination": {
+      "previous": "← Previous",
+      "next": "Next →"
+    }
+  },
+  "detail": {
+    "breadcrumb": {
+      "home": "Home",
+      "annonces": "Listings"
+    },
+    "notFound": "Listing not found",
+    "owner": {
+      "yourListing": "This is your listing",
+      "hidden": "Hidden",
+      "sold": "Sold",
+      "edit": "Edit",
+      "hide": "Hide",
+      "unhide": "Unhide",
+      "markSold": "Mark as sold",
+      "reactivate": "Reactivate",
+      "delete": "Delete"
+    },
+    "ageGate": {
+      "title": "Adults-only content",
+      "message": "This product is restricted to adults. Are you 18 or older?",
+      "no": "No",
+      "yes": "Yes, 18 or older"
+    },
+    "gallery": {
+      "removeFavorite": "Remove from favorites",
+      "addFavorite": "Add to favorites",
+      "share": "Share"
+    },
+    "badges": {
+      "featured": "Featured"
+    },
+    "price": {
+      "promo": "Promo",
+      "promoUntil": "until {date}",
+      "negotiable": "Negotiable",
+      "onRequest": "Price negotiable"
+    },
+    "meta": {
+      "views": "{count, plural, one {# view} other {# views}}"
+    },
+    "specs": {
+      "title": "Details",
+      "condition": "Condition",
+      "quantity": "Quantity",
+      "bedrooms": "Bedrooms",
+      "bedroomsValue": "{count, plural, one {# bedroom} other {# bedrooms}}",
+      "surface": "Surface area",
+      "furnished": "Furnished",
+      "yes": "Yes",
+      "no": "No",
+      "contractType": "Contract type",
+      "salary": "Salary",
+      "experience": "Experience",
+      "rating": "Rating",
+      "ratingValue": "{count, plural, one {# star} other {# stars}}",
+      "cuisine": "Cuisine",
+      "priceRange": "Price range",
+      "plotType": "Plot type",
+      "titleDeed": "Title deed",
+      "available": "Available",
+      "unavailable": "Not available",
+      "serviceType": "Service type",
+      "amenities": "Amenities"
+    },
+    "description": {
+      "title": "Description"
+    },
+    "report": {
+      "link": "Report this listing"
+    },
+    "seller": {
+      "title": "Seller",
+      "verifiedShop": "Verified shop",
+      "viewProfile": "View profile →",
+      "sendMessage": "Send a message",
+      "whatsapp": "WhatsApp",
+      "contactMessage": "Hello, I'm interested in your listing \"{title}\". Is it still available?"
+    },
+    "scamTips": {
+      "title": "Anti-scam tips",
+      "tip1": "Never pay in advance without checking the product in person.",
+      "tip2": "Meet the seller in a public, busy place.",
+      "tip3": "Never send money by transfer to someone you don't know.",
+      "tip4": "Check the product carefully before paying."
+    },
+    "similar": {
+      "title": "Similar listings",
+      "subtitle": "In the same category · {category}",
+      "seeAll": "See all"
+    },
+    "recent": {
+      "title": "Recently viewed",
+      "subtitle": "Your latest views"
+    },
+    "contactModal": {
+      "title": "Contact the seller",
+      "advice": "Tip:",
+      "adviceText": "Never pay before seeing the product. Meet the seller in a public place.",
+      "placeholder": "Your message...",
+      "cancel": "Cancel",
+      "send": "Send",
+      "sending": "Sending..."
+    },
+    "shareModal": {
+      "title": "Share the listing",
+      "copyLink": "Copy link",
+      "whatsapp": "Share on WhatsApp",
+      "facebook": "Share on Facebook"
+    },
+    "soldModal": {
+      "title": "Mark as sold",
+      "displayedPrice": "Displayed price: {price} GNF",
+      "salePriceLabel": "Actual sale price",
+      "salePricePlaceholder": "E.g.: 450000",
+      "salePriceHint": "Change this if the negotiated price differs from the displayed price.",
+      "saleDateLabel": "Sale date",
+      "optional": "(optional)",
+      "info": "This sale will be counted in your statistics. The listing will be removed from active search results.",
+      "cancel": "Cancel",
+      "confirm": "Confirm sale",
+      "saving": "Saving..."
+    },
+    "reportModal": {
+      "title": "Report the listing",
+      "question": "Why are you reporting this listing?",
+      "reasons": {
+        "scam": "Fraudulent content",
+        "forbiddenProduct": "Prohibited product",
+        "suspiciousPrice": "Suspicious price",
+        "duplicate": "Duplicate listing",
+        "inappropriateContent": "Inappropriate content",
+        "other": "Other"
+      },
+      "detailsPlaceholder": "Additional details (optional)...",
+      "submit": "Send report"
+    },
+    "toasts": {
+      "messageSent": "Message sent!",
+      "messageSendError": "Could not send the message.",
+      "loginToSave": "Log in to save",
+      "genericError": "Error",
+      "linkCopied": "Link copied!",
+      "hidden": "Listing hidden",
+      "unhidden": "Listing unhidden",
+      "confirmDelete": "Permanently delete this listing?",
+      "deleted": "Listing deleted",
+      "deleteError": "Error while deleting",
+      "invalidSalePrice": "Enter a valid sale price.",
+      "markedSold": "Listing marked as sold!",
+      "markSoldError": "Error while updating.",
+      "confirmReactivate": "Reactivate this listing and put it back on sale?",
+      "reactivated": "Listing reactivated successfully.",
+      "reactivateError": "Error while reactivating.",
+      "chooseReason": "Choose a reason",
+      "loginToReport": "Log in to report",
+      "reportSent": "Report sent. Our team will review it.",
+      "reportError": "Error while reporting"
+    }
+  }
+}

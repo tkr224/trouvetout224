@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import CulturalPattern from '@/components/CulturalPattern';
 import PageViewTracker from '@/components/PageViewTracker';
@@ -30,13 +31,23 @@ interface City {
   name: string;
 }
 
-const GUINEA_CATEGORIES = [
-  'Électronique', 'Vêtements & Mode', 'Alimentation', 'Maison & Déco',
-  'Beauté & Santé', 'Auto & Moto', 'Immobilier', 'Services',
-  'Agriculture', 'Matériaux', 'Animaux', 'Sports & Loisirs',
-];
+const GUINEA_CATEGORY_KEYS = [
+  { value: 'Électronique',       key: 'electronique' },
+  { value: 'Vêtements & Mode',   key: 'modeVetements' },
+  { value: 'Alimentation',       key: 'alimentation' },
+  { value: 'Maison & Déco',      key: 'maisonDeco' },
+  { value: 'Beauté & Santé',     key: 'beauteSante' },
+  { value: 'Auto & Moto',        key: 'autoMoto' },
+  { value: 'Immobilier',         key: 'immobilier' },
+  { value: 'Services',           key: 'services' },
+  { value: 'Agriculture',        key: 'agriculture' },
+  { value: 'Matériaux',          key: 'materiaux' },
+  { value: 'Animaux',            key: 'animaux' },
+  { value: 'Sports & Loisirs',   key: 'sportsLoisirs' },
+] as const;
 
 export default function BoutiquesPage() {
+  const t = useTranslations('boutiques');
   const [shops, setShops]         = useState<Shop[]>([]);
   const [total, setTotal]         = useState(0);
   const [page, setPage]           = useState(1);
@@ -90,8 +101,8 @@ export default function BoutiquesPage() {
             <Store size={20} className="text-primary-700" />
           </div>
           <div>
-            <h1 className="text-2xl font-display font-bold text-dark-900">Boutiques</h1>
-            <p className="text-dark-500 text-sm">{total} boutique{total !== 1 ? 's' : ''} sur TrouveTout224</p>
+            <h1 className="text-2xl font-display font-bold text-dark-900">{t('title')}</h1>
+            <p className="text-dark-500 text-sm">{t('subtitle', { count: total })}</p>
           </div>
         </div>
 
@@ -104,7 +115,7 @@ export default function BoutiquesPage() {
                 type="search"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Rechercher une boutique par nom..."
+                placeholder={t('searchPlaceholder')}
                 className="input pl-9 w-full"
               />
             </div>
@@ -117,7 +128,7 @@ export default function BoutiquesPage() {
               }`}
             >
               <SlidersHorizontal size={15} />
-              Filtres
+              {t('filters')}
               {hasFilters && (
                 <span className="w-5 h-5 bg-primary-700 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                   {[cityId, category].filter(Boolean).length}
@@ -131,14 +142,14 @@ export default function BoutiquesPage() {
               {/* Filtre ville */}
               <div>
                 <label className="block text-xs font-semibold text-dark-600 mb-1.5">
-                  <MapPin size={11} className="inline mr-1" />Ville / Quartier
+                  <MapPin size={11} className="inline mr-1" />{t('cityLabel')}
                 </label>
                 <select
                   value={cityId}
                   onChange={e => setCityId(e.target.value)}
                   className="input text-sm"
                 >
-                  <option value="">Toutes les villes</option>
+                  <option value="">{t('allCities')}</option>
                   {cities.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
@@ -147,16 +158,16 @@ export default function BoutiquesPage() {
               {/* Filtre catégorie */}
               <div>
                 <label className="block text-xs font-semibold text-dark-600 mb-1.5">
-                  <Package size={11} className="inline mr-1" />Catégorie
+                  <Package size={11} className="inline mr-1" />{t('categoryLabel')}
                 </label>
                 <select
                   value={category}
                   onChange={e => setCategory(e.target.value)}
                   className="input text-sm"
                 >
-                  <option value="">Toutes les catégories</option>
-                  {GUINEA_CATEGORIES.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
+                  <option value="">{t('allCategories')}</option>
+                  {GUINEA_CATEGORY_KEYS.map(cat => (
+                    <option key={cat.value} value={cat.value}>{t(`categories.${cat.key}`)}</option>
                   ))}
                 </select>
               </div>
@@ -165,7 +176,7 @@ export default function BoutiquesPage() {
                   onClick={() => { setCityId(''); setCategory(''); }}
                   className="sm:col-span-2 text-xs text-dark-500 hover:text-dark-700 flex items-center gap-1 w-fit"
                 >
-                  <X size={12} /> Effacer les filtres
+                  <X size={12} /> {t('clearFilters')}
                 </button>
               )}
             </div>
@@ -194,11 +205,9 @@ export default function BoutiquesPage() {
             <div className="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Store size={28} className="text-primary-400" />
             </div>
-            <h3 className="font-bold text-dark-800 text-lg mb-2">Aucune boutique trouvée</h3>
+            <h3 className="font-bold text-dark-800 text-lg mb-2">{t('empty.title')}</h3>
             <p className="text-dark-500 text-sm">
-              {search || hasFilters
-                ? 'Essayez de modifier votre recherche ou vos filtres.'
-                : 'Aucune boutique active pour le moment.'}
+              {search || hasFilters ? t('empty.withFilters') : t('empty.noFilters')}
             </p>
           </div>
         ) : (
@@ -217,17 +226,17 @@ export default function BoutiquesPage() {
               onClick={() => { const p = page - 1; setPage(p); fetchShops(p); }}
               className="px-4 py-2 rounded-xl border border-dark-200 text-sm font-medium disabled:opacity-40 hover:border-primary-400 transition-colors"
             >
-              Précédent
+              {t('pagination.previous')}
             </button>
             <span className="text-sm text-dark-500">
-              Page {page} / {Math.ceil(total / 20)}
+              {t('pagination.pageOf', { page, total: Math.ceil(total / 20) })}
             </span>
             <button
               disabled={page >= Math.ceil(total / 20)}
               onClick={() => { const p = page + 1; setPage(p); fetchShops(p); }}
               className="px-4 py-2 rounded-xl border border-dark-200 text-sm font-medium disabled:opacity-40 hover:border-primary-400 transition-colors"
             >
-              Suivant
+              {t('pagination.next')}
             </button>
           </div>
         )}
@@ -237,6 +246,7 @@ export default function BoutiquesPage() {
 }
 
 function ShopCard({ shop }: { shop: Shop }) {
+  const t = useTranslations('boutiques.card');
   const displayName = shop.shopName || `${shop.firstName} ${shop.lastName}`;
   const initials = displayName.slice(0, 2).toUpperCase();
 
@@ -262,7 +272,7 @@ function ShopCard({ shop }: { shop: Shop }) {
           <div className="flex items-center gap-1.5 flex-wrap">
             <p className="font-semibold text-dark-900 truncate">{displayName}</p>
             {shop.isVerified && (
-              <ShieldCheck size={14} className="text-primary-700 shrink-0" title="Boutique vérifiée" />
+              <ShieldCheck size={14} className="text-primary-700 shrink-0" title={t('verifiedShop')} />
             )}
           </div>
           {shop.city && (
@@ -299,11 +309,11 @@ function ShopCard({ shop }: { shop: Shop }) {
         <div className="flex items-center gap-4 text-xs text-dark-500">
           <span className="flex items-center gap-1">
             <Package size={12} className="text-primary-600" />
-            {shop._count.annonces} annonce{shop._count.annonces !== 1 ? 's' : ''}
+            {t('listingCount', { count: shop._count.annonces })}
           </span>
           <span className="flex items-center gap-1">
             <Users size={12} className="text-primary-600" />
-            {shop._count.subscribers} abon.
+            {shop._count.subscribers} {t('subscribers')}
           </span>
         </div>
         <ChevronRight size={15} className="text-dark-300 group-hover:text-primary-700 transition-colors shrink-0" />

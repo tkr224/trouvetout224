@@ -1,0 +1,5 @@
+{
+  "breadcrumbHome": "Accueil",
+  "resultsCount": "{count, plural, one {# annonce} other {# annonces}}",
+  "viewAll": "Tout voir"
+}

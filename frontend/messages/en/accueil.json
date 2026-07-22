@@ -1,0 +1,63 @@
+{
+  "search": {
+    "placeholder": "What are you looking for? phone, car, house, job…",
+    "cityAll": "All of Guinea",
+    "button": "Search",
+    "publish": "Post a listing"
+  },
+  "sorts": {
+    "recent": "Recent",
+    "popular": "Popular",
+    "views": "Most viewed",
+    "priceAsc": "Price ↑",
+    "priceDesc": "Price ↓",
+    "rating": "Top rated"
+  },
+  "publications": {
+    "banner": "🎉 Official promo",
+    "event": "📅 Event",
+    "featuredVendor": "⭐ Featured vendor"
+  },
+  "hero": {
+    "titleLine1": "Buy and sell easily,",
+    "titleLine2": "anywhere in Guinea",
+    "subtitle": "The 100% Guinean marketplace with verified sellers and direct contact — buy and sell with peace of mind, for free.",
+    "badge1": "Buyers contact you on WhatsApp",
+    "badge2": "Verified sellers",
+    "badge3": "100% free, no limits",
+    "ctaPublish": "Post a listing for free",
+    "ctaBrowse": "Browse listings",
+    "imageAlt": "Image {number}"
+  },
+  "stats": {
+    "categories": "Categories",
+    "cities": "Cities covered",
+    "annonces": "Active listings",
+    "boutiques": "Shops"
+  },
+  "latestSection": {
+    "kicker": "Listings",
+    "title": "Latest listings",
+    "subtitle": "The latest listings posted on the platform",
+    "sortLabel": "Sort: {label}",
+    "emptyTitle": "Be the first to post here!",
+    "emptySubtitle": "No listings yet — yours could be the very first one visible on TrouveTout224.",
+    "viewAll": "View all listings"
+  },
+  "categoriesSection": {
+    "kicker": "Categories",
+    "title": "Browse by category",
+    "subtitle": "Find exactly what you're looking for",
+    "browseAll": "Browse all",
+    "listingCount": "{count, plural, one {# listing} other {# listings}}",
+    "comingSoon": "Coming soon",
+    "seeAll": "See all",
+    "allCategories": "All categories"
+  },
+  "trust": {
+    "sell": { "title": "Sell in minutes", "desc": "Free listing, posted with no limits" },
+    "buy": { "title": "Buy with confidence", "desc": "Sellers verified by our team" },
+    "contact": { "title": "Direct contact on WhatsApp", "desc": "Talk to the seller right away" },
+    "shop": { "title": "Your online shop", "desc": "Visible across Guinea 🇬🇳" }
+  }
+}

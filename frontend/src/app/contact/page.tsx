@@ -1,11 +1,13 @@
 'use client';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import toast from 'react-hot-toast';
 import { Mail, Phone, MapPin, MessageCircle, Send } from 'lucide-react';
 
 export default function ContactPage() {
+  const t = useTranslations('legal.contact');
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [loading, setLoading] = useState(false);
 
@@ -13,10 +15,10 @@ export default function ContactPage() {
     e.preventDefault();
     setLoading(true);
     // Ouvre le client email avec le message pré-rempli
-    const mailtoLink = `mailto:contact.trouvetout224@gmail.com?subject=${encodeURIComponent(form.subject)}&body=${encodeURIComponent(`Nom: ${form.name}\nEmail: ${form.email}\n\n${form.message}`)}`;
+    const mailtoLink = `mailto:contact.trouvetout224@gmail.com?subject=${encodeURIComponent(form.subject)}&body=${encodeURIComponent(t('mailtoBody', { name: form.name, email: form.email, message: form.message }))}`;
     window.location.href = mailtoLink;
     setTimeout(() => {
-      toast.success('Votre application email va s\'ouvrir !');
+      toast.success(t('toastEmailOpening'));
       setLoading(false);
     }, 800);
   };
@@ -44,10 +46,10 @@ export default function ContactPage() {
             <Mail size={26} className="text-gold-300" />
           </div>
           <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-white mb-3" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.9)' }}>
-            Contactez-nous
+            {t('heroTitle')}
           </h1>
           <p className="text-white/90 text-base sm:text-lg" style={{ textShadow: '0 1px 10px rgba(0,0,0,0.8)' }}>
-            Notre équipe vous répond rapidement, en général sous 24 heures
+            {t('heroSubtitle')}
           </p>
         </div>
       </section>
@@ -60,7 +62,7 @@ export default function ContactPage() {
                 <Mail size={20} />
               </div>
               <div>
-                <p className="font-semibold text-dark-900 text-sm">Email</p>
+                <p className="font-semibold text-dark-900 text-sm">{t('email')}</p>
                 <p className="text-dark-500 text-xs">contact.trouvetout224@gmail.com</p>
               </div>
             </a>
@@ -69,7 +71,7 @@ export default function ContactPage() {
                 <Phone size={20} />
               </div>
               <div>
-                <p className="font-semibold text-dark-900 text-sm">Téléphone</p>
+                <p className="font-semibold text-dark-900 text-sm">{t('phone')}</p>
                 <p className="text-dark-500 text-sm">+224 627 54 34 86</p>
               </div>
             </a>
@@ -78,7 +80,7 @@ export default function ContactPage() {
                 <MessageCircle size={20} />
               </div>
               <div>
-                <p className="font-semibold text-dark-900 text-sm">WhatsApp</p>
+                <p className="font-semibold text-dark-900 text-sm">{t('whatsapp')}</p>
                 <p className="text-dark-500 text-sm">+224 627 54 34 86</p>
               </div>
             </a>
@@ -87,34 +89,34 @@ export default function ContactPage() {
                 <MapPin size={20} />
               </div>
               <div>
-                <p className="font-semibold text-dark-900 text-sm">Adresse</p>
-                <p className="text-dark-500 text-sm">Conakry, Guinée</p>
+                <p className="font-semibold text-dark-900 text-sm">{t('address')}</p>
+                <p className="text-dark-500 text-sm">{t('addressValue')}</p>
               </div>
             </div>
           </div>
           <div className="lg:col-span-2 card p-8">
-            <h2 className="font-display font-bold text-dark-900 text-xl mb-6">Envoyer un message</h2>
+            <h2 className="font-display font-bold text-dark-900 text-xl mb-6">{t('formTitle')}</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-dark-700 mb-1.5">Nom complet</label>
-                  <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} required className="input" placeholder="Votre nom" />
+                  <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('fullNameLabel')}</label>
+                  <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} required className="input" placeholder={t('fullNamePlaceholder')} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-dark-700 mb-1.5">Email</label>
-                  <input value={form.email} onChange={e => setForm({...form, email: e.target.value})} required type="email" className="input" placeholder="votre@email.com" />
+                  <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('emailLabel')}</label>
+                  <input value={form.email} onChange={e => setForm({...form, email: e.target.value})} required type="email" className="input" placeholder={t('emailPlaceholder')} />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-dark-700 mb-1.5">Sujet</label>
-                <input value={form.subject} onChange={e => setForm({...form, subject: e.target.value})} required className="input" placeholder="Objet de votre message" />
+                <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('subjectLabel')}</label>
+                <input value={form.subject} onChange={e => setForm({...form, subject: e.target.value})} required className="input" placeholder={t('subjectPlaceholder')} />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-dark-700 mb-1.5">Message</label>
-                <textarea value={form.message} onChange={e => setForm({...form, message: e.target.value})} required rows={5} className="input resize-none" placeholder="Décrivez votre demande..." />
+                <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('messageLabel')}</label>
+                <textarea value={form.message} onChange={e => setForm({...form, message: e.target.value})} required rows={5} className="input resize-none" placeholder={t('messagePlaceholder')} />
               </div>
               <button type="submit" disabled={loading} className="btn-primary w-full py-3 flex items-center justify-center gap-2">
-                {loading ? 'Ouverture...' : <><Send size={15} /> Envoyer le message</>}
+                {loading ? t('opening') : <><Send size={15} /> {t('sendMessage')}</>}
               </button>
             </form>
           </div>

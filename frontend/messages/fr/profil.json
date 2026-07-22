@@ -1,0 +1,116 @@
+{
+  "notLoggedIn": {
+    "title": "Vous n'êtes pas connecté",
+    "login": "Se connecter",
+    "signup": "S'inscrire"
+  },
+  "banner": {
+    "change": "Changer la bannière"
+  },
+  "hint": "Cliquez sur la photo ou la bannière pour les modifier",
+  "verified": "Compte vérifié",
+  "emailVerified": "Email vérifié",
+  "emailNotVerified": "Email non vérifié",
+  "shareLink": "Partager mon profil",
+  "linkCopied": "Lien copié !",
+  "settings": "Paramètres",
+  "logout": "Déconnexion",
+  "sellerSpacePrefix": "Espace ",
+  "sellerSpaceSuffix": "Vendeur",
+  "stats": {
+    "annonces": "Annonces",
+    "totalViews": "Vues totales",
+    "favorites": "Favoris"
+  },
+  "tabs": {
+    "annonces": "Mes annonces ({count})",
+    "favoris": "Mes favoris ({count})",
+    "recherches": "Recherches ({count})",
+    "ventesBase": "Mes ventes",
+    "ventesCount": "Mes ventes ({count})"
+  },
+  "status": {
+    "ACTIVE": "Approuvée",
+    "PENDING_REVIEW": "En attente",
+    "REJECTED": "Rejetée",
+    "SUSPENDED": "Suspendue",
+    "EXPIRED": "Expirée",
+    "SOLD": "Vendue"
+  },
+  "annonces": {
+    "empty": "Aucune annonce publiée",
+    "publish": "Publier une annonce",
+    "newAnnonce": "Nouvelle annonce",
+    "count": "{count} annonce(s)",
+    "rejectionReason": "Motif :"
+  },
+  "favoris": {
+    "empty": "Aucun favori sauvegardé",
+    "emptyHint": "Cliquez sur le cœur d'une annonce pour la sauvegarder ici"
+  },
+  "recherches": {
+    "empty": "Aucune recherche sauvegardée",
+    "emptyHint": "Sur la page des annonces, cliquez sur \"Sauvegarder\" pour recevoir des alertes",
+    "browse": "Parcourir les annonces",
+    "defaultName": "Recherche sauvegardée",
+    "view": "Voir",
+    "deleted": "Recherche supprimée"
+  },
+  "ventes": {
+    "empty": "Aucune vente enregistrée",
+    "emptyHint": "Marquez une annonce comme vendue depuis sa page pour suivre vos ventes.",
+    "total": "Total ventes",
+    "thisMonth": "Ce mois-ci",
+    "thisWeek": "Cette semaine",
+    "soldProducts": "Produits vendus"
+  },
+  "toasts": {
+    "avatarUpdated": "Photo de profil mise à jour !",
+    "bannerUpdated": "Bannière mise à jour !",
+    "uploadError": "Erreur lors de l'upload"
+  },
+  "public": {
+    "notFound": "Profil non trouvé",
+    "officialShop": "Boutique officielle",
+    "contact": "Contacter",
+    "whatsapp": "WhatsApp",
+    "report": "Signaler",
+    "reportProfile": "Signaler ce profil",
+    "memberSince": "Membre depuis {time}",
+    "by": "par {name}",
+    "stats": {
+      "annonces": "Annonces",
+      "views": "Vues",
+      "rating": "Note",
+      "reviews": "Avis"
+    },
+    "badges": {
+      "verifiedSeller": "Vendeur vérifié",
+      "emailVerified": "Email vérifié",
+      "topSeller": "Top vendeur",
+      "excellent": "Excellent",
+      "popular": "Populaire",
+      "new": "Nouveau"
+    },
+    "shopProducts": "Produits de la boutique",
+    "userAnnonces": "Annonces de {name}",
+    "metaDescriptionFallback": "Boutique de {name} sur TrouveTout224 — Marketplace de Guinée",
+    "reportReasons": {
+      "SCAM": "Arnaque / Fraude",
+      "SPAM": "Spam",
+      "INAPPROPRIATE_CONTENT": "Comportement inapproprié",
+      "FAKE_AD": "Faux profil",
+      "OTHER": "Autre"
+    },
+    "reportModal": {
+      "question": "Quel est le problème avec ce profil ?",
+      "detailsPlaceholder": "Détails supplémentaires (optionnel)...",
+      "cancel": "Annuler",
+      "send": "Envoyer le signalement",
+      "selectReason": "Sélectionnez un motif",
+      "loginRequired": "Connectez-vous pour signaler",
+      "success": "Signalement envoyé. Merci !",
+      "error": "Erreur lors du signalement"
+    }
+  }
+}

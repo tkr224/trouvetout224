@@ -1,0 +1,9 @@
+{
+  "genericSuccess": "操作成功。",
+  "genericError": "出现错误，请稍后重试。",
+  "serverError": "服务器错误，请稍后重试。",
+  "linkCopied": "链接已复制到剪贴板！",
+  "loginRequired": "请先登录后再执行此操作。",
+  "deleted": "删除成功。",
+  "updated": "更新成功。"
+}

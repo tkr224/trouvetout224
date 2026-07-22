@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useQuery } from 'react-query';
+import { useTranslations } from 'next-intl';
 import {
   Briefcase, MapPin, Clock, Search, Calendar,
   Mail, Send, Banknote, BadgeCheck, Timer, MessageCircle,
@@ -14,15 +15,6 @@ import { useAuthStore } from '@/store/auth.store';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 
-const JOB_TYPES: Record<string, string> = {
-  FULL_TIME: 'Temps plein',
-  PART_TIME: 'Temps partiel',
-  DAILY: 'Journalier',
-  FREELANCE: 'Freelance',
-  INTERNSHIP: 'Stage',
-  VOLUNTEER: 'Bénévolat',
-};
-
 const TYPE_COLORS: Record<string, string> = {
   FULL_TIME: 'bg-primary-100 text-primary-700',
   PART_TIME: 'bg-amber-100 text-amber-700',
@@ -32,19 +24,18 @@ const TYPE_COLORS: Record<string, string> = {
   VOLUNTEER: 'bg-rose-100 text-rose-700',
 };
 
-const SECTORS = [
-  { value: '', label: 'Tous les secteurs' },
-  { value: 'VENTE', label: '🛒 Commerce & Vente' },
-  { value: 'RESTAURATION', label: '🍽️ Restauration' },
-  { value: 'BTP', label: '🏗️ BTP & Construction' },
-  { value: 'BUREAUTIQUE', label: '💼 Bureau & Admin' },
-  { value: 'CHAUFFEUR', label: '🚗 Transport' },
-  { value: 'SECURITE', label: '🛡️ Sécurité' },
-  { value: 'SANTE', label: '🏥 Santé' },
-  { value: 'EDUCATION', label: '📚 Éducation' },
-  { value: 'INFORMATIQUE', label: '💻 Informatique' },
-  { value: 'AUTRE', label: '• Autre' },
-];
+const SECTOR_META = [
+  { value: 'VENTE', key: 'sectorVente' },
+  { value: 'RESTAURATION', key: 'sectorRestauration' },
+  { value: 'BTP', key: 'sectorBTP' },
+  { value: 'BUREAUTIQUE', key: 'sectorBureautique' },
+  { value: 'CHAUFFEUR', key: 'sectorChauffeur' },
+  { value: 'SECURITE', key: 'sectorSecurite' },
+  { value: 'SANTE', key: 'sectorSante' },
+  { value: 'EDUCATION', key: 'sectorEducation' },
+  { value: 'INFORMATIQUE', key: 'sectorInformatique' },
+  { value: 'AUTRE', key: 'sectorAutre' },
+] as const;
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 
@@ -54,36 +45,35 @@ interface ApplyModalProps {
 }
 
 function ApplyModal({ job, onClose }: ApplyModalProps) {
+  const t = useTranslations('emplois.list');
   const { isAuthenticated } = useAuthStore();
   const [coverLetter, setCoverLetter] = useState('');
   const [cvUrl, setCvUrl] = useState('');
   const [loading, setLoading] = useState(false);
 
   const submit = async () => {
-    if (!isAuthenticated) { toast.error('Connectez-vous pour postuler.'); return; }
+    if (!isAuthenticated) { toast.error(t('toastLoginToApply')); return; }
     setLoading(true);
     try {
       await api.post(`/jobs/${job.id}/apply`, { coverLetter, cvUrl });
-      toast.success('Candidature envoyée avec succès !');
+      toast.success(t('toastApplicationSent'));
       onClose();
     } catch (e: any) {
-      toast.error(e.response?.data?.error || 'Erreur.');
+      toast.error(e.response?.data?.error || t('toastError'));
     } finally {
       setLoading(false);
     }
   };
 
   const waNumber = job.whatsapp || job.phone;
-  const waMsg = encodeURIComponent(
-    `Bonjour, je vous contacte concernant l'offre d'emploi "${job.title}" (${job.company}) publiée sur TrouveTout224. Je souhaite postuler.`
-  );
+  const waMsg = encodeURIComponent(t('waMessageApplyModal', { title: job.title, company: job.company }));
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-dark-100">
           <div>
-            <h3 className="font-display font-bold text-dark-900 text-lg">Postuler</h3>
+            <h3 className="font-display font-bold text-dark-900 text-lg">{t('modalApplyTitle')}</h3>
             <p className="text-dark-500 text-sm">{job.title} — {job.company}</p>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-dark-100 flex items-center justify-center transition-colors">
@@ -94,19 +84,19 @@ function ApplyModal({ job, onClose }: ApplyModalProps) {
           {/* Via messagerie interne */}
           <div>
             <label className="block text-sm font-semibold text-dark-700 mb-1.5">
-              <FileText size={13} className="inline mr-1" /> Lettre de motivation (optionnel)
+              <FileText size={13} className="inline mr-1" /> {t('coverLetterLabel')}
             </label>
             <textarea
               value={coverLetter} onChange={e => setCoverLetter(e.target.value)}
-              placeholder="Présentez-vous brièvement, vos motivations..."
+              placeholder={t('coverLetterPlaceholder')}
               rows={4} className="input w-full resize-none"
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-dark-700 mb-1.5">Lien vers votre CV (optionnel)</label>
+            <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('cvLinkLabel')}</label>
             <input
               value={cvUrl} onChange={e => setCvUrl(e.target.value)}
-              placeholder="https://drive.google.com/... ou lien PDF"
+              placeholder={t('cvLinkPlaceholder')}
               className="input w-full"
             />
           </div>
@@ -114,14 +104,14 @@ function ApplyModal({ job, onClose }: ApplyModalProps) {
             onClick={submit} disabled={loading}
             className="w-full py-3 bg-sky-700 hover:bg-sky-800 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors text-sm disabled:opacity-60"
           >
-            <Send size={15} /> {loading ? 'Envoi...' : 'Envoyer ma candidature'}
+            <Send size={15} /> {loading ? t('sendingApplication') : t('sendApplication')}
           </button>
 
           {waNumber && (
             <>
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px bg-dark-100" />
-                <span className="text-xs text-dark-400">ou</span>
+                <span className="text-xs text-dark-400">{t('or')}</span>
                 <div className="flex-1 h-px bg-dark-100" />
               </div>
               <a
@@ -129,17 +119,17 @@ function ApplyModal({ job, onClose }: ApplyModalProps) {
                 target="_blank" rel="noopener noreferrer"
                 className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
               >
-                <MessageCircle size={15} /> Contacter via WhatsApp
+                <MessageCircle size={15} /> {t('contactWhatsapp')}
               </a>
             </>
           )}
 
           {job.email && (
             <a
-              href={`mailto:${job.email}?subject=Candidature : ${job.title}&body=Bonjour,\n\nJe vous contacte pour l'offre "${job.title}".`}
+              href={`mailto:${job.email}?subject=${encodeURIComponent(t('mailtoSubject', { title: job.title }))}&body=${encodeURIComponent(t('mailtoBody', { title: job.title }))}`}
               className="w-full py-2.5 border border-dark-200 hover:bg-dark-50 text-dark-700 font-medium rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
             >
-              <Mail size={14} /> Envoyer un email
+              <Mail size={14} /> {t('sendEmail')}
             </a>
           )}
         </div>
@@ -149,6 +139,16 @@ function ApplyModal({ job, onClose }: ApplyModalProps) {
 }
 
 export default function EmploisPage() {
+  const t = useTranslations('emplois.list');
+  const JOB_TYPES: Record<string, string> = {
+    FULL_TIME: t('typeFullTime'),
+    PART_TIME: t('typePartTime'),
+    DAILY: t('typeDaily'),
+    FREELANCE: t('typeFreelance'),
+    INTERNSHIP: t('typeInternship'),
+    VOLUNTEER: t('typeVolunteer'),
+  };
+  const SECTORS = [{ value: '', label: t('allSectors') }, ...SECTOR_META.map(s => ({ value: s.value, label: t(s.key) }))];
   const [q, setQ] = useState('');
   const [cityFilter, setCityFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
@@ -176,20 +176,20 @@ export default function EmploisPage() {
         </div>
         <div className="max-w-3xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 bg-white/10 text-white/80 text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
-            <Briefcase size={13} /> Offres d'emploi
+            <Briefcase size={13} /> {t('badge')}
           </div>
           <h1 className="text-4xl font-display font-bold text-white mb-3">
-            Trouvez votre emploi en Guinée
+            {t('heroTitle')}
           </h1>
           <p className="text-sky-200 mb-8 text-lg">
-            Des opportunités dans tous les secteurs, partout en Guinée
+            {t('heroSubtitle')}
           </p>
           <div className="flex gap-0 bg-white rounded-2xl shadow-xl overflow-hidden max-w-2xl mx-auto">
             <div className="flex items-center gap-2 flex-1 px-4 py-3">
               <Search size={18} className="text-dark-400 shrink-0" />
               <input
                 value={q} onChange={e => setQ(e.target.value)}
-                placeholder="Titre, entreprise, compétence..."
+                placeholder={t('searchPlaceholder')}
                 className="flex-1 outline-none text-dark-900 text-sm bg-transparent"
               />
             </div>
@@ -198,7 +198,7 @@ export default function EmploisPage() {
                 value={cityFilter} onChange={e => setCityFilter(e.target.value)}
                 className="h-full px-4 text-sm text-dark-600 outline-none bg-transparent"
               >
-                <option value="">Toutes les villes</option>
+                <option value="">{t('allCities')}</option>
                 {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
@@ -209,13 +209,13 @@ export default function EmploisPage() {
               href="/emplois/publier"
               className="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white font-semibold px-4 py-2 rounded-xl text-sm transition-colors"
             >
-              <Plus size={14} /> Publier une offre
+              <Plus size={14} /> {t('publishOffer')}
             </Link>
             <Link
               href="/emplois/mes-offres"
               className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white/80 px-4 py-2 rounded-xl text-sm transition-colors"
             >
-              <Users size={14} /> Mes offres
+              <Users size={14} /> {t('myOffers')}
             </Link>
           </div>
         </div>
@@ -224,7 +224,7 @@ export default function EmploisPage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Filtres type contrat */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
-          {[['', 'Tous types'], ...Object.entries(JOB_TYPES)].map(([val, label]) => (
+          {[['', t('allTypes')], ...Object.entries(JOB_TYPES)].map(([val, label]) => (
             <button
               key={val} onClick={() => setTypeFilter(val)}
               className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${
@@ -268,8 +268,8 @@ export default function EmploisPage() {
             ) : jobs.length === 0 ? (
               <div className="card p-10 text-center">
                 <Search size={36} className="text-dark-300 mx-auto mb-3" />
-                <p className="font-semibold text-dark-700 mb-1">Aucune offre trouvée</p>
-                <p className="text-dark-400 text-sm">Modifiez vos critères</p>
+                <p className="font-semibold text-dark-700 mb-1">{t('noOffersFound')}</p>
+                <p className="text-dark-400 text-sm">{t('modifyFilters')}</p>
               </div>
             ) : jobs.map((job: any) => (
               <button
@@ -300,7 +300,7 @@ export default function EmploisPage() {
                         </span>
                       )}
                       {job.salaryNegotiable && !job.salary && (
-                        <span className="text-dark-400 text-xs italic">À négocier</span>
+                        <span className="text-dark-400 text-xs italic">{t('toNegotiate')}</span>
                       )}
                     </div>
                   </div>
@@ -342,28 +342,28 @@ export default function EmploisPage() {
                   {(selectedJob.salary || selectedJob.salaryNegotiable) && (
                     <div className="bg-primary-50 border border-primary-100 rounded-xl p-3 text-center">
                       <Banknote size={16} className="text-primary-600 mx-auto mb-1" />
-                      <p className="text-[10px] text-dark-500 font-medium">Salaire / mois</p>
+                      <p className="text-[10px] text-dark-500 font-medium">{t('salaryPerMonth')}</p>
                       {selectedJob.salary ? (
                         <p className="font-bold text-primary-700 text-sm mt-0.5">
                           {Number(selectedJob.salary).toLocaleString('fr-GN')} GNF
                           {selectedJob.salaryMax && ` – ${Number(selectedJob.salaryMax).toLocaleString('fr-GN')}`}
                         </p>
                       ) : (
-                        <p className="font-bold text-primary-700 text-sm mt-0.5">À négocier</p>
+                        <p className="font-bold text-primary-700 text-sm mt-0.5">{t('toNegotiate')}</p>
                       )}
                     </div>
                   )}
                   {selectedJob.experience && (
                     <div className="bg-purple-50 border border-purple-100 rounded-xl p-3 text-center">
                       <BadgeCheck size={16} className="text-purple-600 mx-auto mb-1" />
-                      <p className="text-[10px] text-dark-500 font-medium">Expérience</p>
+                      <p className="text-[10px] text-dark-500 font-medium">{t('experience')}</p>
                       <p className="font-bold text-purple-700 text-sm mt-0.5">{selectedJob.experience}</p>
                     </div>
                   )}
                   {selectedJob.deadline && (
                     <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-center">
                       <Timer size={16} className="text-amber-600 mx-auto mb-1" />
-                      <p className="text-[10px] text-dark-500 font-medium">Date limite</p>
+                      <p className="text-[10px] text-dark-500 font-medium">{t('deadline')}</p>
                       <p className="font-bold text-amber-700 text-sm mt-0.5">
                         {new Date(selectedJob.deadline).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                       </p>
@@ -374,21 +374,21 @@ export default function EmploisPage() {
                 {/* Description */}
                 <div className="mb-5">
                   <h3 className="font-semibold text-dark-900 mb-2.5 pl-2.5 border-l-2 border-sky-500 text-xs uppercase tracking-wide">
-                    Description du poste
+                    {t('jobDescriptionTitle')}
                   </h3>
                   <p className="text-dark-600 text-sm leading-relaxed whitespace-pre-wrap">{selectedJob.description}</p>
                 </div>
 
                 {selectedJob.education && (
                   <div className="mb-5">
-                    <h3 className="font-semibold text-dark-900 mb-2 pl-2.5 border-l-2 border-sky-500 text-xs uppercase tracking-wide">Niveau requis</h3>
+                    <h3 className="font-semibold text-dark-900 mb-2 pl-2.5 border-l-2 border-sky-500 text-xs uppercase tracking-wide">{t('requiredLevelTitle')}</h3>
                     <p className="text-dark-600 text-sm">{selectedJob.education}</p>
                   </div>
                 )}
 
                 {selectedJob.howToApply && (
                   <div className="mb-5 bg-sky-50 border border-sky-100 rounded-xl p-4">
-                    <h3 className="font-semibold text-sky-800 mb-1.5 text-xs uppercase tracking-wide">Comment postuler</h3>
+                    <h3 className="font-semibold text-sky-800 mb-1.5 text-xs uppercase tracking-wide">{t('howToApplyTitle')}</h3>
                     <p className="text-sky-700 text-sm">{selectedJob.howToApply}</p>
                   </div>
                 )}
@@ -399,16 +399,16 @@ export default function EmploisPage() {
                     onClick={() => setShowApply(true)}
                     className="w-full py-3 bg-sky-700 hover:bg-sky-800 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
                   >
-                    <Send size={15} /> Postuler maintenant
+                    <Send size={15} /> {t('applyNow')}
                   </button>
 
                   {(selectedJob.whatsapp || selectedJob.phone) && (
                     <a
-                      href={`https://wa.me/224${selectedJob.whatsapp || selectedJob.phone}?text=${encodeURIComponent(`Bonjour, je souhaite postuler à l'offre "${selectedJob.title}" (${selectedJob.company}) sur TrouveTout224.`)}`}
+                      href={`https://wa.me/224${selectedJob.whatsapp || selectedJob.phone}?text=${encodeURIComponent(t('waMessageApplyPanel', { title: selectedJob.title, company: selectedJob.company }))}`}
                       target="_blank" rel="noopener noreferrer"
                       className="w-full py-2.5 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
                     >
-                      <MessageCircle size={14} /> Contacter via WhatsApp
+                      <MessageCircle size={14} /> {t('contactWhatsapp')}
                     </a>
                   )}
 
@@ -427,8 +427,8 @@ export default function EmploisPage() {
                 <div className="w-20 h-20 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Briefcase size={36} className="text-sky-300" />
                 </div>
-                <p className="font-semibold text-dark-700 mb-1">Sélectionnez une offre</p>
-                <p className="text-dark-400 text-sm">Les détails apparaîtront ici</p>
+                <p className="font-semibold text-dark-700 mb-1">{t('selectOfferPrompt')}</p>
+                <p className="text-dark-400 text-sm">{t('detailsAppearHere')}</p>
               </div>
             )}
           </div>

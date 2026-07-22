@@ -1,0 +1,23 @@
+{
+  "save": "Enregistrer",
+  "cancel": "Annuler",
+  "next": "Suivant",
+  "back": "Retour",
+  "loading": "Chargement...",
+  "seeMore": "Voir plus",
+  "seeAll": "Voir tout",
+  "close": "Fermer",
+  "search": "Rechercher",
+  "send": "Envoyer",
+  "edit": "Modifier",
+  "delete": "Supprimer",
+  "confirm": "Confirmer",
+  "yes": "Oui",
+  "no": "Non",
+  "copy": "Copier",
+  "copied": "Copié dans le presse-papier !",
+  "genericError": "Une erreur est survenue. Veuillez réessayer.",
+  "networkError": "Impossible de contacter le serveur. Vérifiez votre connexion.",
+  "requiredField": "Ce champ est obligatoire.",
+  "free": "Gratuit"
+}

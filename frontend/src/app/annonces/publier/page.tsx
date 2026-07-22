@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 import {
   X, Loader2, ArrowLeft, ArrowRight, Check, UploadCloud, Camera,
   FileText, LayoutGrid, MapPin, Phone, Cpu, Car, Building2, Briefcase,
@@ -16,12 +17,12 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
-const DURATIONS = [
-  { value: '1',  label: '24 heures' },
-  { value: '7',  label: '7 jours' },
-  { value: '14', label: '14 jours' },
-  { value: '30', label: '30 jours (Recommandé)' },
-];
+const DURATION_META = [
+  { value: '1',  labelKey: 'duration24h' },
+  { value: '7',  labelKey: 'duration7d' },
+  { value: '14', labelKey: 'duration14d' },
+  { value: '30', labelKey: 'duration30d' },
+] as const;
 
 const IMMO_SLUGS    = ['immobilier', 'terrains'];
 const EMPLOI_SLUGS  = ['emplois'];
@@ -57,41 +58,43 @@ const CAT_ICONS: Record<string, any> = {
   autres:       Package,
 };
 
-const TYPE_META: Record<string, { label: string; Icon: any; color: string }> = {
-  vente:      { label: 'Vente',      Icon: ShoppingCart, color: 'text-blue-600 bg-blue-50 border-blue-200' },
-  immobilier: { label: 'Immobilier', Icon: Building2,    color: 'text-amber-600 bg-amber-50 border-amber-200' },
-  emploi:     { label: 'Emploi',     Icon: Briefcase,    color: 'text-purple-600 bg-purple-50 border-purple-200' },
-  service:    { label: 'Service',    Icon: Wrench,       color: 'text-teal-600 bg-teal-50 border-teal-200' },
+const TYPE_META_ICONS: Record<string, { labelKey: 'typeVente' | 'typeImmobilier' | 'typeEmploi' | 'typeService'; Icon: any; color: string }> = {
+  vente:      { labelKey: 'typeVente',      Icon: ShoppingCart, color: 'text-blue-600 bg-blue-50 border-blue-200' },
+  immobilier: { labelKey: 'typeImmobilier', Icon: Building2,    color: 'text-amber-600 bg-amber-50 border-amber-200' },
+  emploi:     { labelKey: 'typeEmploi',     Icon: Briefcase,    color: 'text-purple-600 bg-purple-50 border-purple-200' },
+  service:    { labelKey: 'typeService',    Icon: Wrench,       color: 'text-teal-600 bg-teal-50 border-teal-200' },
 };
 
-const TITLE_PLACEHOLDERS: Record<string, string> = {
-  electronique: "Ex : Samsung Galaxy A54 128Go – Très bon état",
-  vehicules:    "Ex : Toyota Hilux 2018 – Bon état, 80 000 km",
-  immobilier:   "Ex : Villa F4 à Ratoma – 3 chambres, meublée",
-  terrains:     "Ex : Terrain 500 m² à Matoto – Titre foncier disponible",
-  emplois:      "Ex : Comptable – CDI, Conakry, 2 ans d'expérience",
-  services:     "Ex : Plombier professionnel – Intervention rapide Conakry",
-  mode:         "Ex : Robe de soirée taille 38 – Comme neuve",
-  maison:       "Ex : Canapé 3 places cuir – Bon état, livraison possible",
-  sports:       "Ex : Vélo VTT 26 pouces – Occasion, bon état",
-  restaurants:  "Ex : Restaurant La Palmeraie – Cuisine africaine, Conakry",
-  hotels:       "Ex : Hôtel Noom – Chambre double, centre-ville",
-  bebe:         "Ex : Poussette Chicco – Très bon état, 6 mois d'utilisation",
-  beaute:       "Ex : Tresse nattes box – Spécialiste Conakry, résultat garanti",
-  agriculture:  "Ex : Sacs de riz local 50kg – Récolte 2024, Kindia",
-  animaux:      "Ex : Chiot Berger Allemand – 3 mois, vacciné",
+const TITLE_PLACEHOLDER_KEYS: Record<string, string> = {
+  electronique: 'titlePlaceholderElectronique',
+  vehicules:    'titlePlaceholderVehicules',
+  immobilier:   'titlePlaceholderImmobilier',
+  terrains:     'titlePlaceholderTerrains',
+  emplois:      'titlePlaceholderEmplois',
+  services:     'titlePlaceholderServices',
+  mode:         'titlePlaceholderMode',
+  maison:       'titlePlaceholderMaison',
+  sports:       'titlePlaceholderSports',
+  restaurants:  'titlePlaceholderRestaurants',
+  hotels:       'titlePlaceholderHotels',
+  bebe:         'titlePlaceholderBebe',
+  beaute:       'titlePlaceholderBeaute',
+  agriculture:  'titlePlaceholderAgriculture',
+  animaux:      'titlePlaceholderAnimaux',
 };
-const DEFAULT_TITLE_PLACEHOLDER = 'Ex : iPhone 14 Pro 256Go – Comme neuf';
 
-const STEP_META = [
-  { label: 'Catégorie',    Icon: LayoutGrid },
-  { label: 'Détails',      Icon: FileText },
-  { label: 'Localisation', Icon: MapPin },
-  { label: 'Contact',      Icon: Phone },
-  { label: 'Photos',       Icon: Camera },
-];
+const STEP_META_ICONS = [
+  { key: 'stepCategory', Icon: LayoutGrid },
+  { key: 'stepDetails',  Icon: FileText },
+  { key: 'stepLocation', Icon: MapPin },
+  { key: 'stepContact',  Icon: Phone },
+  { key: 'stepPhotos',   Icon: Camera },
+] as const;
 
 function PublierAnnonceContent() {
+  const t = useTranslations('publier.annonce');
+  const DURATIONS = DURATION_META.map(d => ({ value: d.value, label: t(d.labelKey) }));
+  const STEP_META = STEP_META_ICONS.map(s => ({ label: t(s.key), Icon: s.Icon }));
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
@@ -195,7 +198,8 @@ function PublierAnnonceContent() {
   const currentCat      = categories.find((c) => c.slug === selectedCategory);
   const subCategories   = currentCat?.children || [];
   const listingType     = getListingType(selectedCategory);
-  const titlePlaceholder = TITLE_PLACEHOLDERS[selectedSub] || TITLE_PLACEHOLDERS[selectedCategory] || DEFAULT_TITLE_PLACEHOLDER;
+  const titlePlaceholderKey = TITLE_PLACEHOLDER_KEYS[selectedSub] || TITLE_PLACEHOLDER_KEYS[selectedCategory];
+  const titlePlaceholder = titlePlaceholderKey ? t(titlePlaceholderKey) : t('titlePlaceholderDefault');
 
   const set = (k: string, v: any) => setForm((p: any) => ({ ...p, [k]: v }));
   const toggleAmenity = (a: string) => setForm((p: any) => ({
@@ -206,15 +210,15 @@ function PublierAnnonceContent() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files?.length) return;
-    if (images.length + files.length > 10) { toast.error('Maximum 10 photos'); return; }
+    if (images.length + files.length > 10) { toast.error(t('toastMaxPhotos')); return; }
     setUploading(true);
     try {
       const fd = new FormData();
       Array.from(files).forEach((f) => fd.append('images', f));
       const res = await api.post('/upload/images', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       setImages((prev) => [...prev, ...res.data.images]);
-      toast.success('Photos ajoutées !');
-    } catch { toast.error('Erreur upload'); }
+      toast.success(t('toastPhotosAdded'));
+    } catch { toast.error(t('toastUploadError')); }
     finally { setUploading(false); }
   };
 
@@ -228,13 +232,13 @@ function PublierAnnonceContent() {
   };
 
   const next = () => {
-    if (!canNext()) { toast.error('Remplissez les champs obligatoires'); return; }
+    if (!canNext()) { toast.error(t('toastRequiredFields')); return; }
     setStep((s) => Math.min(5, s + 1));
   };
   const prev = () => setStep((s) => Math.max(1, s - 1));
 
   const onSubmit = async () => {
-    if (images.length === 0) { toast.error('Ajoutez au moins 1 photo'); return; }
+    if (images.length === 0) { toast.error(t('toastNeedPhoto')); return; }
     setLoading(true);
     try {
       const categoryId = selectedSub || selectedCategory;
@@ -271,7 +275,7 @@ function PublierAnnonceContent() {
 
       if (editId) {
         const res = await api.put(`/annonces/${editId}`, payload);
-        toast.success('Annonce modifiée !');
+        toast.success(t('toastEditSuccess'));
         router.push(`/annonces/${res.data.data.slug}`);
       } else {
         const res = await api.post('/annonces', payload);
@@ -279,11 +283,12 @@ function PublierAnnonceContent() {
         setPublished(true);
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.error || (editId ? 'Erreur lors de la modification' : 'Erreur lors de la publication'));
+      toast.error(err.response?.data?.error || (editId ? t('toastEditError') : t('toastPublishError')));
     } finally { setLoading(false); }
   };
 
-  const typeMeta = TYPE_META[listingType] || TYPE_META.vente;
+  const typeMetaIcon = TYPE_META_ICONS[listingType] || TYPE_META_ICONS.vente;
+  const typeMeta = { label: t(typeMetaIcon.labelKey), Icon: typeMetaIcon.Icon, color: typeMetaIcon.color };
 
   if (loadingEdit) {
     return (
@@ -308,24 +313,23 @@ function PublierAnnonceContent() {
             {publishedDirect ? (
               <>
                 <h2 className="text-2xl font-display font-bold text-dark-900 mb-3">
-                  Annonce publiée directement !
+                  {t('publishedDirectTitle')}
                 </h2>
                 <p className="text-dark-500 text-base leading-relaxed mb-8">
-                  Votre compte est <strong className="text-primary-700">vérifié</strong> — votre annonce est
-                  maintenant <strong className="text-primary-700">visible sur le site</strong> sans délai de validation.
+                  {t('publishedDirectMsg1')} <strong className="text-primary-700">{t('publishedDirectMsgVerified')}</strong> {t('publishedDirectMsg2')}{' '}
+                  <strong className="text-primary-700">{t('publishedDirectMsgVisible')}</strong> {t('publishedDirectMsg3')}
                 </p>
               </>
             ) : (
               <>
                 <h2 className="text-2xl font-display font-bold text-dark-900 mb-3">
-                  Annonce envoyée avec succès !
+                  {t('publishedPendingTitle')}
                 </h2>
                 <p className="text-dark-500 text-base leading-relaxed mb-2">
-                  Votre annonce a bien été reçue par notre équipe.
+                  {t('publishedPendingMsg1')}
                 </p>
                 <p className="text-dark-500 text-base leading-relaxed mb-8">
-                  Elle sera <strong className="text-primary-700">publiée sur le site après validation</strong> par notre équipe de modération (généralement sous 24h).
-                  Vous recevrez une notification dès qu'elle sera approuvée.
+                  {t('publishedPendingMsg2Prefix')} <strong className="text-primary-700">{t('publishedPendingMsgStrong')}</strong> {t('publishedPendingMsg2Suffix')}
                 </p>
               </>
             )}
@@ -334,13 +338,13 @@ function PublierAnnonceContent() {
                 onClick={() => router.push('/profil')}
                 className="btn-primary flex items-center gap-2"
               >
-                Voir mes annonces
+                {t('viewMyAds')}
               </button>
               <button
                 onClick={() => { setPublished(false); setPublishedDirect(false); setStep(1); setSelectedCategory(''); setImages([]); }}
                 className="btn-outline flex items-center gap-2"
               >
-                Publier une autre annonce
+                {t('publishAnother')}
               </button>
             </div>
           </div>
@@ -362,9 +366,9 @@ function PublierAnnonceContent() {
             </div>
             <div>
               <h1 className="text-xl font-display font-bold leading-tight">
-                {editId ? 'Modifier l\'annonce' : 'Publier une annonce'}
+                {editId ? t('pageTitleEdit') : t('pageTitle')}
               </h1>
-              <p className="text-primary-100 text-sm">Publication 100% gratuite et sans limite</p>
+              <p className="text-primary-100 text-sm">{t('pageSubtitle')}</p>
             </div>
           </div>
         </div>
@@ -406,7 +410,7 @@ function PublierAnnonceContent() {
           {step === 1 && (
             <div>
               <h2 className="font-display font-semibold text-dark-900 mb-4 pl-2.5 border-l-2 border-primary-500">
-                Choisissez une catégorie
+                {t('chooseCategory')}
               </h2>
               <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
                 {categories.map((cat) => {
@@ -430,7 +434,7 @@ function PublierAnnonceContent() {
               </div>
               {subCategories.length > 0 && (
                 <div className="mt-5 pt-5 border-t border-dark-100">
-                  <p className="text-sm font-semibold text-dark-700 mb-3">Sous-catégorie <span className="text-dark-400 font-normal">(optionnel)</span></p>
+                  <p className="text-sm font-semibold text-dark-700 mb-3">{t('subcategoryLabel')} <span className="text-dark-400 font-normal">{t('optional')}</span></p>
                   <div className="flex gap-2 flex-wrap">
                     {subCategories.map((sub: any) => {
                       const SubIcon = CAT_ICONS[sub.slug] || Package;
@@ -454,47 +458,52 @@ function PublierAnnonceContent() {
             <div className="space-y-4">
               <div className="flex items-center gap-3 mb-2">
                 <h2 className="font-display font-semibold text-dark-900 pl-2.5 border-l-2 border-primary-500">
-                  Informations
+                  {t('detailsTitle')}
                 </h2>
                 <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${typeMeta.color}`}>
                   <typeMeta.Icon size={11} /> {typeMeta.label}
                 </span>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-dark-700 mb-1.5">Titre *</label>
+                <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('titleLabel')}</label>
                 <input value={form.title} onChange={e => set('title', e.target.value)}
                   placeholder={titlePlaceholder} className="input" />
                 <p className="mt-1.5 text-xs text-dark-400 flex items-start gap-1.5">
                   <Lightbulb size={13} className="text-primary-600 shrink-0 mt-0.5" />
-                  <span>Conseil : un bon titre = <strong>Marque + Modèle + État</strong>. Ex : <em>Samsung A54 128Go – Comme neuf</em>. Ça attire plus d&apos;acheteurs !</span>
+                  <span>{t('titleTipPrefix')} <strong>{t('titleTipStrong')}</strong>{t('titleTipMiddle')} <em>{t('titleTipExample')}</em>{t('titleTipSuffix')}</span>
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-dark-700 mb-1.5">Description *</label>
+                <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('descriptionLabel')}</label>
                 <textarea value={form.description} onChange={e => set('description', e.target.value)}
-                  rows={4} placeholder="Décrivez en détail..." className="input resize-none" />
+                  rows={4} placeholder={t('descriptionPlaceholder')} className="input resize-none" />
               </div>
 
               {listingType === 'vente' && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Prix (GNF)</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('priceLabel')}</label>
                     <input value={form.price} onChange={e => set('price', e.target.value)}
                       type="number" placeholder="5000000" className="input" />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Quantité disponible</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('quantityLabel')}</label>
                     <input value={form.quantity} onChange={e => set('quantity', e.target.value)}
-                      type="number" placeholder="Ex: 10" className="input" />
+                      type="number" placeholder={t('quantityPlaceholder')} className="input" />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">État</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('conditionLabel')}</label>
                     <div className="flex gap-2 flex-wrap">
-                      {['Neuf', 'Comme neuf', 'Bon état', 'Occasion'].map(c => (
-                        <button key={c} type="button" onClick={() => set('condition', c)}
+                      {[
+                        { value: 'Neuf', key: 'conditionNew' },
+                        { value: 'Comme neuf', key: 'conditionLikeNew' },
+                        { value: 'Bon état', key: 'conditionGood' },
+                        { value: 'Occasion', key: 'conditionUsed' },
+                      ].map(c => (
+                        <button key={c.value} type="button" onClick={() => set('condition', c.value)}
                           className={`px-3 py-2 rounded-xl text-sm font-medium border-2 transition-colors
-                            ${form.condition === c ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
-                          {c}
+                            ${form.condition === c.value ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
+                          {t(c.key as any)}
                         </button>
                       ))}
                     </div>
@@ -502,7 +511,7 @@ function PublierAnnonceContent() {
                   <label className="col-span-2 flex items-center gap-2 cursor-pointer select-none">
                     <input type="checkbox" checked={form.isNegotiable} onChange={e => set('isNegotiable', e.target.checked)}
                       className="accent-primary-700 w-4 h-4" />
-                    <span className="text-sm font-medium text-dark-700">Prix négociable</span>
+                    <span className="text-sm font-medium text-dark-700">{t('negotiable')}</span>
                   </label>
                 </div>
               )}
@@ -510,36 +519,39 @@ function PublierAnnonceContent() {
               {listingType === 'immobilier' && selectedCategory !== 'terrains' && (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Type d'offre</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('offerTypeLabel')}</label>
                     <div className="flex gap-2">
-                      {['À louer', 'À vendre'].map(t => (
-                        <button key={t} type="button" onClick={() => set('contractType', t)}
+                      {[
+                        { value: 'À louer', key: 'offerRent' },
+                        { value: 'À vendre', key: 'offerSale' },
+                      ].map(o => (
+                        <button key={o.value} type="button" onClick={() => set('contractType', o.value)}
                           className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition-colors
-                            ${form.contractType === t ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
-                          {t}
+                            ${form.contractType === o.value ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
+                          {t(o.key as any)}
                         </button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Prix (GNF)</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('priceLabel')}</label>
                     <input value={form.price} onChange={e => set('price', e.target.value)}
-                      type="number" placeholder="Ex: 2000000" className="input" />
+                      type="number" placeholder={t('pricePlaceholderImmo')} className="input" />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Chambres</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('bedroomsLabel')}</label>
                     <input value={form.bedrooms} onChange={e => set('bedrooms', e.target.value)}
-                      type="number" placeholder="Ex: 3" className="input" />
+                      type="number" placeholder={t('bedroomsPlaceholder')} className="input" />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Surface (m²)</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('surfaceLabel')}</label>
                     <input value={form.surface} onChange={e => set('surface', e.target.value)}
-                      type="number" placeholder="Ex: 120" className="input" />
+                      type="number" placeholder={t('surfacePlaceholderImmo')} className="input" />
                   </div>
                   <label className="col-span-2 flex items-center gap-2 cursor-pointer select-none">
                     <input type="checkbox" checked={form.isFurnished} onChange={e => set('isFurnished', e.target.checked)}
                       className="accent-primary-700 w-4 h-4" />
-                    <span className="text-sm font-medium text-dark-700">Meublé</span>
+                    <span className="text-sm font-medium text-dark-700">{t('furnished')}</span>
                   </label>
                 </div>
               )}
@@ -547,35 +559,44 @@ function PublierAnnonceContent() {
               {listingType === 'immobilier' && selectedCategory === 'terrains' && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Type d'offre</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('offerTypeLabel')}</label>
                     <div className="flex gap-2">
-                      {['À vendre', 'À louer'].map(t => (
-                        <button key={t} type="button" onClick={() => set('contractType', t)}
+                      {[
+                        { value: 'À vendre', key: 'offerSale' },
+                        { value: 'À louer', key: 'offerRent' },
+                      ].map(o => (
+                        <button key={o.value} type="button" onClick={() => set('contractType', o.value)}
                           className={`px-3 py-2 rounded-xl text-sm font-medium border-2 transition-colors
-                            ${form.contractType === t ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
-                          {t}
+                            ${form.contractType === o.value ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
+                          {t(o.key as any)}
                         </button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Prix (GNF)</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('priceLabel')}</label>
                     <input value={form.price} onChange={e => set('price', e.target.value)}
-                      type="number" placeholder="Ex: 50000000" className="input" />
+                      type="number" placeholder={t('pricePlaceholderTerrain')} className="input" />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Surface (m²)</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('surfaceLabel')}</label>
                     <input value={form.surface} onChange={e => set('surface', e.target.value)}
-                      type="number" placeholder="Ex: 500" className="input" />
+                      type="number" placeholder={t('surfacePlaceholderTerrain')} className="input" />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Type de terrain</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('plotTypeLabel')}</label>
                     <div className="flex gap-2 flex-wrap">
-                      {['Constructible', 'Agricole', 'Commercial', 'Résidentiel', 'Mixte'].map(t => (
-                        <button key={t} type="button" onClick={() => set('plotType', t)}
+                      {[
+                        { value: 'Constructible', key: 'plotConstructible' },
+                        { value: 'Agricole', key: 'plotAgricultural' },
+                        { value: 'Commercial', key: 'plotCommercial' },
+                        { value: 'Résidentiel', key: 'plotResidential' },
+                        { value: 'Mixte', key: 'plotMixed' },
+                      ].map(o => (
+                        <button key={o.value} type="button" onClick={() => set('plotType', o.value)}
                           className={`px-3 py-2 rounded-xl text-sm font-medium border-2 transition-colors
-                            ${form.plotType === t ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
-                          {t}
+                            ${form.plotType === o.value ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
+                          {t(o.key as any)}
                         </button>
                       ))}
                     </div>
@@ -584,7 +605,7 @@ function PublierAnnonceContent() {
                     <input type="checkbox" checked={form.hasTitleDeed} onChange={e => set('hasTitleDeed', e.target.checked)}
                       className="accent-primary-700 w-4 h-4" />
                     <FileCheck size={15} className="text-primary-600" />
-                    <span className="text-sm font-medium text-dark-700">Titre foncier disponible</span>
+                    <span className="text-sm font-medium text-dark-700">{t('titleDeedAvailable')}</span>
                   </label>
                 </div>
               )}
@@ -592,26 +613,32 @@ function PublierAnnonceContent() {
               {listingType === 'emploi' && (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Type de contrat</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('contractTypeLabel')}</label>
                     <div className="flex gap-2 flex-wrap">
-                      {['CDI', 'CDD', 'Stage', 'Freelance', 'Temps partiel'].map(t => (
-                        <button key={t} type="button" onClick={() => set('contractType', t)}
+                      {[
+                        { value: 'CDI', key: 'contractCDI' },
+                        { value: 'CDD', key: 'contractCDD' },
+                        { value: 'Stage', key: 'contractStage' },
+                        { value: 'Freelance', key: 'contractFreelance' },
+                        { value: 'Temps partiel', key: 'contractPartTime' },
+                      ].map(o => (
+                        <button key={o.value} type="button" onClick={() => set('contractType', o.value)}
                           className={`px-3 py-2 rounded-xl text-sm font-medium border-2 transition-colors
-                            ${form.contractType === t ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
-                          {t}
+                            ${form.contractType === o.value ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
+                          {t(o.key as any)}
                         </button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Salaire (GNF/mois)</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('salaryLabel')}</label>
                     <input value={form.salary} onChange={e => set('salary', e.target.value)}
-                      placeholder="Ex: 2 000 000" className="input" />
+                      placeholder={t('salaryPlaceholder')} className="input" />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Expérience requise</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('experienceLabel')}</label>
                     <input value={form.experience} onChange={e => set('experience', e.target.value)}
-                      placeholder="Ex: 2 ans" className="input" />
+                      placeholder={t('experiencePlaceholder')} className="input" />
                   </div>
                 </div>
               )}
@@ -621,13 +648,13 @@ function PublierAnnonceContent() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-dark-700 mb-1.5">
-                      Prix par nuit (GNF) <span className="text-dark-400 font-normal">- optionnel</span>
+                      {t('pricePerNightLabel')} <span className="text-dark-400 font-normal">{t('optionalSuffix')}</span>
                     </label>
                     <input value={form.price} onChange={e => set('price', e.target.value)}
-                      type="number" placeholder="Ex: 150000" className="input" />
+                      type="number" placeholder={t('pricePerNightPlaceholder')} className="input" />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-2">Classement étoiles</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-2">{t('starRatingLabel')}</label>
                     <div className="flex gap-2">
                       {[1, 2, 3, 4, 5].map(n => (
                         <button key={n} type="button" onClick={() => set('stars', form.stars === n ? 0 : n)}
@@ -639,21 +666,21 @@ function PublierAnnonceContent() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-2">Commodités</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-2">{t('amenitiesLabel')}</label>
                     <div className="grid grid-cols-2 gap-2">
                       {[
-                        { label: 'Wi-Fi gratuit', icon: Wifi },
-                        { label: 'Parking', icon: ParkingCircle },
-                        { label: 'Piscine', icon: Waves },
-                        { label: 'Salle de sport', icon: Dumbbell },
-                        { label: 'Petit-déjeuner', icon: Coffee },
-                        { label: 'Restaurant', icon: UtensilsCrossed },
-                      ].map(({ label, icon: Icon }) => (
-                        <label key={label} className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 cursor-pointer transition-colors select-none
-                          ${form.amenities.includes(label) ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
-                          <input type="checkbox" className="sr-only" checked={form.amenities.includes(label)}
-                            onChange={() => toggleAmenity(label)} />
-                          <Icon size={13} /> <span className="text-xs font-medium">{label}</span>
+                        { value: 'Wi-Fi gratuit', key: 'amenityWifi', icon: Wifi },
+                        { value: 'Parking', key: 'amenityParking', icon: ParkingCircle },
+                        { value: 'Piscine', key: 'amenityPool', icon: Waves },
+                        { value: 'Salle de sport', key: 'amenityGym', icon: Dumbbell },
+                        { value: 'Petit-déjeuner', key: 'amenityBreakfast', icon: Coffee },
+                        { value: 'Restaurant', key: 'amenityRestaurant', icon: UtensilsCrossed },
+                      ].map(({ value, key, icon: Icon }) => (
+                        <label key={value} className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 cursor-pointer transition-colors select-none
+                          ${form.amenities.includes(value) ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
+                          <input type="checkbox" className="sr-only" checked={form.amenities.includes(value)}
+                            onChange={() => toggleAmenity(value)} />
+                          <Icon size={13} /> <span className="text-xs font-medium">{t(key as any)}</span>
                         </label>
                       ))}
                     </div>
@@ -661,7 +688,7 @@ function PublierAnnonceContent() {
                   <label className="flex items-center gap-2 cursor-pointer select-none">
                     <input type="checkbox" checked={form.isFurnished} onChange={e => set('isFurnished', e.target.checked)}
                       className="accent-primary-700 w-4 h-4" />
-                    <span className="text-sm font-medium text-dark-700">Résidence meublée / appartement</span>
+                    <span className="text-sm font-medium text-dark-700">{t('furnishedResidence')}</span>
                   </label>
                 </div>
               )}
@@ -670,40 +697,48 @@ function PublierAnnonceContent() {
               {listingType === 'service' && selectedCategory === 'restaurants' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-2">Type de cuisine</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-2">{t('cuisineTypeLabel')}</label>
                     <div className="flex gap-2 flex-wrap">
-                      {['Guinéenne', 'Africaine', 'Internationale', 'Fast-food', 'Libanaise', 'Française', 'Chinoise'].map(c => (
-                        <button key={c} type="button" onClick={() => set('cuisineType', form.cuisineType === c ? '' : c)}
+                      {[
+                        { value: 'Guinéenne', key: 'cuisineGuinean' },
+                        { value: 'Africaine', key: 'cuisineAfrican' },
+                        { value: 'Internationale', key: 'cuisineInternational' },
+                        { value: 'Fast-food', key: 'cuisineFastFood' },
+                        { value: 'Libanaise', key: 'cuisineLebanese' },
+                        { value: 'Française', key: 'cuisineFrench' },
+                        { value: 'Chinoise', key: 'cuisineChinese' },
+                      ].map(c => (
+                        <button key={c.value} type="button" onClick={() => set('cuisineType', form.cuisineType === c.value ? '' : c.value)}
                           className={`px-3 py-2 rounded-xl text-sm font-medium border-2 transition-colors
-                            ${form.cuisineType === c ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
-                          {c}
+                            ${form.cuisineType === c.value ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
+                          {t(c.key as any)}
                         </button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-2">Gamme de prix</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-2">{t('priceRangeLabel')}</label>
                     <div className="flex gap-2">
                       {[
-                        { value: 'Économique', label: 'Économique', desc: '< 50 000 GNF' },
-                        { value: 'Modéré', label: 'Modéré', desc: '50 – 150 000 GNF' },
-                        { value: 'Premium', label: 'Premium', desc: '> 150 000 GNF' },
+                        { value: 'Économique', labelKey: 'priceRangeEconomic', descKey: 'priceRangeEconomicDesc' },
+                        { value: 'Modéré', labelKey: 'priceRangeModerate', descKey: 'priceRangeModerateDesc' },
+                        { value: 'Premium', labelKey: 'priceRangePremium', descKey: 'priceRangePremiumDesc' },
                       ].map(p => (
                         <button key={p.value} type="button" onClick={() => set('priceRange', form.priceRange === p.value ? '' : p.value)}
                           className={`flex-1 px-3 py-2.5 rounded-xl text-center border-2 transition-colors
                             ${form.priceRange === p.value ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
-                          <p className="text-sm font-semibold">{p.label}</p>
-                          <p className="text-xs text-dark-400 mt-0.5">{p.desc}</p>
+                          <p className="text-sm font-semibold">{t(p.labelKey as any)}</p>
+                          <p className="text-xs text-dark-400 mt-0.5">{t(p.descKey as any)}</p>
                         </button>
                       ))}
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-dark-700 mb-1.5">
-                      Tarif moyen (GNF) <span className="text-dark-400 font-normal">- optionnel</span>
+                      {t('avgPriceLabel')} <span className="text-dark-400 font-normal">{t('optionalSuffix')}</span>
                     </label>
                     <input value={form.price} onChange={e => set('price', e.target.value)}
-                      type="number" placeholder="Ex: 80000" className="input" />
+                      type="number" placeholder={t('avgPricePlaceholder')} className="input" />
                   </div>
                 </div>
               )}
@@ -712,21 +747,21 @@ function PublierAnnonceContent() {
               {listingType === 'service' && !['hotels', 'restaurants', 'evenements'].includes(selectedCategory) && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">Type de service</label>
+                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('serviceTypeLabel')}</label>
                     <input value={form.serviceType} onChange={e => set('serviceType', e.target.value)}
-                      placeholder="Ex: Plomberie, Cours particulier, Livraison..." className="input" />
+                      placeholder={t('serviceTypePlaceholder')} className="input" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-dark-700 mb-1.5">
-                      Tarif (GNF) <span className="text-dark-400 font-normal">- optionnel</span>
+                      {t('serviceFeeLabel')} <span className="text-dark-400 font-normal">{t('optionalSuffix')}</span>
                     </label>
                     <input value={form.price} onChange={e => set('price', e.target.value)}
-                      type="number" placeholder="Ex: 50000" className="input" />
+                      type="number" placeholder={t('serviceFeePlaceholder')} className="input" />
                   </div>
                   <label className="flex items-center gap-2 cursor-pointer select-none">
                     <input type="checkbox" checked={form.isNegotiable} onChange={e => set('isNegotiable', e.target.checked)}
                       className="accent-primary-700 w-4 h-4" />
-                    <span className="text-sm font-medium text-dark-700">Tarif négociable / sur devis</span>
+                    <span className="text-sm font-medium text-dark-700">{t('serviceNegotiable')}</span>
                   </label>
                 </div>
               )}
@@ -736,29 +771,38 @@ function PublierAnnonceContent() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2">
-                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Type d'événement</label>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('eventTypeLabel')}</label>
                       <div className="flex gap-2 flex-wrap">
-                        {['Concert & Musique', 'Mariage & Cérémonie', 'Formation & Séminaire', 'Fête & Soirée', 'Conférence', 'Sport', 'Exposition', 'Autre'].map(t => (
-                          <button key={t} type="button" onClick={() => set('serviceType', form.serviceType === t ? '' : t)}
+                        {[
+                          { value: 'Concert & Musique', key: 'eventConcert' },
+                          { value: 'Mariage & Cérémonie', key: 'eventWedding' },
+                          { value: 'Formation & Séminaire', key: 'eventTraining' },
+                          { value: 'Fête & Soirée', key: 'eventParty' },
+                          { value: 'Conférence', key: 'eventConference' },
+                          { value: 'Sport', key: 'eventSport' },
+                          { value: 'Exposition', key: 'eventExpo' },
+                          { value: 'Autre', key: 'eventOther' },
+                        ].map(ev => (
+                          <button key={ev.value} type="button" onClick={() => set('serviceType', form.serviceType === ev.value ? '' : ev.value)}
                             className={`px-3 py-1.5 rounded-xl text-xs font-medium border-2 transition-colors ${
-                              form.serviceType === t ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'
+                              form.serviceType === ev.value ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'
                             }`}>
-                            {t}
+                            {t(ev.key as any)}
                           </button>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Date de l'événement</label>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('eventDateLabel')}</label>
                       <input value={form.eventDate} onChange={e => set('eventDate', e.target.value)}
                         type="date" className="input" />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-dark-700 mb-1.5">
-                        Prix d'entrée (GNF) <span className="text-dark-400 font-normal">- 0 si gratuit</span>
+                        {t('entryPriceLabel')} <span className="text-dark-400 font-normal">{t('entryPriceFreeHint')}</span>
                       </label>
                       <input value={form.price} onChange={e => set('price', e.target.value)}
-                        type="number" placeholder="Ex: 50000" className="input" />
+                        type="number" placeholder={t('entryPricePlaceholder')} className="input" />
                     </div>
                   </div>
                 </div>
@@ -769,70 +813,85 @@ function PublierAnnonceContent() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Marque</label>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('vehicleMakeLabel')}</label>
                       <input value={form.vehicleMake} onChange={e => set('vehicleMake', e.target.value)}
-                        placeholder="Ex: Toyota, Honda..." className="input" />
+                        placeholder={t('vehicleMakePlaceholder')} className="input" />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Modèle</label>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('vehicleModelLabel')}</label>
                       <input value={form.vehicleModel} onChange={e => set('vehicleModel', e.target.value)}
-                        placeholder="Ex: Hilux, Civic..." className="input" />
+                        placeholder={t('vehicleModelPlaceholder')} className="input" />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Année</label>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('vehicleYearLabel')}</label>
                       <input value={form.vehicleYear} onChange={e => set('vehicleYear', e.target.value)}
-                        type="number" placeholder="Ex: 2018" className="input" />
+                        type="number" placeholder={t('vehicleYearPlaceholder')} className="input" />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Kilométrage</label>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('vehicleMileageLabel')}</label>
                       <input value={form.vehicleMileage} onChange={e => set('vehicleMileage', e.target.value)}
-                        type="number" placeholder="Ex: 80000" className="input" />
+                        type="number" placeholder={t('vehicleMileagePlaceholder')} className="input" />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Prix (GNF)</label>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('priceLabel')}</label>
                       <input value={form.price} onChange={e => set('price', e.target.value)}
-                        type="number" placeholder="Ex: 80000000" className="input" />
+                        type="number" placeholder={t('vehiclePricePlaceholder')} className="input" />
                     </div>
                     <label className="flex items-center gap-2 cursor-pointer select-none self-end pb-3">
                       <input type="checkbox" checked={form.isNegotiable} onChange={e => set('isNegotiable', e.target.checked)}
                         className="accent-primary-700 w-4 h-4" />
-                      <span className="text-sm font-medium text-dark-700">Prix négociable</span>
+                      <span className="text-sm font-medium text-dark-700">{t('negotiable')}</span>
                     </label>
                     <div className="col-span-2">
-                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Carburant</label>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('fuelLabel')}</label>
                       <div className="flex gap-2 flex-wrap">
-                        {['Essence', 'Diesel', 'Hybride', 'Électrique', 'GPL'].map(f => (
-                          <button key={f} type="button" onClick={() => set('vehicleFuel', form.vehicleFuel === f ? '' : f)}
+                        {[
+                          { value: 'Essence', key: 'fuelPetrol' },
+                          { value: 'Diesel', key: 'fuelDiesel' },
+                          { value: 'Hybride', key: 'fuelHybrid' },
+                          { value: 'Électrique', key: 'fuelElectric' },
+                          { value: 'GPL', key: 'fuelLPG' },
+                        ].map(f => (
+                          <button key={f.value} type="button" onClick={() => set('vehicleFuel', form.vehicleFuel === f.value ? '' : f.value)}
                             className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-colors ${
-                              form.vehicleFuel === f ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'
+                              form.vehicleFuel === f.value ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'
                             }`}>
-                            {f}
+                            {t(f.key as any)}
                           </button>
                         ))}
                       </div>
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">Transmission</label>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('transmissionLabel')}</label>
                       <div className="flex gap-2">
-                        {['Manuelle', 'Automatique'].map(t => (
-                          <button key={t} type="button" onClick={() => set('vehicleTransmission', form.vehicleTransmission === t ? '' : t)}
+                        {[
+                          { value: 'Manuelle', key: 'transmissionManual' },
+                          { value: 'Automatique', key: 'transmissionAuto' },
+                        ].map(tr => (
+                          <button key={tr.value} type="button" onClick={() => set('vehicleTransmission', form.vehicleTransmission === tr.value ? '' : tr.value)}
                             className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition-colors ${
-                              form.vehicleTransmission === t ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'
+                              form.vehicleTransmission === tr.value ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'
                             }`}>
-                            {t}
+                            {t(tr.key as any)}
                           </button>
                         ))}
                       </div>
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">État du véhicule</label>
+                      <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('vehicleConditionLabel')}</label>
                       <div className="flex gap-2 flex-wrap">
-                        {['Neuf', 'Très bon état', 'Bon état', 'Occasion', 'À réviser'].map(c => (
-                          <button key={c} type="button" onClick={() => set('condition', form.condition === c ? '' : c)}
+                        {[
+                          { value: 'Neuf', key: 'vehicleConditionNew' },
+                          { value: 'Très bon état', key: 'vehicleConditionVeryGood' },
+                          { value: 'Bon état', key: 'vehicleConditionGood' },
+                          { value: 'Occasion', key: 'vehicleConditionUsed' },
+                          { value: 'À réviser', key: 'vehicleConditionToService' },
+                        ].map(c => (
+                          <button key={c.value} type="button" onClick={() => set('condition', form.condition === c.value ? '' : c.value)}
                             className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-colors ${
-                              form.condition === c ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'
+                              form.condition === c.value ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'
                             }`}>
-                            {c}
+                            {t(c.key as any)}
                           </button>
                         ))}
                       </div>
@@ -847,19 +906,19 @@ function PublierAnnonceContent() {
           {step === 3 && (
             <div className="space-y-4">
               <h2 className="font-display font-semibold text-dark-900 pl-2.5 border-l-2 border-primary-500 mb-4">
-                Localisation
+                {t('locationTitle')}
               </h2>
               <div>
-                <label className="block text-sm font-semibold text-dark-700 mb-1.5">Ville *</label>
+                <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('cityLabel')}</label>
                 <select value={form.cityId} onChange={e => set('cityId', e.target.value)} className="input">
-                  <option value="">Choisir une ville</option>
+                  <option value="">{t('cityPlaceholder')}</option>
                   {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-dark-700 mb-1.5">Quartier</label>
+                <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('neighborhoodLabel')}</label>
                 <input value={form.neighborhood} onChange={e => set('neighborhood', e.target.value)}
-                  placeholder="Ex: Kaloum, Ratoma..." className="input" />
+                  placeholder={t('neighborhoodPlaceholder')} className="input" />
               </div>
             </div>
           )}
@@ -868,24 +927,24 @@ function PublierAnnonceContent() {
           {step === 4 && (
             <div className="space-y-4">
               <h2 className="font-display font-semibold text-dark-900 pl-2.5 border-l-2 border-primary-500 mb-4">
-                Contact
+                {t('contactTitle')}
               </h2>
               <div>
                 <label className="block text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
-                  <Phone size={14} className="text-primary-600" /> Téléphone
+                  <Phone size={14} className="text-primary-600" /> {t('phoneLabel')}
                 </label>
                 <input value={form.phone} onChange={e => set('phone', e.target.value)}
-                  type="tel" placeholder="620 00 00 00" className="input" />
+                  type="tel" placeholder={t('phonePlaceholder')} className="input" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
-                  <MessageCircle size={14} className="text-green-600" /> WhatsApp
+                  <MessageCircle size={14} className="text-green-600" /> {t('whatsappLabel')}
                 </label>
                 <input value={form.whatsapp} onChange={e => set('whatsapp', e.target.value)}
-                  type="tel" placeholder="620 00 00 00" className="input" />
+                  type="tel" placeholder={t('phonePlaceholder')} className="input" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-dark-700 mb-2">Durée de publication</label>
+                <label className="block text-sm font-semibold text-dark-700 mb-2">{t('durationLabel')}</label>
                 <div className="grid grid-cols-2 gap-2">
                   {DURATIONS.map(d => (
                     <button key={d.value} type="button" onClick={() => set('duration', d.value)}
@@ -903,7 +962,7 @@ function PublierAnnonceContent() {
           {step === 5 && (
             <div>
               <h2 className="font-display font-semibold text-dark-900 pl-2.5 border-l-2 border-primary-500 mb-4">
-                Photos
+                {t('photosTitle')}
               </h2>
 
               {/* Zone d'upload principale */}
@@ -915,11 +974,11 @@ function PublierAnnonceContent() {
                       : <UploadCloud size={36} className="text-primary-400" />
                     }
                     <div>
-                      <p className="font-semibold text-dark-700 text-sm">Glissez vos photos ici</p>
-                      <p className="text-dark-400 text-xs mt-0.5">ou cliquez pour parcourir</p>
+                      <p className="font-semibold text-dark-700 text-sm">{t('dragPhotos')}</p>
+                      <p className="text-dark-400 text-xs mt-0.5">{t('orClickBrowse')}</p>
                     </div>
                     <span className="text-xs text-dark-400 bg-white border border-dark-100 rounded-lg px-3 py-1">
-                      JPG, PNG · max 10 photos
+                      {t('photoFormatsHint')}
                     </span>
                   </div>
                   <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} disabled={uploading} />
@@ -939,7 +998,7 @@ function PublierAnnonceContent() {
                       </button>
                       {i === 0 && (
                         <span className="absolute bottom-1.5 left-1.5 text-xs bg-primary-700 text-white px-2 py-0.5 rounded-md font-medium shadow-sm">
-                          Principale
+                          {t('mainPhotoBadge')}
                         </span>
                       )}
                     </div>
@@ -950,7 +1009,7 @@ function PublierAnnonceContent() {
                         ? <Loader2 size={20} className="animate-spin text-primary-600" />
                         : <>
                             <UploadCloud size={20} className="text-dark-400" />
-                            <span className="text-xs text-dark-400 mt-1 font-medium">Ajouter</span>
+                            <span className="text-xs text-dark-400 mt-1 font-medium">{t('addPhoto')}</span>
                           </>
                       }
                       <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} disabled={uploading} />
@@ -960,7 +1019,7 @@ function PublierAnnonceContent() {
               )}
 
               <p className="text-xs text-dark-400 mt-3 flex items-center gap-1">
-                <Camera size={12} /> {images.length}/10 photo{images.length !== 1 ? 's' : ''} · minimum 1 requise
+                <Camera size={12} /> {t('photoCount', { count: images.length, suffix: images.length !== 1 ? 's' : '' })}
               </p>
             </div>
           )}
@@ -970,19 +1029,19 @@ function PublierAnnonceContent() {
         <div className="flex gap-3">
           {step > 1 && (
             <button onClick={prev} className="btn-outline flex items-center gap-2 px-5">
-              <ArrowLeft size={15} /> Précédent
+              <ArrowLeft size={15} /> {t('previousBtn')}
             </button>
           )}
           {step < 5 ? (
             <button onClick={next} className="btn-primary flex-1 flex items-center justify-center gap-2 py-3">
-              Suivant <ArrowRight size={15} />
+              {t('nextBtn')} <ArrowRight size={15} />
             </button>
           ) : (
             <button onClick={onSubmit} disabled={loading}
               className="btn-primary flex-1 flex items-center justify-center gap-2 py-3 disabled:opacity-60 disabled:cursor-not-allowed">
               {loading
-                ? <><Loader2 size={17} className="animate-spin" /> {editId ? 'Enregistrement...' : 'Publication...'}</>
-                : <><Send size={15} /> {editId ? 'Enregistrer les modifications' : 'Publier l\'annonce'}</>
+                ? <><Loader2 size={17} className="animate-spin" /> {editId ? t('savingBtn') : t('publishingBtn')}</>
+                : <><Send size={15} /> {editId ? t('saveChangesBtn') : t('publishBtn')}</>
               }
             </button>
           )}

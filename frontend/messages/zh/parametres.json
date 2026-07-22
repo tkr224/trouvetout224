@@ -1,0 +1,201 @@
+{
+  "header": {
+    "title": "设置",
+    "subtitle": "管理您的个人资料、账户安全和偏好设置"
+  },
+  "tabs": {
+    "profil": "个人资料",
+    "securite": "安全与密码",
+    "notifications": "通知",
+    "confidentialite": "隐私",
+    "apparence": "外观",
+    "langue": "语言",
+    "aide": "帮助与支持",
+    "conditions": "使用条款",
+    "apropos": "关于我们"
+  },
+  "tabGroups": {
+    "compte": "账户",
+    "preferences": "偏好设置",
+    "support": "支持与信息"
+  },
+  "logout": "退出登录",
+  "login": "登录",
+  "gate": {
+    "title": "需要登录",
+    "text": "此设置与您的账户相关联，请登录后访问。",
+    "login": "登录",
+    "createAccount": "创建账户",
+    "appearanceNotePrefix": "",
+    "appearanceNoteBold": "外观",
+    "appearanceNoteSuffix": "设置（浅色/深色主题）无需账户即可使用。"
+  },
+  "profil": {
+    "title": "编辑个人资料",
+    "changePhoto": "更改头像",
+    "firstName": "名",
+    "lastName": "姓",
+    "username": "用户名",
+    "usernamePlaceholder": "用户名",
+    "usernameTaken": "该用户名已被使用。",
+    "usernameInvalid": "3 到 20 个字符：仅限小写字母、数字和下划线 _。",
+    "usernameAvailable": "可用！",
+    "usernameHint": "可选 — 您在 TrouveTout224 上的唯一标识。",
+    "bio": "个人简介",
+    "bioPlaceholder": "简单介绍一下自己...",
+    "email": "邮箱",
+    "emailNotSet": "未填写",
+    "emailChangeHintPrefix": "如需更改邮箱地址，请前往",
+    "emailChangeHintBold": "安全与密码",
+    "emailChangeHintSuffix": "标签页。",
+    "phone": "电话",
+    "phoneHint": "该号码用于您广告中的 WhatsApp 联系方式。",
+    "phoneCurrent": "当前号码：{phone}",
+    "phonePlaceholder": "620 00 00 00",
+    "phoneUpdate": "更新号码",
+    "phoneAdd": "添加我的号码",
+    "phoneInvalid": "号码无效。预期格式：6XX XX XX XX（9 位数字，以 6 开头）。",
+    "city": "城市",
+    "cityNotSet": "未填写",
+    "save": "保存修改",
+    "cooldownGeneric": "将于 {days} 天后（{date}）可修改。",
+    "cooldownPassword": "出于安全考虑，您将在 {days} 天后（{date}）才能再次修改密码。"
+  },
+  "securite": {
+    "title": "账户安全",
+    "accountSecure": "账户处于活跃且安全状态",
+    "loading": "加载中...",
+    "changePassword": "修改密码",
+    "setPassword": "设置密码",
+    "googleAccountHint": "您的账户是通过 Google 创建的，尚未设置密码。请在下方设置密码，以便也能使用邮箱登录。",
+    "currentPassword": "当前密码",
+    "newPassword": "新密码",
+    "newPasswordPlaceholder": "至少 8 个字符",
+    "confirmPassword": "确认新密码",
+    "confirmPasswordPlaceholder": "请重新输入新密码",
+    "criteria": {
+      "length": "至少 8 个字符",
+      "uppercase": "一个大写字母",
+      "lowercase": "一个小写字母",
+      "digit": "一个数字"
+    },
+    "forgotPassword": "忘记密码？通过邮箱重置",
+    "emailTitle": "邮箱地址",
+    "emailCurrent": "当前邮箱：{email}",
+    "emailNone": "您尚未设置邮箱地址。",
+    "emailSent": "确认链接已发送至 {email}。点击该链接以确认更改。",
+    "newEmail": "新邮箱地址",
+    "newEmailPlaceholder": "new-email@example.com",
+    "changeEmail": "更改邮箱",
+    "addEmail": "添加邮箱",
+    "emailChangeHint": "确认链接将发送至新邮箱地址 — 只有点击该链接后更改才会生效。",
+    "sqTitle": "安全问题",
+    "sqHint": "可在您无法访问邮箱时用于找回账户 — 如果您很少查看邮箱，这将非常实用。",
+    "sqConfiguredCount": "已配置 {count} 个问题",
+    "sqEdit": "修改我的安全问题",
+    "sqNoneTitle": "尚未配置安全问题",
+    "sqNoneHint": "添加 2 到 3 个问题，即使无法访问邮箱也能找回账户。",
+    "sqConfigureNow": "立即配置",
+    "sqQuestionLabel": "问题 {n}",
+    "sqRemove": "移除",
+    "sqChoosePlaceholder": "请选择一个问题...",
+    "sqAnswerPlaceholder": "您的答案",
+    "sqAddThird": "+ 添加第 3 个问题（可选）",
+    "sqSave": "保存",
+    "sqCancel": "取消",
+    "sqFooterHint": "您的答案以加密方式存储（如同密码）— 任何人都无法读取，只能验证是否匹配。",
+    "errors": {
+      "currentPasswordRequired": "请输入您当前的密码。",
+      "newPasswordRequired": "请填写新密码的所有字段。",
+      "passwordCriteria": "新密码尚未满足以下所有规则。",
+      "passwordMismatch": "两次输入的密码不一致。",
+      "passwordSameAsOld": "新密码必须与当前密码不同。",
+      "passwordGeneric": "修改密码时出错。",
+      "phoneGeneric": "更新时出错。",
+      "emailInvalid": "邮箱地址无效。",
+      "emailGeneric": "提交请求时出错。",
+      "sqQuestionRequired": "请为每一行选择一个问题。",
+      "sqAnswerTooShort": "每个答案至少需要 2 个字符。",
+      "sqDuplicate": "请选择互不相同的问题。",
+      "sqGeneric": "保存时出错。"
+    }
+  },
+  "notifications": {
+    "title": "通知偏好设置",
+    "newMessages": { "label": "新消息", "sub": "收到消息时通知我" },
+    "annonceExpiry": { "label": "广告到期", "sub": "广告到期前提醒" },
+    "newViews": { "label": "新浏览记录", "sub": "有人查看您的广告时通知我" }
+  },
+  "confidentialite": {
+    "title": "隐私",
+    "publicProfile": { "label": "公开主页", "sub": "所有用户都可以查看您的主页" },
+    "showPhone": { "label": "显示我的号码", "sub": "您的号码将显示在您的广告上" },
+    "acceptMessages": { "label": "接收消息", "sub": "其他用户可以联系您" }
+  },
+  "apparence": {
+    "title": "外观",
+    "subtitle": "选择 TrouveTout224 在您设备上的显示方式。",
+    "modes": {
+      "light": { "label": "浅色", "desc": "始终浅色" },
+      "dark": { "label": "深色", "desc": "始终深色" },
+      "system": { "label": "自动", "desc": "跟随设备设置" }
+    },
+    "textSize": {
+      "title": "文字大小",
+      "subtitle": "调整整个网站的文字大小。",
+      "sm": "小",
+      "base": "正常",
+      "lg": "大"
+    },
+    "accentColor": {
+      "title": "主题色",
+      "subtitle": "更改按钮、链接和激活元素的主色调。"
+    },
+    "specialThemes": {
+      "title": "特殊与动态主题",
+      "subtitle": "带流畅动画效果的沉浸式氛围。"
+    },
+    "eventThemes": {
+      "title": "节日主题",
+      "subtitle": "页面顶部带装饰横幅的节日氛围。",
+      "reset": "恢复正常颜色"
+    }
+  },
+  "aide": {
+    "title": "帮助与支持",
+    "items": {
+      "publier": "如何发布广告？",
+      "signalement": "如何举报问题？",
+      "contact": "联系客服",
+      "centreAide": "完整帮助中心"
+    }
+  },
+  "conditions": {
+    "title": "使用条款",
+    "intro": "使用 TrouveTout224 即表示您接受本条款。",
+    "section1": { "title": "1. 服务的使用", "text": "TrouveTout224 是一个面向几内亚居民的广告平台。最低使用年龄为 13 岁。" },
+    "section2": { "title": "2. 禁止内容", "text": "严禁发布非法、冒犯性内容、诈骗信息、裸露内容或暴力内容。" },
+    "section3": { "title": "3. 责任声明", "text": "TrouveTout224 对用户之间的交易不承担责任。请保持警惕，并在公共场所与卖家见面。" }
+  },
+  "apropos": {
+    "version": "版本 1.0.0 · 几内亚科纳克里",
+    "mission": "几内亚最大的广告与交易平台。我们的使命是在几内亚各地连接买家与卖家。",
+    "categories": "分类",
+    "villes": "城市",
+    "copyright": "© {year} TrouveTout224 · 保留所有权利"
+  },
+  "toasts": {
+    "avatarUpdated": "头像已更新！",
+    "avatarUploadError": "上传照片时出错。",
+    "profileUpdated": "个人资料已更新！",
+    "profileUpdateError": "更新出错",
+    "usernameTakenError": "该用户名已被使用。",
+    "usernameInvalidError": "用户名无效（3 到 20 个字符：字母、数字、_）。",
+    "usernameCheckingError": "正在检查用户名是否可用，请稍候...",
+    "passwordChanged": "密码已修改！",
+    "passwordSet": "密码设置成功！",
+    "phoneUpdated": "电话号码已更新！",
+    "emailLinkSent": "确认链接已发送！",
+    "sqSaved": "安全问题已保存！"
+  }
+}

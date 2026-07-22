@@ -2,6 +2,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from 'react-query';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Utensils, MapPin, Phone, MessageCircle, Clock, ChevronLeft, UtensilsCrossed,
   Truck, ShoppingBag, X, ChevronRight,
@@ -92,6 +93,7 @@ function PhotoGallery({ images, name }: { images: any[]; name: string }) {
 }
 
 export default function RestaurantDetailPage() {
+  const t = useTranslations('restaurants.detail');
   const { id } = useParams();
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
@@ -106,23 +108,23 @@ export default function RestaurantDetailPage() {
 
   const startConversation = async () => {
     if (!isAuthenticated) {
-      toast.error('Connectez-vous pour envoyer un message.');
+      toast.error(t('toastLoginToMessage'));
       return;
     }
     if (!r?.ownerId) {
-      toast.error('Le propriétaire n\'est pas disponible.');
+      toast.error(t('toastOwnerUnavailable'));
       return;
     }
     try {
       const res = await api.post('/messages/conversations', { participantId: r.ownerId });
       router.push(`/messages?conversation=${res.data.data?.id || ''}`);
     } catch {
-      toast.error('Impossible d\'ouvrir la messagerie.');
+      toast.error(t('toastMessagingError'));
     }
   };
 
   const waMsg = r
-    ? encodeURIComponent(`Bonjour, je souhaite passer une commande chez ${r.name}. Pouvez-vous me communiquer les disponibilités ?`)
+    ? encodeURIComponent(t('waOrderMessage', { name: r.name }))
     : '';
 
   if (isLoading) {
@@ -146,9 +148,9 @@ export default function RestaurantDetailPage() {
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-5">
             <Utensils size={36} className="text-red-400" />
           </div>
-          <h1 className="text-2xl font-display font-bold text-dark-900 mb-3">Restaurant introuvable</h1>
+          <h1 className="text-2xl font-display font-bold text-dark-900 mb-3">{t('notFoundTitle')}</h1>
           <Link href="/restaurants" className="btn-primary inline-flex items-center gap-2">
-            <ChevronLeft size={15} /> Retour aux restaurants
+            <ChevronLeft size={15} /> {t('backToRestaurants')}
           </Link>
         </div>
       </div>
@@ -157,7 +159,7 @@ export default function RestaurantDetailPage() {
 
   // Grouper le menu par catégorie
   const menuByCategory = (r.menu ?? []).reduce((acc: Record<string, any[]>, item: any) => {
-    const cat = item.category || 'Autres plats';
+    const cat = item.category || t('otherDishes');
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(item);
     return acc;
@@ -170,9 +172,9 @@ export default function RestaurantDetailPage() {
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-dark-400 mb-5">
-          <Link href="/" className="hover:text-primary-700 transition-colors">Accueil</Link>
+          <Link href="/" className="hover:text-primary-700 transition-colors">{t('breadcrumbHome')}</Link>
           <span>/</span>
-          <Link href="/restaurants" className="hover:text-primary-700 transition-colors">Restaurants</Link>
+          <Link href="/restaurants" className="hover:text-primary-700 transition-colors">{t('breadcrumbRestaurants')}</Link>
           <span>/</span>
           <span className="text-dark-700 font-medium truncate max-w-[200px]">{r.name}</span>
         </nav>
@@ -197,12 +199,12 @@ export default function RestaurantDetailPage() {
                 <div className="flex gap-1.5 shrink-0">
                   {r.hasDelivery && (
                     <span className="flex items-center gap-1 bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-xl">
-                      <Truck size={10} /> Livraison
+                      <Truck size={10} /> {t('delivery')}
                     </span>
                   )}
                   {r.hasTakeaway && (
                     <span className="flex items-center gap-1 bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded-xl">
-                      <ShoppingBag size={10} /> À emporter
+                      <ShoppingBag size={10} /> {t('takeaway')}
                     </span>
                   )}
                 </div>
@@ -224,7 +226,7 @@ export default function RestaurantDetailPage() {
                   <p className="text-dark-500 text-sm flex items-center gap-1.5">
                     <span className="text-dark-400">~</span>
                     <span className="font-semibold text-dark-700">{Number(r.avgPrice).toLocaleString('fr-GN')} GNF</span>
-                    <span className="text-dark-400">/personne en moyenne</span>
+                    <span className="text-dark-400">{t('perPersonAvg')}</span>
                   </p>
                 )}
               </div>
@@ -232,7 +234,7 @@ export default function RestaurantDetailPage() {
               {r.description && (
                 <div className="pt-4 border-t border-dark-100">
                   <h3 className="pl-2.5 border-l-2 border-red-500 text-[10px] font-bold text-dark-600 uppercase tracking-widest mb-3">
-                    À propos
+                    {t('aboutTitle')}
                   </h3>
                   <p className="text-dark-600 text-sm leading-relaxed">{r.description}</p>
                 </div>
@@ -243,7 +245,7 @@ export default function RestaurantDetailPage() {
             {r.menu?.length > 0 && (
               <div className="bg-white rounded-2xl border border-dark-100 p-6">
                 <h2 className="pl-2.5 border-l-2 border-red-500 text-[10px] font-bold text-dark-600 uppercase tracking-widest mb-5">
-                  Menu ({r.menu.length} plat{r.menu.length > 1 ? 's' : ''})
+                  {t('menuTitle', { count: r.menu.length })}
                 </h2>
                 <div className="space-y-6">
                   {Object.entries(menuByCategory).map(([cat, items]: [string, any[]]) => (
@@ -263,7 +265,7 @@ export default function RestaurantDetailPage() {
                                 <p className="font-semibold text-dark-900 text-sm">{item.name}</p>
                                 {item.description && <p className="text-dark-400 text-xs mt-0.5">{item.description}</p>}
                                 {!item.isAvailable && (
-                                  <span className="text-xs text-red-400 font-medium">Indisponible</span>
+                                  <span className="text-xs text-red-400 font-medium">{t('unavailable')}</span>
                                 )}
                               </div>
                             </div>
@@ -289,7 +291,7 @@ export default function RestaurantDetailPage() {
               <div className="h-1.5 bg-gradient-to-r from-red-500 to-orange-500" />
               <div className="p-5">
                 <h3 className="pl-2.5 border-l-2 border-red-500 text-[10px] font-bold text-dark-600 uppercase tracking-widest mb-4">
-                  Commander / Contacter
+                  {t('orderContactTitle')}
                 </h3>
                 <div className="space-y-2.5">
                   {r.whatsapp && (
@@ -298,7 +300,7 @@ export default function RestaurantDetailPage() {
                       target="_blank" rel="noopener noreferrer"
                       className="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl transition-colors text-sm"
                     >
-                      <MessageCircle size={16} /> Commander via WhatsApp
+                      <MessageCircle size={16} /> {t('orderWhatsapp')}
                     </a>
                   )}
                   {r.ownerId && r.ownerId !== user?.id && (
@@ -306,7 +308,7 @@ export default function RestaurantDetailPage() {
                       onClick={startConversation}
                       className="w-full flex items-center justify-center gap-2 border border-dark-200 text-dark-700 font-semibold py-2.5 rounded-xl hover:bg-dark-50 transition-colors text-sm"
                     >
-                      <MessageCircle size={16} /> Envoyer un message
+                      <MessageCircle size={16} /> {t('sendMessage')}
                     </button>
                   )}
                   {r.phone && (
@@ -323,20 +325,20 @@ export default function RestaurantDetailPage() {
 
             {/* Infos rapides */}
             <div className="bg-white rounded-2xl border border-dark-100 p-4">
-              <p className="text-[10px] font-bold text-dark-400 uppercase tracking-widest mb-3">Infos pratiques</p>
+              <p className="text-[10px] font-bold text-dark-400 uppercase tracking-widest mb-3">{t('practicalInfoTitle')}</p>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <div className={`w-2 h-2 rounded-full ${r.hasDelivery ? 'bg-green-500' : 'bg-dark-200'}`} />
-                  <span className="text-dark-600">Livraison : {r.hasDelivery ? 'Oui' : 'Non'}</span>
+                  <span className="text-dark-600">{t('deliveryLabel', { value: r.hasDelivery ? t('yes') : t('no') })}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <div className={`w-2 h-2 rounded-full ${r.hasTakeaway ? 'bg-blue-500' : 'bg-dark-200'}`} />
-                  <span className="text-dark-600">À emporter : {r.hasTakeaway ? 'Oui' : 'Non'}</span>
+                  <span className="text-dark-600">{t('takeawayLabel', { value: r.hasTakeaway ? t('yes') : t('no') })}</span>
                 </div>
                 {r.menu?.length > 0 && (
                   <div className="flex items-center gap-2 text-sm">
                     <div className="w-2 h-2 rounded-full bg-red-400" />
-                    <span className="text-dark-600">{r.menu.length} plat{r.menu.length > 1 ? 's' : ''} au menu</span>
+                    <span className="text-dark-600">{t('dishesOnMenu', { count: r.menu.length })}</span>
                   </div>
                 )}
               </div>
@@ -346,7 +348,7 @@ export default function RestaurantDetailPage() {
               href="/restaurants"
               className="flex items-center gap-2 text-sm text-dark-500 hover:text-primary-700 transition-colors"
             >
-              <ChevronLeft size={14} /> Tous les restaurants
+              <ChevronLeft size={14} /> {t('allRestaurants')}
             </Link>
           </div>
         </div>

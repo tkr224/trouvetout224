@@ -7,6 +7,7 @@ import { prisma } from '../config/database';
 import { SECURITY_QUESTIONS, normalizeAnswer } from '../constants/securityQuestions';
 import { checkCooldown, cooldownMessage } from '../config/security';
 import { sendSecurityAlertEmail, sendEmailChangeConfirmation } from '../services/email.service';
+import { resolveEmailLocale } from '../i18n/emailLocales';
 
 const router = Router();
 
@@ -141,13 +142,18 @@ router.get('/username-available', authenticate, async (req: any, res) => {
 // Mettre à jour mon profil
 router.put('/me', authenticate, async (req: any, res) => {
   try {
-    const { firstName, lastName, bio, cityId, avatar, banner, accountType, username, textSize } = req.body;
+    const { firstName, lastName, bio, cityId, avatar, banner, accountType, username, textSize, preferredLanguage } = req.body;
 
     const data: any = { firstName, lastName, bio, cityId, avatar, banner };
 
     // Préférence d'affichage (pas sensible, pas de délai de sécurité)
     if (textSize && ['SM', 'BASE', 'LG'].includes(textSize)) {
       data.textSize = textSize;
+    }
+
+    // Langue d'interface préférée (i18n) — pas sensible, pas de délai de sécurité
+    if (preferredLanguage && ['FR', 'EN', 'ZH'].includes(preferredLanguage)) {
+      data.preferredLanguage = preferredLanguage;
     }
 
     // Nom d'utilisateur : optionnel, mais unique et normalisé si fourni.
@@ -231,7 +237,7 @@ router.put('/me/phone', authenticate, async (req: any, res) => {
     await prisma.user.update({ where: { id: req.userId }, data: { phone, phoneChangedAt: new Date() } });
 
     if (hadPhoneBefore && user.email) {
-      sendSecurityAlertEmail(user.email, user.firstName, 'numéro de téléphone').catch(e => console.log('Email alerte non envoyé:', e.message));
+      sendSecurityAlertEmail(user.email, user.firstName, 'phone', resolveEmailLocale(user.preferredLanguage)).catch(e => console.log('Email alerte non envoyé:', e.message));
     }
 
     res.json({ message: 'Numéro de téléphone mis à jour.', data: { phone } });
@@ -294,7 +300,7 @@ router.put('/me/email', authenticate, async (req: any, res) => {
     });
 
     const confirmUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/confirmer-email?token=${token}`;
-    sendEmailChangeConfirmation(newEmail, user.firstName, confirmUrl).catch(e => console.log('Email non envoyé:', e.message));
+    sendEmailChangeConfirmation(newEmail, user.firstName, confirmUrl, resolveEmailLocale(user.preferredLanguage)).catch(e => console.log('Email non envoyé:', e.message));
 
     res.json({ message: `Un lien de confirmation a été envoyé à ${newEmail}. Cliquez dessus pour valider le changement.` });
   } catch (error) {
@@ -329,7 +335,7 @@ router.put('/me/security-questions', authenticate, async (req: any, res) => {
 
     const me = await prisma.user.findUnique({
       where: { id: req.userId },
-      select: { email: true, firstName: true, securityQuestionsChangedAt: true, _count: { select: { securityQuestions: true } } },
+      select: { email: true, firstName: true, securityQuestionsChangedAt: true, preferredLanguage: true, _count: { select: { securityQuestions: true } } },
     });
     if (!me) return res.status(404).json({ error: 'Utilisateur non trouvé.' });
 
@@ -378,7 +384,7 @@ router.put('/me/security-questions', authenticate, async (req: any, res) => {
     ]);
 
     if (me.email) {
-      sendSecurityAlertEmail(me.email, me.firstName, 'questions de sécurité').catch(e => console.log('Email alerte non envoyé:', e.message));
+      sendSecurityAlertEmail(me.email, me.firstName, 'securityQuestions', resolveEmailLocale(me.preferredLanguage)).catch(e => console.log('Email alerte non envoyé:', e.message));
     }
 
     res.json({ message: 'Questions de sécurité enregistrées.' });

@@ -1,0 +1,40 @@
+{
+  "title": "店铺",
+  "subtitle": "TrouveTout224 上共有 {count} 家店铺",
+  "searchPlaceholder": "按名称搜索店铺...",
+  "filters": "筛选",
+  "cityLabel": "城市 / 街区",
+  "allCities": "所有城市",
+  "categoryLabel": "分类",
+  "allCategories": "所有分类",
+  "clearFilters": "清除筛选",
+  "categories": {
+    "electronique": "电子产品",
+    "modeVetements": "服装与时尚",
+    "alimentation": "食品",
+    "maisonDeco": "家居装饰",
+    "beauteSante": "美容与健康",
+    "autoMoto": "汽车与摩托车",
+    "immobilier": "房地产",
+    "services": "服务",
+    "agriculture": "农业",
+    "materiaux": "建材",
+    "animaux": "宠物",
+    "sportsLoisirs": "运动与休闲"
+  },
+  "empty": {
+    "title": "未找到店铺",
+    "withFilters": "请尝试修改您的搜索条件或筛选条件。",
+    "noFilters": "目前没有正在营业的店铺。"
+  },
+  "pagination": {
+    "previous": "上一页",
+    "next": "下一页",
+    "pageOf": "第 {page} / {total} 页"
+  },
+  "card": {
+    "verifiedShop": "已验证店铺",
+    "listingCount": "{count} 条广告",
+    "subscribers": "关注"
+  }
+}

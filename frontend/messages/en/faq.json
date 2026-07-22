@@ -1,0 +1,41 @@
+{
+  "hero": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Everything you need to know to buy and sell with confidence on TrouveTout224"
+  },
+  "categories": {
+    "start": {
+      "title": "Getting started on TrouveTout224",
+      "items": [
+        { "q": "Is TrouveTout224 really free?", "a": "Yes, completely. Posting a listing, creating your shop, and contacting sellers costs nothing. No hidden fees." },
+        { "q": "How do I post a listing?", "a": "Click \"Post a listing\" at the top of the site, choose a category, add photos, a title, a description, a price, and your city. It's ready in a few minutes." },
+        { "q": "How do I create my shop?", "a": "Go to \"Become a seller\" or your profile, then \"Create my shop\". Add a name, a photo, and start posting your items — they'll all appear in one place, visible to all of Guinea." },
+        { "q": "Can I sell anywhere in Guinea?", "a": "Yes. You can post from any city — Conakry, Labé, Kindia, Kankan, Mamou, Boké, Faranah, Nzérékoré, and more — and buyers can filter by city to find you." }
+      ]
+    },
+    "trust": {
+      "title": "Buying and selling with confidence",
+      "items": [
+        { "q": "How do buyers contact me?", "a": "Directly on WhatsApp! Every listing shows a button to message or call the seller in one click, with no middleman." },
+        { "q": "How does payment work?", "a": "TrouveTout224 does not handle any payments. The buyer and seller arrange things directly between themselves, in person, like a regular purchase. We connect you, the transaction happens between you." },
+        { "q": "How can I avoid scams?", "a": "A few simple habits: meet in a public, busy place, always check the item before paying, be wary of prices that seem too good to be true, and favor verified sellers (blue badge). Never make a bank transfer before seeing the item." },
+        { "q": "What is a verified seller?", "a": "It's a seller whose identity has been checked by our team. Their profile displays a trust badge, extra reassurance for buyers." }
+      ]
+    },
+    "account": {
+      "title": "Managing my account",
+      "items": [
+        { "q": "I forgot my password, what do I do?", "a": "On the login page, click \"Forgot password\", enter your email, and follow the instructions to choose a new one." },
+        { "q": "How do I delete my account or my listing?", "a": "For a listing: go to Profile → My listings → Delete. For your account: Settings → Privacy → Delete my account. This action is final." },
+        { "q": "How do I report a listing or a user?", "a": "On the listing or profile in question, click \"Report\". Describe the problem and our team reviews it quickly to keep the platform safe." }
+      ]
+    }
+  },
+  "contact": {
+    "title": "Didn't find your answer?",
+    "subtitle": "Our team is available to help you directly on WhatsApp.",
+    "cta": "Contact WhatsApp support",
+    "orPrefix": "Or check out our",
+    "helpCenter": "Help Center"
+  }
+}

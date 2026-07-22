@@ -1,0 +1,68 @@
+{
+  "survey": {
+    "welcome": "Bienvenue !",
+    "title": "Parlez-nous de vous 🇬🇳",
+    "subtitle": "3 petites questions · moins de 1 minute",
+    "sources": {
+      "facebook": "Facebook",
+      "whatsapp": "WhatsApp",
+      "tiktok": "TikTok",
+      "friend": "Un ami",
+      "googleSearch": "Recherche Google",
+      "other": "Autre"
+    },
+    "interests": {
+      "electronics": "Électronique",
+      "phones": "Téléphones",
+      "vehicles": "Véhicules",
+      "realEstate": "Immobilier",
+      "fashion": "Mode & Vêtements",
+      "homeGarden": "Maison & Jardin",
+      "computing": "Informatique",
+      "jobs": "Emplois",
+      "services": "Services",
+      "food": "Alimentation",
+      "sports": "Sport & Loisirs",
+      "animals": "Animaux"
+    },
+    "step0Question": "Comment avez-vous connu TrouveTout224 ?",
+    "step1Question": "Qu'est-ce qui vous intéresse le plus ?",
+    "step1Hint": "Sélectionnez tout ce qui vous correspond",
+    "step2Question": "Vous êtes de quelle ville / quartier ?",
+    "cityPlaceholder": "ex : Conakry — Ratoma",
+    "cityHint": "Cela nous aide à vous montrer les annonces proches de chez vous.",
+    "skip": "Passer",
+    "back": "Retour",
+    "next": "Suivant",
+    "sending": "Envoi…",
+    "finish": "Terminer",
+    "successToast": "Merci pour vos réponses !",
+    "errorToast": "Erreur réseau, réessayez.",
+    "closeAriaLabel": "Fermer"
+  },
+  "nudge": {
+    "hints": {
+      "avatar": "📸 Ajoute une photo de profil pour inspirer confiance !",
+      "info": "📍 Complète ta ville et ton téléphone pour être plus visible.",
+      "email": "✉️ Vérifie ton email pour sécuriser ton compte.",
+      "security": "🔒 Configure tes questions de sécurité — utile en cas de mot de passe oublié.",
+      "explore": "🔍 Jette un œil aux annonces disponibles près de chez toi !",
+      "favorite": "❤️ Ajoute une annonce en favori pour la retrouver facilement.",
+      "firstAnnonce": "📦 Publie ta première annonce, c'est gratuit !",
+      "shop": "🏪 Crée ta boutique pour présenter tous tes produits."
+    },
+    "defaultHint": "💡 {label}",
+    "goThere": "J'y vais",
+    "later": "Plus tard",
+    "dontShowAgain": "Ne plus me montrer",
+    "closeAriaLabel": "Fermer",
+    "taskDoneToast": "Bravo ! 🎉 \"{label}\" terminé"
+  },
+  "checklist": {
+    "title": "Bien démarrer",
+    "percentComplete": "Profil complété à {percent}%",
+    "important": "Important",
+    "completeTitle": "Profil complet",
+    "completeSubtitle": "Bravo, tu as terminé toutes les étapes pour bien démarrer sur TrouveTout224 !"
+  }
+}

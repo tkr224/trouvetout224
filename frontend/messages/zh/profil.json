@@ -1,0 +1,116 @@
+{
+  "notLoggedIn": {
+    "title": "您尚未登录",
+    "login": "登录",
+    "signup": "注册"
+  },
+  "banner": {
+    "change": "更改横幅"
+  },
+  "hint": "点击照片或横幅以进行更改",
+  "verified": "已验证账户",
+  "emailVerified": "邮箱已验证",
+  "emailNotVerified": "邮箱未验证",
+  "shareLink": "分享我的主页",
+  "linkCopied": "链接已复制！",
+  "settings": "设置",
+  "logout": "退出登录",
+  "sellerSpacePrefix": "",
+  "sellerSpaceSuffix": "卖家中心",
+  "stats": {
+    "annonces": "广告",
+    "totalViews": "总浏览量",
+    "favorites": "收藏"
+  },
+  "tabs": {
+    "annonces": "我的广告 ({count})",
+    "favoris": "我的收藏 ({count})",
+    "recherches": "已保存搜索 ({count})",
+    "ventesBase": "我的销售",
+    "ventesCount": "我的销售 ({count})"
+  },
+  "status": {
+    "ACTIVE": "已通过",
+    "PENDING_REVIEW": "审核中",
+    "REJECTED": "已拒绝",
+    "SUSPENDED": "已暂停",
+    "EXPIRED": "已过期",
+    "SOLD": "已售出"
+  },
+  "annonces": {
+    "empty": "尚未发布任何广告",
+    "publish": "发布广告",
+    "newAnnonce": "发布新广告",
+    "count": "{count} 条广告",
+    "rejectionReason": "原因："
+  },
+  "favoris": {
+    "empty": "暂无收藏",
+    "emptyHint": "点击广告上的心形图标即可收藏在此处"
+  },
+  "recherches": {
+    "empty": "暂无已保存的搜索",
+    "emptyHint": "在广告列表页面点击“保存”即可接收提醒",
+    "browse": "浏览广告",
+    "defaultName": "已保存的搜索",
+    "view": "查看",
+    "deleted": "搜索已删除"
+  },
+  "ventes": {
+    "empty": "暂无销售记录",
+    "emptyHint": "在广告页面将其标记为已售出以跟踪您的销售情况。",
+    "total": "总销售额",
+    "thisMonth": "本月",
+    "thisWeek": "本周",
+    "soldProducts": "已售商品"
+  },
+  "toasts": {
+    "avatarUpdated": "头像已更新！",
+    "bannerUpdated": "横幅已更新！",
+    "uploadError": "上传出错"
+  },
+  "public": {
+    "notFound": "未找到该主页",
+    "officialShop": "官方店铺",
+    "contact": "联系",
+    "whatsapp": "WhatsApp",
+    "report": "举报",
+    "reportProfile": "举报该主页",
+    "memberSince": "加入时间：{time}",
+    "by": "由 {name}",
+    "stats": {
+      "annonces": "广告",
+      "views": "浏览量",
+      "rating": "评分",
+      "reviews": "评价"
+    },
+    "badges": {
+      "verifiedSeller": "认证卖家",
+      "emailVerified": "邮箱已验证",
+      "topSeller": "顶级卖家",
+      "excellent": "优秀",
+      "popular": "热门",
+      "new": "新用户"
+    },
+    "shopProducts": "店铺商品",
+    "userAnnonces": "{name} 的广告",
+    "metaDescriptionFallback": "{name} 在 TrouveTout224（几内亚交易平台）上的店铺",
+    "reportReasons": {
+      "SCAM": "诈骗 / 欺诈",
+      "SPAM": "垃圾信息",
+      "INAPPROPRIATE_CONTENT": "不当行为",
+      "FAKE_AD": "虚假主页",
+      "OTHER": "其他"
+    },
+    "reportModal": {
+      "question": "该主页存在什么问题？",
+      "detailsPlaceholder": "补充说明（可选）...",
+      "cancel": "取消",
+      "send": "发送举报",
+      "selectReason": "请选择一个原因",
+      "loginRequired": "请先登录后再举报",
+      "success": "举报已发送，谢谢！",
+      "error": "举报发送失败"
+    }
+  }
+}

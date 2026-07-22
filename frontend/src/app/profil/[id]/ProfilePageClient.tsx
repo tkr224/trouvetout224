@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import { AnnonceCard } from '@/components/annonces/AnnonceGrid';
 import ReviewSection from '@/components/ReviewSection';
@@ -23,15 +24,17 @@ const SHOP_COLORS = [
   { key: 'sombre', gradient: 'linear-gradient(135deg,#1f2937,#111827)', dot: '#374151' },
 ];
 
-const USER_REPORT_REASONS = [
-  { value: 'SCAM',                  label: 'Arnaque / Fraude',       Icon: AlertTriangle },
-  { value: 'SPAM',                  label: 'Spam',                   Icon: AlertCircle },
-  { value: 'INAPPROPRIATE_CONTENT', label: 'Comportement inapproprié', Icon: AlertCircle },
-  { value: 'FAKE_AD',               label: 'Faux profil',            Icon: AlertTriangle },
-  { value: 'OTHER',                 label: 'Autre',                  Icon: HelpCircle },
-];
+const USER_REPORT_REASON_HREFS = [
+  { value: 'SCAM',                  Icon: AlertTriangle },
+  { value: 'SPAM',                  Icon: AlertCircle },
+  { value: 'INAPPROPRIATE_CONTENT', Icon: AlertCircle },
+  { value: 'FAKE_AD',               Icon: AlertTriangle },
+  { value: 'OTHER',                 Icon: HelpCircle },
+] as const;
 
 export default function PublicProfilPage() {
+  const t = useTranslations('profil');
+  const USER_REPORT_REASONS = USER_REPORT_REASON_HREFS.map(r => ({ ...r, label: t(`public.reportReasons.${r.value}`) }));
   const { id } = useParams();
   const [profile, setProfile] = useState<any>(null);
   const [annonces, setAnnonces] = useState<any[]>([]);
@@ -45,17 +48,17 @@ export default function PublicProfilPage() {
   const { isAuthenticated } = useAuthStore();
 
   const submitReport = async () => {
-    if (!reportReason) return toast.error('Sélectionnez un motif');
-    if (!isAuthenticated) return toast.error('Connectez-vous pour signaler');
+    if (!reportReason) return toast.error(t('public.reportModal.selectReason'));
+    if (!isAuthenticated) return toast.error(t('public.reportModal.loginRequired'));
     setReportLoading(true);
     try {
       await api.post('/reports', { reportedUserId: id, reason: reportReason, description: reportDesc });
-      toast.success('Signalement envoyé. Merci !');
+      toast.success(t('public.reportModal.success'));
       setShowReport(false);
       setReportReason('');
       setReportDesc('');
     } catch {
-      toast.error('Erreur lors du signalement');
+      toast.error(t('public.reportModal.error'));
     } finally {
       setReportLoading(false);
     }
@@ -88,7 +91,7 @@ export default function PublicProfilPage() {
       <div className="flex items-center justify-center min-h-[60vh] text-center">
         <div>
           <div className="w-14 h-14 bg-dark-100 rounded-2xl flex items-center justify-center mx-auto mb-4"><User size={26} className="text-dark-400" /></div>
-          <p className="font-semibold text-dark-700">Profil non trouvé</p>
+          <p className="font-semibold text-dark-700">{t('public.notFound')}</p>
         </div>
       </div>
     </div>
@@ -106,12 +109,12 @@ export default function PublicProfilPage() {
   const sortedAnnonces = [...annonces].sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
 
   const badges = [];
-  if (profile.isVerified) badges.push({ icon: CheckCircle, label: 'Vendeur vérifié', color: 'bg-blue-100 text-blue-700' });
-  if (profile.emailVerified) badges.push({ icon: Mail, label: 'Email vérifié', color: 'bg-sky-100 text-sky-700' });
-  if ((profile._count?.annonces || 0) >= 10 && avgRating >= 4.0) badges.push({ icon: Award, label: 'Top vendeur', color: 'bg-yellow-100 text-yellow-700' });
-  if (avgRating >= 4.5 && ratingsCount >= 3) badges.push({ icon: Star, label: 'Excellent', color: 'bg-green-100 text-green-700' });
-  if (totalViews >= 100) badges.push({ icon: TrendingUp, label: 'Populaire', color: 'bg-purple-100 text-purple-700' });
-  if (isNewSeller) badges.push({ icon: Sparkles, label: 'Nouveau', color: 'bg-primary-100 text-primary-700' });
+  if (profile.isVerified) badges.push({ icon: CheckCircle, label: t('public.badges.verifiedSeller'), color: 'bg-blue-100 text-blue-700' });
+  if (profile.emailVerified) badges.push({ icon: Mail, label: t('public.badges.emailVerified'), color: 'bg-sky-100 text-sky-700' });
+  if ((profile._count?.annonces || 0) >= 10 && avgRating >= 4.0) badges.push({ icon: Award, label: t('public.badges.topSeller'), color: 'bg-yellow-100 text-yellow-700' });
+  if (avgRating >= 4.5 && ratingsCount >= 3) badges.push({ icon: Star, label: t('public.badges.excellent'), color: 'bg-green-100 text-green-700' });
+  if (totalViews >= 100) badges.push({ icon: TrendingUp, label: t('public.badges.popular'), color: 'bg-purple-100 text-purple-700' });
+  if (isNewSeller) badges.push({ icon: Sparkles, label: t('public.badges.new'), color: 'bg-primary-100 text-primary-700' });
 
   return (
     <div className="min-h-screen bg-dark-50">
@@ -127,7 +130,7 @@ export default function PublicProfilPage() {
             {hasShop && (
               <div className="absolute top-3 left-3 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5"
                 style={{ color: shopColorData.dot }}>
-                <Store size={13} /> Boutique officielle
+                <Store size={13} /> {t('public.officialShop')}
               </div>
             )}
             {hasShop && profile.shopSlogan && (
@@ -159,20 +162,20 @@ export default function PublicProfilPage() {
                     rel="noopener noreferrer"
                     className="bg-green-500 text-white font-semibold px-4 py-2 rounded-xl flex items-center gap-1.5 text-sm hover:bg-green-600 transition-colors"
                   >
-                    <MessageCircle size={14}/> WhatsApp
+                    <MessageCircle size={14}/> {t('public.whatsapp')}
                   </a>
                 ) : (
                   <button className="btn-primary flex items-center gap-1.5 text-sm py-2 px-4">
-                    <MessageCircle size={14}/> Contacter
+                    <MessageCircle size={14}/> {t('public.contact')}
                   </button>
                 )}
                 <button
                   onClick={() => setShowReport(true)}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dark-200 text-dark-500 hover:border-guinea-400 hover:text-guinea-600 hover:bg-guinea-50 transition-colors text-sm font-medium"
-                  title="Signaler ce profil"
+                  title={t('public.reportProfile')}
                 >
                   <Flag size={14} />
-                  <span className="hidden sm:inline">Signaler</span>
+                  <span className="hidden sm:inline">{t('public.report')}</span>
                 </button>
               </div>
             </div>
@@ -185,14 +188,14 @@ export default function PublicProfilPage() {
               </h1>
               {hasShop && (
                 <p className="text-dark-500 text-sm mt-0.5">
-                  par {profile.firstName} {profile.lastName}
+                  {t('public.by', { name: `${profile.firstName} ${profile.lastName}` })}
                 </p>
               )}
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-dark-500 text-sm">
                 {hasShop && profile.city && (
                   <span className="flex items-center gap-1"><MapPin size={13}/>{profile.city.name}</span>
                 )}
-                <span className="flex items-center gap-1"><Calendar size={13}/>Membre depuis {memberSince}</span>
+                <span className="flex items-center gap-1"><Calendar size={13}/>{t('public.memberSince', { time: memberSince })}</span>
               </div>
             </div>
 
@@ -222,10 +225,10 @@ export default function PublicProfilPage() {
             {/* Ligne 5 : stats */}
             <div className="grid grid-cols-4 gap-3">
               {[
-                { icon: ShoppingBag, label: 'Annonces', value: profile._count?.annonces || 0, color: 'text-primary-700' },
-                { icon: Eye,         label: 'Vues',     value: totalViews,                    color: 'text-blue-600' },
-                { icon: Star,        label: 'Note',     value: avgRating ? avgRating.toFixed(1) : '—', color: 'text-yellow-600' },
-                { icon: MessageCircle, label: 'Avis',   value: ratingsCount,                  color: 'text-purple-600' },
+                { icon: ShoppingBag, label: t('public.stats.annonces'), value: profile._count?.annonces || 0, color: 'text-primary-700' },
+                { icon: Eye,         label: t('public.stats.views'),    value: totalViews,                    color: 'text-blue-600' },
+                { icon: Star,        label: t('public.stats.rating'),   value: avgRating ? avgRating.toFixed(1) : '—', color: 'text-yellow-600' },
+                { icon: MessageCircle, label: t('public.stats.reviews'), value: ratingsCount,                 color: 'text-purple-600' },
               ].map((s, i) => (
                 <div key={i} className="bg-dark-50 rounded-xl p-3 text-center">
                   <s.icon size={16} className={`mx-auto mb-1 ${s.color}`} />
@@ -243,7 +246,7 @@ export default function PublicProfilPage() {
 
         {annonces.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-xl font-display font-bold text-dark-900 mb-4 flex items-center gap-2"><Package size={18} className="text-dark-400" />{hasShop ? 'Produits de la boutique' : `Annonces de ${profile.firstName}`} ({annonces.length})</h2>
+            <h2 className="text-xl font-display font-bold text-dark-900 mb-4 flex items-center gap-2"><Package size={18} className="text-dark-400" />{hasShop ? t('public.shopProducts') : t('public.userAnnonces', { name: profile.firstName })} ({annonces.length})</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 stagger">
               {sortedAnnonces.map(a => <AnnonceCard key={a.id} annonce={a}/>)}
             </div>
@@ -259,13 +262,13 @@ export default function PublicProfilPage() {
           <div className="bg-white rounded-3xl shadow-card-hover w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-display font-bold text-dark-900 text-lg flex items-center gap-2">
-                <Flag size={18} className="text-guinea-500" /> Signaler ce profil
+                <Flag size={18} className="text-guinea-500" /> {t('public.reportProfile')}
               </h3>
               <button onClick={() => setShowReport(false)} className="text-dark-400 hover:text-dark-700 transition-colors">
                 <X size={20} />
               </button>
             </div>
-            <p className="text-dark-500 text-sm mb-4">Quel est le problème avec ce profil ?</p>
+            <p className="text-dark-500 text-sm mb-4">{t('public.reportModal.question')}</p>
             <div className="space-y-2 mb-4">
               {USER_REPORT_REASONS.map(({ value, label, Icon }) => (
                 <button
@@ -285,13 +288,13 @@ export default function PublicProfilPage() {
             <textarea
               value={reportDesc}
               onChange={e => setReportDesc(e.target.value)}
-              placeholder="Détails supplémentaires (optionnel)..."
+              placeholder={t('public.reportModal.detailsPlaceholder')}
               rows={3}
               className="w-full border border-dark-200 rounded-xl px-4 py-3 text-sm text-dark-900 placeholder-dark-400 focus:outline-none focus:ring-2 focus:ring-guinea-500 resize-none mb-4"
             />
             <div className="flex gap-3">
               <button onClick={() => setShowReport(false)} className="flex-1 border border-dark-200 text-dark-600 font-semibold py-2.5 rounded-xl hover:bg-dark-50 transition-colors text-sm">
-                Annuler
+                {t('public.reportModal.cancel')}
               </button>
               <button
                 onClick={submitReport}
@@ -299,7 +302,7 @@ export default function PublicProfilPage() {
                 className="flex-1 bg-guinea-600 hover:bg-guinea-700 text-white font-semibold py-2.5 rounded-xl disabled:opacity-50 transition-colors text-sm flex items-center justify-center gap-2"
               >
                 {reportLoading ? <Loader2 size={15} className="animate-spin" /> : <Flag size={15} />}
-                Envoyer le signalement
+                {t('public.reportModal.send')}
               </button>
             </div>
           </div>

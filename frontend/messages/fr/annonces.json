@@ -1,0 +1,218 @@
+{
+  "redirect": {
+    "loading": "Chargement des annonces..."
+  },
+  "listPage": {
+    "title": "Toutes les annonces",
+    "subtitle": "Trouvez ce dont vous avez besoin en Guinée",
+    "searchPlaceholder": "Rechercher une annonce...",
+    "filters": {
+      "title": "Filtres",
+      "category": "Catégorie",
+      "allCategories": "Toutes les catégories",
+      "subcategory": "Sous-catégorie",
+      "all": "Toutes",
+      "city": "Ville",
+      "allCities": "Toutes les villes",
+      "priceRange": "Fourchette de prix (GNF)",
+      "min": "Minimum",
+      "max": "Maximum",
+      "to": "à",
+      "condition": "État du produit",
+      "conditionAll": "Tous",
+      "reset": "Réinitialiser les filtres",
+      "active": "{count, plural, one {actif} other {actifs}}"
+    },
+    "conditions": {
+      "new": "Neuf",
+      "likeNew": "Comme neuf",
+      "goodCondition": "Bon état",
+      "used": "Occasion"
+    },
+    "sorts": {
+      "recent": "Plus récents",
+      "popular": "Plus populaires",
+      "views": "Plus consultés",
+      "priceAsc": "Prix croissant",
+      "priceDesc": "Prix décroissant",
+      "rating": "Meilleures notes"
+    },
+    "clearAll": "Tout effacer",
+    "saveSearch": "Sauvegarder",
+    "saveSearchSuccess": "Recherche sauvegardée !",
+    "saveSearchError": "Erreur lors de la sauvegarde",
+    "saveSearchLoginRequired": "Connectez-vous pour sauvegarder une recherche",
+    "resultsCount": "{count, plural, one {annonce} other {annonces}}",
+    "resultsFor": "pour",
+    "priceMin": "≥ {price} GNF",
+    "priceMax": "≤ {price} GNF",
+    "empty": {
+      "title": "Aucune annonce trouvée",
+      "withFilters": "Aucune annonce ne correspond à vos critères. Essayez de modifier ou réinitialiser vos filtres.",
+      "noFilters": "Il n'y a pas encore d'annonces dans cette catégorie."
+    },
+    "pagination": {
+      "previous": "← Précédent",
+      "next": "Suivant →"
+    }
+  },
+  "detail": {
+    "breadcrumb": {
+      "home": "Accueil",
+      "annonces": "Annonces"
+    },
+    "notFound": "Annonce non trouvée",
+    "owner": {
+      "yourListing": "C'est votre annonce",
+      "hidden": "Masquée",
+      "sold": "Vendue",
+      "edit": "Modifier",
+      "hide": "Masquer",
+      "unhide": "Réafficher",
+      "markSold": "Marquer vendu",
+      "reactivate": "Réactiver",
+      "delete": "Supprimer"
+    },
+    "ageGate": {
+      "title": "Contenu réservé aux adultes",
+      "message": "Ce produit est réservé aux adultes. Avez-vous 18 ans ou plus ?",
+      "no": "Non",
+      "yes": "Oui, 18 ans ou plus"
+    },
+    "gallery": {
+      "removeFavorite": "Retirer des favoris",
+      "addFavorite": "Ajouter aux favoris",
+      "share": "Partager"
+    },
+    "badges": {
+      "featured": "À la une"
+    },
+    "price": {
+      "promo": "Promo",
+      "promoUntil": "jusqu'au {date}",
+      "negotiable": "Négociable",
+      "onRequest": "Prix à négocier"
+    },
+    "meta": {
+      "views": "{count, plural, one {# vue} other {# vues}}"
+    },
+    "specs": {
+      "title": "Caractéristiques",
+      "condition": "État",
+      "quantity": "Quantité",
+      "bedrooms": "Chambres",
+      "bedroomsValue": "{count, plural, one {# chambre} other {# chambres}}",
+      "surface": "Surface",
+      "furnished": "Meublé",
+      "yes": "Oui",
+      "no": "Non",
+      "contractType": "Type de contrat",
+      "salary": "Salaire",
+      "experience": "Expérience",
+      "rating": "Classement",
+      "ratingValue": "{count, plural, one {# étoile} other {# étoiles}}",
+      "cuisine": "Cuisine",
+      "priceRange": "Gamme de prix",
+      "plotType": "Type de terrain",
+      "titleDeed": "Titre foncier",
+      "available": "Disponible",
+      "unavailable": "Non disponible",
+      "serviceType": "Type de service",
+      "amenities": "Commodités"
+    },
+    "description": {
+      "title": "Description"
+    },
+    "report": {
+      "link": "Signaler cette annonce"
+    },
+    "seller": {
+      "title": "Vendeur",
+      "verifiedShop": "Boutique vérifiée",
+      "viewProfile": "Voir le profil →",
+      "sendMessage": "Envoyer un message",
+      "whatsapp": "WhatsApp",
+      "contactMessage": "Bonjour, je suis intéressé(e) par votre annonce « {title} ». Est-elle toujours disponible ?"
+    },
+    "scamTips": {
+      "title": "Conseils anti-arnaque",
+      "tip1": "Ne payez jamais d'avance sans avoir vérifié le produit en personne.",
+      "tip2": "Rencontrez le vendeur dans un lieu public et fréquenté.",
+      "tip3": "N'envoyez pas d'argent par transfert à une personne inconnue.",
+      "tip4": "Vérifiez bien le produit avant de payer."
+    },
+    "similar": {
+      "title": "Annonces similaires",
+      "subtitle": "Dans la même catégorie · {category}",
+      "seeAll": "Voir tout"
+    },
+    "recent": {
+      "title": "Vues récemment",
+      "subtitle": "Vos dernières consultations"
+    },
+    "contactModal": {
+      "title": "Contacter le vendeur",
+      "advice": "Conseil :",
+      "adviceText": "Ne payez jamais avant de voir le produit. Rencontrez le vendeur dans un lieu public.",
+      "placeholder": "Votre message...",
+      "cancel": "Annuler",
+      "send": "Envoyer",
+      "sending": "Envoi..."
+    },
+    "shareModal": {
+      "title": "Partager l'annonce",
+      "copyLink": "Copier le lien",
+      "whatsapp": "Partager sur WhatsApp",
+      "facebook": "Partager sur Facebook"
+    },
+    "soldModal": {
+      "title": "Marquer comme vendu",
+      "displayedPrice": "Prix affiché : {price} GNF",
+      "salePriceLabel": "Prix réel de vente",
+      "salePricePlaceholder": "Ex: 450000",
+      "salePriceHint": "Modifiez si le prix négocié diffère du prix affiché.",
+      "saleDateLabel": "Date de vente",
+      "optional": "(optionnel)",
+      "info": "Cette vente sera comptabilisée dans vos statistiques. L'annonce sera retirée des recherches actives.",
+      "cancel": "Annuler",
+      "confirm": "Confirmer la vente",
+      "saving": "Enregistrement..."
+    },
+    "reportModal": {
+      "title": "Signaler l'annonce",
+      "question": "Pourquoi signalez-vous cette annonce ?",
+      "reasons": {
+        "scam": "Contenu frauduleux",
+        "forbiddenProduct": "Produit interdit",
+        "suspiciousPrice": "Prix suspect",
+        "duplicate": "Annonce en double",
+        "inappropriateContent": "Contenu inapproprié",
+        "other": "Autre"
+      },
+      "detailsPlaceholder": "Détails supplémentaires (optionnel)...",
+      "submit": "Envoyer le signalement"
+    },
+    "toasts": {
+      "messageSent": "Message envoyé !",
+      "messageSendError": "Impossible d'envoyer le message.",
+      "loginToSave": "Connectez-vous pour sauvegarder",
+      "genericError": "Erreur",
+      "linkCopied": "Lien copié !",
+      "hidden": "Annonce masquée",
+      "unhidden": "Annonce réaffichée",
+      "confirmDelete": "Supprimer définitivement cette annonce ?",
+      "deleted": "Annonce supprimée",
+      "deleteError": "Erreur lors de la suppression",
+      "invalidSalePrice": "Entrez un prix de vente valide.",
+      "markedSold": "Annonce marquée comme vendue !",
+      "markSoldError": "Erreur lors de la mise à jour.",
+      "confirmReactivate": "Réactiver cette annonce et la remettre en vente ?",
+      "reactivated": "Annonce réactivée avec succès.",
+      "reactivateError": "Erreur lors de la réactivation.",
+      "chooseReason": "Choisissez une raison",
+      "loginToReport": "Connectez-vous pour signaler",
+      "reportSent": "Signalement envoyé. Notre équipe va examiner.",
+      "reportError": "Erreur lors du signalement"
+    }
+  }
+}

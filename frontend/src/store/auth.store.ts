@@ -9,6 +9,7 @@ interface User {
   onboardingDone?: boolean; createdAt?: string;
   accountType?: string; hasPassword?: boolean;
   username?: string; cityId?: string; city?: { id: string; name: string };
+  preferredLanguage?: 'FR' | 'EN' | 'ZH';
 }
 
 interface AuthStore {

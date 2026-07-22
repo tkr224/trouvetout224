@@ -1,8 +1,31 @@
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 import { MapPin, Heart, Globe, Camera, AtSign, PlayCircle } from 'lucide-react';
 
-export default function Footer() {
+export default async function Footer() {
+  const t = await getTranslations('footer');
   const year = new Date().getFullYear();
+  const CATEGORIES = [
+    { key: 'electronique', slug: 'electronique' },
+    { key: 'vehicules',    slug: 'vehicules' },
+    { key: 'immobilier',   slug: 'immobilier' },
+    { key: 'emplois',      slug: 'emplois' },
+    { key: 'restaurants',  slug: 'restaurants' },
+    { key: 'hotels',       slug: 'hotels' },
+    { key: 'mode',         slug: 'mode' },
+    { key: 'services',     slug: 'services' },
+  ] as const;
+  const INFO_LINKS = [
+    { key: 'about',      href: '/a-propos' },
+    { key: 'howItWorks', href: '/aide' },
+    { key: 'faq',        href: '/faq' },
+    { key: 'publish',    href: '/annonces/publier' },
+    { key: 'premium',    href: '/premium' },
+    { key: 'contact',    href: '/contact' },
+    { key: 'terms',      href: '/conditions' },
+    { key: 'privacy',    href: '/confidentialite' },
+    { key: 'credits',    href: '/credits-images' },
+  ] as const;
   return (
     <footer className="site-footer bg-dark-900 text-white mt-20">
       <div className="max-w-7xl mx-auto px-4 py-14">
@@ -23,14 +46,14 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-dark-400 text-sm leading-relaxed">
-              La plus grande plateforme d'annonces et marketplace de Guinée. Achetez, vendez, trouvez un emploi ou un logement facilement.
+              {t('description')}
             </p>
             <div className="flex gap-3 mt-4">
               {[
-                { Icon: Globe,       label: 'Site web',  href: '/' },
-                { Icon: Camera,      label: 'Instagram', href: 'https://www.instagram.com' },
-                { Icon: AtSign,      label: 'X (Twitter)', href: 'https://twitter.com' },
-                { Icon: PlayCircle,  label: 'YouTube',   href: 'https://www.youtube.com' },
+                { Icon: Globe,       label: t('socials.website'),  href: '/' },
+                { Icon: Camera,      label: t('socials.instagram'), href: 'https://www.instagram.com' },
+                { Icon: AtSign,      label: t('socials.twitter'), href: 'https://twitter.com' },
+                { Icon: PlayCircle,  label: t('socials.youtube'),   href: 'https://www.youtube.com' },
               ].map(({ Icon, label, href }) => (
                 <a key={label} href={href} target={href.startsWith('http') ? '_blank' : undefined}
                   rel="noopener noreferrer" aria-label={label}
@@ -43,21 +66,12 @@ export default function Footer() {
 
           {/* Catégories */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Catégories</h3>
+            <h3 className="font-semibold text-white mb-4">{t('categoriesTitle')}</h3>
             <ul className="space-y-2 text-dark-400 text-sm">
-              {[
-                { label: 'Téléphones',  slug: 'electronique' },
-                { label: 'Véhicules',   slug: 'vehicules' },
-                { label: 'Immobilier',  slug: 'immobilier' },
-                { label: 'Emplois',     slug: 'emplois' },
-                { label: 'Restaurants', slug: 'restaurants' },
-                { label: 'Hôtels',      slug: 'hotels' },
-                { label: 'Mode',        slug: 'mode' },
-                { label: 'Services',    slug: 'services' },
-              ].map(({ label, slug }) => (
+              {CATEGORIES.map(({ key, slug }) => (
                 <li key={slug}>
                   <Link href={`/categories/${slug}`} className="hover:text-primary-400 transition-colors">
-                    {label}
+                    {t(`categories.${key}`)}
                   </Link>
                 </li>
               ))}
@@ -66,7 +80,7 @@ export default function Footer() {
 
           {/* Villes */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Villes</h3>
+            <h3 className="font-semibold text-white mb-4">{t('citiesTitle')}</h3>
             <ul className="space-y-2 text-dark-400 text-sm">
               {['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'].map((v) => (
                 <li key={v}>
@@ -80,22 +94,12 @@ export default function Footer() {
 
           {/* Infos */}
           <div>
-            <h3 className="font-semibold text-white mb-4">TrouveTout224</h3>
+            <h3 className="font-semibold text-white mb-4">{t('infoTitle')}</h3>
             <ul className="space-y-2 text-dark-400 text-sm">
-              {[
-                { label: 'À propos', href: '/a-propos' },
-                { label: 'Comment ça marche', href: '/aide' },
-                { label: 'Questions fréquentes (FAQ)', href: '/faq' },
-                { label: 'Publier une annonce', href: '/annonces/publier' },
-                { label: 'Pack Premium', href: '/premium' },
-                { label: 'Contact', href: '/contact' },
-                { label: "Conditions d'utilisation", href: '/conditions' },
-                { label: 'Politique de confidentialité', href: '/confidentialite' },
-                { label: 'Crédits photos', href: '/credits-images' },
-              ].map((link) => (
+              {INFO_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="hover:text-primary-400 transition-colors">
-                    {link.label}
+                    {t(`links.${link.key}`)}
                   </Link>
                 </li>
               ))}
@@ -104,8 +108,8 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-dark-700 mt-10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-dark-500 text-sm">
-          <p>© {year} TrouveTout224 · Conakry, République de Guinée 🇬🇳</p>
-          <p className="flex items-center gap-1">Fait avec <Heart size={13} className="text-guinea-500 fill-guinea-500" /> pour la Guinée</p>
+          <p>{t('copyright', { year })}</p>
+          <p className="flex items-center gap-1">{t('madeWith')} <Heart size={13} className="text-guinea-500 fill-guinea-500" /> {t('madeFor')}</p>
         </div>
       </div>
     </footer>

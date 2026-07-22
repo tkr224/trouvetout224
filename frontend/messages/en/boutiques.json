@@ -1,0 +1,40 @@
+{
+  "title": "Shops",
+  "subtitle": "{count, plural, one {# shop} other {# shops}} on TrouveTout224",
+  "searchPlaceholder": "Search a shop by name...",
+  "filters": "Filters",
+  "cityLabel": "City / Neighborhood",
+  "allCities": "All cities",
+  "categoryLabel": "Category",
+  "allCategories": "All categories",
+  "clearFilters": "Clear filters",
+  "categories": {
+    "electronique": "Electronics",
+    "modeVetements": "Clothing & Fashion",
+    "alimentation": "Food",
+    "maisonDeco": "Home & Decor",
+    "beauteSante": "Beauty & Health",
+    "autoMoto": "Auto & Moto",
+    "immobilier": "Real estate",
+    "services": "Services",
+    "agriculture": "Agriculture",
+    "materiaux": "Building materials",
+    "animaux": "Pets",
+    "sportsLoisirs": "Sports & Leisure"
+  },
+  "empty": {
+    "title": "No shops found",
+    "withFilters": "Try changing your search or filters.",
+    "noFilters": "No active shops at the moment."
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {page} / {total}"
+  },
+  "card": {
+    "verifiedShop": "Verified shop",
+    "listingCount": "{count, plural, one {# listing} other {# listings}}",
+    "subscribers": "subs."
+  }
+}

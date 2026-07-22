@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
@@ -11,6 +12,7 @@ import {
 import toast from 'react-hot-toast';
 
 export default function AbonnementsPage() {
+  const t = useTranslations('premium.abonnements');
   const { isAuthenticated } = useAuthStore();
   const [subs, setSubs]           = useState<any[]>([]);
   const [loading, setLoading]     = useState(true);
@@ -29,9 +31,9 @@ export default function AbonnementsPage() {
     try {
       await api.delete(`/subscriptions/${vendorId}`);
       setSubs(s => s.filter(sub => sub.vendorId !== vendorId));
-      toast('Désabonné', { icon: '👋' });
+      toast(t('toastUnsubscribed'), { icon: '👋' });
     } catch {
-      toast.error('Erreur lors du désabonnement');
+      toast.error(t('toastUnsubscribeError'));
     } finally {
       setUnsubLoading(null);
     }
@@ -43,9 +45,9 @@ export default function AbonnementsPage() {
       const r = await api.patch(`/subscriptions/${sub.vendorId}/notify`);
       const newNotify = r.data.data.notify;
       setSubs(s => s.map(x => x.vendorId === sub.vendorId ? { ...x, notify: newNotify } : x));
-      toast(newNotify ? 'Notifications activées' : 'Notifications désactivées', { icon: newNotify ? '🔔' : '🔕' });
+      toast(newNotify ? t('toastNotifyOn') : t('toastNotifyOff'), { icon: newNotify ? '🔔' : '🔕' });
     } catch {
-      toast.error('Erreur');
+      toast.error(t('toastError'));
     } finally {
       setNotifyLoading(null);
     }
@@ -61,9 +63,9 @@ export default function AbonnementsPage() {
               <Lock size={26} className="text-dark-400" />
             </div>
             <p className="font-semibold text-dark-700 text-xl mb-4">
-              Connectez-vous pour voir vos abonnements
+              {t('loginRequiredMsg')}
             </p>
-            <Link href="/auth/connexion" className="btn-primary">Se connecter</Link>
+            <Link href="/auth/connexion" className="btn-primary">{t('login')}</Link>
           </div>
         </div>
       </div>
@@ -78,11 +80,11 @@ export default function AbonnementsPage() {
         {/* En-tête */}
         <div className="mb-6">
           <h1 className="text-2xl font-display font-bold text-dark-900 flex items-center gap-2">
-            <Users size={22} className="text-primary-700" /> Mes abonnements
+            <Users size={22} className="text-primary-700" /> {t('pageTitle')}
           </h1>
           {!loading && (
             <p className="text-dark-400 text-sm mt-1">
-              {subs.length} boutique{subs.length > 1 ? 's' : ''} suivie{subs.length > 1 ? 's' : ''}
+              {t('shopsFollowed', { count: subs.length })}
             </p>
           )}
         </div>
@@ -105,12 +107,12 @@ export default function AbonnementsPage() {
         ) : subs.length === 0 ? (
           <div className="card p-16 text-center">
             <Store size={52} className="text-dark-200 mx-auto mb-4" />
-            <p className="font-semibold text-dark-700 text-lg mb-1">Aucune boutique suivie</p>
+            <p className="font-semibold text-dark-700 text-lg mb-1">{t('noShopsTitle')}</p>
             <p className="text-dark-500 text-sm mb-6">
-              Abonnez-vous à des boutiques pour ne manquer aucun nouveau produit
+              {t('noShopsMsg')}
             </p>
             <Link href="/annonces/lister" className="btn-primary inline-flex items-center gap-2">
-              Découvrir les annonces
+              {t('discoverListings')}
             </Link>
           </div>
 
@@ -145,7 +147,7 @@ export default function AbonnementsPage() {
                       )}
                     </div>
                     <p className="text-dark-400 text-xs mt-0.5">
-                      {count} annonce{count > 1 ? 's' : ''} active{count > 1 ? 's' : ''}
+                      {t('activeAdsCount', { count })}
                     </p>
                   </div>
 
@@ -156,7 +158,7 @@ export default function AbonnementsPage() {
                     <button
                       onClick={() => handleNotifyToggle(sub)}
                       disabled={notifyLoading === sub.vendorId}
-                      title={sub.notify ? 'Désactiver les notifications' : 'Activer les notifications'}
+                      title={sub.notify ? t('disableNotifications') : t('enableNotifications')}
                       className={`p-2 rounded-xl transition-colors ${
                         sub.notify
                           ? 'bg-primary-100 text-primary-700 hover:bg-primary-200'
@@ -173,7 +175,7 @@ export default function AbonnementsPage() {
                     <Link
                       href={`/profil/${vendor.id}`}
                       className="p-2 rounded-xl bg-primary-100 text-primary-700 hover:bg-primary-200 transition-colors"
-                      title="Voir la boutique"
+                      title={t('viewShop')}
                     >
                       <ArrowRight size={14} />
                     </Link>
@@ -183,7 +185,7 @@ export default function AbonnementsPage() {
                       onClick={() => handleUnsubscribe(sub.vendorId)}
                       disabled={unsubLoading === sub.vendorId}
                       className="p-2 rounded-xl bg-dark-100 text-dark-400 hover:bg-guinea-50 hover:text-guinea-600 transition-colors"
-                      title="Se désabonner"
+                      title={t('unsubscribe')}
                     >
                       {unsubLoading === sub.vendorId
                         ? <Loader2 size={14} className="animate-spin" />

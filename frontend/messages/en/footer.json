@@ -1,0 +1,36 @@
+{
+  "description": "Guinea's largest classifieds and marketplace platform. Buy, sell, find a job or a home easily.",
+  "socials": {
+    "website": "Website",
+    "instagram": "Instagram",
+    "twitter": "X (Twitter)",
+    "youtube": "YouTube"
+  },
+  "categoriesTitle": "Categories",
+  "categories": {
+    "electronique": "Phones",
+    "vehicules": "Vehicles",
+    "immobilier": "Real Estate",
+    "emplois": "Jobs",
+    "restaurants": "Restaurants",
+    "hotels": "Hotels",
+    "mode": "Fashion",
+    "services": "Services"
+  },
+  "citiesTitle": "Cities",
+  "infoTitle": "TrouveTout224",
+  "links": {
+    "about": "About us",
+    "howItWorks": "How it works",
+    "faq": "Frequently asked questions (FAQ)",
+    "publish": "Post an ad",
+    "premium": "Premium Pack",
+    "contact": "Contact",
+    "terms": "Terms of use",
+    "privacy": "Privacy policy",
+    "credits": "Photo credits"
+  },
+  "copyright": "© {year} TrouveTout224 · Conakry, Republic of Guinea 🇬🇳",
+  "madeWith": "Made with",
+  "madeFor": "for Guinea"
+}

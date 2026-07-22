@@ -1,0 +1,36 @@
+{
+  "description": "La plus grande plateforme d'annonces et marketplace de Guinée. Achetez, vendez, trouvez un emploi ou un logement facilement.",
+  "socials": {
+    "website": "Site web",
+    "instagram": "Instagram",
+    "twitter": "X (Twitter)",
+    "youtube": "YouTube"
+  },
+  "categoriesTitle": "Catégories",
+  "categories": {
+    "electronique": "Téléphones",
+    "vehicules": "Véhicules",
+    "immobilier": "Immobilier",
+    "emplois": "Emplois",
+    "restaurants": "Restaurants",
+    "hotels": "Hôtels",
+    "mode": "Mode",
+    "services": "Services"
+  },
+  "citiesTitle": "Villes",
+  "infoTitle": "TrouveTout224",
+  "links": {
+    "about": "À propos",
+    "howItWorks": "Comment ça marche",
+    "faq": "Questions fréquentes (FAQ)",
+    "publish": "Publier une annonce",
+    "premium": "Pack Premium",
+    "contact": "Contact",
+    "terms": "Conditions d'utilisation",
+    "privacy": "Politique de confidentialité",
+    "credits": "Crédits photos"
+  },
+  "copyright": "© {year} TrouveTout224 · Conakry, République de Guinée 🇬🇳",
+  "madeWith": "Fait avec"  ,
+  "madeFor": "pour la Guinée"
+}

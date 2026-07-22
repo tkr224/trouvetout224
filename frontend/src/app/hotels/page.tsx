@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useQuery } from 'react-query';
+import { useTranslations } from 'next-intl';
 import { Search, MapPin, Building2, Star, Wifi, Car, Wind, Waves, Coffee, Zap } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import PageViewTracker from '@/components/PageViewTracker';
@@ -10,24 +11,25 @@ import Link from 'next/link';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 
-const AMENITY_FILTERS = [
-  { value: 'wifi', label: 'Wi-Fi', icon: <Wifi size={12} /> },
-  { value: 'parking', label: 'Parking', icon: <Car size={12} /> },
-  { value: 'clim', label: 'Clim', icon: <Wind size={12} /> },
-  { value: 'piscine', label: 'Piscine', icon: <Waves size={12} /> },
-  { value: 'petitdej', label: 'Petit-déj', icon: <Coffee size={12} /> },
-  { value: 'groupelec', label: 'Groupe élec.', icon: <Zap size={12} /> },
-];
-
-const PRICE_RANGES = [
-  { label: 'Tous les prix', min: 0, max: 0 },
-  { label: '< 200 000 GNF', min: 0, max: 200000 },
-  { label: '200 000 – 500 000', min: 200000, max: 500000 },
-  { label: '500 000 – 1 M', min: 500000, max: 1000000 },
-  { label: '+ 1 000 000 GNF', min: 1000000, max: 0 },
-];
+const AMENITY_META = [
+  { value: 'wifi', key: 'amenityWifi', icon: <Wifi size={12} /> },
+  { value: 'parking', key: 'amenityParking', icon: <Car size={12} /> },
+  { value: 'clim', key: 'amenityClim', icon: <Wind size={12} /> },
+  { value: 'piscine', key: 'amenityPool', icon: <Waves size={12} /> },
+  { value: 'petitdej', key: 'amenityBreakfast', icon: <Coffee size={12} /> },
+  { value: 'groupelec', key: 'amenityGenerator', icon: <Zap size={12} /> },
+] as const;
 
 export default function HotelsPage() {
+  const t = useTranslations('hotels.list');
+  const AMENITY_FILTERS = AMENITY_META.map(a => ({ value: a.value, label: t(a.key), icon: a.icon }));
+  const PRICE_RANGES = [
+    { label: t('priceAll'), min: 0, max: 0 },
+    { label: t('priceUnder200'), min: 0, max: 200000 },
+    { label: t('price200to500'), min: 200000, max: 500000 },
+    { label: t('price500to1M'), min: 500000, max: 1000000 },
+    { label: t('priceOver1M'), min: 1000000, max: 0 },
+  ];
   const [q, setQ] = useState('');
   const [city, setCity] = useState('');
   const [priceRange, setPriceRange] = useState(0);
@@ -69,20 +71,20 @@ export default function HotelsPage() {
         </div>
         <div className="max-w-3xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 bg-white/10 text-white/80 text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
-            <Building2 size={13} /> Hébergements
+            <Building2 size={13} /> {t('badge')}
           </div>
           <h1 className="text-4xl font-display font-bold text-white mb-3">
-            Hôtels & Résidences en Guinée
+            {t('heroTitle')}
           </h1>
           <p className="text-violet-200 mb-8 text-lg">
-            Trouvez le meilleur hébergement pour votre séjour
+            {t('heroSubtitle')}
           </p>
           <div className="flex bg-white rounded-2xl shadow-xl overflow-hidden max-w-2xl mx-auto">
             <div className="flex items-center gap-2 flex-1 px-4 py-3">
               <Search size={18} className="text-dark-400 shrink-0" />
               <input
                 value={q} onChange={e => setQ(e.target.value)}
-                placeholder="Rechercher un hôtel, une résidence..."
+                placeholder={t('searchPlaceholder')}
                 className="flex-1 outline-none text-dark-900 text-sm bg-transparent"
               />
             </div>
@@ -91,7 +93,7 @@ export default function HotelsPage() {
                 value={city} onChange={e => setCity(e.target.value)}
                 className="h-full px-4 text-sm text-dark-600 outline-none bg-transparent"
               >
-                <option value="">Toutes les villes</option>
+                <option value="">{t('allCities')}</option>
                 {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
@@ -103,7 +105,7 @@ export default function HotelsPage() {
       <div className="sticky top-16 z-30 bg-white border-b border-dark-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3 overflow-x-auto scrollbar-hide">
           {/* Fourchette de prix */}
-          <span className="text-xs text-dark-400 font-semibold shrink-0">Budget :</span>
+          <span className="text-xs text-dark-400 font-semibold shrink-0">{t('budgetLabel')}</span>
           {PRICE_RANGES.map((r, i) => (
             <button key={i} onClick={() => setPriceRange(i)}
               className={`shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
@@ -119,7 +121,7 @@ export default function HotelsPage() {
           <div className="h-4 w-px bg-dark-200 mx-1 shrink-0" />
 
           {/* Filtres équipements */}
-          <span className="text-xs text-dark-400 font-semibold shrink-0">Équip. :</span>
+          <span className="text-xs text-dark-400 font-semibold shrink-0">{t('amenitiesLabel')}</span>
           {AMENITY_FILTERS.map(a => (
             <button key={a.value} onClick={() => setAmenityFilter(f => f === a.value ? '' : a.value)}
               className={`shrink-0 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
@@ -154,19 +156,19 @@ export default function HotelsPage() {
               <Building2 size={36} className="text-violet-400" />
             </div>
             <h3 className="font-display font-bold text-dark-800 text-xl mb-2">
-              Aucun hébergement disponible
+              {t('noResultsTitle')}
             </h3>
             <p className="text-dark-500 text-sm mb-6">
-              Essayez d'autres filtres ou revenez plus tard.
+              {t('noResultsMsg')}
             </p>
             <Link href="/annonces/publier" className="btn-primary inline-flex items-center gap-2">
-              <Building2 size={15} /> Publier un hébergement
+              <Building2 size={15} /> {t('publishAccommodation')}
             </Link>
           </div>
         ) : (
           <>
             <p className="text-sm text-dark-500 mb-5">
-              {hotels.length} hébergement{hotels.length > 1 ? 's' : ''} disponible{hotels.length > 1 ? 's' : ''}
+              {t('resultsCount', { count: hotels.length })}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {hotels.map((h: any) => (
@@ -197,7 +199,7 @@ export default function HotelsPage() {
 
                     {h.isFeatured && (
                       <div className="absolute top-3 right-3 bg-gold-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                        À la une
+                        {t('featured')}
                       </div>
                     )}
 
@@ -206,7 +208,7 @@ export default function HotelsPage() {
                       <div className="absolute bottom-3 left-3 flex gap-1 flex-wrap">
                         {['wifi', 'piscine', 'clim'].filter(a => h.amenities?.toLowerCase().includes(a)).slice(0, 3).map(a => (
                           <span key={a} className="bg-black/50 text-white text-[9px] px-1.5 py-0.5 rounded-md backdrop-blur-sm capitalize">
-                            {a === 'wifi' ? 'Wi-Fi' : a === 'clim' ? 'Clim' : 'Piscine'}
+                            {a === 'wifi' ? t('amenityWifi') : a === 'clim' ? t('amenityClim') : t('amenityPool')}
                           </span>
                         ))}
                       </div>
@@ -232,13 +234,13 @@ export default function HotelsPage() {
                           <span className="text-violet-700 font-bold text-xl">
                             {h.price.toLocaleString('fr-GN')}
                           </span>
-                          <span className="text-dark-400 text-xs ml-1.5">GNF / nuit</span>
+                          <span className="text-dark-400 text-xs ml-1.5">{t('perNight')}</span>
                         </div>
                       ) : (
-                        <span className="text-dark-400 text-sm italic">Prix à négocier</span>
+                        <span className="text-dark-400 text-sm italic">{t('priceToNegotiate')}</span>
                       )}
                       <span className="bg-violet-600 text-white text-xs font-semibold px-3 py-1.5 rounded-xl group-hover:bg-violet-700 transition-colors">
-                        Voir
+                        {t('seeMore')}
                       </span>
                     </div>
                   </div>

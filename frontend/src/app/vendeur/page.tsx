@@ -2,6 +2,7 @@
 export const dynamic = 'force-dynamic';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
@@ -16,14 +17,6 @@ import {
   ResponsiveContainer, BarChart, Bar, Cell,
 } from 'recharts';
 
-const STATUS_CFG: Record<string, { label: string; color: string; Icon: any }> = {
-  ACTIVE:         { label: 'Active',     color: 'bg-green-100 text-green-700',   Icon: CheckCircle },
-  EXPIRED:        { label: 'Expirée',    color: 'bg-orange-100 text-orange-700', Icon: Clock },
-  SUSPENDED:      { label: 'Masquée',    color: 'bg-red-100 text-red-600',       Icon: XCircle },
-  PENDING_REVIEW: { label: 'En attente', color: 'bg-yellow-100 text-yellow-700', Icon: Clock },
-  SOLD:           { label: 'Vendue',     color: 'bg-blue-100 text-blue-700',     Icon: CheckCircle },
-};
-
 const BAR_COLORS = ['#15803d', '#16a34a', '#22c55e', '#86efac', '#3b82f6', '#8b5cf6'];
 
 const LEVEL_ICONS: Record<string, any> = {
@@ -34,6 +27,14 @@ const LEVEL_ICONS: Record<string, any> = {
 };
 
 export default function VendeurDashboard() {
+  const t = useTranslations('vendeur.dashboard');
+  const STATUS_CFG: Record<string, { label: string; color: string; Icon: any }> = {
+    ACTIVE:         { label: t('statusActive'),     color: 'bg-green-100 text-green-700',   Icon: CheckCircle },
+    EXPIRED:        { label: t('statusExpired'),    color: 'bg-orange-100 text-orange-700', Icon: Clock },
+    SUSPENDED:      { label: t('statusSuspended'),  color: 'bg-red-100 text-red-600',       Icon: XCircle },
+    PENDING_REVIEW: { label: t('statusPending'),    color: 'bg-yellow-100 text-yellow-700', Icon: Clock },
+    SOLD:           { label: t('statusSold'),       color: 'bg-blue-100 text-blue-700',     Icon: CheckCircle },
+  };
   const { user } = useAuthStore();
   const [stats, setStats]           = useState<any>(null);
   const [loading, setLoading]       = useState(true);
@@ -76,19 +77,19 @@ export default function VendeurDashboard() {
         await api.put(`/annonces/${a.id}/pin`);
       }
       reload();
-    } catch { alert('Erreur lors de l\'épinglage.'); }
+    } catch { alert(t('errorPin')); }
   };
 
   const handleRemovePromo = async (id: string) => {
     try {
       await api.delete(`/annonces/${id}/promo`);
       reload();
-    } catch { alert('Erreur lors de la suppression de la promo.'); }
+    } catch { alert(t('errorRemovePromo')); }
   };
 
   const handleSubmitPromo = async () => {
     if (!promoModal) return;
-    if (!promoPrice || parseFloat(promoPrice) <= 0) { alert('Entrez un prix promo valide.'); return; }
+    if (!promoPrice || parseFloat(promoPrice) <= 0) { alert(t('errorInvalidPromoPrice')); return; }
     setPromoLoading(true);
     try {
       await api.put(`/annonces/${promoModal.id}/promo`, {
@@ -100,7 +101,7 @@ export default function VendeurDashboard() {
       setPromoEndsAt('');
       reload();
     } catch (e: any) {
-      alert(e?.response?.data?.error || 'Erreur lors de l\'activation de la promo.');
+      alert(e?.response?.data?.error || t('errorActivatePromo'));
     } finally { setPromoLoading(false); }
   };
 
@@ -112,8 +113,8 @@ export default function VendeurDashboard() {
           <div className="w-16 h-16 bg-dark-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
             <Lock size={28} className="text-dark-400" />
           </div>
-          <p className="font-semibold text-dark-700 text-xl mb-4">Connectez-vous pour accéder à votre espace vendeur</p>
-          <Link href="/auth/connexion" className="btn-primary">Se connecter</Link>
+          <p className="font-semibold text-dark-700 text-xl mb-4">{t('loginRequiredMsg')}</p>
+          <Link href="/auth/connexion" className="btn-primary">{t('login')}</Link>
         </div>
       </div>
     </div>
@@ -124,10 +125,10 @@ export default function VendeurDashboard() {
   const msgTrend   = prevMsg === 0 ? (weeklyMsg > 0 ? 100 : 0) : Math.round(((weeklyMsg - prevMsg) / prevMsg) * 100);
 
   const statCards = [
-    { Icon: ShoppingBag,   label: 'Annonces',     value: stats?.totalAnnonces ?? 0,                       sub: `${stats?.byStatus?.active ?? stats?.activeAnnonces ?? 0} actives`, color: 'text-primary-700 bg-primary-100', trend: null },
-    { Icon: Eye,           label: 'Vues totales',  value: (stats?.totalViews ?? 0).toLocaleString('fr-FR'), sub: 'hors vos propres visites',                                          color: 'text-blue-600 bg-blue-100',       trend: null },
-    { Icon: MessageCircle, label: 'Messages (7j)', value: weeklyMsg,                                       sub: `${prevMsg} la semaine préc.`,                                        color: 'text-purple-600 bg-purple-100',   trend: msgTrend },
-    { Icon: Heart,         label: 'Favoris reçus', value: stats?.totalFavoris ?? 0,                        sub: 'sauvegardes',                                                        color: 'text-guinea-600 bg-guinea-100',   trend: null },
+    { Icon: ShoppingBag,   label: t('statListings'),        value: stats?.totalAnnonces ?? 0,                       sub: t('statListingsSub', { count: stats?.byStatus?.active ?? stats?.activeAnnonces ?? 0 }), color: 'text-primary-700 bg-primary-100', trend: null },
+    { Icon: Eye,           label: t('statTotalViews'),      value: (stats?.totalViews ?? 0).toLocaleString('fr-FR'), sub: t('statTotalViewsSub'),                                          color: 'text-blue-600 bg-blue-100',       trend: null },
+    { Icon: MessageCircle, label: t('statWeeklyMessages'),  value: weeklyMsg,                                       sub: t('statWeeklyMessagesSub', { count: prevMsg }),                                        color: 'text-purple-600 bg-purple-100',   trend: msgTrend },
+    { Icon: Heart,         label: t('statFavorites'),       value: stats?.totalFavoris ?? 0,                        sub: t('statFavoritesSub'),                                                        color: 'text-guinea-600 bg-guinea-100',   trend: null },
   ];
 
   return (
@@ -140,16 +141,16 @@ export default function VendeurDashboard() {
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <div>
             <h1 className="text-3xl font-display font-bold text-dark-900 flex items-center gap-2">
-              <Store className="text-primary-700" size={28} /> Espace Vendeur
+              <Store className="text-primary-700" size={28} /> {t('pageTitle')}
             </h1>
-            <p className="text-dark-500 mt-1">Bonjour {user.firstName}, voici votre activité</p>
+            <p className="text-dark-500 mt-1">{t('greeting', { name: user.firstName })}</p>
           </div>
           <div className="flex gap-2">
             <Link href="/vendeur/boutique" className="btn-outline flex items-center gap-2 text-sm">
-              <Settings size={15} /> Ma boutique
+              <Settings size={15} /> {t('myShop')}
             </Link>
             <Link href="/annonces/publier" className="btn-primary flex items-center gap-2 text-sm">
-              <Plus size={15} /> Publier
+              <Plus size={15} /> {t('publish')}
             </Link>
           </div>
         </div>
@@ -193,7 +194,7 @@ export default function VendeurDashboard() {
                   )}
                   {c.trend !== null && Math.abs(c.trend) < 2 && (
                     <span className="text-xs font-semibold text-dark-400 flex items-center gap-0.5 mt-1">
-                      <Minus size={11} /> stable
+                      <Minus size={11} /> {t('stable')}
                     </span>
                   )}
                 </div>
@@ -219,7 +220,7 @@ export default function VendeurDashboard() {
                   {loading ? '—' : (stats?.avgRating || '—')}
                   <span className="text-lg font-normal text-dark-400"> / 5</span>
                 </p>
-                <p className="text-dark-500 text-sm">{loading ? '…' : `${stats?.ratingsCount || 0} avis reçus`}</p>
+                <p className="text-dark-500 text-sm">{loading ? '…' : `${stats?.ratingsCount || 0} ${t('avgRatingSuffix')}`}</p>
               </div>
             </div>
             <div className="flex gap-1">
@@ -231,12 +232,12 @@ export default function VendeurDashboard() {
 
           {/* Statuts */}
           <div className="card p-6">
-            <p className="text-sm font-semibold text-dark-700 mb-4">Statut de vos annonces</p>
+            <p className="text-sm font-semibold text-dark-700 mb-4">{t('listingsStatusTitle')}</p>
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Actives',  value: stats?.byStatus?.active    ?? 0, cls: 'text-green-700  bg-green-50  border-green-200' },
-                { label: 'Expirées', value: stats?.byStatus?.expired   ?? 0, cls: 'text-orange-700 bg-orange-50 border-orange-200' },
-                { label: 'Masquées',value: stats?.byStatus?.suspended  ?? 0, cls: 'text-red-600    bg-red-50    border-red-200' },
+                { label: t('statusActiveLabel'),  value: stats?.byStatus?.active    ?? 0, cls: 'text-green-700  bg-green-50  border-green-200' },
+                { label: t('statusExpiredLabel'), value: stats?.byStatus?.expired   ?? 0, cls: 'text-orange-700 bg-orange-50 border-orange-200' },
+                { label: t('statusSuspendedLabel'),value: stats?.byStatus?.suspended  ?? 0, cls: 'text-red-600    bg-red-50    border-red-200' },
               ].map((s, i) => (
                 <div key={i} className={`rounded-xl p-3 border text-center ${s.cls}`}>
                   <p className="text-2xl font-bold">{loading ? '—' : s.value}</p>
@@ -254,16 +255,16 @@ export default function VendeurDashboard() {
           <div className="card p-6">
             <div className="flex items-start justify-between mb-0.5">
               <h2 className="font-display font-bold text-dark-900 text-base flex items-center gap-2">
-                <Activity size={17} className="text-primary-700" /> Activité des 7 derniers jours
+                <Activity size={17} className="text-primary-700" /> {t('weeklyActivityTitle')}
               </h2>
               {!loading && Math.abs(msgTrend) >= 2 && (
                 <span className={`text-xs font-bold flex items-center gap-0.5 px-2 py-0.5 rounded-lg ${msgTrend > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
                   {msgTrend > 0 ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
-                  {msgTrend > 0 ? '+' : ''}{msgTrend}% vs sem. préc.
+                  {msgTrend > 0 ? '+' : ''}{msgTrend}% {t('vsLastWeek')}
                 </span>
               )}
             </div>
-            <p className="text-dark-400 text-xs mb-4">Messages reçus par jour</p>
+            <p className="text-dark-400 text-xs mb-4">{t('messagesReceivedSubtitle')}</p>
             {loading || !mounted ? (
               <div className="skeleton h-44 rounded-xl" />
             ) : (
@@ -274,7 +275,7 @@ export default function VendeurDashboard() {
                   <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} allowDecimals={false} />
                   <Tooltip
                     contentStyle={{ borderRadius: 10, border: '1px solid #e2e8f0', fontSize: 12 }}
-                    formatter={(v: any) => [`${v} message${Number(v) !== 1 ? 's' : ''}`, 'Reçus']}
+                    formatter={(v: any) => [t('messagesTooltip', { count: Number(v) }), t('receivedTooltipLabel')]}
                     labelStyle={{ fontWeight: 600, color: '#1e293b' }}
                   />
                   <Line
@@ -290,9 +291,9 @@ export default function VendeurDashboard() {
           {/* Barres : répartition par catégorie */}
           <div className="card p-6">
             <h2 className="font-display font-bold text-dark-900 text-base flex items-center gap-2 mb-0.5">
-              <Tag size={17} className="text-primary-700" /> Répartition par catégorie
+              <Tag size={17} className="text-primary-700" /> {t('categoryBreakdownTitle')}
             </h2>
-            <p className="text-dark-400 text-xs mb-4">Annonces par catégorie</p>
+            <p className="text-dark-400 text-xs mb-4">{t('categoryBreakdownSubtitle')}</p>
             {loading || !mounted ? (
               <div className="skeleton h-44 rounded-xl" />
             ) : (stats?.byCategory?.length > 0) ? (
@@ -303,7 +304,7 @@ export default function VendeurDashboard() {
                   <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} allowDecimals={false} />
                   <Tooltip
                     contentStyle={{ borderRadius: 10, border: '1px solid #e2e8f0', fontSize: 12 }}
-                    formatter={(v: any) => [`${v} annonce${Number(v) !== 1 ? 's' : ''}`, '']}
+                    formatter={(v: any) => [t('listingsAdsTooltip', { count: Number(v) }), '']}
                     labelStyle={{ fontWeight: 600, color: '#1e293b' }}
                   />
                   <Bar dataKey="count" radius={[5, 5, 0, 0]}>
@@ -315,7 +316,7 @@ export default function VendeurDashboard() {
               </ResponsiveContainer>
             ) : (
               <div className="h-44 flex items-center justify-center text-dark-400 text-sm">
-                Aucune annonce pour le moment
+                {t('noListingsYetChart')}
               </div>
             )}
           </div>
@@ -325,10 +326,10 @@ export default function VendeurDashboard() {
         <div className="card p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-bold text-dark-900 text-lg flex items-center gap-2">
-              <ShoppingBag size={20} className="text-primary-700" /> Mes annonces
+              <ShoppingBag size={20} className="text-primary-700" /> {t('myListingsTitle')}
             </h2>
             <Link href="/annonces/publier" className="btn-primary text-sm py-1.5 px-3 flex items-center gap-1.5">
-              <Plus size={14} /> Nouvelle
+              <Plus size={14} /> {t('newListing')}
             </Link>
           </div>
 
@@ -349,9 +350,9 @@ export default function VendeurDashboard() {
               <div className="w-12 h-12 bg-dark-50 rounded-xl flex items-center justify-center mx-auto mb-3">
                 <ClipboardList size={22} className="text-dark-300" />
               </div>
-              <p className="text-dark-500 text-sm mb-4">Vous n'avez pas encore d'annonces</p>
+              <p className="text-dark-500 text-sm mb-4">{t('noListingsTitle')}</p>
               <Link href="/annonces/publier" className="btn-primary inline-flex items-center gap-2">
-                <Plus size={15} /> Publier ma première annonce
+                <Plus size={15} /> {t('publishFirstListing')}
               </Link>
             </div>
           ) : (
@@ -400,7 +401,7 @@ export default function VendeurDashboard() {
                         {/* Épingler */}
                         <button
                           onClick={() => handlePin(a)}
-                          title={a.isPinned ? 'Désépingler' : 'Épingler en haut de la boutique'}
+                          title={a.isPinned ? t('unpin') : t('pin')}
                           className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
                             a.isPinned
                               ? 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200'
@@ -413,7 +414,7 @@ export default function VendeurDashboard() {
                         {promoActive ? (
                           <button
                             onClick={() => handleRemovePromo(a.id)}
-                            title="Retirer la promo"
+                            title={t('removePromo')}
                             className="w-7 h-7 rounded-lg flex items-center justify-center bg-guinea-100 text-guinea-600 hover:bg-guinea-200 transition-colors"
                           >
                             <XIcon size={13} />
@@ -421,7 +422,7 @@ export default function VendeurDashboard() {
                         ) : (
                           <button
                             onClick={() => { setPromoModal({ id: a.id, title: a.title, price: a.price }); setPromoPrice(''); setPromoEndsAt(''); }}
-                            title="Ajouter une promo"
+                            title={t('addPromo')}
                             className="w-7 h-7 rounded-lg flex items-center justify-center text-dark-300 hover:bg-dark-100 hover:text-dark-600 transition-colors"
                           >
                             <Percent size={13} />
@@ -434,7 +435,7 @@ export default function VendeurDashboard() {
               </div>
               {stats.allAnnonces.length > 10 && (
                 <p className="text-dark-400 text-xs text-center pt-3 border-t border-dark-100 mt-2">
-                  + {stats.allAnnonces.length - 10} autre{stats.allAnnonces.length - 10 > 1 ? 's' : ''} annonce{stats.allAnnonces.length - 10 > 1 ? 's' : ''}
+                  {t('moreListings', { count: stats.allAnnonces.length - 10 })}
                 </p>
               )}
             </>
@@ -444,7 +445,7 @@ export default function VendeurDashboard() {
         {/* ── Top 5 les plus vues ─────────────────────────── */}
         <div className="card p-6">
           <h2 className="font-display font-bold text-dark-900 text-lg mb-4 flex items-center gap-2">
-            <TrendingUp size={20} className="text-primary-700" /> Vos annonces les plus vues
+            <TrendingUp size={20} className="text-primary-700" /> {t('mostViewedTitle')}
           </h2>
           {loading ? (
             <div className="space-y-2">
@@ -464,9 +465,9 @@ export default function VendeurDashboard() {
               <div className="w-12 h-12 bg-dark-50 rounded-xl flex items-center justify-center mx-auto mb-3">
                 <ClipboardList size={22} className="text-dark-300" />
               </div>
-              <p className="text-dark-500 text-sm mb-4">Publiez des annonces pour les voir ici</p>
+              <p className="text-dark-500 text-sm mb-4">{t('noListingsForTopMsg')}</p>
               <Link href="/annonces/publier" className="btn-primary inline-flex items-center gap-2">
-                <Plus size={15} /> Publier ma première annonce
+                <Plus size={15} /> {t('publishFirstListing')}
               </Link>
             </div>
           ) : (
@@ -485,7 +486,7 @@ export default function VendeurDashboard() {
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-dark-900 text-sm truncate">{a.title}</p>
                     <p className="text-dark-400 text-xs flex items-center gap-1 mt-0.5">
-                      <Eye size={11} /> {a.viewCount} vues
+                      <Eye size={11} /> {a.viewCount} {t('viewsSuffix')}
                     </p>
                   </div>
                   <ArrowRight size={15} className="text-dark-300 shrink-0" />
@@ -499,7 +500,7 @@ export default function VendeurDashboard() {
         <div className="card p-6 mt-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-bold text-dark-900 text-lg flex items-center gap-2">
-              <Users size={20} className="text-primary-700" /> Mes abonnés
+              <Users size={20} className="text-primary-700" /> {t('mySubscribersTitle')}
               {subTotal > 0 && (
                 <span className="ml-1 px-2.5 py-0.5 bg-primary-100 text-primary-700 rounded-full text-sm font-semibold">
                   {subTotal}
@@ -508,7 +509,7 @@ export default function VendeurDashboard() {
             </h2>
             {subTotal > 0 && (
               <p className="text-dark-400 text-xs">
-                {subTotal} personne{subTotal > 1 ? 's' : ''} suivent votre boutique
+                {t('followersCount', { count: subTotal })}
               </p>
             )}
           </div>
@@ -530,8 +531,8 @@ export default function VendeurDashboard() {
               <div className="w-12 h-12 bg-dark-50 rounded-xl flex items-center justify-center mx-auto mb-3">
                 <Users size={22} className="text-dark-300" />
               </div>
-              <p className="text-dark-500 text-sm">Aucun abonné pour le moment</p>
-              <p className="text-dark-400 text-xs mt-1">Partagez votre boutique pour gagner des abonnés</p>
+              <p className="text-dark-500 text-sm">{t('noSubscribersTitle')}</p>
+              <p className="text-dark-400 text-xs mt-1">{t('noSubscribersMsg')}</p>
             </div>
           ) : (
             <div className="space-y-1">
@@ -562,7 +563,7 @@ export default function VendeurDashboard() {
               })}
               {subTotal > 10 && (
                 <p className="text-dark-400 text-xs text-center pt-3 border-t border-dark-100 mt-2">
-                  + {subTotal - 10} autre{subTotal - 10 > 1 ? 's' : ''} abonné{subTotal - 10 > 1 ? 's' : ''}
+                  {t('moreSubscribers', { count: subTotal - 10 })}
                 </p>
               )}
             </div>
@@ -578,7 +579,7 @@ export default function VendeurDashboard() {
         <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-display font-bold text-dark-900 flex items-center gap-2">
-              <Tag size={18} className="text-guinea-600" /> Ajouter une promo
+              <Tag size={18} className="text-guinea-600" /> {t('promoModalTitle')}
             </h3>
             <button onClick={() => setPromoModal(null)} className="text-dark-400 hover:text-dark-700">
               <XIcon size={18} />
@@ -587,19 +588,19 @@ export default function VendeurDashboard() {
           <p className="text-dark-500 text-sm mb-4 line-clamp-2">{promoModal.title}</p>
           {promoModal.price && (
             <p className="text-dark-500 text-xs mb-3">
-              Prix actuel : <strong>{promoModal.price.toLocaleString('fr-GN')} GNF</strong>
+              {t('currentPrice', { price: promoModal.price.toLocaleString('fr-GN') })}
             </p>
           )}
-          <label className="block text-sm font-semibold text-dark-700 mb-1">Prix promo (GNF) *</label>
+          <label className="block text-sm font-semibold text-dark-700 mb-1">{t('promoPriceLabel')}</label>
           <input
             type="number"
             min="0"
             className="input-field w-full mb-3"
-            placeholder="Ex : 50000"
+            placeholder={t('promoPricePlaceholder')}
             value={promoPrice}
             onChange={e => setPromoPrice(e.target.value)}
           />
-          <label className="block text-sm font-semibold text-dark-700 mb-1">Date de fin (optionnel)</label>
+          <label className="block text-sm font-semibold text-dark-700 mb-1">{t('promoEndDateLabel')}</label>
           <input
             type="date"
             className="input-field w-full mb-5"
@@ -608,10 +609,10 @@ export default function VendeurDashboard() {
             min={new Date().toISOString().split('T')[0]}
           />
           <div className="flex gap-2">
-            <button onClick={() => setPromoModal(null)} className="btn-outline flex-1 text-sm">Annuler</button>
+            <button onClick={() => setPromoModal(null)} className="btn-outline flex-1 text-sm">{t('cancel')}</button>
             <button onClick={handleSubmitPromo} disabled={promoLoading} className="btn-primary flex-1 text-sm flex items-center justify-center gap-2">
               {promoLoading ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : null}
-              Activer
+              {t('activate')}
             </button>
           </div>
         </div>

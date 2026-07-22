@@ -1,0 +1,34 @@
+{
+  "page": {
+    "badge": "高级套餐",
+    "titlePrefix": "",
+    "titleHighlight": "高级套餐",
+    "titleSuffix": "即将上线！",
+    "subtitle": "很快，你就能推广你的广告，在几内亚各地触及更多买家。",
+    "comingSoonTitle": "即将推出",
+    "comingSoonMsg": "我们正在为卖家准备一些特别的功能。抢先了解上线消息！",
+    "notifyMe": "上线时通知我",
+    "modalTitle": "很快就会上线！",
+    "modalMsg": "高级套餐正在准备中，上线后我们会第一时间通知你。感谢你的耐心等待！",
+    "understood": "我知道了"
+  },
+  "abonnements": {
+    "loginRequiredMsg": "请登录以查看你的订阅",
+    "login": "登录",
+    "pageTitle": "我的订阅",
+    "shopsFollowed": "关注了 {count} 家店铺",
+    "noShopsTitle": "尚未关注任何店铺",
+    "noShopsMsg": "关注店铺以便第一时间了解新产品",
+    "discoverListings": "浏览广告",
+    "activeAdsCount": "{count} 条在售广告",
+    "disableNotifications": "关闭通知",
+    "enableNotifications": "开启通知",
+    "viewShop": "查看店铺",
+    "unsubscribe": "取消关注",
+    "toastUnsubscribed": "已取消关注",
+    "toastUnsubscribeError": "取消关注时出错",
+    "toastNotifyOn": "通知已开启",
+    "toastNotifyOff": "通知已关闭",
+    "toastError": "出错了"
+  }
+}

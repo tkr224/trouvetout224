@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
+import { useTranslations, useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Loader2, Eye, EyeOff, CheckCircle, MessageCircle, MapPin,
@@ -33,43 +34,45 @@ type Step1Fields = {
   cgu: boolean;
 };
 
-const ACCOUNT_OPTIONS: Array<{
+const ACCOUNT_OPTION_META: Array<{
   type: AccountType;
-  label: string;
-  desc: string;
+  labelKey: 'buyerLabel' | 'sellerLabel' | 'bothLabel';
+  descKey: 'buyerDesc' | 'sellerDesc' | 'bothDesc';
   Icon: React.ElementType;
   accent: string;
   accBg: string;
 }> = [
   {
     type: 'ACHETEUR',
-    label: 'Acheteur',
-    desc: "Je cherche et j'achète des produits ou services",
+    labelKey: 'buyerLabel',
+    descKey: 'buyerDesc',
     Icon: ShoppingBag,
     accent: 'text-sky-600',
     accBg: 'bg-sky-50',
   },
   {
     type: 'VENDEUR',
-    label: 'Vendeur',
-    desc: 'Je vends mes produits ou services en ligne',
+    labelKey: 'sellerLabel',
+    descKey: 'sellerDesc',
     Icon: Store,
     accent: 'text-primary-700',
     accBg: 'bg-primary-50',
   },
   {
     type: 'LES_DEUX',
-    label: 'Les deux',
-    desc: "J'achète ET je vends — le profil complet",
+    labelKey: 'bothLabel',
+    descKey: 'bothDesc',
     Icon: Repeat2,
     accent: 'text-gold-600',
     accBg: 'bg-gold-50',
   },
 ];
 
-const STEP_LABELS = ['Informations', 'Type de compte', 'Boutique'];
-
 export default function RegisterPage() {
+  const t = useTranslations('auth.register');
+  const locale = useLocale();
+  const ACCOUNT_OPTIONS = ACCOUNT_OPTION_META.map((o) => ({ ...o, label: t(o.labelKey), desc: t(o.descKey) }));
+  const STEP_LABELS = [t('stepInfo'), t('stepAccountType'), t('stepShop')];
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [accountType, setAccountType] = useState<AccountType>('ACHETEUR');
   const [loading, setLoading] = useState(false);
@@ -129,7 +132,7 @@ export default function RegisterPage() {
   // Validation étape 1 → passe à 2
   const goStep2 = handleSubmit(data => {
     if (!data.email?.trim() && !data.phone?.trim()) {
-      toast.error('Renseignez au moins votre email ou votre téléphone.');
+      toast.error(t('missingIdentifierError'));
       return;
     }
     setFieldError(null);
@@ -148,6 +151,7 @@ export default function RegisterPage() {
         lastName: step1Data.lastName,
         password: step1Data.password,
         accountType,
+        preferredLanguage: locale.toUpperCase(),
       };
       if (step1Data.email?.trim()) payload.email = step1Data.email.trim();
       if (step1Data.phone?.trim()) payload.phone = `+224${step1Data.phone.replace(/\D/g, '')}`;
@@ -189,16 +193,16 @@ export default function RegisterPage() {
       }
 
       setUser(user);
-      toast.success('Compte créé avec succès ! Bienvenue sur TrouveTout224 🎉');
+      toast.success(t('successToast'));
       if (user.email) {
-        toast('📧 Vérifiez votre boîte mail pour confirmer votre adresse.', { duration: 6000 });
+        toast(t('checkEmailToast'), { duration: 6000 });
       }
       router.push('/');
     } catch (err: any) {
       const d = err.response?.data;
       const msg = d?.error
         ?? (Array.isArray(d?.errors) ? d.errors[0]?.msg : null)
-        ?? 'Erreur lors de la création du compte.';
+        ?? t('genericError');
       if (err.response?.status === 409 && d?.field) {
         setFieldError({ field: d.field as 'email' | 'phone', msg });
         setStep(1);
@@ -212,7 +216,7 @@ export default function RegisterPage() {
 
   const submitStep3 = () => {
     if (!shopName.trim()) {
-      toast.error('Le nom de la boutique est obligatoire.');
+      toast.error(t('shopNameRequired'));
       return;
     }
     submit();
@@ -231,12 +235,12 @@ export default function RegisterPage() {
           <h1 className="font-display font-bold text-[2.2rem] leading-tight text-white mt-6 mb-2">
             Trouve<span className="text-gold-400">Tout</span><span className="text-guinea-300">224</span>
           </h1>
-          <p className="text-primary-100 text-sm mb-10">Rejoignez la communauté de Guinée</p>
+          <p className="text-primary-100 text-sm mb-10">{t('heroSubtitle')}</p>
           <div className="space-y-3 text-left">
             {[
-              { Icon: CheckCircle, text: 'Publication 100% gratuite, sans limite', cls: 'text-primary-300' },
-              { Icon: MessageCircle, text: 'Messagerie intégrée avec les vendeurs', cls: 'text-gold-300' },
-              { Icon: MapPin, text: 'Accès à toute la Guinée, 8 villes couvertes', cls: 'text-guinea-300' },
+              { Icon: CheckCircle, text: t('heroFeature1'), cls: 'text-primary-300' },
+              { Icon: MessageCircle, text: t('heroFeature2'), cls: 'text-gold-300' },
+              { Icon: MapPin, text: t('heroFeature3'), cls: 'text-guinea-300' },
             ].map(({ Icon, text, cls }) => (
               <div key={text} className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3.5">
                 <Icon size={20} className={cls} />
@@ -320,13 +324,13 @@ export default function RegisterPage() {
             ══════════════════════════════════════════════════════════ */}
             {step === 1 && (
               <>
-                <h2 className="font-display font-bold text-2xl sm:text-3xl text-dark-900 mb-1.5">Créer un compte 🇬🇳</h2>
+                <h2 className="font-display font-bold text-2xl sm:text-3xl text-dark-900 mb-1.5">{t('step1Title')}</h2>
                 <p className="text-dark-500 text-sm mb-4">
-                  Rejoignez la communauté TrouveTout224 — c'est gratuit !
+                  {t('step1Subtitle')}
                 </p>
                 <div className="flex flex-wrap items-center gap-2 mb-6">
-                  <span className="badge-green"><Sparkles size={11} /> 100% gratuit</span>
-                  <span className="badge-gold"><ShieldCheck size={11} /> Compte sécurisé</span>
+                  <span className="badge-green"><Sparkles size={11} /> {t('badgeFree')}</span>
+                  <span className="badge-gold"><ShieldCheck size={11} /> {t('badgeSecure')}</span>
                 </div>
 
                 <form onSubmit={goStep2} className="space-y-5">
@@ -334,36 +338,36 @@ export default function RegisterPage() {
                   {/* Prénom + Nom */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className={L}>Prénom *</label>
+                      <label className={L}>{t('firstName')}</label>
                       <input
-                        {...register('firstName', { required: 'Prénom obligatoire' })}
-                        type="text" placeholder="Mamadou" className={F} />
+                        {...register('firstName', { required: t('firstNameRequired') })}
+                        type="text" placeholder={t('firstNamePlaceholder')} className={F} />
                       {errors.firstName && <p className="text-xs text-guinea-600 mt-1">{errors.firstName.message}</p>}
                     </div>
                     <div>
-                      <label className={L}>Nom *</label>
+                      <label className={L}>{t('lastName')}</label>
                       <input
-                        {...register('lastName', { required: 'Nom obligatoire' })}
-                        type="text" placeholder="Diallo" className={F} />
+                        {...register('lastName', { required: t('lastNameRequired') })}
+                        type="text" placeholder={t('lastNamePlaceholder')} className={F} />
                       {errors.lastName && <p className="text-xs text-guinea-600 mt-1">{errors.lastName.message}</p>}
                     </div>
                   </div>
 
                   {/* Date de naissance */}
                   <div>
-                    <label className={L}>Date de naissance</label>
+                    <label className={L}>{t('birthDate')}</label>
                     <input {...register('dateOfBirth')} type="date" className={F} />
                   </div>
 
                   {/* Email */}
                   <div>
-                    <label className={L}>Email</label>
+                    <label className={L}>{t('email')}</label>
                     <input
                       {...register('email', {
-                        pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Email invalide' },
+                        pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: t('emailInvalid') },
                         onChange: () => fieldError?.field === 'email' && setFieldError(null),
                       })}
-                      type="email" placeholder="email@exemple.com"
+                      type="email" placeholder={t('emailPlaceholder')}
                       className={`${F} ${fieldError?.field === 'email' ? 'border-guinea-400 ring-2 ring-guinea-100' : ''}`} />
                     {errors.email && <p className="text-xs text-guinea-600 mt-1">{errors.email.message}</p>}
                     {fieldError?.field === 'email' && (
@@ -373,7 +377,7 @@ export default function RegisterPage() {
 
                   {/* Téléphone */}
                   <div>
-                    <label className={L}>Téléphone</label>
+                    <label className={L}>{t('phone')}</label>
                     <div className="flex gap-2">
                       <span className="flex items-center px-3.5 bg-dark-50 border border-dark-200 rounded-2xl text-sm text-dark-600 whitespace-nowrap font-medium">
                         🇬🇳 +224
@@ -382,40 +386,40 @@ export default function RegisterPage() {
                         {...register('phone', {
                           onChange: () => fieldError?.field === 'phone' && setFieldError(null),
                         })}
-                        type="tel" placeholder="620 00 00 00"
+                        type="tel" placeholder={t('phonePlaceholder')}
                         className={`${F} flex-1 ${fieldError?.field === 'phone' ? 'border-guinea-400 ring-2 ring-guinea-100' : ''}`} />
                     </div>
                     {fieldError?.field === 'phone' && (
                       <p className="text-xs text-guinea-600 mt-1 font-medium">{fieldError.msg}</p>
                     )}
-                    <p className="text-xs text-dark-400 mt-1">Au moins un des deux (email ou téléphone) est requis.</p>
+                    <p className="text-xs text-dark-400 mt-1">{t('phoneOrEmailRequired')}</p>
                   </div>
 
                   {/* Ville */}
                   <div>
-                    <label className={L}>Ville</label>
+                    <label className={L}>{t('city')}</label>
                     <select {...register('cityId')} className={F}>
-                      <option value="">Sélectionnez votre ville</option>
+                      <option value="">{t('cityPlaceholder')}</option>
                       {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
 
                   {/* Mot de passe */}
                   <div>
-                    <label className={L}>Mot de passe *</label>
+                    <label className={L}>{t('password')}</label>
                     <div className="relative">
                       <input
                         {...register('password', {
-                          required: 'Mot de passe obligatoire',
-                          minLength: { value: 8, message: '8 caractères minimum' },
+                          required: t('passwordRequired'),
+                          minLength: { value: 8, message: t('passwordMinLength') },
                           validate: {
-                            hasUpper: v => /[A-Z]/.test(v) || 'Au moins une majuscule requise',
-                            hasLower: v => /[a-z]/.test(v) || 'Au moins une minuscule requise',
-                            hasDigit: v => /[0-9]/.test(v) || 'Au moins un chiffre requis',
+                            hasUpper: v => /[A-Z]/.test(v) || t('passwordUpper'),
+                            hasLower: v => /[a-z]/.test(v) || t('passwordLower'),
+                            hasDigit: v => /[0-9]/.test(v) || t('passwordDigit'),
                           },
                         })}
                         type={showPwd ? 'text' : 'password'}
-                        placeholder="Minimum 8 caractères"
+                        placeholder={t('passwordPlaceholder')}
                         className={`${F} pr-12`} />
                       <button type="button" tabIndex={-1} onClick={() => setShowPwd(v => !v)}
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-600">
@@ -425,14 +429,14 @@ export default function RegisterPage() {
                     {/* Indicateur de force */}
                     {pwd && (() => {
                       const criteria = [
-                        { ok: pwd.length >= 8,    text: '8 caractères' },
-                        { ok: /[A-Z]/.test(pwd),  text: 'Majuscule' },
-                        { ok: /[a-z]/.test(pwd),  text: 'Minuscule' },
-                        { ok: /[0-9]/.test(pwd),  text: 'Chiffre' },
+                        { ok: pwd.length >= 8,    text: t('strengthCriteria8') },
+                        { ok: /[A-Z]/.test(pwd),  text: t('strengthCriteriaUpper') },
+                        { ok: /[a-z]/.test(pwd),  text: t('strengthCriteriaLower') },
+                        { ok: /[0-9]/.test(pwd),  text: t('strengthCriteriaDigit') },
                       ];
                       const score = criteria.filter(c => c.ok).length;
                       const colors = ['bg-guinea-400', 'bg-orange-400', 'bg-gold-400', 'bg-primary-500'];
-                      const labels = ['Très faible', 'Faible', 'Bon', 'Fort'];
+                      const labels = [t('strengthVeryWeak'), t('strengthWeak'), t('strengthGood'), t('strengthStrong')];
                       const textColors = ['text-guinea-500', 'text-orange-500', 'text-gold-600', 'text-primary-700'];
                       return (
                         <div className="mt-2">
@@ -459,15 +463,15 @@ export default function RegisterPage() {
 
                   {/* Confirmation mot de passe */}
                   <div>
-                    <label className={L}>Confirmer le mot de passe *</label>
+                    <label className={L}>{t('confirmPassword')}</label>
                     <div className="relative">
                       <input
                         {...register('confirmPassword', {
-                          required: 'Confirmation obligatoire',
-                          validate: v => v === pwd || 'Les mots de passe ne correspondent pas',
+                          required: t('confirmPasswordRequired'),
+                          validate: v => v === pwd || t('confirmPasswordMismatch'),
                         })}
                         type={showConf ? 'text' : 'password'}
-                        placeholder="Répétez votre mot de passe"
+                        placeholder={t('confirmPasswordPlaceholder')}
                         className={`${F} pr-12`} />
                       <button type="button" tabIndex={-1} onClick={() => setShowConf(v => !v)}
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-600">
@@ -485,35 +489,35 @@ export default function RegisterPage() {
                       type="checkbox"
                       className="mt-0.5 w-4 h-4 accent-primary-700 cursor-pointer flex-shrink-0" />
                     <label htmlFor="cgu" className="text-xs text-dark-500 leading-relaxed cursor-pointer">
-                      J'ai lu et j'accepte les{' '}
+                      {t('acceptTermsPrefix')}{' '}
                       <Link href="/conditions" target="_blank" className="text-primary-700 hover:underline font-semibold">
-                        Conditions d'utilisation
+                        {t('termsLink')}
                       </Link>{' '}
-                      et les{' '}
+                      {t('acceptTermsAnd')}{' '}
                       <Link href="/confidentialite" target="_blank" className="text-primary-700 hover:underline font-semibold">
-                        Règles de la communauté
+                        {t('privacyLink')}
                       </Link>.
-                      {' '}Âge minimum : 13 ans.
+                      {' '}{t('acceptTermsAgeSuffix')}
                     </label>
                   </div>
                   {errors.cgu && (
-                    <p className="text-xs text-guinea-600">Vous devez accepter les conditions pour continuer.</p>
+                    <p className="text-xs text-guinea-600">{t('acceptTermsRequired')}</p>
                   )}
 
                   <button type="submit"
                     className="w-full bg-primary-700 hover:bg-primary-800 active:scale-[0.98] text-white font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 shadow-premium text-base">
-                    Continuer <ArrowRight size={18} />
+                    {t('continue')} <ArrowRight size={18} />
                   </button>
                 </form>
 
                 <div className="flex items-center gap-3 my-6">
                   <div className="flex-1 h-px bg-dark-100" />
-                  <span className="text-xs text-dark-400 font-medium">déjà inscrit ?</span>
+                  <span className="text-xs text-dark-400 font-medium">{t('alreadyRegistered')}</span>
                   <div className="flex-1 h-px bg-dark-100" />
                 </div>
                 <Link href="/auth/connexion"
                   className="block w-full text-center border-2 border-primary-700 text-primary-700 font-semibold py-3.5 rounded-2xl hover:bg-primary-50 active:scale-[0.98] transition-all text-sm">
-                  Se connecter →
+                  {t('loginLink')}
                 </Link>
               </>
             )}
@@ -525,12 +529,12 @@ export default function RegisterPage() {
               <>
                 <button onClick={() => setStep(1)}
                   className="flex items-center gap-1.5 text-dark-400 hover:text-dark-700 text-sm font-medium mb-5 transition-colors">
-                  <ArrowLeft size={15} /> Retour
+                  <ArrowLeft size={15} /> {t('back')}
                 </button>
 
-                <h2 className="font-display font-bold text-2xl sm:text-3xl text-dark-900 mb-2">Je suis...</h2>
+                <h2 className="font-display font-bold text-2xl sm:text-3xl text-dark-900 mb-2">{t('iAmTitle')}</h2>
                 <p className="text-dark-500 text-sm mb-7">
-                  Choisissez le profil qui vous correspond. Vous pourrez le modifier depuis votre profil.
+                  {t('iAmSubtitle')}
                 </p>
 
                 <div className="space-y-3 mb-8">
@@ -562,7 +566,7 @@ export default function RegisterPage() {
                   <div className="flex items-center gap-2.5 bg-gold-50 border border-gold-200 rounded-2xl p-3.5 mb-6">
                     <Store size={16} className="text-gold-600 shrink-0" />
                     <p className="text-sm text-gold-700">
-                      À l'étape suivante, vous configurerez votre boutique.
+                      {t('sellerNextStepHint')}
                     </p>
                   </div>
                 )}
@@ -578,10 +582,10 @@ export default function RegisterPage() {
                   disabled={loading}
                   className="w-full bg-primary-700 hover:bg-primary-800 active:scale-[0.98] text-white font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 shadow-premium disabled:opacity-60 text-base">
                   {loading
-                    ? <><Loader2 size={18} className="animate-spin" /> Création du compte...</>
+                    ? <><Loader2 size={18} className="animate-spin" /> {t('creatingAccount')}</>
                     : accountType === 'ACHETEUR'
-                      ? <><CheckCircle size={18} /> Créer mon compte</>
-                      : <>Créer ma boutique <ArrowRight size={18} /></>
+                      ? <><CheckCircle size={18} /> {t('createMyAccount')}</>
+                      : <>{t('createMyShop')} <ArrowRight size={18} /></>
                   }
                 </button>
               </>
@@ -594,41 +598,41 @@ export default function RegisterPage() {
               <>
                 <button onClick={() => setStep(2)}
                   className="flex items-center gap-1.5 text-dark-400 hover:text-dark-700 text-sm font-medium mb-5 transition-colors">
-                  <ArrowLeft size={15} /> Retour
+                  <ArrowLeft size={15} /> {t('back')}
                 </button>
 
-                <h2 className="font-display font-bold text-2xl sm:text-3xl text-dark-900 mb-2">Votre boutique 🏪</h2>
+                <h2 className="font-display font-bold text-2xl sm:text-3xl text-dark-900 mb-2">{t('shopTitle')}</h2>
                 <p className="text-dark-500 text-sm mb-7">
-                  Créez votre espace de vente. Ces informations seront visibles par tous les acheteurs.
+                  {t('shopSubtitle')}
                 </p>
 
                 <div className="space-y-6">
 
                   {/* Nom de la boutique */}
                   <div>
-                    <label className={L}>Nom de la boutique *</label>
+                    <label className={L}>{t('shopName')}</label>
                     <input
                       type="text"
                       value={shopName}
                       onChange={e => setShopName(e.target.value)}
-                      placeholder="Ex: Fashion Conakry, Boutique Diallo..."
+                      placeholder={t('shopNamePlaceholder')}
                       className={F} />
                   </div>
 
                   {/* Description */}
                   <div>
-                    <label className={L}>Description <span className="text-dark-400 font-normal">(optionnel)</span></label>
+                    <label className={L}>{t('shopDescription')} <span className="text-dark-400 font-normal">{t('optional')}</span></label>
                     <textarea
                       value={shopDesc}
                       onChange={e => setShopDesc(e.target.value)}
-                      placeholder="Décrivez vos produits ou services, votre spécialité..."
+                      placeholder={t('shopDescriptionPlaceholder')}
                       rows={3}
                       className={`${F} resize-none`} />
                   </div>
 
                   {/* Logo */}
                   <div>
-                    <label className={L}>Logo / Photo de profil <span className="text-dark-400 font-normal">(optionnel)</span></label>
+                    <label className={L}>{t('shopLogo')} <span className="text-dark-400 font-normal">{t('optional')}</span></label>
                     <input
                       ref={logoRef} type="file" accept="image/*" className="hidden"
                       onChange={e => { const f = e.target.files?.[0]; if (f) pickImg('logo', f); }} />
@@ -644,22 +648,22 @@ export default function RegisterPage() {
                         <button type="button" onClick={() => logoRef.current?.click()}
                           className="flex items-center gap-1.5 text-sm text-primary-700 font-semibold hover:text-primary-800 transition-colors">
                           <UploadCloud size={15} />
-                          {logoFile ? 'Changer le logo' : 'Choisir un logo'}
+                          {logoFile ? t('changeLogo') : t('chooseLogo')}
                         </button>
                         {logoFile && (
                           <button type="button" onClick={() => { setLogoFile(null); setLogoPrev(''); }}
                             className="flex items-center gap-1 text-xs text-guinea-500 mt-1 hover:text-guinea-700 transition-colors">
-                            <X size={11} /> Retirer
+                            <X size={11} /> {t('removeLogo')}
                           </button>
                         )}
-                        <p className="text-xs text-dark-400 mt-1.5">Format carré recommandé. Max 10 Mo.</p>
+                        <p className="text-xs text-dark-400 mt-1.5">{t('logoHint')}</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Bannière */}
                   <div>
-                    <label className={L}>Bannière de la boutique <span className="text-dark-400 font-normal">(optionnel)</span></label>
+                    <label className={L}>{t('shopBanner')} <span className="text-dark-400 font-normal">{t('optional')}</span></label>
                     <input
                       ref={bannerRef} type="file" accept="image/*" className="hidden"
                       onChange={e => { const f = e.target.files?.[0]; if (f) pickImg('banner', f); }} />
@@ -671,26 +675,26 @@ export default function RegisterPage() {
                         : (
                           <div className="flex flex-col items-center gap-1.5 text-dark-300 pointer-events-none">
                             <UploadCloud size={28} />
-                            <span className="text-xs">Cliquez pour ajouter une bannière</span>
+                            <span className="text-xs">{t('bannerHint')}</span>
                           </div>
                         )}
                     </div>
                     {bannerFile && (
                       <button type="button" onClick={() => { setBannerFile(null); setBannerPrev(''); }}
                         className="flex items-center gap-1 text-xs text-guinea-500 mt-1 hover:text-guinea-700 transition-colors">
-                        <X size={11} /> Retirer la bannière
+                        <X size={11} /> {t('removeBanner')}
                       </button>
                     )}
                   </div>
 
                   {/* Catégories de vente */}
                   <div>
-                    <label className={L}>Catégories de vente <span className="text-dark-400 font-normal">(optionnel)</span></label>
+                    <label className={L}>{t('shopCategories')} <span className="text-dark-400 font-normal">{t('optional')}</span></label>
                     <p className="text-xs text-dark-400 mb-3">
-                      Sélectionnez les catégories dans lesquelles vous vendez — plusieurs choix possibles.
+                      {t('shopCategoriesHint')}
                     </p>
                     {cats.length === 0
-                      ? <p className="text-xs text-dark-400 italic">Chargement des catégories...</p>
+                      ? <p className="text-xs text-dark-400 italic">{t('loadingCategories')}</p>
                       : (
                         <div className="flex flex-wrap gap-2">
                           {cats.map(cat => {
@@ -713,9 +717,9 @@ export default function RegisterPage() {
 
                   {/* Boutique physique */}
                   <div>
-                    <label className={L}>Avez-vous une boutique physique ?</label>
+                    <label className={L}>{t('hasPhysicalShop')}</label>
                     <div className="flex gap-3">
-                      {([{ label: 'Oui', val: true }, { label: 'Non', val: false }] as const).map(({ label, val }) => (
+                      {([{ label: t('yes'), val: true }, { label: t('no'), val: false }] as const).map(({ label, val }) => (
                         <button key={String(val)} type="button" onClick={() => setPhysical(val)}
                           className={`flex-1 py-3 rounded-2xl font-semibold text-sm border-2 transition-all ${
                             physical === val
@@ -732,24 +736,24 @@ export default function RegisterPage() {
                   {physical && (
                     <div className="bg-dark-50 rounded-2xl p-4 space-y-4">
                       <div className="flex items-center gap-2 text-sm font-semibold text-dark-700">
-                        <Building2 size={15} /> Informations de la boutique physique
+                        <Building2 size={15} /> {t('physicalShopInfo')}
                       </div>
                       <div>
-                        <label className={L}>Adresse</label>
+                        <label className={L}>{t('shopAddress')}</label>
                         <input
                           type="text"
                           value={shopAddr}
                           onChange={e => setShopAddr(e.target.value)}
-                          placeholder="Quartier Ratoma, Conakry..."
+                          placeholder={t('shopAddressPlaceholder')}
                           className={F} />
                       </div>
                       <div>
-                        <label className={L}>Horaires d'ouverture</label>
+                        <label className={L}>{t('shopHours')}</label>
                         <input
                           type="text"
                           value={shopHours}
                           onChange={e => setShopHours(e.target.value)}
-                          placeholder="Lun–Sam : 8h–20h, Dim : fermé"
+                          placeholder={t('shopHoursPlaceholder')}
                           className={F} />
                       </div>
                     </div>
@@ -758,7 +762,7 @@ export default function RegisterPage() {
                   {/* WhatsApp boutique */}
                   <div>
                     <label className={L}>
-                      WhatsApp de la boutique <span className="text-dark-400 font-normal">(optionnel)</span>
+                      {t('shopWhatsapp')} <span className="text-dark-400 font-normal">{t('optional')}</span>
                     </label>
                     <div className="flex gap-2">
                       <span className="flex items-center px-3.5 bg-dark-50 border border-dark-200 rounded-2xl text-sm text-dark-600 whitespace-nowrap font-medium">
@@ -768,7 +772,7 @@ export default function RegisterPage() {
                         type="tel"
                         value={shopWa}
                         onChange={e => setShopWa(e.target.value)}
-                        placeholder="620 00 00 00"
+                        placeholder={t('phonePlaceholder')}
                         className={`${F} flex-1`} />
                     </div>
                   </div>
@@ -779,13 +783,13 @@ export default function RegisterPage() {
                     disabled={loading}
                     className="w-full bg-primary-700 hover:bg-primary-800 active:scale-[0.98] text-white font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 shadow-premium disabled:opacity-60 text-base">
                     {loading
-                      ? <><Loader2 size={18} className="animate-spin" /> Création en cours...</>
-                      : <><CheckCircle size={18} /> Créer mon compte et ma boutique</>
+                      ? <><Loader2 size={18} className="animate-spin" /> {t('creatingInProgress')}</>
+                      : <><CheckCircle size={18} /> {t('createAccountAndShop')}</>
                     }
                   </button>
 
                   <p className="text-xs text-dark-400 text-center pb-2">
-                    Vous pourrez modifier ces informations à tout moment depuis votre profil.
+                    {t('editLaterHint')}
                   </p>
                 </div>
               </>

@@ -1,0 +1,10 @@
+{
+  "openAriaLabel": "Ouvrir l'assistant TrouveTout224",
+  "hideAriaLabel": "Masquer l'assistant",
+  "title": "Assistant TrouveTout224",
+  "subtitle": "🇬🇳 Là pour t'aider",
+  "placeholder": "Écris ta question...",
+  "sendAriaLabel": "Envoyer",
+  "greeting": "Salut 👋 Je suis l'assistant TrouveTout224. Pose-moi une question sur le site : publier une annonce, créer une boutique, contacter un vendeur...",
+  "fallbackMessage": "Désolé, je suis indisponible pour le moment 😕 Contacte le support WhatsApp : +224 627 54 34 86."
+}

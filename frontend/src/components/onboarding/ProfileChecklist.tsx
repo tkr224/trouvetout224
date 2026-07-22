@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { api } from '@/lib/api';
 import {
   CheckCircle2, Circle, ChevronDown, ChevronUp, Trophy, Sparkles,
@@ -37,6 +38,7 @@ const COLLAPSE_KEY = 'tt224-checklist-collapsed';
 // Checklist "bien démarrer" affichée sur le profil : purement informative,
 // jamais bloquante, repliable si l'utilisateur ne veut pas la voir.
 export default function ProfileChecklist() {
+  const t = useTranslations('onboarding.checklist');
   const [data, setData] = useState<OnboardingData | null>(null);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -61,10 +63,10 @@ export default function ProfileChecklist() {
         </div>
         <div className="min-w-0">
           <p className="font-bold text-dark-900 text-sm sm:text-base flex items-center gap-2 flex-wrap">
-            Profil complet <span className="inline-flex items-center gap-1 text-[11px] font-bold text-gold-700 bg-gold-100 px-2 py-0.5 rounded-full">🎉</span>
+            {t('completeTitle')} <span className="inline-flex items-center gap-1 text-[11px] font-bold text-gold-700 bg-gold-100 px-2 py-0.5 rounded-full">🎉</span>
           </p>
           <p className="text-dark-500 text-xs sm:text-sm mt-0.5">
-            Bravo, tu as terminé toutes les étapes pour bien démarrer sur TrouveTout224 !
+            {t('completeSubtitle')}
           </p>
         </div>
       </div>
@@ -75,8 +77,8 @@ export default function ProfileChecklist() {
     <div className="bg-white rounded-2xl border border-dark-100 shadow-card p-4 sm:p-5 mb-6">
       <button onClick={toggleCollapsed} className="w-full flex items-center justify-between gap-3">
         <div className="flex-1 min-w-0 text-left">
-          <p className="font-bold text-dark-900 text-sm sm:text-base">Bien démarrer</p>
-          <p className="text-dark-400 text-xs mt-0.5">Profil complété à {data.percent}%</p>
+          <p className="font-bold text-dark-900 text-sm sm:text-base">{t('title')}</p>
+          <p className="text-dark-400 text-xs mt-0.5">{t('percentComplete', { percent: data.percent })}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-primary-700 bg-primary-50 border-2 border-primary-200">
@@ -119,7 +121,7 @@ export default function ProfileChecklist() {
                 </span>
                 {task.highlight && !task.done && (
                   <span className="inline-flex items-center gap-1 text-[10px] font-bold text-gold-700 bg-gold-100 px-2 py-0.5 rounded-full shrink-0">
-                    <Sparkles size={9} /> Important
+                    <Sparkles size={9} /> {t('important')}
                   </span>
                 )}
               </div>

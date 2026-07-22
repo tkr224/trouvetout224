@@ -1,0 +1,23 @@
+{
+  "save": "Save",
+  "cancel": "Cancel",
+  "next": "Next",
+  "back": "Back",
+  "loading": "Loading...",
+  "seeMore": "See more",
+  "seeAll": "See all",
+  "close": "Close",
+  "search": "Search",
+  "send": "Send",
+  "edit": "Edit",
+  "delete": "Delete",
+  "confirm": "Confirm",
+  "yes": "Yes",
+  "no": "No",
+  "copy": "Copy",
+  "copied": "Copied to clipboard!",
+  "genericError": "Something went wrong. Please try again.",
+  "networkError": "Couldn't reach the server. Check your connection.",
+  "requiredField": "This field is required.",
+  "free": "Free"
+}

@@ -1,0 +1,40 @@
+{
+  "title": "Boutiques",
+  "subtitle": "{count, plural, one {# boutique} other {# boutiques}} sur TrouveTout224",
+  "searchPlaceholder": "Rechercher une boutique par nom...",
+  "filters": "Filtres",
+  "cityLabel": "Ville / Quartier",
+  "allCities": "Toutes les villes",
+  "categoryLabel": "Catégorie",
+  "allCategories": "Toutes les catégories",
+  "clearFilters": "Effacer les filtres",
+  "categories": {
+    "electronique": "Électronique",
+    "modeVetements": "Vêtements & Mode",
+    "alimentation": "Alimentation",
+    "maisonDeco": "Maison & Déco",
+    "beauteSante": "Beauté & Santé",
+    "autoMoto": "Auto & Moto",
+    "immobilier": "Immobilier",
+    "services": "Services",
+    "agriculture": "Agriculture",
+    "materiaux": "Matériaux",
+    "animaux": "Animaux",
+    "sportsLoisirs": "Sports & Loisirs"
+  },
+  "empty": {
+    "title": "Aucune boutique trouvée",
+    "withFilters": "Essayez de modifier votre recherche ou vos filtres.",
+    "noFilters": "Aucune boutique active pour le moment."
+  },
+  "pagination": {
+    "previous": "Précédent",
+    "next": "Suivant",
+    "pageOf": "Page {page} / {total}"
+  },
+  "card": {
+    "verifiedShop": "Boutique vérifiée",
+    "listingCount": "{count, plural, one {# annonce} other {# annonces}}",
+    "subscribers": "abon."
+  }
+}

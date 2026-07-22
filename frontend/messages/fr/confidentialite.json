@@ -1,0 +1,73 @@
+{
+  "hero": {
+    "title": "Politique de confidentialité",
+    "subtitle": "Vos données vous appartiennent. Voici, en clair, ce que nous faisons — et ne faisons pas — avec elles.",
+    "updatedAt": "Dernière mise à jour : {date}"
+  },
+  "sections": {
+    "collect": {
+      "title": "Les données que nous collectons",
+      "items": [
+        "Informations de compte : nom, prénom, email et/ou téléphone, ville, photo de profil.",
+        "Contenu de vos annonces : titre, description, photos, prix, catégorie.",
+        "Vos échanges dans la messagerie interne, pour assurer le suivi entre acheteurs et vendeurs.",
+        "Vos réponses aux questions de sécurité, si vous les configurez (pour récupérer votre compte).",
+        "Données techniques de navigation : pages consultées, statistiques de visite anonymisées."
+      ]
+    },
+    "why": {
+      "title": "Pourquoi nous les utilisons",
+      "items": [
+        "Créer et sécuriser votre compte.",
+        "Afficher vos annonces et vous mettre en relation avec les autres utilisateurs.",
+        "Faire fonctionner la messagerie entre acheteurs et vendeurs.",
+        "Vous envoyer des notifications utiles (email, dans l'application).",
+        "Améliorer TrouveTout224 au fil du temps."
+      ]
+    },
+    "protection": {
+      "title": "Comment elles sont protégées",
+      "items": [
+        "Vos mots de passe et vos réponses aux questions de sécurité sont chiffrés (hachage) et ne sont jamais stockés ni lisibles en clair — même par notre équipe.",
+        "Toutes les communications avec le site passent par une connexion sécurisée (HTTPS).",
+        "L'accès à vos données est strictement limité aux besoins techniques du service."
+      ]
+    },
+    "sharing": {
+      "title": "Avec qui elles sont partagées",
+      "items": [
+        "Avec personne. Nous ne vendons et ne partageons jamais vos données à des fins publicitaires.",
+        "Seuls des prestataires techniques indispensables au fonctionnement du site y ont accès, chacun uniquement pour ce qui le concerne."
+      ],
+      "partners": {
+        "cloudinary": "hébergement de vos photos (annonces, profil)",
+        "resend": "envoi des emails (confirmation, notifications)",
+        "google": "connexion sécurisée si vous choisissez « Se connecter avec Google »"
+      }
+    },
+    "cookies": {
+      "title": "Cookies et mesure d'audience",
+      "items": [
+        "Des cookies techniques maintiennent votre session connectée — indispensables au fonctionnement du site.",
+        "Lorsqu'il est activé, Google Analytics peut collecter des statistiques de fréquentation anonymisées, pour nous aider à améliorer le site.",
+        "Vous pouvez désactiver les cookies non essentiels dans les réglages de votre navigateur à tout moment."
+      ]
+    },
+    "rights": {
+      "title": "Vos droits",
+      "items": [
+        "Accéder à vos données depuis votre profil et vos paramètres, à tout moment.",
+        "Modifier vos informations (nom, photo, ville, mot de passe...) directement dans Paramètres.",
+        "Supprimer votre compte et vos données quand vous le souhaitez.",
+        "Nous contacter pour toute demande particulière (export de données, question sur votre compte)."
+      ]
+    }
+  },
+  "contact": {
+    "title": "Une question sur vos données ?",
+    "subtitle": "Écrivez-nous, nous répondons rapidement.",
+    "whatsapp": "WhatsApp",
+    "seeAlsoPrefix": "Voir aussi nos",
+    "terms": "Conditions d'utilisation"
+  }
+}

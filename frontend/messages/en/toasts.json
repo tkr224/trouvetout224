@@ -1,0 +1,9 @@
+{
+  "genericSuccess": "Success.",
+  "genericError": "Something went wrong. Please try again later.",
+  "serverError": "Server error, please try again later.",
+  "linkCopied": "Link copied to clipboard!",
+  "loginRequired": "You must be logged in to do this.",
+  "deleted": "Deleted successfully.",
+  "updated": "Updated successfully."
+}

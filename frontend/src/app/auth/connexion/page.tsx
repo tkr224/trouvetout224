@@ -4,12 +4,14 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 import { Loader2, Eye, EyeOff, ShoppingBag, Lock, Zap, Ban } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
 
 function LoginContent() {
+  const t = useTranslations('auth.login');
   const [loading, setLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
   const [suspended, setSuspended] = useState<{ reason: string | null } | null>(null);
@@ -28,7 +30,7 @@ function LoginContent() {
       });
       setUser(res.data.user);
       setTokens(res.data.accessToken, res.data.refreshToken);
-      toast.success('Connexion réussie !');
+      toast.success(t('successToast'));
       const redirect = searchParams.get('redirect');
       router.push(redirect && redirect.startsWith('/') ? redirect : '/');
     } catch (err: any) {
@@ -36,7 +38,7 @@ function LoginContent() {
       if (err.response?.status === 403 && errData?.suspended) {
         setSuspended({ reason: errData.suspendedReason || null });
       } else {
-        toast.error(errData?.error || 'Erreur de connexion');
+        toast.error(errData?.error || t('errorToast'));
       }
     } finally {
       setLoading(false);
@@ -65,14 +67,14 @@ function LoginContent() {
             Trouve<span className="text-gold-400">Tout</span><span className="text-guinea-300">224</span>
           </h1>
           <p className="text-primary-100 text-base mb-12">
-            Le plus grand marché en ligne de Guinée
+            {t('heroSubtitle')}
           </p>
 
           <div className="space-y-3 text-left">
             {[
-              { Icon: ShoppingBag, text: 'Des milliers d\'annonces partout en Guinée',  cls: 'text-gold-300' },
-              { Icon: Lock,        text: 'Compte sécurisé, données protégées',          cls: 'text-primary-300' },
-              { Icon: Zap,         text: 'Publiez une annonce en moins de 2 minutes',   cls: 'text-guinea-300' },
+              { Icon: ShoppingBag, text: t('heroFeature1'),  cls: 'text-gold-300' },
+              { Icon: Lock,        text: t('heroFeature2'),  cls: 'text-primary-300' },
+              { Icon: Zap,         text: t('heroFeature3'),  cls: 'text-guinea-300' },
             ].map(({ Icon, text, cls }) => (
               <div
                 key={text}
@@ -105,18 +107,18 @@ function LoginContent() {
           </div>
 
           {/* En-tête */}
-          <h2 className="font-display font-bold text-3xl text-dark-900">Bon retour !</h2>
-          <p className="text-dark-500 mt-1.5 mb-8">Connectez-vous à votre compte</p>
+          <h2 className="font-display font-bold text-3xl text-dark-900">{t('title')}</h2>
+          <p className="text-dark-500 mt-1.5 mb-8">{t('subtitle')}</p>
 
           {suspended && (
             <div className="mb-6 bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
               <Ban size={18} className="text-red-500 mt-0.5 shrink-0" />
               <div>
-                <p className="font-bold text-red-800 text-sm">Compte suspendu</p>
+                <p className="font-bold text-red-800 text-sm">{t('suspendedTitle')}</p>
                 {suspended.reason && (
-                  <p className="text-red-700 text-xs mt-1">Raison : {suspended.reason}</p>
+                  <p className="text-red-700 text-xs mt-1">{t('suspendedReason', { reason: suspended.reason })}</p>
                 )}
-                <p className="text-red-500 text-xs mt-1">Contactez le support pour toute réclamation.</p>
+                <p className="text-red-500 text-xs mt-1">{t('suspendedContact')}</p>
               </div>
             </div>
           )}
@@ -126,12 +128,12 @@ function LoginContent() {
             {/* Identifiant */}
             <div>
               <label className="block text-sm font-semibold text-dark-700 mb-2">
-                Email ou téléphone
+                {t('identifierLabel')}
               </label>
               <input
                 {...register('identifier', { required: true })}
                 type="text"
-                placeholder="email@exemple.com ou 620 00 00 00"
+                placeholder={t('identifierPlaceholder')}
                 className={fieldCls}
               />
             </div>
@@ -139,19 +141,19 @@ function LoginContent() {
             {/* Mot de passe */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-semibold text-dark-700">Mot de passe</label>
+                <label className="text-sm font-semibold text-dark-700">{t('passwordLabel')}</label>
                 <Link
                   href="/auth/mot-de-passe-oublie"
                   className="text-xs text-primary-700 hover:underline"
                 >
-                  Mot de passe oublié ?
+                  {t('forgotPassword')}
                 </Link>
               </div>
               <div className="relative">
                 <input
                   {...register('password', { required: true })}
                   type={showPwd ? 'text' : 'password'}
-                  placeholder="Votre mot de passe"
+                  placeholder={t('passwordPlaceholder')}
                   className={`${fieldCls} pr-12`}
                 />
                 <button
@@ -172,15 +174,15 @@ function LoginContent() {
               className="w-full bg-primary-700 hover:bg-primary-800 active:scale-[0.98] text-white font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 shadow-premium disabled:opacity-60 disabled:cursor-not-allowed text-base"
             >
               {loading
-                ? <><Loader2 size={18} className="animate-spin" /> Connexion...</>
-                : 'Se connecter'}
+                ? <><Loader2 size={18} className="animate-spin" /> {t('submitLoading')}</>
+                : t('submit')}
             </button>
           </form>
 
           {/* Séparateur */}
           <div className="flex items-center gap-3 my-7">
             <div className="flex-1 h-px bg-dark-100" />
-            <span className="text-xs text-dark-400 font-medium">nouveau sur TrouveTout224 ?</span>
+            <span className="text-xs text-dark-400 font-medium">{t('newHere')}</span>
             <div className="flex-1 h-px bg-dark-100" />
           </div>
 
@@ -189,7 +191,7 @@ function LoginContent() {
             href="/auth/inscription"
             className="block w-full text-center border-2 border-primary-700 text-primary-700 font-semibold py-3.5 rounded-2xl hover:bg-primary-50 active:scale-[0.98] transition-all duration-200 text-sm"
           >
-            Créer un compte gratuitement →
+            {t('createAccount')}
           </Link>
         </div>
       </main>

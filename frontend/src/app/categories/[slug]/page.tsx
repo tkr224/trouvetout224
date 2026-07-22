@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import AnnonceGrid from '@/components/annonces/AnnonceGrid';
@@ -10,6 +11,7 @@ import { api } from '@/lib/api';
 import { useAnnonces } from '@/hooks/useAnnonces';
 
 export default function CategoryPage() {
+  const t = useTranslations('categories');
   const { slug } = useParams();
   const [category, setCategory] = useState<any>(null);
   const [activeSub, setActiveSub] = useState<string>('');
@@ -28,7 +30,7 @@ export default function CategoryPage() {
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 py-8">
         <nav className="flex items-center gap-2 text-sm text-dark-500 mb-6">
-          <Link href="/" className="hover:text-primary-700">Accueil</Link><span>/</span>
+          <Link href="/" className="hover:text-primary-700">{t('breadcrumbHome')}</Link><span>/</span>
           <span className="text-dark-700">{category?.nameFr || '...'}</span>
         </nav>
 
@@ -38,7 +40,7 @@ export default function CategoryPage() {
           </div>
           <div>
             <h1 className="text-3xl font-display font-bold text-dark-900">{category?.nameFr}</h1>
-            <p className="text-dark-500 text-sm">{data?.pagination?.total || 0} annonce(s)</p>
+            <p className="text-dark-500 text-sm">{t('resultsCount', { count: data?.pagination?.total || 0 })}</p>
           </div>
         </div>
 
@@ -47,7 +49,7 @@ export default function CategoryPage() {
           <div className="flex gap-2 flex-wrap mb-8">
             <button onClick={() => setActiveSub('')}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${!activeSub ? 'bg-primary-700 text-white' : 'bg-dark-50 text-dark-600 hover:bg-primary-50'}`}>
-              Tout voir
+              {t('viewAll')}
             </button>
             {category.children.map((sub: any) => (
               <button key={sub.id} onClick={() => setActiveSub(sub.slug)}

@@ -1,0 +1,63 @@
+{
+  "search": {
+    "placeholder": "Que cherchez-vous ? téléphone, voiture, maison, emploi…",
+    "cityAll": "Toute la Guinée",
+    "button": "Rechercher",
+    "publish": "Déposer une annonce"
+  },
+  "sorts": {
+    "recent": "Récents",
+    "popular": "Populaires",
+    "views": "Consultés",
+    "priceAsc": "Prix ↑",
+    "priceDesc": "Prix ↓",
+    "rating": "Meilleures notes"
+  },
+  "publications": {
+    "banner": "🎉 Promo officielle",
+    "event": "📅 Événement",
+    "featuredVendor": "⭐ Vendeur en vedette"
+  },
+  "hero": {
+    "titleLine1": "Achète et vends facilement,",
+    "titleLine2": "partout en Guinée",
+    "subtitle": "La marketplace 100% guinéenne avec vendeurs vérifiés et contact direct — pour acheter et vendre l'esprit tranquille, gratuitement.",
+    "badge1": "Les acheteurs te contactent sur WhatsApp",
+    "badge2": "Vendeurs vérifiés",
+    "badge3": "100% gratuit, sans limite",
+    "ctaPublish": "Publier une annonce gratuitement",
+    "ctaBrowse": "Voir les annonces",
+    "imageAlt": "Image {number}"
+  },
+  "stats": {
+    "categories": "Catégories",
+    "cities": "Villes couvertes",
+    "annonces": "Annonces actives",
+    "boutiques": "Boutiques"
+  },
+  "latestSection": {
+    "kicker": "Annonces",
+    "title": "Dernières annonces",
+    "subtitle": "Les dernières offres publiées sur la plateforme",
+    "sortLabel": "Trier : {label}",
+    "emptyTitle": "Sois le premier à publier ici !",
+    "emptySubtitle": "Aucune annonce pour le moment — la tienne pourrait être la toute première visible sur TrouveTout224.",
+    "viewAll": "Voir toutes les annonces"
+  },
+  "categoriesSection": {
+    "kicker": "Catégories",
+    "title": "Parcourir par catégorie",
+    "subtitle": "Trouvez exactement ce que vous cherchez",
+    "browseAll": "Tout parcourir",
+    "listingCount": "{count, plural, one {# annonce} other {# annonces}}",
+    "comingSoon": "Bientôt",
+    "seeAll": "Voir tout",
+    "allCategories": "Toutes catégories"
+  },
+  "trust": {
+    "sell": { "title": "Vends en quelques minutes", "desc": "Annonce gratuite, publiée sans limite" },
+    "buy": { "title": "Achète en toute confiance", "desc": "Vendeurs vérifiés par notre équipe" },
+    "contact": { "title": "Contact direct sur WhatsApp", "desc": "Parle au vendeur tout de suite" },
+    "shop": { "title": "Ta boutique en ligne", "desc": "Visible par toute la Guinée 🇬🇳" }
+  }
+}

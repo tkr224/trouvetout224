@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import CulturalPattern from '@/components/CulturalPattern';
@@ -8,8 +9,19 @@ import {
   MapPin, Store, MessageCircle, Users, ArrowRight, UserPlus, PlusCircle,
 } from 'lucide-react';
 
-export default function AProposPage() {
+const VALUE_ICONS = [
+  { icon: MapPin, color: 'text-guinea-600 dark:text-guinea-400', bg: 'bg-guinea-100 dark:bg-guinea-900/30' },
+  { icon: ShieldCheck, color: 'text-primary-700 dark:text-primary-400', bg: 'bg-primary-100 dark:bg-primary-900/40' },
+  { icon: Sparkles, color: 'text-gold-600 dark:text-gold-400', bg: 'bg-gold-100 dark:bg-gold-900/30' },
+] as const;
+
+const DIFFERENCE_ICONS = [MapPin, Store, MessageCircle, Users] as const;
+
+export default async function AProposPage() {
+  const t = await getTranslations('apropos');
   const year = new Date().getFullYear();
+  const VALUES = (t.raw('values.items') as { title: string; desc: string }[]).map((v, i) => ({ ...v, ...VALUE_ICONS[i] }));
+  const DIFFERENCES = (t.raw('difference.items') as { title: string; desc: string }[]).map((d, i) => ({ ...d, icon: DIFFERENCE_ICONS[i] }));
 
   return (
     <div className="min-h-screen bg-dark-50 dark:bg-dark-900">
@@ -43,16 +55,16 @@ export default function AProposPage() {
             <Logo size={48} />
           </div>
           <div className="inline-flex items-center gap-2 bg-white/15 border border-white/25 rounded-full px-3.5 py-1 mb-4 backdrop-blur-sm">
-            <span className="text-gold-300 text-xs font-bold tracking-widest uppercase">Notre histoire</span>
+            <span className="text-gold-300 text-xs font-bold tracking-widest uppercase">{t('badge')}</span>
           </div>
           <h1
             className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-white leading-tight mb-4"
             style={{ textShadow: '0 2px 20px rgba(0,0,0,0.9), 0 1px 6px rgba(0,0,0,0.7)' }}
           >
-            Une plateforme née d'un problème vécu,<br className="hidden sm:block" /> pas d'un plan d'affaires
+            {t('hero.titleLine1')}<br className="hidden sm:block" /> {t('hero.titleLine2')}
           </h1>
           <p className="text-white/90 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto" style={{ textShadow: '0 1px 10px rgba(0,0,0,0.8)' }}>
-            <span className="text-guinea-300 font-semibold">Trouve</span><span className="text-gold-300 font-semibold">Tout</span><span className="text-white font-semibold">224</span> — la marketplace pensée à Conakry, pour toute la Guinée.
+            <span className="text-guinea-300 font-semibold">Trouve</span><span className="text-gold-300 font-semibold">Tout</span><span className="text-white font-semibold">224</span> {t('hero.subtitle')}
           </p>
         </div>
       </section>
@@ -64,10 +76,10 @@ export default function AProposPage() {
         <section className="max-w-4xl mx-auto px-4 py-14 sm:py-16">
           <div className="flex items-center gap-2 mb-2 justify-center">
             <div className="h-1 w-4 bg-gold-500 rounded-full" />
-            <span className="text-xs font-bold text-gold-600 dark:text-gold-400 uppercase tracking-wider">Comment tout a commencé</span>
+            <span className="text-xs font-bold text-gold-600 dark:text-gold-400 uppercase tracking-wider">{t('story.label')}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-display font-bold text-dark-900 dark:text-white text-center mb-10">
-            Mon histoire
+            {t('story.title')}
           </h2>
 
           <div className="space-y-5">
@@ -76,7 +88,7 @@ export default function AProposPage() {
                 <Lightbulb size={20} className="text-primary-700 dark:text-primary-400" />
               </div>
               <p className="text-dark-600 dark:text-dark-300 leading-relaxed">
-                Je suis un jeune développeur guinéen basé à Conakry. Tout a commencé le jour où j'ai voulu me lancer dans le marketing en ligne : c'était difficile, frustrant, et je ne faisais tout simplement pas de ventes.
+                {t('story.paragraph1')}
               </p>
             </div>
             <div className="card p-6 sm:p-7 flex gap-4 items-start dark:bg-dark-800 dark:border dark:border-dark-700">
@@ -84,7 +96,7 @@ export default function AProposPage() {
                 <Search size={20} className="text-gold-600 dark:text-gold-400" />
               </div>
               <p className="text-dark-600 dark:text-dark-300 leading-relaxed">
-                Les plateformes disponibles étaient soit européennes, soit américaines — jamais pensées pour notre réalité — et rien ne garantissait de vendre. J'ai alors cherché une vraie plateforme guinéenne, faite pour nous. Je n'en ai pas trouvé.
+                {t('story.paragraph2')}
               </p>
             </div>
             <div className="card p-6 sm:p-7 flex gap-4 items-start bg-gradient-to-br from-primary-50 to-white dark:from-primary-900/20 dark:to-dark-800 dark:border dark:border-primary-800/40">
@@ -92,7 +104,7 @@ export default function AProposPage() {
                 <Rocket size={20} className="text-guinea-600 dark:text-guinea-400" />
               </div>
               <p className="text-dark-700 dark:text-dark-200 leading-relaxed font-medium">
-                Alors j'ai créé la mienne — pour aider toutes les personnes qui se retrouvent dans la même situation que moi : aider les Guinéens à <span className="text-primary-700 dark:text-primary-400 font-bold">VENDRE</span> et à <span className="text-primary-700 dark:text-primary-400 font-bold">TROUVER TOUT</span>, en Guinée. C'est de ce principe qu'est né le nom : TrouveTout224.
+                {t('story.paragraph3Before')}<span className="text-primary-700 dark:text-primary-400 font-bold">{t('story.paragraph3Vendre')}</span>{t('story.paragraph3Mid')}<span className="text-primary-700 dark:text-primary-400 font-bold">{t('story.paragraph3Trouver')}</span>{t('story.paragraph3After')}
               </p>
             </div>
           </div>
@@ -104,9 +116,9 @@ export default function AProposPage() {
             <div className="w-14 h-14 rounded-2xl bg-primary-700 flex items-center justify-center mx-auto mb-5">
               <Target size={26} className="text-white" />
             </div>
-            <h2 className="text-2xl font-display font-bold text-dark-900 dark:text-white mb-3">Notre mission</h2>
+            <h2 className="text-2xl font-display font-bold text-dark-900 dark:text-white mb-3">{t('mission.title')}</h2>
             <p className="text-dark-600 dark:text-dark-300 leading-relaxed max-w-2xl mx-auto">
-              Permettre à chaque Guinéen d'acheter et de vendre facilement, en confiance, chez lui — sans détour par des plateformes qui ne nous connaissent pas.
+              {t('mission.text')}
             </p>
           </div>
         </section>
@@ -115,17 +127,13 @@ export default function AProposPage() {
         <section className="max-w-5xl mx-auto px-4 pb-14 sm:pb-16">
           <div className="flex items-center gap-2 mb-2 justify-center">
             <div className="h-1 w-4 bg-primary-600 rounded-full" />
-            <span className="text-xs font-bold text-primary-700 dark:text-primary-400 uppercase tracking-wider">Nos valeurs</span>
+            <span className="text-xs font-bold text-primary-700 dark:text-primary-400 uppercase tracking-wider">{t('values.label')}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-display font-bold text-dark-900 dark:text-white text-center mb-10">
-            Ce en quoi nous croyons
+            {t('values.title')}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {[
-              { icon: MapPin, title: '100% guinéen', desc: 'Pensée, créée et faite pour la Guinée — pas une copie adaptée.', color: 'text-guinea-600 dark:text-guinea-400', bg: 'bg-guinea-100 dark:bg-guinea-900/30' },
-              { icon: ShieldCheck, title: 'La confiance avant tout', desc: 'Vendeurs vérifiés et transparence, pour acheter et vendre l\'esprit tranquille.', color: 'text-primary-700 dark:text-primary-400', bg: 'bg-primary-100 dark:bg-primary-900/40' },
-              { icon: Sparkles, title: 'Simple et accessible', desc: 'Une plateforme facile à utiliser, pour tous, même sans être un expert du digital.', color: 'text-gold-600 dark:text-gold-400', bg: 'bg-gold-100 dark:bg-gold-900/30' },
-            ].map(({ icon: Icon, title, desc, color, bg }) => (
+            {VALUES.map(({ icon: Icon, title, desc, color, bg }) => (
               <div key={title} className="card p-6 text-center dark:bg-dark-800 dark:border dark:border-dark-700">
                 <div className={`w-12 h-12 rounded-xl ${bg} flex items-center justify-center mx-auto mb-4`}>
                   <Icon size={22} className={color} />
@@ -141,18 +149,13 @@ export default function AProposPage() {
         <section className="max-w-5xl mx-auto px-4 pb-14 sm:pb-16">
           <div className="flex items-center gap-2 mb-2 justify-center">
             <div className="h-1 w-4 bg-gold-500 rounded-full" />
-            <span className="text-xs font-bold text-gold-600 dark:text-gold-400 uppercase tracking-wider">La différence</span>
+            <span className="text-xs font-bold text-gold-600 dark:text-gold-400 uppercase tracking-wider">{t('difference.label')}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-display font-bold text-dark-900 dark:text-white text-center mb-10">
-            Ce qui nous rend différents
+            {t('difference.title')}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[
-              { icon: MapPin, title: 'Fait ici, pensé pour la Guinée', desc: "Nos villes, nos habitudes, notre réalité — pas une plateforme importée qu'on a traduite en français." },
-              { icon: Store, title: 'Ta propre boutique en ligne', desc: 'Chaque vendeur peut créer sa boutique et présenter tous ses articles au même endroit.' },
-              { icon: MessageCircle, title: 'Contact direct sur WhatsApp', desc: "Pas d'intermédiaire compliqué : acheteurs et vendeurs se parlent directement." },
-              { icon: Users, title: 'Une plateforme de proximité', desc: "Conçue avec et pour la communauté guinéenne, qui évolue selon vos retours." },
-            ].map(({ icon: Icon, title, desc }) => (
+            {DIFFERENCES.map(({ icon: Icon, title, desc }) => (
               <div key={title} className="card p-6 flex gap-4 items-start dark:bg-dark-800 dark:border dark:border-dark-700">
                 <div className="w-11 h-11 rounded-xl bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center shrink-0">
                   <Icon size={20} className="text-primary-700 dark:text-primary-400" />
@@ -176,30 +179,30 @@ export default function AProposPage() {
         <div className="relative max-w-2xl mx-auto px-4 text-center" style={{ zIndex: 2 }}>
           <Heart size={32} className="text-guinea-300 mx-auto mb-4" />
           <h2 className="text-2xl sm:text-3xl font-display font-bold text-white mb-3" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
-            Rejoins l'aventure TrouveTout224
+            {t('cta.title')}
           </h2>
           <p className="text-white/85 leading-relaxed mb-8 max-w-lg mx-auto">
-            Que tu viennes acheter ou vendre, tu es chez toi ici. Rejoins des milliers de Guinéens qui trouvent tout, au même endroit.
+            {t('cta.text')}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/auth/inscription"
               className="inline-flex items-center gap-2 bg-gold-400 hover:bg-gold-500 active:scale-95 text-dark-900 font-bold px-6 py-3 rounded-xl text-sm transition-all shadow-xl"
             >
-              <UserPlus size={16} /> Créer mon compte gratuit
+              <UserPlus size={16} /> {t('cta.createAccount')}
             </Link>
             <Link
               href="/annonces/publier"
               className="inline-flex items-center gap-2 border-2 border-white/50 text-white font-semibold px-6 py-3 rounded-xl text-sm hover:bg-white/15 active:scale-95 transition-all backdrop-blur-sm"
             >
-              <PlusCircle size={16} /> Publier une annonce <ArrowRight size={14} />
+              <PlusCircle size={16} /> {t('cta.publish')} <ArrowRight size={14} />
             </Link>
           </div>
         </div>
       </section>
 
       <p className="text-center text-dark-400 dark:text-dark-500 text-xs py-6 bg-dark-50 dark:bg-dark-900">
-        © {year} TrouveTout224 · Conakry, République de Guinée 🇬🇳
+        {t('copyright', { year })}
       </p>
 
       <Footer />

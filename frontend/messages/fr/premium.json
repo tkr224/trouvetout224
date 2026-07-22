@@ -1,0 +1,34 @@
+{
+  "page": {
+    "badge": "Pack Premium",
+    "titlePrefix": "Le",
+    "titleHighlight": "Pack Premium",
+    "titleSuffix": "arrive bientôt !",
+    "subtitle": "Bientôt, boostez vos annonces et touchez encore plus d'acheteurs partout en Guinée.",
+    "comingSoonTitle": "Bientôt disponible",
+    "comingSoonMsg": "Nous préparons quelque chose de spécial pour les vendeurs. Soyez parmi les premiers informés au lancement !",
+    "notifyMe": "Me prévenir au lancement",
+    "modalTitle": "Ça arrive très bientôt !",
+    "modalMsg": "Le Pack Premium est en cours de préparation. Nous vous préviendrons dès son lancement. Merci de votre patience !",
+    "understood": "J'ai compris"
+  },
+  "abonnements": {
+    "loginRequiredMsg": "Connectez-vous pour voir vos abonnements",
+    "login": "Se connecter",
+    "pageTitle": "Mes abonnements",
+    "shopsFollowed": "{count, plural, one {# boutique suivie} other {# boutiques suivies}}",
+    "noShopsTitle": "Aucune boutique suivie",
+    "noShopsMsg": "Abonnez-vous à des boutiques pour ne manquer aucun nouveau produit",
+    "discoverListings": "Découvrir les annonces",
+    "activeAdsCount": "{count, plural, one {# annonce active} other {# annonces actives}}",
+    "disableNotifications": "Désactiver les notifications",
+    "enableNotifications": "Activer les notifications",
+    "viewShop": "Voir la boutique",
+    "unsubscribe": "Se désabonner",
+    "toastUnsubscribed": "Désabonné",
+    "toastUnsubscribeError": "Erreur lors du désabonnement",
+    "toastNotifyOn": "Notifications activées",
+    "toastNotifyOff": "Notifications désactivées",
+    "toastError": "Erreur"
+  }
+}

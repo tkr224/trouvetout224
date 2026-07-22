@@ -2,6 +2,7 @@
 export const dynamic = 'force-dynamic';
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import CulturalPattern from '@/components/CulturalPattern';
 import PageViewTracker from '@/components/PageViewTracker';
@@ -18,16 +19,21 @@ import toast from 'react-hot-toast';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 
-const SORTS = [
-  { v: 'recent',     l: 'Plus récents',     Icon: Clock },
-  { v: 'popular',    l: 'Plus populaires',  Icon: TrendingUp },
-  { v: 'views',      l: 'Plus consultés',   Icon: Eye },
-  { v: 'price_asc',  l: 'Prix croissant',   Icon: ArrowUp },
-  { v: 'price_desc', l: 'Prix décroissant', Icon: ArrowDown },
-  { v: 'rating',     l: 'Meilleures notes', Icon: Star },
-];
+const SORT_KEYS = [
+  { v: 'recent',     k: 'recent',    Icon: Clock },
+  { v: 'popular',    k: 'popular',   Icon: TrendingUp },
+  { v: 'views',      k: 'views',     Icon: Eye },
+  { v: 'price_asc',  k: 'priceAsc',  Icon: ArrowUp },
+  { v: 'price_desc', k: 'priceDesc', Icon: ArrowDown },
+  { v: 'rating',     k: 'rating',    Icon: Star },
+] as const;
 
-const CONDITIONS = ['Neuf', 'Comme neuf', 'Bon état', 'Occasion'];
+const CONDITION_KEYS = [
+  { value: 'Neuf',       k: 'new' },
+  { value: 'Comme neuf', k: 'likeNew' },
+  { value: 'Bon état',   k: 'goodCondition' },
+  { value: 'Occasion',   k: 'used' },
+] as const;
 
 const selectCls = 'w-full border border-dark-200 rounded-xl px-3 py-2.5 text-sm text-dark-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all appearance-none cursor-pointer';
 const inputCls  = 'w-full border border-dark-200 rounded-xl px-3 py-2.5 text-sm text-dark-900 placeholder-dark-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all';
@@ -57,6 +63,8 @@ function FilterSidebar({
   condition: string; setCondition: (v: string) => void;
   onReset: () => void; hasFilters: boolean;
 }) {
+  const t = useTranslations('annonces.listPage.filters');
+  const tCond = useTranslations('annonces.listPage.conditions');
   const selectedCatObj = categories.find((c: any) => c.slug === cat);
   const subcategories: any[] = selectedCatObj?.children || [];
 
@@ -65,10 +73,10 @@ function FilterSidebar({
 
       {/* Catégorie */}
       <div>
-        <SectionLabel>Catégorie</SectionLabel>
+        <SectionLabel>{t('category')}</SectionLabel>
         <div className="relative">
           <select value={cat} onChange={e => { setCat(e.target.value); setSubcat(''); }} className={selectCls}>
-            <option value="">Toutes les catégories</option>
+            <option value="">{t('allCategories')}</option>
             {categories.map((c: any) => (
               <option key={c.slug} value={c.slug}>{c.nameFr || c.name}</option>
             ))}
@@ -80,10 +88,10 @@ function FilterSidebar({
       {/* Sous-catégorie */}
       {subcategories.length > 0 && (
         <div>
-          <SectionLabel>Sous-catégorie</SectionLabel>
+          <SectionLabel>{t('subcategory')}</SectionLabel>
           <div className="relative">
             <select value={subcat} onChange={e => setSubcat(e.target.value)} className={selectCls}>
-              <option value="">Toutes</option>
+              <option value="">{t('all')}</option>
               {subcategories.map((s: any) => (
                 <option key={s.slug} value={s.slug}>{s.nameFr || s.name}</option>
               ))}
@@ -97,10 +105,10 @@ function FilterSidebar({
 
       {/* Ville */}
       <div>
-        <SectionLabel>Ville</SectionLabel>
+        <SectionLabel>{t('city')}</SectionLabel>
         <div className="relative">
           <select value={selectedCity} onChange={e => setSelectedCity(e.target.value)} className={selectCls}>
-            <option value="">Toutes les villes</option>
+            <option value="">{t('allCities')}</option>
             {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
           <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-400 pointer-events-none" />
@@ -111,15 +119,15 @@ function FilterSidebar({
 
       {/* Prix */}
       <div>
-        <SectionLabel>Fourchette de prix (GNF)</SectionLabel>
+        <SectionLabel>{t('priceRange')}</SectionLabel>
         <div className="space-y-2">
-          <input type="number" value={minPrice} onChange={e => setMinPrice(e.target.value)} placeholder="Minimum" className={inputCls} />
+          <input type="number" value={minPrice} onChange={e => setMinPrice(e.target.value)} placeholder={t('min')} className={inputCls} />
           <div className="flex items-center gap-2">
             <div className="h-px flex-1 bg-dark-100" />
-            <span className="text-[10px] text-dark-300 font-medium">à</span>
+            <span className="text-[10px] text-dark-300 font-medium">{t('to')}</span>
             <div className="h-px flex-1 bg-dark-100" />
           </div>
-          <input type="number" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} placeholder="Maximum" className={inputCls} />
+          <input type="number" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} placeholder={t('max')} className={inputCls} />
         </div>
       </div>
 
@@ -127,7 +135,7 @@ function FilterSidebar({
 
       {/* État */}
       <div>
-        <SectionLabel>État du produit</SectionLabel>
+        <SectionLabel>{t('condition')}</SectionLabel>
         <div className="grid grid-cols-2 gap-1.5">
           <button
             onClick={() => setCondition('')}
@@ -135,17 +143,17 @@ function FilterSidebar({
               !condition ? 'bg-primary-700 text-white border-primary-700 shadow-premium' : 'bg-white text-dark-600 border-dark-200 hover:border-primary-300 hover:text-primary-700'
             }`}
           >
-            {!condition && <CheckCircle size={11} />} Tous
+            {!condition && <CheckCircle size={11} />} {t('conditionAll')}
           </button>
-          {CONDITIONS.map(c => (
+          {CONDITION_KEYS.map(c => (
             <button
-              key={c}
-              onClick={() => setCondition(condition === c ? '' : c)}
+              key={c.value}
+              onClick={() => setCondition(condition === c.value ? '' : c.value)}
               className={`flex items-center justify-center gap-1 px-2 py-2 rounded-xl text-xs font-semibold transition-all border ${
-                condition === c ? 'bg-primary-700 text-white border-primary-700 shadow-premium' : 'bg-white text-dark-600 border-dark-200 hover:border-primary-300 hover:text-primary-700'
+                condition === c.value ? 'bg-primary-700 text-white border-primary-700 shadow-premium' : 'bg-white text-dark-600 border-dark-200 hover:border-primary-300 hover:text-primary-700'
               }`}
             >
-              {condition === c && <CheckCircle size={11} />} {c}
+              {condition === c.value && <CheckCircle size={11} />} {tCond(c.k)}
             </button>
           ))}
         </div>
@@ -158,7 +166,7 @@ function FilterSidebar({
             onClick={onReset}
             className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-primary-200 text-sm font-semibold text-primary-700 hover:bg-primary-50 transition-colors"
           >
-            <RotateCcw size={13} /> Réinitialiser les filtres
+            <RotateCcw size={13} /> {t('reset')}
           </button>
         </>
       )}
@@ -168,6 +176,10 @@ function FilterSidebar({
 
 /* ── Corps de la liste ─────────────────────────────────────────────── */
 function AnnoncesList() {
+  const t = useTranslations('annonces.listPage');
+  const tCond = useTranslations('annonces.listPage.conditions');
+  const tSort = useTranslations('annonces.listPage.sorts');
+  const SORTS = SORT_KEYS.map(s => ({ v: s.v, l: tSort(s.k), Icon: s.Icon }));
   const searchParams = useSearchParams();
   const { isAuthenticated } = useAuthStore();
   const [categories, setCategories] = useState<any[]>([]);
@@ -211,21 +223,23 @@ function AnnoncesList() {
   const catLabel    = selectedCatObj?.nameFr || cat;
   const subcatLabel = selectedCatObj?.children?.find((s: any) => s.slug === subcat)?.nameFr || subcat;
 
+  const conditionLabel = CONDITION_KEYS.find(c => c.value === condition)?.k;
+
   const activeFilters = [
-    cat          && { key: 'cat',    label: catLabel,                                               clear: () => { setCat(''); setSubcat(''); setPage(1); } },
-    subcat       && { key: 'subcat', label: subcatLabel,                                             clear: () => { setSubcat(''); setPage(1); } },
-    selectedCity && { key: 'city',   label: selectedCity,                                            clear: () => { setSelectedCity(''); setPage(1); } },
-    condition    && { key: 'cond',   label: condition,                                               clear: () => { setCondition(''); setPage(1); } },
-    minPrice     && { key: 'min',    label: `≥ ${parseInt(minPrice).toLocaleString('fr-FR')} GNF`,  clear: () => { setMinPrice(''); setPage(1); } },
-    maxPrice     && { key: 'max',    label: `≤ ${parseInt(maxPrice).toLocaleString('fr-FR')} GNF`,  clear: () => { setMaxPrice(''); setPage(1); } },
-    q            && { key: 'q',      label: `"${q}"`,                                               clear: () => { setLocalSearch(''); setQ(''); setPage(1); } },
+    cat          && { key: 'cat',    label: catLabel,                                                          clear: () => { setCat(''); setSubcat(''); setPage(1); } },
+    subcat       && { key: 'subcat', label: subcatLabel,                                                        clear: () => { setSubcat(''); setPage(1); } },
+    selectedCity && { key: 'city',   label: selectedCity,                                                       clear: () => { setSelectedCity(''); setPage(1); } },
+    condition    && { key: 'cond',   label: conditionLabel ? tCond(conditionLabel) : condition,                 clear: () => { setCondition(''); setPage(1); } },
+    minPrice     && { key: 'min',    label: t('priceMin', { price: parseInt(minPrice).toLocaleString('fr-FR') }), clear: () => { setMinPrice(''); setPage(1); } },
+    maxPrice     && { key: 'max',    label: t('priceMax', { price: parseInt(maxPrice).toLocaleString('fr-FR') }), clear: () => { setMaxPrice(''); setPage(1); } },
+    q            && { key: 'q',      label: `"${q}"`,                                                          clear: () => { setLocalSearch(''); setQ(''); setPage(1); } },
   ].filter(Boolean) as { key: string; label: string; clear: () => void }[];
 
   const hasFilters = activeFilters.length > 0;
   const total      = data?.pagination?.total ?? 0;
 
   const saveSearch = async () => {
-    if (!isAuthenticated) { toast.error('Connectez-vous pour sauvegarder une recherche'); return; }
+    if (!isAuthenticated) { toast.error(t('saveSearchLoginRequired')); return; }
     try {
       await api.post('/saved-searches', {
         keyword: q || undefined,
@@ -235,8 +249,8 @@ function AnnoncesList() {
         maxPrice: maxPrice || undefined,
         condition: condition || undefined,
       });
-      toast.success('Recherche sauvegardée !');
-    } catch { toast.error('Erreur lors de la sauvegarde'); }
+      toast.success(t('saveSearchSuccess'));
+    } catch { toast.error(t('saveSearchError')); }
   };
   const isEmpty    = !isLoading && data && (!data.data || data.data.length === 0);
 
@@ -258,11 +272,11 @@ function AnnoncesList() {
         <div className="bg-white rounded-2xl border border-dark-100 shadow-card overflow-hidden sticky top-24">
           <div className="bg-primary-700 px-4 py-3 flex items-center justify-between">
             <h2 className="text-sm font-display font-bold text-white flex items-center gap-2">
-              <SlidersHorizontal size={15} /> Filtres
+              <SlidersHorizontal size={15} /> {t('filters.title')}
             </h2>
             {hasFilters && (
               <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                {activeFilters.length} actif{activeFilters.length > 1 ? 's' : ''}
+                {activeFilters.length} {t('filters.active', { count: activeFilters.length })}
               </span>
             )}
           </div>
@@ -283,7 +297,7 @@ function AnnoncesList() {
               type="text"
               value={localSearch}
               onChange={e => setLocalSearch(e.target.value)}
-              placeholder="Rechercher une annonce..."
+              placeholder={t('searchPlaceholder')}
               className="w-full border border-dark-200 rounded-xl pl-10 pr-9 py-3 text-sm text-dark-900 placeholder-dark-400 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
             />
             {localSearch && (
@@ -304,7 +318,7 @@ function AnnoncesList() {
             }`}
           >
             <Filter size={14} />
-            Filtres
+            {t('filters.title')}
             {hasFilters && (
               <span className="w-5 h-5 rounded-full bg-white/25 text-white text-[10px] font-bold flex items-center justify-center">
                 {activeFilters.length}
@@ -318,7 +332,7 @@ function AnnoncesList() {
           <div className="lg:hidden mb-4 bg-white rounded-2xl border border-dark-100 shadow-card overflow-hidden animate-fadeIn">
             <div className="bg-primary-700 px-4 py-3 flex items-center justify-between">
               <h2 className="text-sm font-display font-bold text-white flex items-center gap-2">
-                <SlidersHorizontal size={15} /> Filtres
+                <SlidersHorizontal size={15} /> {t('filters.title')}
               </h2>
               <button onClick={() => setShowFilters(false)} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors">
                 <X size={14} />
@@ -352,7 +366,7 @@ function AnnoncesList() {
                 onClick={handleReset}
                 className="inline-flex items-center gap-1 text-xs text-dark-500 hover:text-guinea-600 px-2.5 py-1.5 rounded-full border border-dark-200 hover:border-guinea-300 transition-colors"
               >
-                <RotateCcw size={11} /> Tout effacer
+                <RotateCcw size={11} /> {t('clearAll')}
               </button>
             )}
           </div>
@@ -365,15 +379,15 @@ function AnnoncesList() {
               {total.toLocaleString('fr-FR')}
             </span>
             <span className="text-sm text-dark-500">
-              annonce{total !== 1 ? 's' : ''}
-              {q && <> pour <span className="text-primary-700 font-semibold">&ldquo;{q}&rdquo;</span></>}
+              {t('resultsCount', { count: total })}
+              {q && <> {t('resultsFor')} <span className="text-primary-700 font-semibold">&ldquo;{q}&rdquo;</span></>}
             </span>
             {(hasFilters || q) && (
               <button
                 onClick={saveSearch}
                 className="flex items-center gap-1.5 text-xs font-semibold text-primary-700 border border-primary-200 hover:bg-primary-50 px-2.5 py-1.5 rounded-lg transition-colors"
               >
-                <Bookmark size={12} /> Sauvegarder
+                <Bookmark size={12} /> {t('saveSearch')}
               </button>
             )}
           </div>
@@ -404,15 +418,13 @@ function AnnoncesList() {
             <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mb-5 shadow-card border border-dark-100">
               <Search size={32} className="text-dark-300" />
             </div>
-            <h3 className="text-xl font-display font-bold text-dark-900 mb-2">Aucune annonce trouvée</h3>
+            <h3 className="text-xl font-display font-bold text-dark-900 mb-2">{t('empty.title')}</h3>
             <p className="text-dark-400 text-sm max-w-xs leading-relaxed mb-6">
-              {hasFilters
-                ? 'Aucune annonce ne correspond à vos critères. Essayez de modifier ou réinitialiser vos filtres.'
-                : "Il n'y a pas encore d'annonces dans cette catégorie."}
+              {hasFilters ? t('empty.withFilters') : t('empty.noFilters')}
             </p>
             {hasFilters && (
               <button onClick={handleReset} className="btn-primary flex items-center gap-2 text-sm">
-                <RotateCcw size={14} /> Réinitialiser les filtres
+                <RotateCcw size={14} /> {t('filters.reset')}
               </button>
             )}
           </div>
@@ -426,7 +438,7 @@ function AnnoncesList() {
               disabled={page === 1}
               className="px-4 py-2.5 rounded-xl text-sm font-semibold border border-dark-200 bg-white text-dark-600 disabled:opacity-40 disabled:cursor-not-allowed hover:border-primary-400 hover:text-primary-700 transition-colors shadow-sm"
             >
-              ← Précédent
+              {t('pagination.previous')}
             </button>
             {Array.from({ length: Math.min(data.pagination.pages, 7) }, (_, i) => i + 1).map(p => (
               <button
@@ -446,7 +458,7 @@ function AnnoncesList() {
               disabled={page === data.pagination.pages}
               className="px-4 py-2.5 rounded-xl text-sm font-semibold border border-dark-200 bg-white text-dark-600 disabled:opacity-40 disabled:cursor-not-allowed hover:border-primary-400 hover:text-primary-700 transition-colors shadow-sm"
             >
-              Suivant →
+              {t('pagination.next')}
             </button>
           </div>
         )}
@@ -457,6 +469,7 @@ function AnnoncesList() {
 
 /* ── Page wrapper ──────────────────────────────────────────────────── */
 export default function AnnoncesListPage() {
+  const t = useTranslations('annonces.listPage');
   return (
     <div className="min-h-screen bg-dark-50 flex flex-col">
       <PageViewTracker page="ANNONCES" />
@@ -468,8 +481,8 @@ export default function AnnoncesListPage() {
             <Search size={18} className="text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-display font-bold text-dark-900 leading-tight">Toutes les annonces</h1>
-            <p className="text-dark-400 text-sm">Trouvez ce dont vous avez besoin en Guinée</p>
+            <h1 className="text-2xl font-display font-bold text-dark-900 leading-tight">{t('title')}</h1>
+            <p className="text-dark-400 text-sm">{t('subtitle')}</p>
           </div>
         </div>
 

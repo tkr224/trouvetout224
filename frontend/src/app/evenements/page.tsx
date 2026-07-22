@@ -1,6 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { api } from '@/lib/api';
@@ -13,12 +14,20 @@ import { useAuthStore } from '@/store/auth.store';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
-const EVENT_TYPES = [
-  'Concert & Musique', 'Mariage & Cérémonie', 'Formation & Séminaire',
-  'Fête & Soirée', 'Sport & Compétition', 'Conférence', 'Exposition', 'Autre',
-];
+const EVENT_TYPE_META = [
+  { value: 'Concert & Musique', key: 'typeConcert' },
+  { value: 'Mariage & Cérémonie', key: 'typeWedding' },
+  { value: 'Formation & Séminaire', key: 'typeTraining' },
+  { value: 'Fête & Soirée', key: 'typeParty' },
+  { value: 'Sport & Compétition', key: 'typeSport' },
+  { value: 'Conférence', key: 'typeConference' },
+  { value: 'Exposition', key: 'typeExpo' },
+  { value: 'Autre', key: 'typeAutre' },
+] as const;
 
 export default function EvenementsPage() {
+  const t = useTranslations('listings.evenements');
+  const EVENT_TYPES = EVENT_TYPE_META.map(e => ({ value: e.value, label: t(e.key) }));
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
   const [annonces, setAnnonces]   = useState<any[]>([]);
@@ -54,11 +63,11 @@ export default function EvenementsPage() {
   }, [q, cityId, eventType, upcoming, page]);
 
   const startConversation = async (ownerId: string) => {
-    if (!isAuthenticated) { toast.error('Connectez-vous pour envoyer un message.'); return; }
+    if (!isAuthenticated) { toast.error(t('toastLoginToMessage')); return; }
     try {
       const res = await api.post('/messages/conversations', { participantId: ownerId });
       router.push(`/messages?conversation=${res.data.data?.id || ''}`);
-    } catch { toast.error('Impossible d\'ouvrir la messagerie.'); }
+    } catch { toast.error(t('toastMessagingError')); }
   };
 
   const pages = Math.ceil(total / 12);
@@ -75,8 +84,8 @@ export default function EvenementsPage() {
               <Calendar size={20} />
             </div>
             <div>
-              <h1 className="text-2xl font-display font-bold">Événements</h1>
-              <p className="text-purple-100 text-sm">Concerts, mariages, formations, conférences et plus encore</p>
+              <h1 className="text-2xl font-display font-bold">{t('heroTitle')}</h1>
+              <p className="text-purple-100 text-sm">{t('heroSubtitle')}</p>
             </div>
           </div>
           <div className="flex gap-2 mt-4">
@@ -84,12 +93,12 @@ export default function EvenementsPage() {
               <Search size={16} className="text-white/70 shrink-0" />
               <input
                 value={q} onChange={e => { setQ(e.target.value); setPage(1); }}
-                placeholder="Rechercher un événement..."
+                placeholder={t('searchPlaceholder')}
                 className="flex-1 bg-transparent text-white placeholder-white/60 outline-none text-sm"
               />
             </div>
             <Link href="/annonces/publier?cat=evenements" className="bg-white text-purple-700 font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-purple-50 transition-colors whitespace-nowrap">
-              <Plus size={15} /> Publier un événement
+              <Plus size={15} /> {t('publishEvent')}
             </Link>
           </div>
         </div>
@@ -101,36 +110,36 @@ export default function EvenementsPage() {
           <SlidersHorizontal size={14} className="text-dark-400 shrink-0" />
           <select value={cityId} onChange={e => { setCityId(e.target.value); setPage(1); }}
             className="input py-2 text-sm w-auto min-w-[140px]">
-            <option value="">Toutes les villes</option>
+            <option value="">{t('allCities')}</option>
             {cities.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
           <button onClick={() => { setUpcoming(!upcoming); setPage(1); }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border-2 transition-colors ${
               upcoming ? 'bg-purple-600 border-purple-600 text-white' : 'bg-white border-dark-200 text-dark-600 hover:border-purple-400'
             }`}>
-            <Clock size={12} /> À venir uniquement
+            <Clock size={12} /> {t('upcomingOnly')}
           </button>
           <div className="flex gap-2 flex-wrap">
-            {EVENT_TYPES.map(t => (
-              <button key={t} onClick={() => { setEventType(eventType === t ? '' : t); setPage(1); }}
+            {EVENT_TYPES.map(e => (
+              <button key={e.value} onClick={() => { setEventType(eventType === e.value ? '' : e.value); setPage(1); }}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold border-2 transition-colors ${
-                  eventType === t
+                  eventType === e.value
                     ? 'bg-purple-600 border-purple-600 text-white'
                     : 'bg-white border-dark-200 text-dark-600 hover:border-purple-400'
                 }`}>
-                {t}
+                {e.label}
               </button>
             ))}
           </div>
           {(q || cityId || eventType || upcoming) && (
             <button onClick={() => { setQ(''); setCityId(''); setEventType(''); setUpcoming(false); setPage(1); }}
               className="text-xs text-dark-400 hover:text-dark-600 underline ml-auto">
-              Effacer filtres
+              {t('clearFilters')}
             </button>
           )}
         </div>
 
-        <p className="text-dark-400 text-sm mb-4">{total} événement{total !== 1 ? 's' : ''} trouvé{total !== 1 ? 's' : ''}</p>
+        <p className="text-dark-400 text-sm mb-4">{t('resultsCount', { count: total })}</p>
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -147,10 +156,10 @@ export default function EvenementsPage() {
             <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Calendar size={28} className="text-purple-500" />
             </div>
-            <p className="text-dark-500 font-semibold text-lg mb-2">Aucun événement trouvé</p>
-            <p className="text-dark-400 text-sm mb-5">Organisez votre événement sur TrouveTout224 !</p>
+            <p className="text-dark-500 font-semibold text-lg mb-2">{t('noResultsTitle')}</p>
+            <p className="text-dark-400 text-sm mb-5">{t('noResultsMsg')}</p>
             <Link href="/annonces/publier" className="btn-primary inline-flex items-center gap-2">
-              <Plus size={15} /> Publier un événement
+              <Plus size={15} /> {t('publishEvent')}
             </Link>
           </div>
         ) : (
@@ -191,7 +200,7 @@ export default function EvenementsPage() {
                         {a.price ? (
                           <p className="font-bold text-purple-700 text-sm">{Number(a.price).toLocaleString('fr-GN')} GNF</p>
                         ) : (
-                          <p className="text-dark-400 text-xs font-semibold">Entrée libre</p>
+                          <p className="text-dark-400 text-xs font-semibold">{t('freeEntry')}</p>
                         )}
                         {a.city && (
                           <p className="text-dark-400 text-xs flex items-center gap-0.5 mt-0.5">
@@ -201,7 +210,7 @@ export default function EvenementsPage() {
                       </div>
                       <div className="flex gap-1.5">
                         {a.whatsapp && (
-                          <a href={`https://wa.me/224${a.whatsapp}?text=${encodeURIComponent(`Bonjour, je souhaite des informations sur l'événement : ${a.title}`)}`}
+                          <a href={`https://wa.me/224${a.whatsapp}?text=${encodeURIComponent(t('waInterestMessage', { title: a.title }))}`}
                             target="_blank" rel="noopener noreferrer"
                             className="w-8 h-8 bg-green-50 hover:bg-green-100 text-green-700 rounded-xl flex items-center justify-center transition-colors">
                             <MessageCircle size={14} />
@@ -228,7 +237,7 @@ export default function EvenementsPage() {
               className="w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 disabled:opacity-40 hover:bg-dark-50 transition-colors">
               <ChevronLeft size={16} />
             </button>
-            <span className="text-sm text-dark-600 px-2">Page {page} / {pages}</span>
+            <span className="text-sm text-dark-600 px-2">{t('pageOf', { page, pages })}</span>
             <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages}
               className="w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 disabled:opacity-40 hover:bg-dark-50 transition-colors">
               <ChevronRight size={16} />

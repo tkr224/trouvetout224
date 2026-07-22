@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate, requireAdmin } from '../middleware/auth';
 import { prisma } from '../config/database';
 import { sendNewProductEmail } from '../services/email.service';
+import { resolveEmailLocale } from '../i18n/emailLocales';
 
 const router = Router();
 router.use(authenticate, requireAdmin);
@@ -298,7 +299,7 @@ router.post('/annonces/:id/approve', async (req, res) => {
     const subscriptions = await prisma.shopSubscription.findMany({
       where: { vendorId: annonce.userId, notify: true },
       include: {
-        subscriber: { select: { id: true, email: true, firstName: true } },
+        subscriber: { select: { id: true, email: true, firstName: true, preferredLanguage: true } },
       },
     });
 
@@ -329,6 +330,7 @@ router.post('/annonces/:id/approve', async (req, res) => {
             vendorName,
             annonce.title,
             productUrl,
+            resolveEmailLocale(sub.subscriber.preferredLanguage),
           ).catch(() => {}),
         );
       void Promise.all(emailJobs);

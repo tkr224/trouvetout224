@@ -1,3 +1,4 @@
+import { getTranslations, getLocale } from 'next-intl/server';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Link from 'next/link';
@@ -6,78 +7,42 @@ import {
   MessageCircle, Mail, ImageIcon, Send, Chrome,
 } from 'lucide-react';
 
-const SECTIONS = [
-  {
-    icon: Database,
-    title: 'Les données que nous collectons',
-    items: [
-      "Informations de compte : nom, prénom, email et/ou téléphone, ville, photo de profil.",
-      "Contenu de vos annonces : titre, description, photos, prix, catégorie.",
-      "Vos échanges dans la messagerie interne, pour assurer le suivi entre acheteurs et vendeurs.",
-      "Vos réponses aux questions de sécurité, si vous les configurez (pour récupérer votre compte).",
-      "Données techniques de navigation : pages consultées, statistiques de visite anonymisées.",
-    ],
-  },
-  {
-    icon: Target,
-    title: 'Pourquoi nous les utilisons',
-    items: [
-      "Créer et sécuriser votre compte.",
-      "Afficher vos annonces et vous mettre en relation avec les autres utilisateurs.",
-      "Faire fonctionner la messagerie entre acheteurs et vendeurs.",
-      "Vous envoyer des notifications utiles (email, dans l'application).",
-      "Améliorer TrouveTout224 au fil du temps.",
-    ],
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Comment elles sont protégées',
-    items: [
-      "Vos mots de passe et vos réponses aux questions de sécurité sont chiffrés (hachage) et ne sont jamais stockés ni lisibles en clair — même par notre équipe.",
-      "Toutes les communications avec le site passent par une connexion sécurisée (HTTPS).",
-      "L'accès à vos données est strictement limité aux besoins techniques du service.",
-    ],
-  },
-  {
-    icon: Share2,
-    title: 'Avec qui elles sont partagées',
-    items: [
-      "Avec personne. Nous ne vendons et ne partageons jamais vos données à des fins publicitaires.",
-      "Seuls des prestataires techniques indispensables au fonctionnement du site y ont accès, chacun uniquement pour ce qui le concerne.",
-    ],
-    partners: [
-      { icon: ImageIcon, name: 'Cloudinary', role: "hébergement de vos photos (annonces, profil)" },
-      { icon: Send,      name: 'Resend',     role: "envoi des emails (confirmation, notifications)" },
-      { icon: Chrome,    name: 'Google',     role: "connexion sécurisée si vous choisissez « Se connecter avec Google »" },
-    ],
-  },
-  {
-    icon: Cookie,
-    title: "Cookies et mesure d'audience",
-    items: [
-      "Des cookies techniques maintiennent votre session connectée — indispensables au fonctionnement du site.",
-      "Lorsqu'il est activé, Google Analytics peut collecter des statistiques de fréquentation anonymisées, pour nous aider à améliorer le site.",
-      "Vous pouvez désactiver les cookies non essentiels dans les réglages de votre navigateur à tout moment.",
-    ],
-  },
-  {
-    icon: UserCheck,
-    title: 'Vos droits',
-    items: [
-      "Accéder à vos données depuis votre profil et vos paramètres, à tout moment.",
-      "Modifier vos informations (nom, photo, ville, mot de passe...) directement dans Paramètres.",
-      "Supprimer votre compte et vos données quand vous le souhaitez.",
-      "Nous contacter pour toute demande particulière (export de données, question sur votre compte).",
-    ],
-  },
-];
+const SECTION_DEFS = [
+  { key: 'collect', icon: Database },
+  { key: 'why', icon: Target },
+  { key: 'protection', icon: ShieldCheck },
+  { key: 'sharing', icon: Share2 },
+  { key: 'cookies', icon: Cookie },
+  { key: 'rights', icon: UserCheck },
+] as const;
+
+const PARTNER_DEFS = [
+  { key: 'cloudinary', icon: ImageIcon, name: 'Cloudinary' },
+  { key: 'resend',     icon: Send,      name: 'Resend' },
+  { key: 'google',     icon: Chrome,    name: 'Google' },
+] as const;
+
+const LOCALE_TAGS: Record<string, string> = { fr: 'fr-FR', en: 'en-US', zh: 'zh-CN' };
 
 function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-export default function ConfidentialitePage() {
-  const updatedAt = capitalize(new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }));
+export default async function ConfidentialitePage() {
+  const t = await getTranslations('confidentialite');
+  const locale = await getLocale();
+  const updatedAt = capitalize(
+    new Date().toLocaleDateString(LOCALE_TAGS[locale] || 'fr-FR', { month: 'long', year: 'numeric' })
+  );
+
+  const SECTIONS = SECTION_DEFS.map((def) => ({
+    icon: def.icon,
+    title: t(`sections.${def.key}.title`),
+    items: t.raw(`sections.${def.key}.items`) as string[],
+    partners: def.key === 'sharing'
+      ? PARTNER_DEFS.map((p) => ({ icon: p.icon, name: p.name, role: t(`sections.sharing.partners.${p.key}`) }))
+      : undefined,
+  }));
 
   return (
     <div className="min-h-screen bg-dark-50">
@@ -102,12 +67,12 @@ export default function ConfidentialitePage() {
             <Lock size={26} className="text-gold-300" />
           </div>
           <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-white mb-3" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.9)' }}>
-            Politique de confidentialité
+            {t('hero.title')}
           </h1>
           <p className="text-white/90 text-base sm:text-lg mb-2" style={{ textShadow: '0 1px 10px rgba(0,0,0,0.8)' }}>
-            Vos données vous appartiennent. Voici, en clair, ce que nous faisons — et ne faisons pas — avec elles.
+            {t('hero.subtitle')}
           </p>
-          <p className="text-white/60 text-xs">Dernière mise à jour : {updatedAt}</p>
+          <p className="text-white/60 text-xs">{t('hero.updatedAt', { date: updatedAt })}</p>
         </div>
       </section>
 
@@ -152,18 +117,18 @@ export default function ConfidentialitePage() {
         {/* ══ CONTACT ═══════════════════════════════════════════════════ */}
         <div className="card p-8 text-center bg-gradient-to-br from-primary-50 to-white dark:from-primary-900/20 dark:to-dark-800 border border-primary-200 dark:border-primary-800/40">
           <MessageCircle size={26} className="text-primary-700 mx-auto mb-3" />
-          <p className="text-dark-700 font-semibold text-lg mb-2">Une question sur vos données ?</p>
-          <p className="text-dark-500 text-sm mb-5">Écrivez-nous, nous répondons rapidement.</p>
+          <p className="text-dark-700 font-semibold text-lg mb-2">{t('contact.title')}</p>
+          <p className="text-dark-500 text-sm mb-5">{t('contact.subtitle')}</p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <a href="https://wa.me/224627543486" target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex items-center gap-2">
-              <MessageCircle size={16} /> WhatsApp
+              <MessageCircle size={16} /> {t('contact.whatsapp')}
             </a>
             <a href="mailto:contact.trouvetout224@gmail.com" className="btn-outline inline-flex items-center gap-2">
               <Mail size={16} /> contact.trouvetout224@gmail.com
             </a>
           </div>
           <p className="text-dark-400 text-xs mt-4">
-            Voir aussi nos <Link href="/conditions" className="text-primary-700 font-semibold hover:underline">Conditions d'utilisation</Link>
+            {t('contact.seeAlsoPrefix')} <Link href="/conditions" className="text-primary-700 font-semibold hover:underline">{t('contact.terms')}</Link>
           </p>
         </div>
       </div>

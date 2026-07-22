@@ -1,6 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { api } from '@/lib/api';
@@ -13,9 +14,19 @@ import { useAuthStore } from '@/store/auth.store';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
-const FUEL_TYPES  = ['Essence', 'Diesel', 'Hybride', 'Électrique', 'GPL'];
-const TRANS_TYPES = ['Manuelle', 'Automatique'];
-const CONDITIONS  = ['Neuf', 'Occasion', 'Bon état', 'À réviser'];
+const FUEL_META = [
+  { value: 'Essence', key: 'fuelPetrol' },
+  { value: 'Diesel', key: 'fuelDiesel' },
+  { value: 'Hybride', key: 'fuelHybrid' },
+  { value: 'Électrique', key: 'fuelElectric' },
+  { value: 'GPL', key: 'fuelLPG' },
+] as const;
+const CONDITION_META = [
+  { value: 'Neuf', key: 'conditionNew' },
+  { value: 'Occasion', key: 'conditionUsed' },
+  { value: 'Bon état', key: 'conditionGood' },
+  { value: 'À réviser', key: 'conditionToService' },
+] as const;
 
 const MAKES = [
   'Toyota', 'Hyundai', 'Kia', 'Mercedes', 'BMW', 'Peugeot', 'Renault',
@@ -23,6 +34,9 @@ const MAKES = [
 ];
 
 export default function VehiculesPage() {
+  const t = useTranslations('listings.vehicules');
+  const FUEL_TYPES = FUEL_META.map(f => ({ value: f.value, label: t(f.key) }));
+  const CONDITIONS = CONDITION_META.map(c => ({ value: c.value, label: t(c.key) }));
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
   const [annonces, setAnnonces] = useState<any[]>([]);
@@ -64,11 +78,11 @@ export default function VehiculesPage() {
   }, [q, cityId, vehicleMake, vehicleFuel, condition, minPrice, maxPrice, page]);
 
   const startConversation = async (ownerId: string) => {
-    if (!isAuthenticated) { toast.error('Connectez-vous pour envoyer un message.'); return; }
+    if (!isAuthenticated) { toast.error(t('toastLoginToMessage')); return; }
     try {
       const res = await api.post('/messages/conversations', { participantId: ownerId });
       router.push(`/messages?conversation=${res.data.data?.id || ''}`);
-    } catch { toast.error('Impossible d\'ouvrir la messagerie.'); }
+    } catch { toast.error(t('toastMessagingError')); }
   };
 
   const pages = Math.ceil(total / 12);
@@ -85,8 +99,8 @@ export default function VehiculesPage() {
               <Car size={20} />
             </div>
             <div>
-              <h1 className="text-2xl font-display font-bold">Véhicules</h1>
-              <p className="text-sky-100 text-sm">Voitures, motos, camions, engins — neufs et d'occasion</p>
+              <h1 className="text-2xl font-display font-bold">{t('heroTitle')}</h1>
+              <p className="text-sky-100 text-sm">{t('heroSubtitle')}</p>
             </div>
           </div>
           <div className="flex gap-2 mt-4">
@@ -94,12 +108,12 @@ export default function VehiculesPage() {
               <Search size={16} className="text-white/70 shrink-0" />
               <input
                 value={q} onChange={e => { setQ(e.target.value); setPage(1); }}
-                placeholder="Marque, modèle, année..."
+                placeholder={t('searchPlaceholder')}
                 className="flex-1 bg-transparent text-white placeholder-white/60 outline-none text-sm"
               />
             </div>
             <Link href="/annonces/publier?cat=vehicules" className="bg-white text-sky-700 font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-sky-50 transition-colors whitespace-nowrap">
-              <Plus size={15} /> Vendre mon véhicule
+              <Plus size={15} /> {t('sellMyVehicle')}
             </Link>
           </div>
         </div>
@@ -110,53 +124,53 @@ export default function VehiculesPage() {
         <div className="bg-white rounded-2xl border border-dark-100 p-4 mb-5 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
             <SlidersHorizontal size={14} className="text-dark-400" />
-            <span className="text-sm font-semibold text-dark-700">Filtres véhicule</span>
+            <span className="text-sm font-semibold text-dark-700">{t('filtersLabel')}</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
             <select value={cityId} onChange={e => { setCityId(e.target.value); setPage(1); }}
               className="input py-2 text-sm">
-              <option value="">Toutes les villes</option>
+              <option value="">{t('allCities')}</option>
               {cities.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
             <select value={vehicleMake} onChange={e => { setVehicleMake(e.target.value); setPage(1); }}
               className="input py-2 text-sm">
-              <option value="">Toutes les marques</option>
+              <option value="">{t('allMakes')}</option>
               {MAKES.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
             <input value={minPrice} onChange={e => { setMinPrice(e.target.value); setPage(1); }}
-              type="number" placeholder="Prix min (GNF)" className="input py-2 text-sm" />
+              type="number" placeholder={t('priceMinPlaceholder')} className="input py-2 text-sm" />
             <input value={maxPrice} onChange={e => { setMaxPrice(e.target.value); setPage(1); }}
-              type="number" placeholder="Prix max (GNF)" className="input py-2 text-sm" />
+              type="number" placeholder={t('priceMaxPlaceholder')} className="input py-2 text-sm" />
           </div>
           <div className="flex gap-2 flex-wrap">
-            <span className="text-xs text-dark-400 self-center">Carburant :</span>
+            <span className="text-xs text-dark-400 self-center">{t('fuelLabel')}</span>
             {FUEL_TYPES.map(f => (
-              <button key={f} onClick={() => { setVehicleFuel(vehicleFuel === f ? '' : f); setPage(1); }}
+              <button key={f.value} onClick={() => { setVehicleFuel(vehicleFuel === f.value ? '' : f.value); setPage(1); }}
                 className={`px-3 py-1 rounded-xl text-xs font-semibold border-2 transition-colors ${
-                  vehicleFuel === f ? 'bg-sky-600 border-sky-600 text-white' : 'bg-white border-dark-200 text-dark-600 hover:border-sky-400'
+                  vehicleFuel === f.value ? 'bg-sky-600 border-sky-600 text-white' : 'bg-white border-dark-200 text-dark-600 hover:border-sky-400'
                 }`}>
-                {f}
+                {f.label}
               </button>
             ))}
-            <span className="text-xs text-dark-400 self-center ml-2">État :</span>
+            <span className="text-xs text-dark-400 self-center ml-2">{t('conditionLabel')}</span>
             {CONDITIONS.map(c => (
-              <button key={c} onClick={() => { setCondition(condition === c ? '' : c); setPage(1); }}
+              <button key={c.value} onClick={() => { setCondition(condition === c.value ? '' : c.value); setPage(1); }}
                 className={`px-3 py-1 rounded-xl text-xs font-semibold border-2 transition-colors ${
-                  condition === c ? 'bg-sky-600 border-sky-600 text-white' : 'bg-white border-dark-200 text-dark-600 hover:border-sky-400'
+                  condition === c.value ? 'bg-sky-600 border-sky-600 text-white' : 'bg-white border-dark-200 text-dark-600 hover:border-sky-400'
                 }`}>
-                {c}
+                {c.label}
               </button>
             ))}
           </div>
           {(q || cityId || vehicleMake || vehicleFuel || condition || minPrice || maxPrice) && (
             <button onClick={() => { setQ(''); setCityId(''); setVehicleMake(''); setVehicleFuel(''); setCondition(''); setMinPrice(''); setMaxPrice(''); setPage(1); }}
               className="text-xs text-dark-400 hover:text-dark-600 underline mt-3 block">
-              Effacer tous les filtres
+              {t('clearFilters')}
             </button>
           )}
         </div>
 
-        <p className="text-dark-400 text-sm mb-4">{total} véhicule{total !== 1 ? 's' : ''} trouvé{total !== 1 ? 's' : ''}</p>
+        <p className="text-dark-400 text-sm mb-4">{t('resultsCount', { count: total })}</p>
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -173,10 +187,10 @@ export default function VehiculesPage() {
             <div className="w-16 h-16 bg-sky-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Car size={28} className="text-sky-500" />
             </div>
-            <p className="text-dark-500 font-semibold text-lg mb-2">Aucun véhicule trouvé</p>
-            <p className="text-dark-400 text-sm mb-5">Vendez votre véhicule gratuitement sur TrouveTout224 !</p>
+            <p className="text-dark-500 font-semibold text-lg mb-2">{t('noResultsTitle')}</p>
+            <p className="text-dark-400 text-sm mb-5">{t('noResultsMsg')}</p>
             <Link href="/annonces/publier" className="btn-primary inline-flex items-center gap-2">
-              <Plus size={15} /> Vendre mon véhicule
+              <Plus size={15} /> {t('sellMyVehicle')}
             </Link>
           </div>
         ) : (
@@ -223,13 +237,13 @@ export default function VehiculesPage() {
                       {a.price ? (
                         <p className="font-bold text-sky-700 text-base">{Number(a.price).toLocaleString('fr-GN')} GNF</p>
                       ) : (
-                        <p className="text-dark-400 text-xs">Prix sur demande</p>
+                        <p className="text-dark-400 text-xs">{t('priceOnRequest')}</p>
                       )}
-                      {a.isNegotiable && <p className="text-dark-400 text-xs">Prix négociable</p>}
+                      {a.isNegotiable && <p className="text-dark-400 text-xs">{t('priceNegotiable')}</p>}
                     </div>
                     <div className="flex gap-1.5">
                       {a.whatsapp && (
-                        <a href={`https://wa.me/224${a.whatsapp}?text=${encodeURIComponent(`Bonjour, je suis intéressé par votre annonce : ${a.title}`)}`}
+                        <a href={`https://wa.me/224${a.whatsapp}?text=${encodeURIComponent(t('waInterestMessage', { title: a.title }))}`}
                           target="_blank" rel="noopener noreferrer"
                           className="w-8 h-8 bg-green-50 hover:bg-green-100 text-green-700 rounded-xl flex items-center justify-center transition-colors">
                           <MessageCircle size={14} />
@@ -255,7 +269,7 @@ export default function VehiculesPage() {
               className="w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 disabled:opacity-40 hover:bg-dark-50 transition-colors">
               <ChevronLeft size={16} />
             </button>
-            <span className="text-sm text-dark-600 px-2">Page {page} / {pages}</span>
+            <span className="text-sm text-dark-600 px-2">{t('pageOf', { page, pages })}</span>
             <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages}
               className="w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 disabled:opacity-40 hover:bg-dark-50 transition-colors">
               <ChevronRight size={16} />

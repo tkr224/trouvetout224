@@ -1,0 +1,201 @@
+{
+  "header": {
+    "title": "Settings",
+    "subtitle": "Manage your profile, security and preferences"
+  },
+  "tabs": {
+    "profil": "Profile",
+    "securite": "Security & Password",
+    "notifications": "Notifications",
+    "confidentialite": "Privacy",
+    "apparence": "Appearance",
+    "langue": "Language",
+    "aide": "Help & Support",
+    "conditions": "Terms of use",
+    "apropos": "About"
+  },
+  "tabGroups": {
+    "compte": "Account",
+    "preferences": "Preferences",
+    "support": "Support & info"
+  },
+  "logout": "Log out",
+  "login": "Log in",
+  "gate": {
+    "title": "Login required",
+    "text": "This setting is tied to your account. Log in to access it.",
+    "login": "Log in",
+    "createAccount": "Create an account",
+    "appearanceNotePrefix": "The ",
+    "appearanceNoteBold": "Appearance",
+    "appearanceNoteSuffix": " setting (light/dark theme) is available without an account."
+  },
+  "profil": {
+    "title": "Edit profile",
+    "changePhoto": "Change profile picture",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "username": "Username",
+    "usernamePlaceholder": "username",
+    "usernameTaken": "This username is already taken.",
+    "usernameInvalid": "3 to 20 characters: lowercase letters, digits, _ only.",
+    "usernameAvailable": "Available!",
+    "usernameHint": "Optional — your unique handle on TrouveTout224.",
+    "bio": "Bio",
+    "bioPlaceholder": "Tell us a bit about yourself...",
+    "email": "Email",
+    "emailNotSet": "Not provided",
+    "emailChangeHintPrefix": "To change your email address, go to the ",
+    "emailChangeHintBold": "Security & Password",
+    "emailChangeHintSuffix": " tab.",
+    "phone": "Phone",
+    "phoneHint": "This number is used for WhatsApp contact on your listings.",
+    "phoneCurrent": "Current number: {phone}",
+    "phonePlaceholder": "620 00 00 00",
+    "phoneUpdate": "Update number",
+    "phoneAdd": "Add my number",
+    "phoneInvalid": "Invalid number. Expected format: 6XX XX XX XX (9 digits, starting with 6).",
+    "city": "City",
+    "cityNotSet": "Not provided",
+    "save": "Save changes",
+    "cooldownGeneric": "Editable in {days} day{plural} (on {date}).",
+    "cooldownPassword": "For your security, you'll be able to change your password again in {days} day{plural} (on {date})."
+  },
+  "securite": {
+    "title": "Account security",
+    "accountSecure": "Account active and secure",
+    "loading": "Loading...",
+    "changePassword": "Change password",
+    "setPassword": "Set a password",
+    "googleAccountHint": "Your account was created with Google, so you don't have a password yet. Set one below so you can also log in with your email.",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "newPasswordPlaceholder": "Minimum 8 characters",
+    "confirmPassword": "Confirm new password",
+    "confirmPasswordPlaceholder": "Retype the new password",
+    "criteria": {
+      "length": "8 characters minimum",
+      "uppercase": "One uppercase letter",
+      "lowercase": "One lowercase letter",
+      "digit": "One digit"
+    },
+    "forgotPassword": "Forgot your password? Reset it by email",
+    "emailTitle": "Email address",
+    "emailCurrent": "Current email: {email}",
+    "emailNone": "You don't have an email address yet.",
+    "emailSent": "A confirmation link was sent to {email}. Click it to confirm the change.",
+    "newEmail": "New email address",
+    "newEmailPlaceholder": "new-email@example.com",
+    "changeEmail": "Change address",
+    "addEmail": "Add an email",
+    "emailChangeHint": "A confirmation link will be sent to the new address — the change only takes effect once you click it.",
+    "sqTitle": "Security questions",
+    "sqHint": "Let you recover your account if you lose access to your email — handy if you rarely check your inbox.",
+    "sqConfiguredCount": "{count} questions configured",
+    "sqEdit": "Edit my security questions",
+    "sqNoneTitle": "No security questions configured",
+    "sqNoneHint": "Add 2 or 3 so you can recover your account even without access to your email.",
+    "sqConfigureNow": "Configure now",
+    "sqQuestionLabel": "Question {n}",
+    "sqRemove": "Remove",
+    "sqChoosePlaceholder": "Choose a question...",
+    "sqAnswerPlaceholder": "Your answer",
+    "sqAddThird": "+ Add a 3rd question (optional)",
+    "sqSave": "Save",
+    "sqCancel": "Cancel",
+    "sqFooterHint": "Your answers are stored encrypted (like a password) — no one can read them, only verify that they match.",
+    "errors": {
+      "currentPasswordRequired": "Enter your current password.",
+      "newPasswordRequired": "Fill in all the new password fields.",
+      "passwordCriteria": "The new password doesn't yet meet all the rules below.",
+      "passwordMismatch": "The two passwords don't match.",
+      "passwordSameAsOld": "The new password must be different from the current one.",
+      "passwordGeneric": "Error while changing password.",
+      "phoneGeneric": "Error while updating.",
+      "emailInvalid": "Invalid email address.",
+      "emailGeneric": "Error while sending the request.",
+      "sqQuestionRequired": "Choose a question for each row.",
+      "sqAnswerTooShort": "Each answer must contain at least 2 characters.",
+      "sqDuplicate": "Choose different questions from each other.",
+      "sqGeneric": "Error while saving."
+    }
+  },
+  "notifications": {
+    "title": "Notification preferences",
+    "newMessages": { "label": "New messages", "sub": "Be notified when you receive a message" },
+    "annonceExpiry": { "label": "Listing expiry", "sub": "Reminder before your listing expires" },
+    "newViews": { "label": "New views", "sub": "When someone views your listings" }
+  },
+  "confidentialite": {
+    "title": "Privacy",
+    "publicProfile": { "label": "Public profile", "sub": "Your profile is visible to all users" },
+    "showPhone": { "label": "Show my number", "sub": "Your number is visible on your listings" },
+    "acceptMessages": { "label": "Receive messages", "sub": "Other users can contact you" }
+  },
+  "apparence": {
+    "title": "Appearance",
+    "subtitle": "Choose how TrouveTout224 looks on your device.",
+    "modes": {
+      "light": { "label": "Light", "desc": "Always light" },
+      "dark": { "label": "Dark", "desc": "Always dark" },
+      "system": { "label": "Automatic", "desc": "Follows your device" }
+    },
+    "textSize": {
+      "title": "Text size",
+      "subtitle": "Adjusts the text size across the whole site.",
+      "sm": "Small",
+      "base": "Normal",
+      "lg": "Large"
+    },
+    "accentColor": {
+      "title": "Accent color",
+      "subtitle": "Changes the main color of buttons, links and active elements."
+    },
+    "specialThemes": {
+      "title": "Special & animated themes",
+      "subtitle": "Immersive moods with smooth animations."
+    },
+    "eventThemes": {
+      "title": "Event themes",
+      "subtitle": "Festive moods with a decorative banner at the top of the page.",
+      "reset": "Back to normal color"
+    }
+  },
+  "aide": {
+    "title": "Help & Support",
+    "items": {
+      "publier": "How do I post a listing?",
+      "signalement": "How do I report a problem?",
+      "contact": "Contact support",
+      "centreAide": "Full help center"
+    }
+  },
+  "conditions": {
+    "title": "Terms of use",
+    "intro": "By using TrouveTout224, you accept these terms.",
+    "section1": { "title": "1. Use of the service", "text": "TrouveTout224 is a listings platform intended for residents of Guinea. The minimum age is 13." },
+    "section2": { "title": "2. Prohibited content", "text": "It is strictly forbidden to post illegal, offensive content, scams, nudity or violence." },
+    "section3": { "title": "3. Liability", "text": "TrouveTout224 is not responsible for transactions between users. Be careful and meet sellers in public places." }
+  },
+  "apropos": {
+    "version": "Version 1.0.0 · Conakry, Republic of Guinea",
+    "mission": "The largest listings and marketplace platform in Guinea. Our mission is to connect buyers and sellers all across Guinea.",
+    "categories": "Categories",
+    "villes": "Cities",
+    "copyright": "© {year} TrouveTout224 · All rights reserved"
+  },
+  "toasts": {
+    "avatarUpdated": "Profile picture updated!",
+    "avatarUploadError": "Error while uploading the photo.",
+    "profileUpdated": "Profile updated!",
+    "profileUpdateError": "Update error",
+    "usernameTakenError": "This username is already taken.",
+    "usernameInvalidError": "Invalid username (3 to 20 characters: letters, digits, _).",
+    "usernameCheckingError": "Checking username availability, please wait...",
+    "passwordChanged": "Password changed!",
+    "passwordSet": "Password set successfully!",
+    "phoneUpdated": "Phone number updated!",
+    "emailLinkSent": "Confirmation link sent!",
+    "sqSaved": "Security questions saved!"
+  }
+}

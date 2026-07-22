@@ -1,0 +1,28 @@
+{
+  "links": {
+    "annonces": "Annonces",
+    "boutiques": "Boutiques",
+    "emplois": "Emplois",
+    "restaurants": "Restaurants",
+    "hotels": "Hôtels"
+  },
+  "more": "Plus",
+  "moreLinks": {
+    "services": "Services",
+    "evenements": "Événements",
+    "immobilier": "Immobilier",
+    "vehicules": "Véhicules"
+  },
+  "publish": "Publier",
+  "messaging": "Messagerie",
+  "messages": "Messages",
+  "adminDashboard": "Tableau de bord Admin",
+  "settings": "Paramètres",
+  "logout": "Déconnexion",
+  "login": "Connexion",
+  "register": "S'inscrire",
+  "mySubscriptions": "Mes abonnements",
+  "sellerSpace": "Espace vendeur",
+  "myProfile": "Mon profil",
+  "changeLanguage": "Changer de langue"
+}

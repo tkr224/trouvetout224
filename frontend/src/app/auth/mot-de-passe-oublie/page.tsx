@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   Loader2, Mail, ArrowLeft, CheckCircle, MessageCircle, ShoppingBag, Lock, Zap,
   HelpCircle, KeyRound, AlertCircle,
@@ -13,6 +14,8 @@ type Mode = 'email' | 'questions';
 type SecurityQuestion = { id: string; label: string };
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations('auth.forgotPassword');
+  const tq = useTranslations('security');
   const router = useRouter();
   const [mode, setMode] = useState<Mode>('email');
 
@@ -31,7 +34,7 @@ export default function ForgotPasswordPage() {
       await api.post('/auth/forgot-password', { identifier: identifier.trim() });
       setSent(true);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Une erreur est survenue. Contactez le support.');
+      setError(err.response?.data?.error || t('genericErrorEmail'));
     } finally {
       setLoading(false);
     }
@@ -58,7 +61,7 @@ export default function ForgotPasswordPage() {
       setQAnswers({});
       setQStep('answer');
     } catch (err: any) {
-      setQError(err.response?.data?.error || 'Une erreur est survenue. Réessayez.');
+      setQError(err.response?.data?.error || t('genericErrorRetry'));
     } finally {
       setQLoading(false);
     }
@@ -73,7 +76,7 @@ export default function ForgotPasswordPage() {
       const { data } = await api.post('/auth/forgot-password/verify-security-questions', { token: qToken, answers });
       router.push(`/auth/reset-password?token=${data.resetToken}`);
     } catch (err: any) {
-      const msg = err.response?.data?.error || 'Une erreur est survenue. Réessayez.';
+      const msg = err.response?.data?.error || t('genericErrorRetry');
       setQError(msg);
       if (msg.toLowerCase().includes('session expirée')) {
         setQStep('identifier');
@@ -103,13 +106,13 @@ export default function ForgotPasswordPage() {
             Trouve<span className="text-gold-400">Tout</span><span className="text-guinea-300">224</span>
           </h1>
           <p className="text-primary-100 text-base mb-12">
-            Le plus grand marché en ligne de Guinée
+            {t('heroSubtitle')}
           </p>
           <div className="space-y-3 text-left">
             {[
-              { Icon: ShoppingBag, text: 'Des milliers d\'annonces partout en Guinée',  cls: 'text-gold-300' },
-              { Icon: Lock,        text: 'Compte sécurisé, données protégées',          cls: 'text-primary-300' },
-              { Icon: Zap,         text: 'Publiez une annonce en moins de 2 minutes',   cls: 'text-guinea-300' },
+              { Icon: ShoppingBag, text: t('heroFeature1'),  cls: 'text-gold-300' },
+              { Icon: Lock,        text: t('heroFeature2'),  cls: 'text-primary-300' },
+              { Icon: Zap,         text: t('heroFeature3'),  cls: 'text-guinea-300' },
             ].map(({ Icon, text, cls }) => (
               <div key={text} className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3.5">
                 <Icon size={20} className={cls} />
@@ -141,9 +144,9 @@ export default function ForgotPasswordPage() {
                 <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center mb-5">
                   {mode === 'email' ? <Mail size={26} className="text-primary-700" /> : <HelpCircle size={26} className="text-primary-700" />}
                 </div>
-                <h2 className="font-display font-bold text-2xl sm:text-3xl text-dark-900">Mot de passe oublié ?</h2>
+                <h2 className="font-display font-bold text-2xl sm:text-3xl text-dark-900">{t('pageTitle')}</h2>
                 <p className="text-dark-500 mt-1.5 text-sm">
-                  Choisissez comment vous souhaitez récupérer votre compte.
+                  {t('pageSubtitle')}
                 </p>
               </div>
             )}
@@ -156,14 +159,14 @@ export default function ForgotPasswordPage() {
                   className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                     mode === 'email' ? 'bg-white text-primary-700 shadow-sm' : 'text-dark-500'
                   }`}>
-                  <Mail size={14} /> Par email
+                  <Mail size={14} /> {t('methodEmail')}
                 </button>
                 <button
                   onClick={() => { setMode('questions'); setError(''); }}
                   className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                     mode === 'questions' ? 'bg-white text-primary-700 shadow-sm' : 'text-dark-500'
                   }`}>
-                  <HelpCircle size={14} /> Questions de sécurité
+                  <HelpCircle size={14} /> {t('methodQuestions')}
                 </button>
               </div>
             )}
@@ -175,17 +178,17 @@ export default function ForgotPasswordPage() {
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
                       <label className="block text-sm font-semibold text-dark-700 mb-2">
-                        Email ou téléphone
+                        {t('identifierLabel')}
                       </label>
                       <input
                         type="text"
                         value={identifier}
                         onChange={e => setIdentifier(e.target.value)}
-                        placeholder="email@exemple.com ou 620 00 00 00"
+                        placeholder={t('identifierPlaceholder')}
                         className={fieldCls}
                         required
                       />
-                      <p className="text-xs text-dark-400 mt-2">Un lien de réinitialisation sera envoyé par email.</p>
+                      <p className="text-xs text-dark-400 mt-2">{t('emailHint')}</p>
                     </div>
 
                     {error && (
@@ -198,8 +201,8 @@ export default function ForgotPasswordPage() {
                       className="w-full bg-primary-700 hover:bg-primary-800 active:scale-[0.98] text-white font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 shadow-premium disabled:opacity-60 disabled:cursor-not-allowed text-base"
                     >
                       {loading
-                        ? <><Loader2 size={18} className="animate-spin" /> Envoi en cours...</>
-                        : 'Envoyer le lien'}
+                        ? <><Loader2 size={18} className="animate-spin" /> {t('sending')}</>
+                        : t('sendLink')}
                     </button>
                   </form>
 
@@ -208,7 +211,7 @@ export default function ForgotPasswordPage() {
                       href="/auth/connexion"
                       className="inline-flex items-center gap-2 text-sm text-dark-500 hover:text-primary-700 transition-colors"
                     >
-                      <ArrowLeft size={14} /> Retour à la connexion
+                      <ArrowLeft size={14} /> {t('backToLogin')}
                     </Link>
                   </div>
                 </>
@@ -218,22 +221,22 @@ export default function ForgotPasswordPage() {
                   <div className="w-20 h-20 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-6">
                     <CheckCircle size={40} className="text-primary-600" />
                   </div>
-                  <h2 className="font-display font-bold text-2xl text-dark-900 mb-3">Demande envoyée</h2>
+                  <h2 className="font-display font-bold text-2xl text-dark-900 mb-3">{t('sentTitle')}</h2>
                   <p className="text-dark-500 text-sm mb-6 leading-relaxed">
-                    Si un compte existe avec cet identifiant, vous recevrez un message avec les instructions pour réinitialiser votre mot de passe.
+                    {t('sentMessage')}
                   </p>
 
                   <div className="bg-primary-50 rounded-2xl p-5 mb-6 text-left">
-                    <p className="text-sm font-semibold text-dark-700 mb-2">Vous n&apos;avez rien reçu ?</p>
+                    <p className="text-sm font-semibold text-dark-700 mb-2">{t('nothingReceivedTitle')}</p>
                     <p className="text-sm text-dark-500 mb-3">
-                      Vérifiez vos spams, essayez la récupération par questions de sécurité, ou contactez notre support.
+                      {t('nothingReceivedMessage')}
                     </p>
                     <div className="flex flex-col gap-2">
                       <button
                         onClick={() => { setSent(false); setMode('questions'); }}
                         className="inline-flex items-center justify-center gap-2 border-2 border-primary-700 text-primary-700 font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm hover:bg-primary-50"
                       >
-                        <HelpCircle size={15} /> Essayer les questions de sécurité
+                        <HelpCircle size={15} /> {t('trySecurityQuestions')}
                       </button>
                       <a
                         href="https://wa.me/224627543486"
@@ -241,7 +244,7 @@ export default function ForgotPasswordPage() {
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm"
                       >
-                        <MessageCircle size={15} /> Contacter le support
+                        <MessageCircle size={15} /> {t('contactSupport')}
                       </a>
                     </div>
                   </div>
@@ -250,7 +253,7 @@ export default function ForgotPasswordPage() {
                     href="/auth/connexion"
                     className="inline-flex items-center gap-2 text-sm text-primary-700 hover:underline"
                   >
-                    <ArrowLeft size={14} /> Retour à la connexion
+                    <ArrowLeft size={14} /> {t('backToLogin')}
                   </Link>
                 </div>
               )
@@ -262,18 +265,18 @@ export default function ForgotPasswordPage() {
                 <form onSubmit={startQuestions} className="space-y-5">
                   <div>
                     <label className="block text-sm font-semibold text-dark-700 mb-2">
-                      Email ou téléphone
+                      {t('identifierLabel')}
                     </label>
                     <input
                       type="text"
                       value={qIdentifier}
                       onChange={e => setQIdentifier(e.target.value)}
-                      placeholder="email@exemple.com ou 620 00 00 00"
+                      placeholder={t('identifierPlaceholder')}
                       className={fieldCls}
                       required
                     />
                     <p className="text-xs text-dark-400 mt-2">
-                      Si des questions de sécurité sont configurées sur ce compte, elles s'afficheront à l'étape suivante.
+                      {t('questionsHint')}
                     </p>
                   </div>
 
@@ -287,8 +290,8 @@ export default function ForgotPasswordPage() {
                     className="w-full bg-primary-700 hover:bg-primary-800 active:scale-[0.98] text-white font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 shadow-premium disabled:opacity-60 disabled:cursor-not-allowed text-base"
                   >
                     {qLoading
-                      ? <><Loader2 size={18} className="animate-spin" /> Vérification...</>
-                      : 'Continuer'}
+                      ? <><Loader2 size={18} className="animate-spin" /> {t('verifying')}</>
+                      : t('continueBtn')}
                   </button>
                 </form>
 
@@ -297,7 +300,7 @@ export default function ForgotPasswordPage() {
                     href="/auth/connexion"
                     className="inline-flex items-center gap-2 text-sm text-dark-500 hover:text-primary-700 transition-colors"
                   >
-                    <ArrowLeft size={14} /> Retour à la connexion
+                    <ArrowLeft size={14} /> {t('backToLogin')}
                   </Link>
                 </div>
               </>
@@ -309,26 +312,26 @@ export default function ForgotPasswordPage() {
                   onClick={() => { setQStep('identifier'); setQError(''); }}
                   className="flex items-center gap-1.5 text-dark-400 hover:text-dark-700 text-sm font-medium mb-5 transition-colors"
                 >
-                  <ArrowLeft size={15} /> Retour
+                  <ArrowLeft size={15} /> {t('backBtn')}
                 </button>
 
                 <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center mb-5">
                   <KeyRound size={26} className="text-primary-700" />
                 </div>
-                <h2 className="font-display font-bold text-2xl sm:text-3xl text-dark-900 mb-1.5">Répondez à vos questions</h2>
+                <h2 className="font-display font-bold text-2xl sm:text-3xl text-dark-900 mb-1.5">{t('answerTitle')}</h2>
                 <p className="text-dark-500 text-sm mb-6">
-                  Répondez comme lors de la configuration — la casse et les espaces n'ont pas d'importance.
+                  {t('answerSubtitle')}
                 </p>
 
                 <form onSubmit={submitAnswers} className="space-y-5">
                   {qQuestions.map(q => (
                     <div key={q.id}>
-                      <label className="block text-sm font-semibold text-dark-700 mb-2">{q.label}</label>
+                      <label className="block text-sm font-semibold text-dark-700 mb-2">{tq(`questions.${q.id}`)}</label>
                       <input
                         type="text"
                         value={qAnswers[q.id] || ''}
                         onChange={e => setQAnswers(a => ({ ...a, [q.id]: e.target.value }))}
-                        placeholder="Votre réponse"
+                        placeholder={t('answerPlaceholder')}
                         className={fieldCls}
                         required
                       />
@@ -348,8 +351,8 @@ export default function ForgotPasswordPage() {
                     className="w-full bg-primary-700 hover:bg-primary-800 active:scale-[0.98] text-white font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 shadow-premium disabled:opacity-60 disabled:cursor-not-allowed text-base"
                   >
                     {qLoading
-                      ? <><Loader2 size={18} className="animate-spin" /> Vérification...</>
-                      : 'Vérifier mes réponses'}
+                      ? <><Loader2 size={18} className="animate-spin" /> {t('verifying')}</>
+                      : t('verifyAnswers')}
                   </button>
                 </form>
               </>

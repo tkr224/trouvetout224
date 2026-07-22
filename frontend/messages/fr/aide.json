@@ -1,0 +1,29 @@
+{
+  "hero": {
+    "title": "Centre d'aide",
+    "subtitle": "Tout ce qu'il faut savoir pour bien utiliser TrouveTout224"
+  },
+  "guidesTitle": "Guides rapides",
+  "guides": {
+    "publish": { "title": "Publier une annonce", "desc": "Clique sur \"Publier une annonce\" en haut du site, choisis une catégorie, ajoute des photos, un titre, une description, un prix et ta ville. C'est gratuit et sans limite.", "cta": "Publier maintenant" },
+    "shop": { "title": "Créer ma boutique", "desc": "Va dans \"Devenir vendeur\", donne un nom à ta boutique, ajoute une photo, puis publie tes articles — ils apparaîtront tous au même endroit, visibles par toute la Guinée.", "cta": "Devenir vendeur" },
+    "contact": { "title": "Contacter un vendeur", "desc": "Sur une annonce, clique sur \"Envoyer un message\" ou directement sur le bouton WhatsApp pour discuter avec le vendeur sans intermédiaire.", "cta": "Voir les annonces" },
+    "report": { "title": "Signaler un problème", "desc": "Sur l'annonce ou le profil concerné, clique sur \"Signaler\". Décris le souci et notre équipe l'examine rapidement pour garder la plateforme saine.", "cta": "En savoir plus" },
+    "password": { "title": "Récupérer mon mot de passe", "desc": "Sur la page de connexion, clique sur \"Mot de passe oublié\", renseigne ton email et suis les instructions pour en choisir un nouveau.", "cta": "Réinitialiser" }
+  },
+  "faqTitle": "Questions fréquentes",
+  "faqs": [
+    { "q": "Comment publier une annonce ?", "a": "Cliquez sur \"Publier\" dans la barre de navigation, remplissez le formulaire avec titre, description, prix, photos et coordonnées." },
+    { "q": "La publication est-elle vraiment gratuite ?", "a": "Oui, la publication est 100% gratuite et sans limite. Vous pouvez publier autant d'annonces que vous le souhaitez." },
+    { "q": "Comment contacter un vendeur ?", "a": "Sur une annonce, cliquez sur \"Envoyer un message\" ou sur les boutons Appeler/WhatsApp." },
+    { "q": "Comment signaler une fraude ?", "a": "Sur l'annonce, cliquez sur \"Signaler cette annonce\". Notre équipe examine sous 24h." },
+    { "q": "Comment supprimer mon annonce ?", "a": "Profil → Mes annonces → cliquez sur l'annonce → Supprimer." },
+    { "q": "Comment changer ma ville ?", "a": "Cliquez sur le nom de la ville dans la barre de navigation et choisissez la vôtre." }
+  ],
+  "seeAllFaq": "Voir toutes les questions fréquentes",
+  "helpBlock": {
+    "title": "Besoin d'aide ? On répond vite.",
+    "subtitle": "Notre équipe est disponible sur WhatsApp et par email pour t'accompagner.",
+    "whatsapp": "WhatsApp"
+  }
+}

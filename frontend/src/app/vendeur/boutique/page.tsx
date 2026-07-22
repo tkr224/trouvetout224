@@ -2,6 +2,7 @@
 export const dynamic = 'force-dynamic';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
@@ -9,18 +10,20 @@ import toast from 'react-hot-toast';
 import { Store, Camera, Loader2, Eye, Save, Lock, MessageCircle, Trash2, AlertTriangle, X, Palette, Quote } from 'lucide-react';
 import Link from 'next/link';
 
-const SHOP_COLORS = [
-  { key: 'vert',    label: 'Vert',    gradient: 'linear-gradient(135deg,#16a34a,#14532d)', dot: '#16a34a' },
-  { key: 'bleu',    label: 'Bleu',    gradient: 'linear-gradient(135deg,#1d4ed8,#1e3a8a)', dot: '#1d4ed8' },
-  { key: 'or',      label: 'Or',      gradient: 'linear-gradient(135deg,#d97706,#78350f)', dot: '#d97706' },
-  { key: 'rouge',   label: 'Rouge',   gradient: 'linear-gradient(135deg,#dc2626,#7f1d1d)', dot: '#dc2626' },
-  { key: 'violet',  label: 'Violet',  gradient: 'linear-gradient(135deg,#7c3aed,#4c1d95)', dot: '#7c3aed' },
-  { key: 'rose',    label: 'Rose',    gradient: 'linear-gradient(135deg,#ec4899,#9d174d)', dot: '#ec4899' },
-  { key: 'orange',  label: 'Orange',  gradient: 'linear-gradient(135deg,#ea580c,#7c2d12)', dot: '#ea580c' },
-  { key: 'sombre',  label: 'Sombre',  gradient: 'linear-gradient(135deg,#1f2937,#111827)', dot: '#374151' },
-];
+const SHOP_COLOR_META = [
+  { key: 'vert',    labelKey: 'colorVert',   gradient: 'linear-gradient(135deg,#16a34a,#14532d)', dot: '#16a34a' },
+  { key: 'bleu',    labelKey: 'colorBleu',   gradient: 'linear-gradient(135deg,#1d4ed8,#1e3a8a)', dot: '#1d4ed8' },
+  { key: 'or',      labelKey: 'colorOr',     gradient: 'linear-gradient(135deg,#d97706,#78350f)', dot: '#d97706' },
+  { key: 'rouge',   labelKey: 'colorRouge',  gradient: 'linear-gradient(135deg,#dc2626,#7f1d1d)', dot: '#dc2626' },
+  { key: 'violet',  labelKey: 'colorViolet', gradient: 'linear-gradient(135deg,#7c3aed,#4c1d95)', dot: '#7c3aed' },
+  { key: 'rose',    labelKey: 'colorRose',   gradient: 'linear-gradient(135deg,#ec4899,#9d174d)', dot: '#ec4899' },
+  { key: 'orange',  labelKey: 'colorOrange', gradient: 'linear-gradient(135deg,#ea580c,#7c2d12)', dot: '#ea580c' },
+  { key: 'sombre',  labelKey: 'colorSombre', gradient: 'linear-gradient(135deg,#1f2937,#111827)', dot: '#374151' },
+] as const;
 
 export default function BoutiquePage() {
+  const t = useTranslations('vendeur.boutique');
+  const SHOP_COLORS = SHOP_COLOR_META.map(c => ({ key: c.key, label: t(c.labelKey), gradient: c.gradient, dot: c.dot }));
   const { user, setUser } = useAuthStore();
   const router = useRouter();
   const [form, setForm] = useState({
@@ -65,8 +68,8 @@ export default function BoutiquePage() {
       const res = await api.post('/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       if (type === 'logo') setShopLogo(res.data.url);
       else setShopBanner(res.data.url);
-      toast.success('Image ajoutée !');
-    } catch { toast.error('Erreur upload'); }
+      toast.success(t('toastImageAdded'));
+    } catch { toast.error(t('toastUploadError')); }
     finally { setUploading(false); }
   };
 
@@ -74,11 +77,11 @@ export default function BoutiquePage() {
     setDeleting(true);
     try {
       await api.delete('/users/me/shop');
-      toast.success('Boutique supprimée.');
+      toast.success(t('toastShopDeleted'));
       setUser({ ...user!, shopActive: false, shopName: undefined } as any);
       router.push('/vendeur');
     } catch {
-      toast.error('Erreur lors de la suppression.');
+      toast.error(t('toastDeleteError'));
     } finally {
       setDeleting(false);
       setShowDeleteModal(false);
@@ -86,13 +89,13 @@ export default function BoutiquePage() {
   };
 
   const handleSave = async () => {
-    if (!form.shopName.trim()) { toast.error('Donnez un nom à votre boutique'); return; }
+    if (!form.shopName.trim()) { toast.error(t('toastNameRequired')); return; }
     setLoading(true);
     try {
       await api.put('/users/me/shop', { ...form, shopLogo, shopBanner, shopActive: true });
-      toast.success('Boutique enregistrée !');
+      toast.success(t('toastShopSaved'));
       router.push(`/profil/${user?.id}`);
-    } catch { toast.error('Erreur'); }
+    } catch { toast.error(t('toastError')); }
     finally { setLoading(false); }
   };
 
@@ -103,8 +106,8 @@ export default function BoutiquePage() {
           <div className="w-14 h-14 bg-dark-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Lock size={26} className="text-dark-400" />
           </div>
-          <p className="font-semibold text-dark-700 text-xl mb-4">Connectez-vous</p>
-          <Link href="/auth/connexion" className="btn-primary">Se connecter</Link>
+          <p className="font-semibold text-dark-700 text-xl mb-4">{t('loginPrompt')}</p>
+          <Link href="/auth/connexion" className="btn-primary">{t('login')}</Link>
         </div>
       </div>
     </div>
@@ -116,9 +119,9 @@ export default function BoutiquePage() {
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <h1 className="text-3xl font-display font-bold text-dark-900 flex items-center gap-2">
-            <Store className="text-primary-700" size={28} /> Ma boutique
+            <Store className="text-primary-700" size={28} /> {t('pageTitle')}
           </h1>
-          <Link href="/vendeur" className="btn-outline text-sm flex items-center gap-2"><Eye size={15} /> Tableau de bord</Link>
+          <Link href="/vendeur" className="btn-outline text-sm flex items-center gap-2"><Eye size={15} /> {t('dashboard')}</Link>
         </div>
 
         {/* ── Aperçu de la bannière ── */}
@@ -133,7 +136,7 @@ export default function BoutiquePage() {
               {uploadingBanner
                 ? <Loader2 size={28} className="text-white animate-spin" />
                 : <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 bg-black/50 text-white px-4 py-2 rounded-xl text-sm">
-                    <Camera size={16} /> Changer la bannière
+                    <Camera size={16} /> {t('changeBanner')}
                   </div>}
             </div>
             <input ref={bannerRef} type="file" accept="image/*" className="hidden"
@@ -172,51 +175,51 @@ export default function BoutiquePage() {
             <div className="space-y-5">
               {/* Nom */}
               <div>
-                <label className="block text-sm font-semibold text-dark-700 mb-1.5">Nom de la boutique *</label>
+                <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('shopNameLabel')}</label>
                 <input value={form.shopName}
                   onChange={(e) => setForm({ ...form, shopName: e.target.value })}
-                  placeholder="Ex: Boutique Mamadou Électronique" className="input" />
+                  placeholder={t('shopNamePlaceholder')} className="input" />
               </div>
 
               {/* Slogan */}
               <div>
                 <label className="block text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
-                  <Quote size={14} className="text-primary-600" /> Phrase d&apos;accroche
+                  <Quote size={14} className="text-primary-600" /> {t('sloganLabel')}
                 </label>
                 <input value={form.shopSlogan}
                   onChange={(e) => setForm({ ...form, shopSlogan: e.target.value })}
-                  placeholder="Ex : Les meilleurs téléphones de Conakry !"
+                  placeholder={t('sloganPlaceholder')}
                   maxLength={120}
                   className="input" />
-                <p className="mt-1 text-xs text-dark-400">{form.shopSlogan.length}/120 caractères — affiché en évidence sur votre boutique</p>
+                <p className="mt-1 text-xs text-dark-400">{t('sloganHint', { count: form.shopSlogan.length })}</p>
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-semibold text-dark-700 mb-1.5">Description</label>
+                <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('descriptionLabel')}</label>
                 <textarea value={form.shopDescription}
                   onChange={(e) => setForm({ ...form, shopDescription: e.target.value })}
-                  rows={4} placeholder="Présentez votre boutique, vos produits, vos horaires..."
+                  rows={4} placeholder={t('descriptionPlaceholder')}
                   className="input resize-none" />
               </div>
 
               {/* WhatsApp */}
               <div>
                 <label className="block text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
-                  <MessageCircle size={14} className="text-green-600" /> WhatsApp Business
+                  <MessageCircle size={14} className="text-green-600" /> {t('whatsappLabel')}
                 </label>
                 <div className="flex gap-2">
                   <span className="flex items-center px-3 bg-dark-50 border border-dark-200 rounded-xl text-sm text-dark-600">🇬🇳 +224</span>
                   <input value={form.shopWhatsapp}
                     onChange={(e) => setForm({ ...form, shopWhatsapp: e.target.value })}
-                    placeholder="620 00 00 00" className="input flex-1" />
+                    placeholder={t('whatsappPlaceholder')} className="input flex-1" />
                 </div>
               </div>
 
               {/* Couleur de la boutique */}
               <div>
                 <label className="block text-sm font-semibold text-dark-700 mb-2 flex items-center gap-1.5">
-                  <Palette size={14} className="text-primary-600" /> Couleur de la boutique
+                  <Palette size={14} className="text-primary-600" /> {t('colorLabel')}
                 </label>
                 <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
                   {SHOP_COLORS.map(color => (
@@ -239,7 +242,7 @@ export default function BoutiquePage() {
                   ))}
                 </div>
                 <p className="mt-2 text-xs text-dark-400">
-                  Couleur choisie : <strong>{selectedColor.label}</strong> — appliquée à l&apos;en-tête de votre boutique quand vous n&apos;avez pas de photo de bannière.
+                  {t('colorChosen', { color: selectedColor.label })}
                 </p>
               </div>
             </div>
@@ -249,24 +252,24 @@ export default function BoutiquePage() {
         <button onClick={handleSave} disabled={loading}
           className="btn-primary w-full py-3.5 flex items-center justify-center gap-2 text-base">
           {loading
-            ? <><Loader2 size={18} className="animate-spin" /> Enregistrement...</>
-            : <><Save size={18} /> Enregistrer ma boutique</>}
+            ? <><Loader2 size={18} className="animate-spin" /> {t('saving')}</>
+            : <><Save size={18} /> {t('saveShop')}</>}
         </button>
 
         {/* Zone de danger */}
         {form.shopName && (
           <div className="mt-8 border border-red-200 dark:border-red-900 rounded-2xl p-5 bg-red-50 dark:bg-red-950/20">
             <h3 className="flex items-center gap-2 text-sm font-bold text-red-700 dark:text-red-400 mb-1">
-              <AlertTriangle size={15} /> Zone de danger
+              <AlertTriangle size={15} /> {t('dangerZoneTitle')}
             </h3>
             <p className="text-xs text-red-600 dark:text-red-400 mb-4">
-              La suppression de la boutique est <strong>irréversible</strong>. Toutes vos annonces seront également supprimées. Votre compte reste actif.
+              {t('dangerZoneMsg')}
             </p>
             <button
               onClick={() => setShowDeleteModal(true)}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-red-400 text-red-600 dark:text-red-400 font-semibold text-sm hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
             >
-              <Trash2 size={15} /> Supprimer ma boutique
+              <Trash2 size={15} /> {t('deleteShop')}
             </button>
           </div>
         )}
@@ -278,27 +281,27 @@ export default function BoutiquePage() {
           <div className="bg-white dark:bg-dark-800 rounded-3xl shadow-card-hover w-full max-w-sm p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display font-bold text-dark-900 dark:text-white text-lg flex items-center gap-2">
-                <Trash2 size={18} className="text-red-500" /> Supprimer la boutique
+                <Trash2 size={18} className="text-red-500" /> {t('deleteModalTitle')}
               </h3>
               <button onClick={() => setShowDeleteModal(false)} className="text-dark-400 hover:text-dark-700 transition-colors">
                 <X size={20} />
               </button>
             </div>
             <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-5">
-              <p className="text-sm text-red-700 dark:text-red-400 font-semibold mb-1">Attention — action irréversible</p>
+              <p className="text-sm text-red-700 dark:text-red-400 font-semibold mb-1">{t('deleteWarningTitle')}</p>
               <p className="text-sm text-red-600 dark:text-red-400">
-                Votre boutique <strong>&ldquo;{form.shopName}&rdquo;</strong> et toutes vos annonces seront définitivement supprimées. Votre compte reste actif.
+                {t('deleteWarningMsg', { name: form.shopName })}
               </p>
             </div>
             <div className="flex gap-3">
               <button onClick={() => setShowDeleteModal(false)}
                 className="flex-1 border border-dark-200 text-dark-600 font-semibold py-2.5 rounded-xl hover:bg-dark-50 transition-colors text-sm">
-                Annuler
+                {t('cancel')}
               </button>
               <button onClick={handleDelete} disabled={deleting}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-xl disabled:opacity-50 transition-colors text-sm flex items-center justify-center gap-2">
                 {deleting ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
-                {deleting ? 'Suppression...' : 'Supprimer'}
+                {deleting ? t('deleting') : t('delete')}
               </button>
             </div>
           </div>

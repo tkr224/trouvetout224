@@ -1,6 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { api } from '@/lib/api';
@@ -13,13 +14,24 @@ import { useAuthStore } from '@/store/auth.store';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
-const SERVICE_TYPES = [
-  'Plomberie', 'Électricité', 'Coiffure & Beauté', 'Couture & Mode',
-  'Mécanique', 'Nettoyage', 'Informatique & Tech', 'Événementiel',
-  'Transport & Livraison', 'Cours particuliers', 'Santé & Bien-être', 'Autre',
-];
+const SERVICE_TYPE_META = [
+  { value: 'Plomberie', key: 'typePlomberie' },
+  { value: 'Électricité', key: 'typeElectricite' },
+  { value: 'Coiffure & Beauté', key: 'typeCoiffure' },
+  { value: 'Couture & Mode', key: 'typeCouture' },
+  { value: 'Mécanique', key: 'typeMecanique' },
+  { value: 'Nettoyage', key: 'typeNettoyage' },
+  { value: 'Informatique & Tech', key: 'typeInformatique' },
+  { value: 'Événementiel', key: 'typeEvenementiel' },
+  { value: 'Transport & Livraison', key: 'typeTransport' },
+  { value: 'Cours particuliers', key: 'typeCours' },
+  { value: 'Santé & Bien-être', key: 'typeSante' },
+  { value: 'Autre', key: 'typeAutre' },
+] as const;
 
 export default function ServicesPage() {
+  const t = useTranslations('listings.services');
+  const SERVICE_TYPES = SERVICE_TYPE_META.map(s => ({ value: s.value, label: t(s.key) }));
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
   const [annonces, setAnnonces]   = useState<any[]>([]);
@@ -53,11 +65,11 @@ export default function ServicesPage() {
   }, [q, cityId, serviceType, page]);
 
   const startConversation = async (ownerId: string) => {
-    if (!isAuthenticated) { toast.error('Connectez-vous pour envoyer un message.'); return; }
+    if (!isAuthenticated) { toast.error(t('toastLoginToMessage')); return; }
     try {
       const res = await api.post('/messages/conversations', { participantId: ownerId });
       router.push(`/messages?conversation=${res.data.data?.id || ''}`);
-    } catch { toast.error('Impossible d\'ouvrir la messagerie.'); }
+    } catch { toast.error(t('toastMessagingError')); }
   };
 
   const pages = Math.ceil(total / 12);
@@ -74,8 +86,8 @@ export default function ServicesPage() {
               <Wrench size={20} />
             </div>
             <div>
-              <h1 className="text-2xl font-display font-bold">Services professionnels</h1>
-              <p className="text-teal-100 text-sm">Plomberie, coiffure, mécanique, informatique et bien plus</p>
+              <h1 className="text-2xl font-display font-bold">{t('heroTitle')}</h1>
+              <p className="text-teal-100 text-sm">{t('heroSubtitle')}</p>
             </div>
           </div>
           <div className="flex gap-2 mt-4">
@@ -83,12 +95,12 @@ export default function ServicesPage() {
               <Search size={16} className="text-white/70 shrink-0" />
               <input
                 value={q} onChange={e => { setQ(e.target.value); setPage(1); }}
-                placeholder="Rechercher un service..."
+                placeholder={t('searchPlaceholder')}
                 className="flex-1 bg-transparent text-white placeholder-white/60 outline-none text-sm"
               />
             </div>
             <Link href="/annonces/publier?cat=services" className="bg-white text-teal-700 font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-teal-50 transition-colors whitespace-nowrap">
-              <Plus size={15} /> Proposer un service
+              <Plus size={15} /> {t('offerService')}
             </Link>
           </div>
         </div>
@@ -100,31 +112,31 @@ export default function ServicesPage() {
           <SlidersHorizontal size={14} className="text-dark-400 shrink-0" />
           <select value={cityId} onChange={e => { setCityId(e.target.value); setPage(1); }}
             className="input py-2 text-sm w-auto min-w-[140px]">
-            <option value="">Toutes les villes</option>
+            <option value="">{t('allCities')}</option>
             {cities.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
           <div className="flex gap-2 flex-wrap">
-            {SERVICE_TYPES.map(t => (
-              <button key={t} onClick={() => { setServiceType(serviceType === t ? '' : t); setPage(1); }}
+            {SERVICE_TYPES.map(s => (
+              <button key={s.value} onClick={() => { setServiceType(serviceType === s.value ? '' : s.value); setPage(1); }}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold border-2 transition-colors ${
-                  serviceType === t
+                  serviceType === s.value
                     ? 'bg-teal-600 border-teal-600 text-white'
                     : 'bg-white border-dark-200 text-dark-600 hover:border-teal-400'
                 }`}>
-                {t}
+                {s.label}
               </button>
             ))}
           </div>
           {(q || cityId || serviceType) && (
             <button onClick={() => { setQ(''); setCityId(''); setServiceType(''); setPage(1); }}
               className="text-xs text-dark-400 hover:text-dark-600 underline ml-auto">
-              Effacer filtres
+              {t('clearFilters')}
             </button>
           )}
         </div>
 
         {/* Résultats */}
-        <p className="text-dark-400 text-sm mb-4">{total} service{total !== 1 ? 's' : ''} trouvé{total !== 1 ? 's' : ''}</p>
+        <p className="text-dark-400 text-sm mb-4">{t('resultsCount', { count: total })}</p>
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -141,10 +153,10 @@ export default function ServicesPage() {
             <div className="w-16 h-16 bg-teal-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Wrench size={28} className="text-teal-500" />
             </div>
-            <p className="text-dark-500 font-semibold text-lg mb-2">Aucun service trouvé</p>
-            <p className="text-dark-400 text-sm mb-5">Soyez le premier à proposer vos services !</p>
+            <p className="text-dark-500 font-semibold text-lg mb-2">{t('noResultsTitle')}</p>
+            <p className="text-dark-400 text-sm mb-5">{t('noResultsMsg')}</p>
             <Link href="/annonces/publier" className="btn-primary inline-flex items-center gap-2">
-              <Plus size={15} /> Proposer mon service
+              <Plus size={15} /> {t('publishMyService')}
             </Link>
           </div>
         ) : (
@@ -177,7 +189,7 @@ export default function ServicesPage() {
                       {a.price ? (
                         <p className="font-bold text-teal-700 text-sm">{Number(a.price).toLocaleString('fr-GN')} GNF</p>
                       ) : (
-                        <p className="text-dark-400 text-xs">Sur devis</p>
+                        <p className="text-dark-400 text-xs">{t('onQuote')}</p>
                       )}
                       {a.city && (
                         <p className="text-dark-400 text-xs flex items-center gap-0.5 mt-0.5">
@@ -213,7 +225,7 @@ export default function ServicesPage() {
               className="w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 disabled:opacity-40 hover:bg-dark-50 transition-colors">
               <ChevronLeft size={16} />
             </button>
-            <span className="text-sm text-dark-600 px-2">Page {page} / {pages}</span>
+            <span className="text-sm text-dark-600 px-2">{t('pageOf', { page, pages })}</span>
             <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages}
               className="w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 disabled:opacity-40 hover:bg-dark-50 transition-colors">
               <ChevronRight size={16} />

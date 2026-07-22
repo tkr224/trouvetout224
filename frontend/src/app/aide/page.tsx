@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Link from 'next/link';
@@ -8,52 +9,13 @@ import {
   Store, Send, Flag, KeyRound, HeartHandshake,
 } from 'lucide-react';
 
-const GUIDES = [
-  {
-    icon: PackagePlus,
-    title: 'Publier une annonce',
-    desc: 'Clique sur "Publier une annonce" en haut du site, choisis une catégorie, ajoute des photos, un titre, une description, un prix et ta ville. C\'est gratuit et sans limite.',
-    href: '/annonces/publier',
-    cta: 'Publier maintenant',
-  },
-  {
-    icon: Store,
-    title: 'Créer ma boutique',
-    desc: 'Va dans "Devenir vendeur", donne un nom à ta boutique, ajoute une photo, puis publie tes articles — ils apparaîtront tous au même endroit, visibles par toute la Guinée.',
-    href: '/vendeur',
-    cta: 'Devenir vendeur',
-  },
-  {
-    icon: Send,
-    title: 'Contacter un vendeur',
-    desc: 'Sur une annonce, clique sur "Envoyer un message" ou directement sur le bouton WhatsApp pour discuter avec le vendeur sans intermédiaire.',
-    href: '/annonces/lister',
-    cta: 'Voir les annonces',
-  },
-  {
-    icon: Flag,
-    title: 'Signaler un problème',
-    desc: 'Sur l\'annonce ou le profil concerné, clique sur "Signaler". Décris le souci et notre équipe l\'examine rapidement pour garder la plateforme saine.',
-    href: '/faq',
-    cta: 'En savoir plus',
-  },
-  {
-    icon: KeyRound,
-    title: 'Récupérer mon mot de passe',
-    desc: 'Sur la page de connexion, clique sur "Mot de passe oublié", renseigne ton email et suis les instructions pour en choisir un nouveau.',
-    href: '/auth/mot-de-passe-oublie',
-    cta: 'Réinitialiser',
-  },
-];
-
-const FAQS = [
-  { q: 'Comment publier une annonce ?', a: 'Cliquez sur "Publier" dans la barre de navigation, remplissez le formulaire avec titre, description, prix, photos et coordonnées.' },
-  { q: 'La publication est-elle vraiment gratuite ?', a: 'Oui, la publication est 100% gratuite et sans limite. Vous pouvez publier autant d\'annonces que vous le souhaitez.' },
-  { q: 'Comment contacter un vendeur ?', a: 'Sur une annonce, cliquez sur "Envoyer un message" ou sur les boutons Appeler/WhatsApp.' },
-  { q: 'Comment signaler une fraude ?', a: 'Sur l\'annonce, cliquez sur "Signaler cette annonce". Notre équipe examine sous 24h.' },
-  { q: 'Comment supprimer mon annonce ?', a: 'Profil → Mes annonces → cliquez sur l\'annonce → Supprimer.' },
-  { q: 'Comment changer ma ville ?', a: 'Cliquez sur le nom de la ville dans la barre de navigation et choisissez la vôtre.' },
-];
+const GUIDE_DEFS = [
+  { key: 'publish', icon: PackagePlus, href: '/annonces/publier' },
+  { key: 'shop', icon: Store, href: '/vendeur' },
+  { key: 'contact', icon: Send, href: '/annonces/lister' },
+  { key: 'report', icon: Flag, href: '/faq' },
+  { key: 'password', icon: KeyRound, href: '/auth/mot-de-passe-oublie' },
+] as const;
 
 function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
@@ -73,6 +35,15 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 }
 
 export default function AidePage() {
+  const t = useTranslations('aide');
+  const GUIDES = GUIDE_DEFS.map((def) => ({
+    ...def,
+    title: t(`guides.${def.key}.title`),
+    desc: t(`guides.${def.key}.desc`),
+    cta: t(`guides.${def.key}.cta`),
+  }));
+  const FAQS = t.raw('faqs') as { q: string; a: string }[];
+
   return (
     <div className="min-h-screen bg-dark-50">
       <Navbar />
@@ -96,10 +67,10 @@ export default function AidePage() {
             <HelpCircle size={26} className="text-gold-300" />
           </div>
           <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-white mb-3" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.9)' }}>
-            Centre d'aide
+            {t('hero.title')}
           </h1>
           <p className="text-white/90 text-base sm:text-lg" style={{ textShadow: '0 1px 10px rgba(0,0,0,0.8)' }}>
-            Tout ce qu'il faut savoir pour bien utiliser TrouveTout224
+            {t('hero.subtitle')}
           </p>
         </div>
       </section>
@@ -107,7 +78,7 @@ export default function AidePage() {
       {/* ══ GUIDES RAPIDES ═════════════════════════════════════════════ */}
       <div className="max-w-4xl mx-auto px-4 py-12 sm:py-14">
         <h2 className="text-xl sm:text-2xl font-display font-bold text-dark-900 mb-5 flex items-center gap-2">
-          <span className="h-1 w-4 bg-primary-600 rounded-full inline-block" /> Guides rapides
+          <span className="h-1 w-4 bg-primary-600 rounded-full inline-block" /> {t('guidesTitle')}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-14">
           {GUIDES.map(({ icon: Icon, title, desc, href, cta }) => (
@@ -127,7 +98,7 @@ export default function AidePage() {
         {/* ══ FAQ COURTE ═════════════════════════════════════════════════ */}
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-xl sm:text-2xl font-display font-bold text-dark-900 flex items-center gap-2">
-            <span className="h-1 w-4 bg-gold-500 rounded-full inline-block" /> Questions fréquentes
+            <span className="h-1 w-4 bg-gold-500 rounded-full inline-block" /> {t('faqTitle')}
           </h2>
         </div>
         <div className="space-y-3 mb-4">
@@ -138,18 +109,18 @@ export default function AidePage() {
           href="/faq"
           className="card p-5 flex items-center justify-between hover:border-primary-400 border-2 border-transparent transition-colors min-h-[44px]"
         >
-          <span className="font-semibold text-dark-900">Voir toutes les questions fréquentes</span>
+          <span className="font-semibold text-dark-900">{t('seeAllFaq')}</span>
           <ArrowRight size={18} className="text-primary-700 shrink-0" />
         </Link>
 
         {/* ══ BLOC RASSURANT + CONTACT ═════════════════════════════════ */}
         <div className="card p-8 mt-10 text-center bg-gradient-to-br from-primary-50 to-white dark:from-primary-900/20 dark:to-dark-800 border border-primary-200 dark:border-primary-800/40">
           <HeartHandshake size={28} className="text-primary-700 mx-auto mb-3" />
-          <p className="text-dark-700 font-bold text-lg mb-1">Besoin d'aide ? On répond vite.</p>
-          <p className="text-dark-500 text-sm mb-5">Notre équipe est disponible sur WhatsApp et par email pour t'accompagner.</p>
+          <p className="text-dark-700 font-bold text-lg mb-1">{t('helpBlock.title')}</p>
+          <p className="text-dark-500 text-sm mb-5">{t('helpBlock.subtitle')}</p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <a href="https://wa.me/224627543486" target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex items-center gap-2">
-              <MessageCircle size={16} /> WhatsApp
+              <MessageCircle size={16} /> {t('helpBlock.whatsapp')}
             </a>
             <a href="mailto:contact.trouvetout224@gmail.com" className="btn-outline inline-flex items-center gap-2">
               <Mail size={16} /> contact.trouvetout224@gmail.com
