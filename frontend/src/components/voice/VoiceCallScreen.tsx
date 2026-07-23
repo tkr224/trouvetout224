@@ -15,6 +15,16 @@ function formatSeconds(total: number): string {
   return `${m}:${sec.toString().padStart(2, '0')}`;
 }
 
+function micErrorCopyKeys(kind: string | null): { title: string; message: string } {
+  switch (kind) {
+    case 'no-device': return { title: 'micNoDeviceTitle', message: 'micNoDeviceMessage' };
+    case 'device-busy': return { title: 'micBusyTitle', message: 'micBusyMessage' };
+    case 'insecure-context': return { title: 'insecureContextTitle', message: 'insecureContextMessage' };
+    case 'unsupported': return { title: 'unsupportedTitle', message: 'unsupportedMessage' };
+    default: return { title: 'micDeniedTitle', message: 'micDeniedMessage' };
+  }
+}
+
 function formatResetIn(resetAt: string, hoursLabel: string, minutesLabel: string): string {
   const diffMs = new Date(resetAt).getTime() - Date.now();
   const totalMinutes = Math.max(1, Math.round(diffMs / 60000));
@@ -30,7 +40,7 @@ export default function VoiceCallScreen() {
   const close = useVoiceCallStore(s => s.close);
   const {
     state, turns, interimTranscript, quota, remainingSeconds,
-    showLowTimeWarning, dismissLowTimeWarning, errorMessage,
+    showLowTimeWarning, dismissLowTimeWarning, errorMessage, micErrorKind,
     requestStart, confirmAndListen, interrupt, hangup, reset,
   } = useVoiceCall();
 
@@ -108,19 +118,27 @@ export default function VoiceCallScreen() {
           </div>
         )}
 
-        {/* ── Micro refusé ─────────────────────────────────────────────── */}
-        {state === 'mic-denied' && (
-          <div className="flex flex-col items-center gap-5">
-            <div className="w-16 h-16 rounded-2xl bg-guinea-500/20 border border-guinea-400/40 flex items-center justify-center">
-              <MicOff size={28} className="text-guinea-300" />
+        {/* ── Micro refusé / indisponible ──────────────────────────────── */}
+        {state === 'mic-denied' && (() => {
+          const { title, message } = micErrorCopyKeys(micErrorKind);
+          return (
+            <div className="flex flex-col items-center gap-5">
+              <div className="w-16 h-16 rounded-2xl bg-guinea-500/20 border border-guinea-400/40 flex items-center justify-center">
+                <MicOff size={28} className="text-guinea-300" />
+              </div>
+              <h2 className="font-display font-bold text-xl">{t(title)}</h2>
+              <p className="text-white/80 text-sm leading-relaxed">{t(message)}</p>
+              <div className="flex gap-3 w-full">
+                <button onClick={confirmAndListen} className="flex-1 min-h-[44px] rounded-xl bg-gold-500 hover:bg-gold-600 text-dark-900 font-semibold transition-colors">
+                  {t('retryBtn')}
+                </button>
+                <button onClick={continueAsText} className="flex-1 min-h-[44px] rounded-xl border border-white/25 hover:bg-white/10 font-medium transition-colors inline-flex items-center justify-center gap-2">
+                  <MessageCircle size={16} /> {t('continueAsText')}
+                </button>
+              </div>
             </div>
-            <h2 className="font-display font-bold text-xl">{t('micDeniedTitle')}</h2>
-            <p className="text-white/80 text-sm leading-relaxed">{t('micDeniedMessage')}</p>
-            <button onClick={continueAsText} className="min-h-[44px] px-5 rounded-xl bg-gold-500 hover:bg-gold-600 text-dark-900 font-semibold transition-colors inline-flex items-center gap-2">
-              <MessageCircle size={16} /> {t('continueAsText')}
-            </button>
-          </div>
-        )}
+          );
+        })()}
 
         {/* ── Navigateur non compatible ────────────────────────────────── */}
         {state === 'unsupported' && (

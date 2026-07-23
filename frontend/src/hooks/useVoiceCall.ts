@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { api } from '@/lib/api';
-import { getSpeechRecognitionCtor, isVoiceCallSupported, speechLangFor, pickVoiceFor } from '@/lib/webSpeech';
+import { getSpeechRecognitionCtor, isVoiceCallSupported, speechLangFor, pickVoiceFor, requestMicAccess, MicErrorKind } from '@/lib/webSpeech';
 
 const HEARTBEAT_INTERVAL_MS = 10_000;
 const LOW_TIME_WARNING_SECONDS = 60;
@@ -42,6 +42,7 @@ export function useVoiceCall() {
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [showLowTimeWarning, setShowLowTimeWarning] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [micErrorKind, setMicErrorKind] = useState<MicErrorKind | null>(null);
 
   const stateRef = useRef<VoiceCallState>('idle');
   stateRef.current = state;
@@ -184,6 +185,13 @@ export function useVoiceCall() {
 
     recognition.onerror = (event: any) => {
       if (event.error === 'not-allowed' || event.error === 'permission-denied' || event.error === 'service-not-allowed') {
+        setMicErrorKind('denied');
+        setState('mic-denied');
+        endCall('ERROR', 'mic-denied');
+        return;
+      }
+      if (event.error === 'audio-capture') {
+        setMicErrorKind('no-device');
         setState('mic-denied');
         endCall('ERROR', 'mic-denied');
         return;
@@ -212,6 +220,7 @@ export function useVoiceCall() {
   // et la compatibilité navigateur AVANT toute demande de micro.
   const requestStart = useCallback(async () => {
     setErrorMessage('');
+    setMicErrorKind(null);
     setState('checking');
     try {
       const res = await api.post('/voice/start');
@@ -238,10 +247,20 @@ export function useVoiceCall() {
     }
   }, []);
 
-  // Étape 2 : l'utilisateur a lu l'explication et clique "Continuer" — c'est
-  // seulement ICI que le navigateur va demander la permission micro.
-  const confirmAndListen = useCallback(() => {
+  // Étape 2 : l'utilisateur a lu l'explication (ou clique "Réessayer" après un
+  // refus) — on revérifie l'état RÉEL du micro à CHAQUE tentative via
+  // getUserMedia, jamais depuis un état mis en cache côté app.
+  const confirmAndListen = useCallback(async () => {
     setState('requesting-mic');
+    setMicErrorKind(null);
+
+    const access = await requestMicAccess();
+    if (!access.ok) {
+      setMicErrorKind(access.kind);
+      setState('mic-denied');
+      return;
+    }
+
     activeRef.current = true;
     lowTimeWarnedRef.current = false;
     setTurns([]);
@@ -254,9 +273,36 @@ export function useVoiceCall() {
     try {
       recognition.start();
     } catch {
+      setMicErrorKind('unknown');
       setState('mic-denied');
     }
   }, [createRecognition]);
+
+  // Pendant qu'on affiche l'écran "micro refusé", on écoute les changements de
+  // permission en direct : si l'utilisateur autorise le micro depuis les
+  // réglages du navigateur sans revenir sur l'app, l'appel redémarre tout
+  // seul — pas besoin de recharger la page ni de recliquer sur "Réessayer".
+  useEffect(() => {
+    if (state !== 'mic-denied' || micErrorKind !== 'denied') return;
+    if (typeof navigator === 'undefined' || !navigator.permissions?.query) return;
+    let cancelled = false;
+    let status: any = null;
+    const handleChange = () => {
+      if (!cancelled && status?.state === 'granted') confirmAndListen();
+    };
+    navigator.permissions
+      .query({ name: 'microphone' as PermissionName })
+      .then((s) => {
+        if (cancelled) return;
+        status = s;
+        status.addEventListener('change', handleChange);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+      status?.removeEventListener?.('change', handleChange);
+    };
+  }, [state, micErrorKind, confirmAndListen]);
 
   const interrupt = useCallback(() => {
     if (typeof window !== 'undefined') window.speechSynthesis?.cancel();
@@ -273,6 +319,7 @@ export function useVoiceCall() {
     setTurns([]);
     setInterimTranscript('');
     setErrorMessage('');
+    setMicErrorKind(null);
     setShowLowTimeWarning(false);
   }, [stopEverything]);
 
@@ -320,6 +367,7 @@ export function useVoiceCall() {
     showLowTimeWarning,
     dismissLowTimeWarning: () => setShowLowTimeWarning(false),
     errorMessage,
+    micErrorKind,
     requestStart,
     confirmAndListen,
     interrupt,

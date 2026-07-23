@@ -14,6 +14,42 @@ export function isVoiceCallSupported(): boolean {
   return !!getSpeechRecognitionCtor() && 'speechSynthesis' in window;
 }
 
+export type MicErrorKind = 'denied' | 'no-device' | 'device-busy' | 'insecure-context' | 'unsupported' | 'unknown';
+export type MicAccessResult = { ok: true } | { ok: false; kind: MicErrorKind };
+
+// Demande le micro via getUserMedia AVANT de démarrer SpeechRecognition.
+// Nécessaire car Chrome mémorise en interne, pour toute la durée de l'onglet,
+// le premier verdict qu'il a donné à SpeechRecognition — si ce verdict était
+// "refusé", recognition.start() continue de renvoyer 'not-allowed' même après
+// que l'utilisateur a autorisé le micro dans les réglages du site, tant que la
+// page n'est pas rechargée. getUserMedia, lui, relit toujours l'état réel et
+// courant de la permission, ce qui contourne ce cache. On coupe le flux
+// immédiatement après : seul SpeechRecognition doit garder la main sur le micro.
+export async function requestMicAccess(): Promise<MicAccessResult> {
+  if (typeof window === 'undefined') return { ok: false, kind: 'unknown' };
+  if (!window.isSecureContext) return { ok: false, kind: 'insecure-context' };
+  if (!navigator.mediaDevices?.getUserMedia) return { ok: false, kind: 'unsupported' };
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(track => track.stop());
+    return { ok: true };
+  } catch (err: any) {
+    switch (err?.name) {
+      case 'NotAllowedError':
+      case 'SecurityError':
+        return { ok: false, kind: 'denied' };
+      case 'NotFoundError':
+      case 'DevicesNotFoundError':
+        return { ok: false, kind: 'no-device' };
+      case 'NotReadableError':
+      case 'TrackStartError':
+        return { ok: false, kind: 'device-busy' };
+      default:
+        return { ok: false, kind: 'unknown' };
+    }
+  }
+}
+
 const RECOGNITION_LANG: Record<string, string> = { fr: 'fr-FR', en: 'en-US', zh: 'zh-CN' };
 
 export function speechLangFor(locale: string): string {
