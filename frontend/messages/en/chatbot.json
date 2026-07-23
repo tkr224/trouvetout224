@@ -6,5 +6,6 @@
   "placeholder": "Type your question...",
   "sendAriaLabel": "Send",
   "greeting": "Hi 👋 I'm the TrouveTout224 assistant. Ask me anything about the site: posting a listing, creating a shop, contacting a seller...",
-  "fallbackMessage": "Sorry, I'm unavailable right now 😕 Contact WhatsApp support: +224 627 54 34 86."
+  "fallbackMessage": "Sorry, I'm unavailable right now 😕 Contact WhatsApp support: +224 627 54 34 86.",
+  "quotaMessage": "I'm getting a lot of requests right now 😅 Try again in a few minutes, or message us directly on WhatsApp: +224 627 54 34 86."
 }

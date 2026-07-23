@@ -1,7 +1,15 @@
 import { Router } from 'express';
-import { chatWithAssistant, ChatTurn } from '../services/gemini.service';
+import { chatWithAssistant, ChatTurn, classifyGeminiError } from '../services/gemini.service';
 
 const router = Router();
+
+// Message montré à l'utilisateur selon la cause réelle de l'échec — la vraie
+// erreur (statut HTTP + détail Gemini) est TOUJOURS logguée côté serveur via
+// classifyGeminiError(), quel que soit le message renvoyé au client.
+const USER_MESSAGES: Record<string, string> = {
+  QUOTA_EXCEEDED: 'Je suis très sollicité en ce moment 😅 Réessaie dans quelques minutes, ou écris-nous directement sur WhatsApp : +224 627 54 34 86.',
+};
+const DEFAULT_USER_MESSAGE = 'Assistant indisponible pour le moment. Contacte le support WhatsApp : +224 627 54 34 86.';
 
 router.post('/chat', async (req: any, res) => {
   try {
@@ -23,10 +31,14 @@ router.post('/chat', async (req: any, res) => {
     const reply = await chatWithAssistant(message.trim(), safeHistory);
     res.json({ reply });
   } catch (e: any) {
-    console.error('[ai.routes] Erreur chatbot Gemini :', e?.message || e);
+    const { code, status, detail } = classifyGeminiError(e);
+    // Log clair et complet : code déduit, statut HTTP réel renvoyé par Gemini,
+    // et détail brut (contient le message JSON complet de l'API en cas d'ApiError).
+    console.error(`[ai.routes] Erreur chatbot Gemini — code=${code} status=${status ?? 'n/a'} :`, detail);
+
     res.status(503).json({
-      error: 'Assistant indisponible pour le moment. Contacte le support WhatsApp : +224 627 54 34 86.',
-      code: 'AI_UNAVAILABLE',
+      error: USER_MESSAGES[code] || DEFAULT_USER_MESSAGE,
+      code: `AI_${code}`,
     });
   }
 });

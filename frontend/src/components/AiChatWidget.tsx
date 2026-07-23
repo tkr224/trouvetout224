@@ -13,6 +13,7 @@ export default function AiChatWidget() {
   const t = useTranslations('chatbot');
   const GREETING: ChatMessage = { role: 'model', text: t('greeting') };
   const FALLBACK_MESSAGE: ChatMessage = { role: 'model', text: t('fallbackMessage') };
+  const QUOTA_MESSAGE: ChatMessage = { role: 'model', text: t('quotaMessage') };
   const [dismissed, setDismissed] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([GREETING]);
@@ -49,8 +50,9 @@ export default function AiChatWidget() {
       const history = nextMessages.slice(-10).map(m => ({ role: m.role, text: m.text }));
       const res = await api.post('/ai/chat', { message: text, history });
       setMessages(prev => [...prev, { role: 'model', text: res.data.reply }]);
-    } catch {
-      setMessages(prev => [...prev, FALLBACK_MESSAGE]);
+    } catch (err: any) {
+      const code = err?.response?.data?.code;
+      setMessages(prev => [...prev, code === 'AI_QUOTA_EXCEEDED' ? QUOTA_MESSAGE : FALLBACK_MESSAGE]);
     } finally {
       setIsSending(false);
     }

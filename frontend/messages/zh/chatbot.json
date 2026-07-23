@@ -6,5 +6,6 @@
   "placeholder": "输入您的问题...",
   "sendAriaLabel": "发送",
   "greeting": "你好 👋 我是 TrouveTout224 助手。有关于网站的问题都可以问我：发布信息、创建店铺、联系卖家……",
-  "fallbackMessage": "抱歉，我暂时无法使用 😕 请通过 WhatsApp 联系客服：+224 627 54 34 86。"
+  "fallbackMessage": "抱歉，我暂时无法使用 😕 请通过 WhatsApp 联系客服：+224 627 54 34 86。",
+  "quotaMessage": "我现在收到的请求有点多 😅 请几分钟后再试，或直接通过 WhatsApp 联系我们：+224 627 54 34 86。"
 }

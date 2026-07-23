@@ -98,11 +98,11 @@ export async function moderateAnnonce(input: ModerationInput): Promise<Moderatio
           responseMimeType: 'application/json',
           temperature: 0.1,
           maxOutputTokens: 800,
-          // Les modèles Gemini récents "réfléchissent" avant de répondre, ce qui
-          // consommait tout le budget de tokens avant même d'écrire le JSON
-          // (réponse tronquée juste après "Here is the JSON..."). Cette tâche de
-          // classification simple n'a pas besoin de ce raisonnement étendu.
-          thinkingConfig: { thinkingBudget: 0 },
+          // NE PAS ajouter thinkingConfig ici : sur le modèle actuel derrière
+          // l'alias 'gemini-flash-latest', ce champ fait échouer 100% des
+          // requêtes avec 400 INVALID_ARGUMENT (le modèle ne supporte pas
+          // qu'on configure le "thinking"). Vérifié le 2026-07-23 — voir
+          // classifyGeminiError() plus bas si ça recasse un jour.
         },
       }),
       new Promise<null>((resolve) => setTimeout(() => resolve(null), 10000)),
@@ -113,7 +113,8 @@ export async function moderateAnnonce(input: ModerationInput): Promise<Moderatio
     }
     return parseModerationResponse(response.text);
   } catch (e: any) {
-    console.error('[gemini.service] Erreur modération Gemini (fail-open, annonce publiée normalement) :', e?.message || e);
+    const { code, status, detail } = classifyGeminiError(e);
+    console.error(`[gemini.service] Erreur modération Gemini — code=${code} status=${status ?? 'n/a'} (fail-open, annonce publiée normalement) :`, detail);
     return null;
   }
 }
@@ -203,14 +204,57 @@ export async function chatWithAssistant(message: string, history: ChatTurn[] = [
       systemInstruction: CHATBOT_SYSTEM_PROMPT,
       temperature: 0.4,
       maxOutputTokens: 700,
-      // Même correctif que pour la modération (voir moderateAnnonce) : sans ça,
-      // le modèle consomme une partie du budget de tokens à "réfléchir" avant
-      // d'écrire sa réponse, ce qui coupait les phrases en plein milieu.
-      thinkingConfig: { thinkingBudget: 0 },
+      // NE PAS ajouter thinkingConfig ici : voir le commentaire équivalent dans
+      // moderateAnnonce() — ce champ casse 100% des requêtes (400 INVALID_ARGUMENT)
+      // sur le modèle actuel derrière l'alias 'gemini-flash-latest'.
     },
   });
 
   const text = response.text?.trim();
   if (!text) throw new Error('EMPTY_RESPONSE');
   return text;
+}
+
+// ============================
+// CLASSIFICATION DES ERREURS
+// ============================
+
+export type GeminiErrorCode =
+  | 'NOT_CONFIGURED'   // GEMINI_API_KEY absente
+  | 'QUOTA_EXCEEDED'   // 429 / RESOURCE_EXHAUSTED — quota gratuit dépassé
+  | 'AUTH_ERROR'       // 401/403 — clé invalide ou refusée
+  | 'MODEL_NOT_FOUND'  // 404 — nom de modèle invalide/déprécié
+  | 'INVALID_ARGUMENT' // 400 — requête malformée (mauvais paramètre, etc.)
+  | 'EMPTY_RESPONSE'   // réponse vide renvoyée par le modèle
+  | 'UNKNOWN';
+
+export interface GeminiErrorInfo {
+  code: GeminiErrorCode;
+  status?: number;
+  detail: string;
+}
+
+// Transforme une erreur Gemini brute (ApiError du SDK, ou nos erreurs internes
+// GEMINI_NOT_CONFIGURED / EMPTY_RESPONSE) en code exploitable par l'appelant,
+// pour choisir le bon message utilisateur ET logger clairement la vraie cause.
+export function classifyGeminiError(e: any): GeminiErrorInfo {
+  const message: string = e?.message || String(e);
+  const status: number | undefined = typeof e?.status === 'number' ? e.status : undefined;
+
+  if (message === 'GEMINI_NOT_CONFIGURED') return { code: 'NOT_CONFIGURED', detail: message };
+  if (message === 'EMPTY_RESPONSE') return { code: 'EMPTY_RESPONSE', detail: message };
+
+  if (status === 429 || /RESOURCE_EXHAUSTED|quota/i.test(message)) {
+    return { code: 'QUOTA_EXCEEDED', status, detail: message };
+  }
+  if (status === 401 || status === 403 || /UNAUTHENTICATED|PERMISSION_DENIED|API_KEY_INVALID/i.test(message)) {
+    return { code: 'AUTH_ERROR', status, detail: message };
+  }
+  if (status === 404 || /NOT_FOUND/i.test(message)) {
+    return { code: 'MODEL_NOT_FOUND', status, detail: message };
+  }
+  if (status === 400 || /INVALID_ARGUMENT/i.test(message)) {
+    return { code: 'INVALID_ARGUMENT', status, detail: message };
+  }
+  return { code: 'UNKNOWN', status, detail: message };
 }
