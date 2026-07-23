@@ -37,6 +37,7 @@ import configRoutes from './routes/config.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import statsRoutes from './routes/stats.routes';
 import aiRoutes from './routes/ai.routes';
+import voiceRoutes from './routes/voice.routes';
 import { optionalAuthenticate } from './middleware/optionalAuth';
 
 dotenv.config();
@@ -153,6 +154,17 @@ const aiChatLimiter = rateLimit({
 // optionalAuthenticate doit tourner avant le limiter pour que req.userId soit disponible
 app.use('/api/ai/chat', optionalAuthenticate, aiChatLimiter);
 
+// ── Rate Limiting de l'appel vocal (anti-abus, en plus du quota de minutes) ──
+const voiceCallLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: isDev ? 100 : 20,
+  keyGenerator: (req: any) => (req.userId ? `user:${req.userId}` : req.ip),
+  message: { error: 'Trop de requêtes vocales. Merci de patienter une minute.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/voice', optionalAuthenticate, voiceCallLimiter);
+
 // ── Swagger — désactivé en production (évite l'exposition publique de l'API) ──
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 if (isDev) {
@@ -191,6 +203,7 @@ app.use('/api/site-config',  configRoutes);
 app.use('/api/analytics',    analyticsRoutes);
 app.use('/api/stats',        statsRoutes);
 app.use('/api/ai',           aiRoutes);
+app.use('/api/voice',        voiceRoutes);
 
 // Health check
 app.get('/api/health', (req: Request, res: Response) => {

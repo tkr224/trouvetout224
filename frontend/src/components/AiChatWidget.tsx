@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { MessageCircle, X, Send } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { api } from '@/lib/api';
+import VoiceCallButton from '@/components/voice/VoiceCallButton';
 
 type ChatMessage = { role: 'user' | 'model'; text: string };
 
@@ -25,6 +26,14 @@ export default function AiChatWidget() {
     if (typeof window !== 'undefined' && sessionStorage.getItem(DISMISS_KEY) === '1') {
       setDismissed(true);
     }
+  }, []);
+
+  // Permet à l'écran d'appel vocal (bascule "Continuer par écrit") de rouvrir
+  // ce widget sans avoir à partager d'état global entre les deux composants.
+  useEffect(() => {
+    const openChat = () => { setDismissed(false); setIsOpen(true); };
+    window.addEventListener('tt224:open-chat', openChat);
+    return () => window.removeEventListener('tt224:open-chat', openChat);
   }, []);
 
   useEffect(() => {
@@ -103,6 +112,7 @@ export default function AiChatWidget() {
               </div>
             </div>
             <div className="flex items-center gap-1">
+              <VoiceCallButton variant="icon" className="!border-white/25 !bg-white/10 !text-white hover:!bg-white/20" />
               <button
                 onClick={closeForSession}
                 aria-label={t('hideAriaLabel')}

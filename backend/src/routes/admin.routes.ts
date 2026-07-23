@@ -925,6 +925,55 @@ router.get('/analytics/pageviews', async (req, res) => {
   } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
+// ─── APPEL VOCAL IA (admin) ────────────────────────────────────────────────
+// Petit suivi : nombre d'appels, minutes consommées, questions les plus
+// fréquentes (utile pour enrichir la FAQ). Pas d'historique lourd — juste de
+// quoi voir si la fonctionnalité est utilisée et par quoi.
+router.get('/voice/stats', async (req, res) => {
+  try {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart  = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const [totalCalls, callsToday, callsWeek, secondsAgg, recentQuestions] = await Promise.all([
+      prisma.voiceCallSession.count(),
+      prisma.voiceCallSession.count({ where: { startedAt: { gte: todayStart } } }),
+      prisma.voiceCallSession.count({ where: { startedAt: { gte: weekStart } } }),
+      prisma.voiceCallSession.aggregate({ _sum: { secondsUsed: true } }),
+      prisma.voiceCallMessage.findMany({
+        where: { role: 'USER' },
+        orderBy: { createdAt: 'desc' },
+        take: 200,
+        select: { text: true },
+      }),
+    ]);
+
+    // Regroupement simple par texte normalisé (minuscules, espaces compactés)
+    // pour faire ressortir les questions qui reviennent le plus souvent.
+    const counts = new Map<string, { text: string; count: number }>();
+    for (const { text } of recentQuestions) {
+      const key = text.trim().toLowerCase().replace(/\s+/g, ' ');
+      if (!key) continue;
+      const existing = counts.get(key);
+      if (existing) existing.count += 1;
+      else counts.set(key, { text: text.trim(), count: 1 });
+    }
+    const frequentQuestions = [...counts.values()]
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 15);
+
+    res.json({
+      data: {
+        totalCalls,
+        callsToday,
+        callsWeek,
+        totalMinutes: Math.round((secondsAgg._sum.secondsUsed || 0) / 60),
+        frequentQuestions,
+      },
+    });
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
 // ─── RESTAURANTS (admin) ──────────────────────────────────────────────────────
 
 router.get('/restaurants/pending-count', async (req, res) => {

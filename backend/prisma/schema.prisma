@@ -109,6 +109,8 @@ model User {
   subscribers      ShopSubscription[] @relation("SubscribedTo")
   themeAccesses    UserThemeAccess[]
   securityQuestions UserSecurityQuestion[]
+  voiceQuota        VoiceQuota?
+  voiceCallSessions VoiceCallSession[]
 
   onboardingDone Boolean @default(false)
 
@@ -825,6 +827,71 @@ model AdminDeletion {
 enum AdminDeletionType {
   ANNONCE
   ACCOUNT
+}
+
+// =============================================
+// APPEL VOCAL IA (Web Speech API navigateur + Gemini côté serveur)
+// =============================================
+
+// Quota quotidien de minutes d'appel — une ligne par utilisateur connecté
+// (userId) OU par visiteur anonyme (ip), jamais les deux. Remis à zéro
+// chaque jour : voir usageDate (format 'YYYY-MM-DD', calculé en UTC — la
+// Guinée étant en UTC+0, ça correspond exactement à minuit à Conakry). Les
+// valeurs de quota par palier sont dans backend/src/config/voiceCall.ts.
+model VoiceQuota {
+  id          String   @id @default(cuid())
+  userId      String?  @unique
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ip          String?  @unique
+  secondsUsed Int      @default(0)
+  usageDate   String
+  updatedAt   DateTime @updatedAt
+
+  @@map("voice_quotas")
+}
+
+// Un appel = une session, du décroché au raccroché. Sert au suivi admin
+// (nombre d'appels, minutes consommées) et regroupe les messages échangés.
+model VoiceCallSession {
+  id            String              @id @default(cuid())
+  userId        String?
+  user          User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  ip            String?
+  startedAt     DateTime            @default(now())
+  lastHeartbeat DateTime            @default(now())
+  endedAt       DateTime?
+  secondsUsed   Int                 @default(0)
+  endReason     VoiceCallEndReason?
+  messages      VoiceCallMessage[]
+
+  @@index([startedAt])
+  @@map("voice_call_sessions")
+}
+
+enum VoiceCallEndReason {
+  USER_HANGUP
+  QUOTA_EXCEEDED
+  ERROR
+}
+
+// Un tour de parole (utilisateur ou assistant) dans un appel — reconstitue
+// la mémoire de conversation côté serveur, et sert au suivi admin "questions
+// fréquentes" (role = USER) pour enrichir la FAQ du site.
+model VoiceCallMessage {
+  id        String           @id @default(cuid())
+  sessionId String
+  session   VoiceCallSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      VoiceCallRole
+  text      String
+  createdAt DateTime         @default(now())
+
+  @@index([sessionId, createdAt])
+  @@map("voice_call_messages")
+}
+
+enum VoiceCallRole {
+  USER
+  MODEL
 }
 
 // =============================================

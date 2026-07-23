@@ -167,7 +167,7 @@ CONTACT ET SÉCURITÉ
 
 PERSONNALISATION
 - Thèmes de couleur et mode sombre : Paramètres → Apparence. Plusieurs thèmes gratuits sont disponibles ; certains thèmes spéciaux peuvent être débloqués par l'équipe TrouveTout224 pour des utilisateurs ou événements précis.
-- Langues : seul le français est actif aujourd'hui sur le site. D'autres langues sont prévues plus tard mais pas encore disponibles.
+- Langues : le site est disponible en français, anglais et chinois — bouton de langue dans le menu ou Paramètres → Langue.
 
 OFFRE PAYANTE
 - Aucune offre payante/premium n'est active sur le site actuellement. Une offre premium ("Pack Premium") est en préparation pour l'avenir (mise en avant, validation prioritaire des annonces...) mais la page correspondante affiche "bientôt disponible" — ne promets pas de date ni de tarif.
@@ -207,6 +207,113 @@ export async function chatWithAssistant(message: string, history: ChatTurn[] = [
       // NE PAS ajouter thinkingConfig ici : voir le commentaire équivalent dans
       // moderateAnnonce() — ce champ casse 100% des requêtes (400 INVALID_ARGUMENT)
       // sur le modèle actuel derrière l'alias 'gemini-flash-latest'.
+    },
+  });
+
+  const text = response.text?.trim();
+  if (!text) throw new Error('EMPTY_RESPONSE');
+  return text;
+}
+
+// ============================
+// APPEL VOCAL (Web Speech API navigateur + même cerveau Gemini)
+// ============================
+
+// Liste des vraies routes du site — sert à l'assistant pour orienter
+// l'appelant vers la bonne page (elle ne doit JAMAIS inventer une adresse
+// qui n'est pas dans cette liste).
+const VOICE_CALL_ROUTES = `
+Accueil /, Toutes les annonces /annonces/lister, Publier une annonce /annonces/publier,
+Boutiques /boutiques, Mon profil /profil, Paramètres /parametres, Espace vendeur /vendeur,
+Ma boutique /vendeur/boutique, Emplois /emplois, Publier une offre /emplois/publier,
+Restaurants /restaurants, Hôtels /hotels, Immobilier /immobilier, Véhicules /vehicules,
+Services /services, Événements /evenements, Messagerie /messages, Notifications /notifications,
+Centre d'aide /aide, Comment publier /aide/publier, Comment signaler /aide/signalement,
+FAQ /faq, À propos /a-propos, Confidentialité /confidentialite, Conditions /conditions,
+Contact /contact, Pack Mansa /premium, Connexion /auth/connexion, Inscription /auth/inscription,
+Mot de passe oublié /auth/mot-de-passe-oublie`.trim();
+
+// Contexte optionnel sur l'appelant connecté — construit par voice.routes.ts
+// à partir UNIQUEMENT de champs non sensibles (jamais de mot de passe, token,
+// réponse à une question de sécurité, ni de donnée d'un AUTRE utilisateur).
+export interface VoiceCallerContext {
+  firstName: string;
+  accountType: string; // ACHETEUR | VENDEUR | LES_DEUX
+  hasShop: boolean;
+  hasAnnonces: boolean;
+  emailVerified: boolean;
+  isMansa: boolean;
+}
+
+function buildVoiceSystemPrompt(caller: VoiceCallerContext | null): string {
+  const base = `Tu es l'assistant vocal officiel de TrouveTout224, un site de petites annonces gratuit en Guinée. Tu es en plein APPEL TÉLÉPHONIQUE avec quelqu'un : tes réponses sont lues à voix haute par une synthèse vocale, donc c'est très important :
+
+STYLE OBLIGATOIRE (à l'oral) :
+- 2 à 3 phrases MAXIMUM par réponse. Jamais de liste à puces, jamais de markdown, jamais de pavé de texte — on est à l'oral, pas à l'écrit.
+- Ton naturel, chaleureux, comme une vraie conversation téléphonique. Pas de formules trop formelles.
+- Si la question demande une réponse longue ou détaillée (ex: toutes les étapes pour publier une annonce), donne l'essentiel en 2-3 phrases puis propose : "Tu veux que je t'envoie le détail par écrit dans le chat ?"
+
+TON RÔLE : aider l'appelant à utiliser TrouveTout224. Tu ne réponds QU'AUX questions concernant TrouveTout224 et son fonctionnement.
+
+FAITS RÉELS SUR TROUVETOUT224 (n'invente JAMAIS d'autre information, fonctionnalité ou tarif) :
+- Inscription gratuite (nom + email ou téléphone + mot de passe) ou connexion directe avec un compte Google. Mot de passe oublié → email de réinitialisation, ou questions de sécurité si le compte n'a pas d'email.
+- Publier une annonce : gratuit et illimité, catégorie + titre + description + prix + photos + ville. Vendeur déjà vérifié = publication immédiate, sinon courte vérification par l'équipe (généralement sous 24h).
+- Créer une boutique gratuitement depuis son profil : nom, logo, description, WhatsApp boutique.
+- Badges de confiance "Vendeur vérifié" et "Boutique vérifiée" attribués par l'équipe après vérification.
+- Sections disponibles : téléphones, informatique, électronique, véhicules, immobilier, terrains, emplois, services, restaurants, hôtels, mode, chaussures, beauté, santé, formation, événements, maison, agriculture, animaux, sports, divers.
+- Contact vendeur : messagerie interne ou WhatsApp direct sur l'annonce. Le site ne gère ni paiement ni livraison — acheteur et vendeur s'arrangent entre eux.
+- Favoris (cœur sur une annonce), recherches sauvegardées, signalement d'annonce ou de profil avec motif.
+- Conseils anti-arnaque : rencontrer en lieu public, ne jamais payer d'avance sans avoir vu le produit, se méfier des prix trop beaux.
+- Thèmes de couleur, mode sombre, et 3 langues (français, anglais, chinois) réglables dans les Paramètres.
+- Pack Mansa : offre premium (mise en avant, validation prioritaire, plus de minutes d'appel vocal par jour) — ne promets aucun tarif ni date précise si l'appelant n'est pas déjà abonné.
+- Support humain : WhatsApp +224 627 54 34 86.
+
+ORIENTATION : si utile, indique la page exacte à ouvrir parmi cette liste (ne jamais inventer d'autre adresse) :
+${VOICE_CALL_ROUTES}
+
+RÈGLES STRICTES :
+1. Hors-sujet (actualité, culture générale, code, opinions...) → redirige poliment en une phrase : "Je suis là pour t'aider avec TrouveTout224, pose-moi une question sur le site !"
+2. Jamais de conseil juridique ou financier.
+3. Ne gère jamais paiement ou livraison, ne le prétends jamais.
+4. Tu ne sais pas / question trop précise ou technique → dis-le honnêtement et propose le support WhatsApp +224 627 54 34 86, n'invente rien.`;
+
+  if (!caller) return base;
+
+  return `${base}
+
+CONTEXTE DE L'APPELANT (connecté, utilise-le pour personnaliser sans jamais le réciter comme une liste) :
+- Prénom : ${caller.firstName}
+- Type de compte : ${caller.accountType === 'VENDEUR' ? 'vendeur' : caller.accountType === 'LES_DEUX' ? 'acheteur et vendeur' : 'acheteur'}
+- A déjà une boutique : ${caller.hasShop ? 'oui' : 'non'}
+- A déjà publié des annonces : ${caller.hasAnnonces ? 'oui' : 'non'}
+- Email vérifié : ${caller.emailVerified ? 'oui' : 'non'}
+- Abonné Pack Mansa : ${caller.isMansa ? 'oui' : 'non'}
+Tu peux l'appeler par son prénom naturellement, mais pas à chaque phrase.`;
+}
+
+// Comme chatWithAssistant, lève une exception en cas d'échec (pas de repli
+// silencieux possible pour une réponse orale) — géré par voice.routes.ts.
+export async function chatWithVoiceAssistant(
+  message: string,
+  history: ChatTurn[] = [],
+  caller: VoiceCallerContext | null = null
+): Promise<string> {
+  if (!ai) throw new Error('GEMINI_NOT_CONFIGURED');
+
+  const contents = [
+    ...history.map(h => ({ role: h.role, parts: [{ text: h.text }] })),
+    { role: 'user', parts: [{ text: message }] },
+  ];
+
+  const response = await ai.models.generateContent({
+    model: MODEL,
+    contents,
+    config: {
+      systemInstruction: buildVoiceSystemPrompt(caller),
+      temperature: 0.5,
+      // Réponses volontairement courtes à l'oral — pas besoin d'un gros budget.
+      maxOutputTokens: 220,
+      // NE PAS ajouter thinkingConfig ici — voir chatWithAssistant() ci-dessus.
     },
   });
 

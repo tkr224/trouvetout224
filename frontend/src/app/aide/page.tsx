@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import BackButton from '@/components/BackButton';
+import VoiceCallButton from '@/components/voice/VoiceCallButton';
 import Link from 'next/link';
 import {
   HelpCircle, ChevronDown, MessageCircle, Mail, ArrowRight, PackagePlus,
@@ -97,6 +98,11 @@ export default function AidePage() {
               </Link>
             </div>
           ))}
+        </div>
+
+        {/* ══ APPEL VOCAL IA ═══════════════════════════════════════════════ */}
+        <div className="mb-14 p-1 rounded-2xl bg-gradient-to-r from-primary-600 via-gold-500 to-guinea-600">
+          <VoiceCallButton variant="card" className="!border-0 bg-white dark:bg-dark-800" />
         </div>
 
         {/* ══ FAQ COURTE ═════════════════════════════════════════════════ */}

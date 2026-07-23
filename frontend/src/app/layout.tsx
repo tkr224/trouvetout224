@@ -18,6 +18,7 @@ const Futur3DOrchestrator = dynamic(() => import('@/components/futur3d/Futur3DOr
 const AiChatWidget        = dynamic(() => import('@/components/AiChatWidget'),                    { ssr: false });
 const OnboardingNudge     = dynamic(() => import('@/components/onboarding/OnboardingNudge'),       { ssr: false });
 const LocaleSync          = dynamic(() => import('@/components/LocaleSync'),                       { ssr: false });
+const VoiceCallScreen     = dynamic(() => import('@/components/voice/VoiceCallScreen'),             { ssr: false });
 
 /* ── Métadonnées globales (SEO + Open Graph + PWA) ───────────────── */
 export const metadata: Metadata = {
@@ -181,6 +182,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <PWARegister />
               <AiChatWidget />
               <OnboardingNudge />
+              <VoiceCallScreen />
             </ThemeProvider>
           </QueryProvider>
         </NextIntlClientProvider>

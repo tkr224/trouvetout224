@@ -7,7 +7,10 @@ import { useTranslations } from 'next-intl';
 import { api } from '@/lib/api';
 import { MapPin, ChevronDown, Bell, MessageCircle, User, Plus, Menu, X, LogOut, Shield, Settings, Store, Users, Wrench, Calendar, Building2, Car } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
+import { useVoiceCallStore } from '@/store/voiceCall.store';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import VoiceCallButton from '@/components/voice/VoiceCallButton';
+import { Phone } from 'lucide-react';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 
@@ -41,6 +44,8 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   const { user, isAuthenticated, _hasHydrated, logout } = useAuthStore();
   const loggedIn = _hasHydrated && isAuthenticated && !!user;
+  const openVoiceCall = useVoiceCallStore(s => s.open);
+  const tVoice = useTranslations('voiceCall');
 
   useEffect(() => {
     if (!loggedIn) { setUnreadNotifs(0); return; }
@@ -155,6 +160,7 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
                 <Shield size={17} />
               </Link>
             )}
+            <VoiceCallButton variant="icon" />
             <LanguageSwitcher />
             <Link
               href="/notifications"
@@ -235,6 +241,12 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             >
               <Settings size={13} /> {t('settings')}
             </Link>
+            <button
+              onClick={() => { setMobileOpen(false); openVoiceCall(); }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-primary-700 hover:bg-primary-50 rounded-xl text-sm font-semibold transition-colors"
+            >
+              <Phone size={13} /> {tVoice('button')}
+            </button>
             {loggedIn && (
               <Link
                 href="/abonnements"
