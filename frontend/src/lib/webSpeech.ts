@@ -113,14 +113,20 @@ export function speechLangFor(locale: string): string {
 // Modifie ces valeurs pour changer le rendu par défaut de la synthèse vocale
 // (l'utilisateur peut aussi régler la vitesse lui-même dans
 // Paramètres > Apparence > Voix de l'assistant, ce qui prime sur cette valeur).
-export const VOICE_DEFAULT_RATE = 0.95;    // 1.0 = vitesse normale du navigateur. Plus lent = plus naturel, moins robotique.
+export const VOICE_DEFAULT_RATE = 1.0;     // 1.0 = vitesse normale du navigateur — un débit trop lent sonne artificiel.
 export const VOICE_DEFAULT_PITCH = 1.0;    // 1.0 = hauteur de voix normale — évite le ton artificiellement aigu.
 export const VOICE_DEFAULT_VOLUME = 1.0;   // Volume maximum.
-export const VOICE_SENTENCE_GAP_MS = 150;  // Micro-pause entre deux phrases pour un débit plus humain.
+// Pause entre deux BLOCS de lecture (pas entre chaque phrase — voir
+// groupSentencesIntoBlocks ci-dessous). Une conversation naturelle n'a
+// quasiment pas de silence entre deux phrases : reste entre 0 et 40ms.
+export const VOICE_BLOCK_GAP_MS = 25;
+// Regroupe les phrases courtes dans un même bloc de lecture au lieu de
+// marquer une pause à chaque point — c'est ça qui évite le débit haché.
+export const VOICE_BLOCK_MAX_CHARS = 200;
 // Chrome met en pause la synthèse vocale toute seule au bout d'environ 15s de
 // lecture continue (bug connu) — on rappelle resume() à intervalle régulier
 // pour contourner ça, sans effet sur les navigateurs non concernés.
-const VOICE_RESUME_WORKAROUND_MS = 5000;
+const VOICE_RESUME_WORKAROUND_MS = 10_000;
 
 // Les voix ne sont pas toujours disponibles immédiatement (chargement async
 // par le navigateur) — cette fonction attend l'évènement 'voiceschanged' si
@@ -227,15 +233,78 @@ export function cleanTextForSpeech(text: string): string {
   return out;
 }
 
-// Découpe un texte en phrases sur . ! ? … — permet de les enchaîner dans une
-// file d'attente au lieu d'envoyer un seul gros bloc à SpeechSynthesis (qui a
-// tendance à couper ou décrocher sur les textes longs).
+// Abréviations courantes après lesquelles un "." ne termine PAS une phrase.
+const DOT_ABBREVIATIONS = ['m', 'mme', 'mlle', 'dr', 'etc', 'ex', 'cf', 'vs', 'n', 'art', 'st'];
+
+function endsWithAbbreviation(before: string): boolean {
+  const match = before.match(/([a-zàâäéèêëïîôöùûüç]+)$/i);
+  return !!match && DOT_ABBREVIATIONS.includes(match[1].toLowerCase());
+}
+
+// Découpe un texte en phrases sur . ! ? … tout en évitant les fausses coupures
+// sur les abréviations (M., Mme, etc.), les nombres décimaux (14.5) et les
+// adresses (trouvetout224.site) — un "." ne termine une phrase que s'il est
+// suivi d'un espace puis d'une majuscule/chiffre, ou de la fin du texte.
 export function splitIntoSentences(text: string): string[] {
   const cleaned = text.trim();
   if (!cleaned) return [];
-  const matches = cleaned.match(/[^.!?…]+[.!?…]+(?=\s|$)|[^.!?…]+$/g);
-  if (!matches) return [cleaned];
-  return matches.map(s => s.trim()).filter(Boolean);
+
+  const sentences: string[] = [];
+  let start = 0;
+
+  for (let i = 0; i < cleaned.length; i++) {
+    const char = cleaned[i];
+    if (char !== '.' && char !== '!' && char !== '?' && char !== '…') continue;
+
+    // Avale toute ponctuation terminale collée (ex: "?!", "...")
+    let end = i;
+    while (end + 1 < cleaned.length && '.!?…'.includes(cleaned[end + 1])) end++;
+
+    let boundary = true;
+    if (char === '.') {
+      const before = cleaned.slice(start, i);
+      const after = cleaned.slice(end + 1);
+      if (endsWithAbbreviation(before)) {
+        boundary = false;
+      } else if (/\d$/.test(before) && /^\d/.test(after)) {
+        boundary = false; // nombre décimal, ex: 14.5
+      } else if (after.length > 0) {
+        const m = after.match(/^(\s*)(.)/);
+        // Pas d'espace après le point (ex: "trouvetout224.site") → pas une fin de phrase.
+        // Espace suivi d'une minuscule → on considère que ça continue la même idée.
+        if (!m || m[1].length === 0 || !/[A-ZÀ-Ý0-9]/.test(m[2])) boundary = false;
+      }
+    }
+
+    if (boundary) {
+      sentences.push(cleaned.slice(start, end + 1).trim());
+      start = end + 1;
+    }
+    i = end;
+  }
+
+  const rest = cleaned.slice(start).trim();
+  if (rest) sentences.push(rest);
+
+  return sentences.filter(Boolean);
+}
+
+// Regroupe des phrases courtes dans un même bloc de lecture (jusqu'à ~200
+// caractères) au lieu de marquer une pause à chaque point — c'est le
+// changement principal qui rend le débit fluide au lieu de haché.
+export function groupSentencesIntoBlocks(sentences: string[], maxChars: number = VOICE_BLOCK_MAX_CHARS): string[] {
+  const blocks: string[] = [];
+  let current = '';
+  for (const s of sentences) {
+    if (current && current.length + 1 + s.length > maxChars) {
+      blocks.push(current);
+      current = s;
+    } else {
+      current = current ? `${current} ${s}` : s;
+    }
+  }
+  if (current) blocks.push(current);
+  return blocks;
 }
 
 export interface SpeakVoiceOptions {
@@ -250,18 +319,21 @@ export interface SpeakQueueHandle {
   cancel: () => void;
 }
 
-// Lit une liste de phrases l'une après l'autre avec une micro-pause entre
-// chacune, plutôt qu'un seul bloc de texte — évite les coupures de
-// SpeechSynthesis sur les réponses longues et rend le débit plus humain.
-// cancel() arrête tout proprement (la phrase en cours ET la suite de la
-// file), pour ne jamais laisser la file continuer après une interruption.
+// Lit une liste de blocs de texte l'un après l'autre avec un gap quasi nul
+// entre chacun (VOICE_BLOCK_GAP_MS), plutôt qu'un seul énorme bloc de texte
+// (qui a tendance à couper ou décrocher sur les réponses longues) ou qu'une
+// pause marquée à chaque phrase (qui rend le débit haché). cancel() arrête
+// tout proprement (le bloc en cours ET la suite de la file), pour ne jamais
+// laisser la file continuer après une interruption ni deux lectures se
+// chevaucher. Si un bloc échoue (onerror), on enchaîne quand même sur le
+// suivant au lieu de tout arrêter en silence.
 export function speakSentenceQueue(
-  sentences: string[],
+  blocks: string[],
   opts: SpeakVoiceOptions,
   onEnd: () => void,
   onError?: () => void
 ): SpeakQueueHandle {
-  if (typeof window === 'undefined' || !window.speechSynthesis || sentences.length === 0) {
+  if (typeof window === 'undefined' || !window.speechSynthesis || blocks.length === 0) {
     onEnd();
     return { cancel: () => {} };
   }
@@ -277,6 +349,7 @@ export function speakSentenceQueue(
   }, VOICE_RESUME_WORKAROUND_MS);
 
   const finish = () => {
+    if (cancelled) return;
     cancelled = true;
     clearInterval(resumeTimer);
     if (gapTimer) clearTimeout(gapTimer);
@@ -284,27 +357,34 @@ export function speakSentenceQueue(
 
   const speakNext = () => {
     if (cancelled) return;
-    if (index >= sentences.length) {
+    if (index >= blocks.length) {
       finish();
       onEnd();
       return;
     }
-    const utterance = new SpeechSynthesisUtterance(sentences[index]);
+    const utterance = new SpeechSynthesisUtterance(blocks[index]);
     utterance.lang = opts.lang;
     if (opts.voice) utterance.voice = opts.voice;
     utterance.rate = opts.rate;
     utterance.pitch = opts.pitch;
     utterance.volume = opts.volume;
     index += 1;
+    const isLast = index >= blocks.length;
 
     utterance.onend = () => {
       if (cancelled) return;
-      gapTimer = setTimeout(speakNext, VOICE_SENTENCE_GAP_MS);
+      if (VOICE_BLOCK_GAP_MS > 0) gapTimer = setTimeout(speakNext, VOICE_BLOCK_GAP_MS);
+      else speakNext();
     };
     utterance.onerror = () => {
       if (cancelled) return;
-      finish();
-      onError?.();
+      // Ne stoppe pas tout en silence : s'il reste des blocs, on les lit quand même.
+      if (isLast) {
+        finish();
+        onError ? onError() : onEnd();
+      } else {
+        speakNext();
+      }
     };
     window.speechSynthesis.speak(utterance);
   };

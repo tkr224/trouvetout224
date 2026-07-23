@@ -4,7 +4,7 @@ import { useLocale } from 'next-intl';
 import { api } from '@/lib/api';
 import {
   getSpeechRecognitionCtor, isVoiceCallSupported, speechLangFor, pickBestVoice,
-  requestMicAccess, collectMicDiagnostics, cleanTextForSpeech, splitIntoSentences, speakSentenceQueue,
+  requestMicAccess, collectMicDiagnostics, cleanTextForSpeech, splitIntoSentences, groupSentencesIntoBlocks, speakSentenceQueue,
   MicErrorKind, MicDiagnostics, SpeakQueueHandle,
   VOICE_DEFAULT_PITCH, VOICE_DEFAULT_VOLUME,
 } from '@/lib/webSpeech';
@@ -60,6 +60,15 @@ export function useVoiceCall() {
   const lowTimeWarnedRef = useRef(false);
   const micRequestInFlightRef = useRef(false);
   const speakQueueRef = useRef<SpeakQueueHandle | null>(null);
+  const speakGenerationRef = useRef(0);
+  // true seulement pendant qu'on VEUT que le micro écoute. Mis à false dès
+  // qu'on arrête la reconnaissance pour traiter une réponse (thinking/speaking),
+  // remis à true seulement quand la lecture vocale COMPLÈTE est terminée. On
+  // utilise une ref (et pas juste state) car les évènements onend/onerror de
+  // SpeechRecognition peuvent se déclencher avant que React n'ait re-rendu
+  // avec le nouvel état — stateRef.current seul n'est pas assez fiable pour
+  // empêcher le micro de se réactiver pendant que l'IA parle encore.
+  const listeningIntentRef = useRef(false);
 
   const clearHeartbeat = useCallback(() => {
     if (heartbeatRef.current) {
@@ -70,6 +79,7 @@ export function useVoiceCall() {
 
   const stopEverything = useCallback(() => {
     activeRef.current = false;
+    listeningIntentRef.current = false;
     clearHeartbeat();
     if (recognitionRef.current) {
       recognitionRef.current.onresult = null;
@@ -113,6 +123,7 @@ export function useVoiceCall() {
 
   const restartListening = useCallback(() => {
     if (!activeRef.current) return;
+    listeningIntentRef.current = true;
     try {
       recognitionRef.current?.start();
       setState('listening');
@@ -125,19 +136,31 @@ export function useVoiceCall() {
   }, []);
 
   // Lit une réponse à voix haute : nettoie le texte (emojis, markdown, URLs),
-  // le découpe en phrases pour un débit fluide et sans coupure, et choisit la
-  // meilleure voix disponible selon la préférence sauvegardée par
-  // l'utilisateur (Paramètres > Apparence > Voix de l'assistant) ou, à
-  // défaut, la meilleure voix détectée automatiquement.
+  // le regroupe en blocs (pas une pause à chaque phrase — voir
+  // groupSentencesIntoBlocks) pour un débit fluide, et choisit la meilleure
+  // voix disponible selon la préférence sauvegardée par l'utilisateur
+  // (Paramètres > Apparence > Voix de l'assistant) ou, à défaut, la meilleure
+  // voix détectée automatiquement.
+  //
+  // listeningIntentRef reste à false pendant TOUTE la durée de la lecture
+  // (y compris l'attente async de pickBestVoice) : le micro ne doit se
+  // réactiver qu'après l'évènement onend du DERNIER bloc, jamais avant.
+  // speakGenerationRef évite que deux lectures se chevauchent si speak() est
+  // appelée une seconde fois avant que la sélection de voix (async) de la
+  // première n'ait résolu.
   const speak = useCallback((text: string, onDone?: () => void) => {
+    const myGeneration = ++speakGenerationRef.current;
+    listeningIntentRef.current = false;
     speakQueueRef.current?.cancel();
+    speakQueueRef.current = null;
     if (typeof window === 'undefined' || !window.speechSynthesis) { onDone?.(); return; }
 
     const lang = speechLangFor(locale);
-    const sentences = splitIntoSentences(cleanTextForSpeech(text));
+    const blocks = groupSentencesIntoBlocks(splitIntoSentences(cleanTextForSpeech(text)));
     const { voiceURI, rate } = useVoicePrefsStore.getState();
 
     const finish = () => {
+      if (speakGenerationRef.current !== myGeneration) return;
       speakQueueRef.current = null;
       if (onDone) onDone();
       else restartListening();
@@ -145,8 +168,10 @@ export function useVoiceCall() {
 
     setState('speaking');
     pickBestVoice(lang, voiceURI).then((voice) => {
+      // Une lecture plus récente a déjà pris le dessus pendant cette attente async.
+      if (speakGenerationRef.current !== myGeneration) return;
       speakQueueRef.current = speakSentenceQueue(
-        sentences,
+        blocks,
         { lang, voice, rate, pitch: VOICE_DEFAULT_PITCH, volume: VOICE_DEFAULT_VOLUME },
         finish,
         finish
@@ -155,6 +180,7 @@ export function useVoiceCall() {
   }, [locale, restartListening]);
 
   const handleFinalTranscript = useCallback(async (text: string) => {
+    listeningIntentRef.current = false;
     try { recognitionRef.current?.stop(); } catch {}
     setInterimTranscript('');
     setTurns(t => [...t, { role: 'user', text }]);
@@ -221,18 +247,24 @@ export function useVoiceCall() {
         return;
       }
       if (event.error === 'no-speech' || event.error === 'aborted') {
-        // Personne n'a parlé pendant le délai d'écoute — on relance simplement.
-        if (activeRef.current && stateRef.current === 'listening') restartListening();
+        // Personne n'a parlé pendant le délai d'écoute — on relance simplement,
+        // mais SEULEMENT si on est censé être en train d'écouter (jamais pendant
+        // que l'IA réfléchit ou parle encore — listeningIntentRef est fiable de
+        // façon synchrone, contrairement au state React qui peut avoir un temps
+        // de retard sur cet évènement navigateur).
+        if (activeRef.current && listeningIntentRef.current) restartListening();
         return;
       }
       // Erreur réseau ou autre : on retente une fois l'écoute, sinon on abandonne proprement.
-      if (activeRef.current) restartListening();
+      if (activeRef.current && listeningIntentRef.current) restartListening();
     };
 
     recognition.onend = () => {
       // Le navigateur arrête parfois l'écoute tout seul après un silence — si on
-      // est censé être encore en train d'écouter, on relance.
-      if (activeRef.current && stateRef.current === 'listening') {
+      // est censé être encore en train d'écouter, on relance. Ne JAMAIS relancer
+      // pendant que l'IA réfléchit ou parle (listeningIntentRef à false le temps
+      // de tout ce cycle).
+      if (activeRef.current && listeningIntentRef.current) {
         restartListening();
       }
     };
@@ -306,8 +338,10 @@ export function useVoiceCall() {
       }
       recognitionRef.current = recognition;
       try {
+        listeningIntentRef.current = true;
         recognition.start();
       } catch {
+        listeningIntentRef.current = false;
         setMicErrorKind('unknown');
         setState('mic-denied');
       }
