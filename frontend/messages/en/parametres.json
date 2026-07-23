@@ -159,6 +159,17 @@
       "title": "Event themes",
       "subtitle": "Festive moods with a decorative banner at the top of the page.",
       "reset": "Back to normal color"
+    },
+    "voix": {
+      "title": "Assistant voice",
+      "subtitle": "Choose the voice used by the assistant during a voice call, and adjust its speaking speed.",
+      "loading": "Looking for voices available on this device...",
+      "noneAvailable": "No compatible voice was found on this device. Voice calls aren't available, but you can keep using the text assistant.",
+      "auto": "Automatic (recommended)",
+      "listen": "Listen to a sample",
+      "rate": "Voice speed",
+      "slower": "Slower",
+      "faster": "Faster"
     }
   },
   "aide": {

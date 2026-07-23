@@ -2,7 +2,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { api } from '@/lib/api';
-import { getSpeechRecognitionCtor, isVoiceCallSupported, speechLangFor, pickVoiceFor, requestMicAccess, collectMicDiagnostics, MicErrorKind, MicDiagnostics } from '@/lib/webSpeech';
+import {
+  getSpeechRecognitionCtor, isVoiceCallSupported, speechLangFor, pickBestVoice,
+  requestMicAccess, collectMicDiagnostics, cleanTextForSpeech, splitIntoSentences, speakSentenceQueue,
+  MicErrorKind, MicDiagnostics, SpeakQueueHandle,
+  VOICE_DEFAULT_PITCH, VOICE_DEFAULT_VOLUME,
+} from '@/lib/webSpeech';
+import { useVoicePrefsStore } from '@/store/voicePrefs.store';
 
 const HEARTBEAT_INTERVAL_MS = 10_000;
 const LOW_TIME_WARNING_SECONDS = 60;
@@ -53,6 +59,7 @@ export function useVoiceCall() {
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lowTimeWarnedRef = useRef(false);
   const micRequestInFlightRef = useRef(false);
+  const speakQueueRef = useRef<SpeakQueueHandle | null>(null);
 
   const clearHeartbeat = useCallback(() => {
     if (heartbeatRef.current) {
@@ -70,6 +77,8 @@ export function useVoiceCall() {
       recognitionRef.current.onerror = null;
       try { recognitionRef.current.abort(); } catch {}
     }
+    speakQueueRef.current?.cancel();
+    speakQueueRef.current = null;
     if (typeof window !== 'undefined') window.speechSynthesis?.cancel();
   }, [clearHeartbeat]);
 
@@ -115,23 +124,34 @@ export function useVoiceCall() {
     }
   }, []);
 
+  // Lit une réponse à voix haute : nettoie le texte (emojis, markdown, URLs),
+  // le découpe en phrases pour un débit fluide et sans coupure, et choisit la
+  // meilleure voix disponible selon la préférence sauvegardée par
+  // l'utilisateur (Paramètres > Apparence > Voix de l'assistant) ou, à
+  // défaut, la meilleure voix détectée automatiquement.
   const speak = useCallback((text: string, onDone?: () => void) => {
+    speakQueueRef.current?.cancel();
     if (typeof window === 'undefined' || !window.speechSynthesis) { onDone?.(); return; }
-    window.speechSynthesis.cancel();
+
     const lang = speechLangFor(locale);
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang;
-    pickVoiceFor(lang).then(v => { if (v) utterance.voice = v; });
-    utterance.onend = () => {
-      if (onDone) { onDone(); return; }
-      restartListening();
+    const sentences = splitIntoSentences(cleanTextForSpeech(text));
+    const { voiceURI, rate } = useVoicePrefsStore.getState();
+
+    const finish = () => {
+      speakQueueRef.current = null;
+      if (onDone) onDone();
+      else restartListening();
     };
-    utterance.onerror = () => {
-      if (onDone) { onDone(); return; }
-      restartListening();
-    };
+
     setState('speaking');
-    window.speechSynthesis.speak(utterance);
+    pickBestVoice(lang, voiceURI).then((voice) => {
+      speakQueueRef.current = speakSentenceQueue(
+        sentences,
+        { lang, voice, rate, pitch: VOICE_DEFAULT_PITCH, volume: VOICE_DEFAULT_VOLUME },
+        finish,
+        finish
+      );
+    });
   }, [locale, restartListening]);
 
   const handleFinalTranscript = useCallback(async (text: string) => {
@@ -323,6 +343,10 @@ export function useVoiceCall() {
   }, [state, micErrorKind, confirmAndListen]);
 
   const interrupt = useCallback(() => {
+    // cancel() sur la file ET sur speechSynthesis : sans ça, la file continuerait
+    // d'enchaîner les phrases suivantes après l'arrêt de la phrase en cours.
+    speakQueueRef.current?.cancel();
+    speakQueueRef.current = null;
     if (typeof window !== 'undefined') window.speechSynthesis?.cancel();
   }, []);
 

@@ -15,6 +15,7 @@ import {
 import { useTheme, COLOR_THEMES, SPECIAL_THEMES } from '@/components/providers/ThemeProvider';
 import { useLanguageSwitch } from '@/hooks/useLanguageSwitch';
 import BackButton from '@/components/BackButton';
+import VoiceSettingsSection from '@/components/settings/VoiceSettingsSection';
 import Link from 'next/link';
 
 const TAB_HREFS = [
@@ -1119,6 +1120,9 @@ export default function ParametresPage() {
                     </div>
                   );
                 })()}
+
+                {/* ── Voix de l'assistant vocal ── */}
+                <VoiceSettingsSection />
 
               </div>
             )}

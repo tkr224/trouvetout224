@@ -159,6 +159,17 @@
       "title": "Thèmes événementiels",
       "subtitle": "Ambiances festives avec banderole décorative en haut de page.",
       "reset": "Revenir à la couleur normale"
+    },
+    "voix": {
+      "title": "Voix de l'assistant",
+      "subtitle": "Choisis la voix utilisée par l'assistant lors d'un appel vocal, et règle sa vitesse de parole.",
+      "loading": "Recherche des voix disponibles sur cet appareil...",
+      "noneAvailable": "Aucune voix compatible n'a été trouvée sur cet appareil. L'appel vocal n'est pas disponible, mais tu peux continuer avec l'assistant par écrit.",
+      "auto": "Automatique (recommandée)",
+      "listen": "Écouter un exemple",
+      "rate": "Vitesse de la voix",
+      "slower": "Plus lent",
+      "faster": "Plus rapide"
     }
   },
   "aide": {
