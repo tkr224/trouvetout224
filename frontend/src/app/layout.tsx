@@ -19,13 +19,6 @@ const AiChatWidget        = dynamic(() => import('@/components/AiChatWidget'),  
 const OnboardingNudge     = dynamic(() => import('@/components/onboarding/OnboardingNudge'),       { ssr: false });
 const LocaleSync          = dynamic(() => import('@/components/LocaleSync'),                       { ssr: false });
 
-// Namespaces réellement utilisés par des Client Components montés globalement
-// (Navbar, Footer, toasts...) — le reste (pages de contenu statique) passe par
-// getTranslations côté serveur et n'a pas besoin d'être envoyé au navigateur.
-// 'faq' et 'aide' sont ici car ces pages utilisent useState (accordéons) et
-// doivent donc rester des Client Components utilisant useTranslations.
-const CLIENT_NAMESPACES = ['common', 'nav', 'footer', 'toasts', 'chatbot', 'onboarding', 'faq', 'aide'] as const;
-
 /* ── Métadonnées globales (SEO + Open Graph + PWA) ───────────────── */
 export const metadata: Metadata = {
   metadataBase: new URL('https://trouvetout224.site'),
@@ -154,10 +147,7 @@ const jsonLd = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
-  const allMessages = await getMessages();
-  const clientMessages = Object.fromEntries(
-    CLIENT_NAMESPACES.map((ns) => [ns, (allMessages as Record<string, unknown>)[ns]])
-  );
+  const messages = await getMessages();
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -176,7 +166,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body>
-        <NextIntlClientProvider locale={locale} messages={clientMessages}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <QueryProvider>
             <ThemeProvider>
               <ThemeAnimations />

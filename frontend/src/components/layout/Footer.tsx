@@ -1,9 +1,11 @@
+'use client';
+
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
+import { useTranslations } from 'next-intl';
 import { MapPin, Heart, Globe, Camera, AtSign, PlayCircle } from 'lucide-react';
 
-export default async function Footer() {
-  const t = await getTranslations('footer');
+export default function Footer() {
+  const t = useTranslations('footer');
   const year = new Date().getFullYear();
   const CATEGORIES = [
     { key: 'electronique', slug: 'electronique' },
