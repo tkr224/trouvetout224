@@ -7,6 +7,28 @@ import {
 } from 'lucide-react';
 import { useVoiceCallStore } from '@/store/voiceCall.store';
 import { useVoiceCall } from '@/hooks/useVoiceCall';
+import type { MicDiagnostics } from '@/lib/webSpeech';
+
+// Panneau diagnostic TEMPORAIRE — à retirer une fois le souci micro confirmé
+// résolu en production. Affiche l'état réel du navigateur pour permettre de
+// signaler précisément ce qui bloque, sans avoir à ouvrir la console.
+function MicDiagnosticsPanel({ diagnostics }: { diagnostics: MicDiagnostics }) {
+  return (
+    <details className="w-full text-left bg-black/20 rounded-xl border border-white/10">
+      <summary className="cursor-pointer px-4 py-2.5 text-xs font-semibold text-white/60 select-none">
+        Diagnostic technique (temporaire)
+      </summary>
+      <div className="px-4 pb-3 pt-1 space-y-1 text-[11px] font-mono text-white/70 leading-relaxed break-all">
+        <p>navigator.permissions: <span className="text-gold-300">{diagnostics.permissionState}</span></p>
+        <p>getUserMedia error.name: <span className="text-gold-300">{diagnostics.errorName || '—'}</span></p>
+        <p>getUserMedia error.message: <span className="text-gold-300">{diagnostics.errorMessage || '—'}</span></p>
+        <p>isSecureContext: <span className="text-gold-300">{String(diagnostics.isSecureContext)}</span> ({diagnostics.protocol})</p>
+        <p>Micros détectés: <span className="text-gold-300">{diagnostics.audioInputCount}</span></p>
+        <p>userAgent: <span className="text-gold-300">{diagnostics.userAgent}</span></p>
+      </div>
+    </details>
+  );
+}
 
 function formatSeconds(total: number): string {
   const s = Math.max(0, Math.round(total));
@@ -40,7 +62,7 @@ export default function VoiceCallScreen() {
   const close = useVoiceCallStore(s => s.close);
   const {
     state, turns, interimTranscript, quota, remainingSeconds,
-    showLowTimeWarning, dismissLowTimeWarning, errorMessage, micErrorKind,
+    showLowTimeWarning, dismissLowTimeWarning, errorMessage, micErrorKind, micDiagnostics,
     requestStart, confirmAndListen, interrupt, hangup, reset,
   } = useVoiceCall();
 
@@ -136,6 +158,7 @@ export default function VoiceCallScreen() {
                   <MessageCircle size={16} /> {t('continueAsText')}
                 </button>
               </div>
+              {micDiagnostics && <MicDiagnosticsPanel diagnostics={micDiagnostics} />}
             </div>
           );
         })()}

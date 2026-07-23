@@ -15,7 +15,48 @@ export function isVoiceCallSupported(): boolean {
 }
 
 export type MicErrorKind = 'denied' | 'no-device' | 'device-busy' | 'insecure-context' | 'unsupported' | 'unknown';
-export type MicAccessResult = { ok: true } | { ok: false; kind: MicErrorKind };
+
+// Instantané de l'état du micro au moment d'une tentative — sert uniquement
+// au panneau diagnostic temporaire affiché à l'écran en cas d'échec, pour
+// permettre de signaler précisément ce qui bloque sans avoir à ouvrir la
+// console du navigateur.
+export interface MicDiagnostics {
+  permissionState: string;
+  errorName: string | null;
+  errorMessage: string | null;
+  isSecureContext: boolean;
+  protocol: string;
+  audioInputCount: number;
+  userAgent: string;
+}
+
+export async function collectMicDiagnostics(err?: any): Promise<MicDiagnostics> {
+  let permissionState = 'unsupported';
+  try {
+    if (navigator.permissions?.query) {
+      const status = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+      permissionState = status.state;
+    }
+  } catch {}
+  let audioInputCount = 0;
+  try {
+    const devices = await navigator.mediaDevices?.enumerateDevices?.();
+    audioInputCount = devices?.filter(d => d.kind === 'audioinput').length ?? 0;
+  } catch {}
+  return {
+    permissionState,
+    errorName: err?.name || null,
+    errorMessage: err?.message || null,
+    isSecureContext: typeof window !== 'undefined' ? window.isSecureContext : false,
+    protocol: typeof window !== 'undefined' ? window.location.protocol : '',
+    audioInputCount,
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+  };
+}
+
+export type MicAccessResult =
+  | { ok: true; diagnostics: MicDiagnostics }
+  | { ok: false; kind: MicErrorKind; diagnostics: MicDiagnostics };
 
 // Demande le micro via getUserMedia AVANT de démarrer SpeechRecognition.
 // Nécessaire car Chrome mémorise en interne, pour toute la durée de l'onglet,
@@ -25,27 +66,39 @@ export type MicAccessResult = { ok: true } | { ok: false; kind: MicErrorKind };
 // page n'est pas rechargée. getUserMedia, lui, relit toujours l'état réel et
 // courant de la permission, ce qui contourne ce cache. On coupe le flux
 // immédiatement après : seul SpeechRecognition doit garder la main sur le micro.
+//
+// IMPORTANT : cette fonction doit être appelée SANS await avant elle depuis le
+// gestionnaire de clic (pas dans un useEffect ni après un setTimeout) — les
+// navigateurs exigent un geste utilisateur direct pour autoriser la demande
+// de permission micro.
 export async function requestMicAccess(): Promise<MicAccessResult> {
-  if (typeof window === 'undefined') return { ok: false, kind: 'unknown' };
-  if (!window.isSecureContext) return { ok: false, kind: 'insecure-context' };
-  if (!navigator.mediaDevices?.getUserMedia) return { ok: false, kind: 'unsupported' };
+  if (typeof window === 'undefined') {
+    return { ok: false, kind: 'unknown', diagnostics: await collectMicDiagnostics() };
+  }
+  if (!window.isSecureContext) {
+    return { ok: false, kind: 'insecure-context', diagnostics: await collectMicDiagnostics() };
+  }
+  if (!navigator.mediaDevices?.getUserMedia) {
+    return { ok: false, kind: 'unsupported', diagnostics: await collectMicDiagnostics() };
+  }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     stream.getTracks().forEach(track => track.stop());
-    return { ok: true };
+    return { ok: true, diagnostics: await collectMicDiagnostics() };
   } catch (err: any) {
+    const diagnostics = await collectMicDiagnostics(err);
     switch (err?.name) {
       case 'NotAllowedError':
       case 'SecurityError':
-        return { ok: false, kind: 'denied' };
+        return { ok: false, kind: 'denied', diagnostics };
       case 'NotFoundError':
       case 'DevicesNotFoundError':
-        return { ok: false, kind: 'no-device' };
+        return { ok: false, kind: 'no-device', diagnostics };
       case 'NotReadableError':
       case 'TrackStartError':
-        return { ok: false, kind: 'device-busy' };
+        return { ok: false, kind: 'device-busy', diagnostics };
       default:
-        return { ok: false, kind: 'unknown' };
+        return { ok: false, kind: 'unknown', diagnostics };
     }
   }
 }

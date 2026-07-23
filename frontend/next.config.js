@@ -12,8 +12,10 @@ const securityHeaders = [
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
   // Contrôle les infos envoyées dans le Referer
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-  // Désactive les fonctionnalités navigateur inutilisées
-  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()' },
+  // Désactive les fonctionnalités navigateur inutilisées — microphone=(self)
+  // autorise le site lui-même à demander le micro (appel vocal IA), tout en
+  // bloquant toute iframe tierce qui tenterait d'y accéder.
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=(), payment=(), usb=()' },
   // Désactive le prefetch DNS non sollicité
   { key: 'X-DNS-Prefetch-Control', value: 'off' },
   // Content Security Policy — ajustée pour Next.js + Cloudinary + Google Fonts + Three.js

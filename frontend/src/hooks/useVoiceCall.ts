@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { api } from '@/lib/api';
-import { getSpeechRecognitionCtor, isVoiceCallSupported, speechLangFor, pickVoiceFor, requestMicAccess, MicErrorKind } from '@/lib/webSpeech';
+import { getSpeechRecognitionCtor, isVoiceCallSupported, speechLangFor, pickVoiceFor, requestMicAccess, collectMicDiagnostics, MicErrorKind, MicDiagnostics } from '@/lib/webSpeech';
 
 const HEARTBEAT_INTERVAL_MS = 10_000;
 const LOW_TIME_WARNING_SECONDS = 60;
@@ -43,6 +43,7 @@ export function useVoiceCall() {
   const [showLowTimeWarning, setShowLowTimeWarning] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [micErrorKind, setMicErrorKind] = useState<MicErrorKind | null>(null);
+  const [micDiagnostics, setMicDiagnostics] = useState<MicDiagnostics | null>(null);
 
   const stateRef = useRef<VoiceCallState>('idle');
   stateRef.current = state;
@@ -51,6 +52,7 @@ export function useVoiceCall() {
   const recognitionRef = useRef<any>(null);
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lowTimeWarnedRef = useRef(false);
+  const micRequestInFlightRef = useRef(false);
 
   const clearHeartbeat = useCallback(() => {
     if (heartbeatRef.current) {
@@ -185,12 +187,14 @@ export function useVoiceCall() {
 
     recognition.onerror = (event: any) => {
       if (event.error === 'not-allowed' || event.error === 'permission-denied' || event.error === 'service-not-allowed') {
+        collectMicDiagnostics({ name: event.error }).then(setMicDiagnostics);
         setMicErrorKind('denied');
         setState('mic-denied');
         endCall('ERROR', 'mic-denied');
         return;
       }
       if (event.error === 'audio-capture') {
+        collectMicDiagnostics({ name: event.error }).then(setMicDiagnostics);
         setMicErrorKind('no-device');
         setState('mic-denied');
         endCall('ERROR', 'mic-denied');
@@ -250,31 +254,45 @@ export function useVoiceCall() {
   // Étape 2 : l'utilisateur a lu l'explication (ou clique "Réessayer" après un
   // refus) — on revérifie l'état RÉEL du micro à CHAQUE tentative via
   // getUserMedia, jamais depuis un état mis en cache côté app.
+  //
+  // Cette fonction est appelée SYNCHRONEMENT depuis onClick (pas de useEffect,
+  // pas de setTimeout avant) : requestMicAccess() est le tout premier await de
+  // la pile d'appel, ce qui préserve le "geste utilisateur" exigé par les
+  // navigateurs pour autoriser la demande de permission micro. Le garde-fou
+  // micRequestInFlightRef évite qu'un double-clic déclenche deux demandes en
+  // parallèle (qui se bloqueraient mutuellement).
   const confirmAndListen = useCallback(async () => {
+    if (micRequestInFlightRef.current) return;
+    micRequestInFlightRef.current = true;
     setState('requesting-mic');
     setMicErrorKind(null);
 
-    const access = await requestMicAccess();
-    if (!access.ok) {
-      setMicErrorKind(access.kind);
-      setState('mic-denied');
-      return;
-    }
-
-    activeRef.current = true;
-    lowTimeWarnedRef.current = false;
-    setTurns([]);
-    const recognition = createRecognition();
-    if (!recognition) {
-      setState('unsupported');
-      return;
-    }
-    recognitionRef.current = recognition;
     try {
-      recognition.start();
-    } catch {
-      setMicErrorKind('unknown');
-      setState('mic-denied');
+      const access = await requestMicAccess();
+      setMicDiagnostics(access.diagnostics);
+      if (!access.ok) {
+        setMicErrorKind(access.kind);
+        setState('mic-denied');
+        return;
+      }
+
+      activeRef.current = true;
+      lowTimeWarnedRef.current = false;
+      setTurns([]);
+      const recognition = createRecognition();
+      if (!recognition) {
+        setState('unsupported');
+        return;
+      }
+      recognitionRef.current = recognition;
+      try {
+        recognition.start();
+      } catch {
+        setMicErrorKind('unknown');
+        setState('mic-denied');
+      }
+    } finally {
+      micRequestInFlightRef.current = false;
     }
   }, [createRecognition]);
 
@@ -320,6 +338,7 @@ export function useVoiceCall() {
     setInterimTranscript('');
     setErrorMessage('');
     setMicErrorKind(null);
+    setMicDiagnostics(null);
     setShowLowTimeWarning(false);
   }, [stopEverything]);
 
@@ -368,6 +387,7 @@ export function useVoiceCall() {
     dismissLowTimeWarning: () => setShowLowTimeWarning(false),
     errorMessage,
     micErrorKind,
+    micDiagnostics,
     requestStart,
     confirmAndListen,
     interrupt,
