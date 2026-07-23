@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import crypto from 'crypto';
 import { prisma } from '../config/database';
 import { chatWithVoiceAssistant, classifyGeminiError, type ChatTurn, type VoiceCallerContext } from '../services/gemini.service';
 import { getQuotaState, consumeQuotaSeconds, type QuotaIdentity } from '../services/voiceQuota.service';
@@ -9,14 +10,37 @@ import {
 } from '../config/voiceCall';
 
 const router = Router();
+const isDev = process.env.NODE_ENV !== 'production';
 
 const DEFAULT_USER_MESSAGE = `Désolé, je rencontre un souci technique. Contacte le support WhatsApp au ${VOICE_CALL_WHATSAPP_NUMBER}.`;
 const USER_MESSAGES: Record<string, string> = {
   QUOTA_EXCEEDED: 'On dirait que je suis très sollicité en ce moment. Réessaie dans quelques minutes.',
 };
 
-function getIdentity(req: any): QuotaIdentity {
-  return req.userId ? { userId: req.userId } : { ip: req.ip };
+const VISITOR_COOKIE_NAME = 'tt224_vid';
+const VISITOR_COOKIE_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000; // 1 an
+
+// Identifie l'appelant pour le quota : un compte connecté est suivi par
+// userId ; un visiteur anonyme est suivi par un identifiant d'appareil stocké
+// dans un cookie longue durée — JAMAIS par IP seule. Plusieurs visiteurs
+// partagent souvent la même IP (wifi partagé, réseau mobile en Guinée), ce
+// qui bloquerait des innocents si on comptait par IP. Ce cookie ne sert qu'à
+// ce comptage, il ne contient aucune donnée d'identité ni d'authentification.
+function getIdentity(req: any, res: any): QuotaIdentity {
+  if (req.userId) return { userId: req.userId };
+
+  let visitorId = req.cookies?.[VISITOR_COOKIE_NAME];
+  if (typeof visitorId !== 'string' || visitorId.length < 10) {
+    visitorId = crypto.randomUUID();
+    res.cookie(VISITOR_COOKIE_NAME, visitorId, {
+      httpOnly: true,
+      secure: !isDev,
+      sameSite: isDev ? 'lax' : 'none',
+      maxAge: VISITOR_COOKIE_MAX_AGE_MS,
+      path: '/',
+    });
+  }
+  return { visitorId };
 }
 
 function serializeQuota(state: Awaited<ReturnType<typeof getQuotaState>>) {
@@ -58,7 +82,7 @@ async function buildCallerContext(userId?: string): Promise<VoiceCallerContext |
 // ── Démarrer un appel ────────────────────────────────────────────────────
 router.post('/start', async (req: any, res) => {
   try {
-    const identity = getIdentity(req);
+    const identity = getIdentity(req, res);
     const quota = await getQuotaState(identity);
 
     if (quota.remainingSeconds <= 0) {
@@ -87,7 +111,7 @@ router.post('/heartbeat', async (req: any, res) => {
       return res.status(404).json({ error: 'Session introuvable ou déjà terminée.' });
     }
 
-    const identity = getIdentity(req);
+    const identity = getIdentity(req, res);
     const now = new Date();
     const elapsedSeconds = Math.min(
       VOICE_CALL_MAX_HEARTBEAT_GAP_SECONDS,
@@ -135,7 +159,7 @@ router.post('/chat', async (req: any, res) => {
     // Vérification défensive du quota AVANT d'appeler Gemini (le heartbeat est
     // la source d'autorité du décompte, mais on ne veut pas dépenser un appel
     // Gemini si le quota est déjà à zéro).
-    const identity = getIdentity(req);
+    const identity = getIdentity(req, res);
     const quota = await getQuotaState(identity);
     if (quota.remainingSeconds <= 0) {
       return res.status(403).json({ error: USER_MESSAGES.QUOTA_EXCEEDED, code: 'VOICE_QUOTA_EXCEEDED', quota: serializeQuota(quota) });
@@ -181,7 +205,7 @@ router.post('/end', async (req: any, res) => {
     if (!session) return res.json({ ok: true });
     if (session.endedAt) return res.json({ ok: true });
 
-    const identity = getIdentity(req);
+    const identity = getIdentity(req, res);
     const now = new Date();
     const elapsedSeconds = Math.min(
       VOICE_CALL_MAX_HEARTBEAT_GAP_SECONDS,

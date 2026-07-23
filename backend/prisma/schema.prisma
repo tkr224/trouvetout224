@@ -842,7 +842,10 @@ model VoiceQuota {
   id          String   @id @default(cuid())
   userId      String?  @unique
   user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ip          String?  @unique
+  // Identifiant d'appareil (cookie longue durée), PAS l'IP — plusieurs
+  // visiteurs anonymes partagent souvent la même IP en Guinée (wifi partagé,
+  // réseau mobile), ce qui bloquerait des innocents si on comptait par IP.
+  visitorId   String?  @unique
   secondsUsed Int      @default(0)
   usageDate   String
   updatedAt   DateTime @updatedAt

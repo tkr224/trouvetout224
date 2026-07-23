@@ -4,7 +4,7 @@ import { useLocale } from 'next-intl';
 import { api } from '@/lib/api';
 import {
   getSpeechRecognitionCtor, isVoiceCallSupported, speechLangFor, pickBestVoice,
-  requestMicAccess, collectMicDiagnostics, cleanTextForSpeech, splitIntoSentences, groupSentencesIntoBlocks, speakSentenceQueue,
+  requestMicAccess, collectMicDiagnostics, cleanTextForSpeech, splitIntoSentences, groupSentencesIntoBlocks, speakSentenceQueue, voiceLog,
   MicErrorKind, MicDiagnostics, SpeakQueueHandle,
   VOICE_DEFAULT_PITCH, VOICE_DEFAULT_VOLUME,
 } from '@/lib/webSpeech';
@@ -69,6 +69,12 @@ export function useVoiceCall() {
   // avec le nouvel état — stateRef.current seul n'est pas assez fiable pour
   // empêcher le micro de se réactiver pendant que l'IA parle encore.
   const listeningIntentRef = useRef(false);
+  // Empêche un évènement onresult PARASITE (le navigateur peut renvoyer un
+  // second résultat "final" juste après recognition.stop(), notamment si
+  // l'utilisateur parlait encore) de déclencher un DEUXIÈME appel Gemini +
+  // une deuxième lecture vocale qui annulerait la première en plein milieu.
+  // Remis à false uniquement quand une nouvelle session d'écoute démarre.
+  const finalHandledRef = useRef(false);
 
   const clearHeartbeat = useCallback(() => {
     if (heartbeatRef.current) {
@@ -87,7 +93,7 @@ export function useVoiceCall() {
       recognitionRef.current.onerror = null;
       try { recognitionRef.current.abort(); } catch {}
     }
-    speakQueueRef.current?.cancel();
+    speakQueueRef.current?.cancel('stopEverything (raccroché / reset / démontage)');
     speakQueueRef.current = null;
     if (typeof window !== 'undefined') window.speechSynthesis?.cancel();
   }, [clearHeartbeat]);
@@ -124,6 +130,7 @@ export function useVoiceCall() {
   const restartListening = useCallback(() => {
     if (!activeRef.current) return;
     listeningIntentRef.current = true;
+    finalHandledRef.current = false;
     try {
       recognitionRef.current?.start();
       setState('listening');
@@ -150,8 +157,9 @@ export function useVoiceCall() {
   // première n'ait résolu.
   const speak = useCallback((text: string, onDone?: () => void) => {
     const myGeneration = ++speakGenerationRef.current;
+    voiceLog(`speak() appelée (génération #${myGeneration}) — ${text.length} caractères`);
     listeningIntentRef.current = false;
-    speakQueueRef.current?.cancel();
+    speakQueueRef.current?.cancel(`nouvel appel à speak() (génération #${myGeneration}) prend le dessus`);
     speakQueueRef.current = null;
     if (typeof window === 'undefined' || !window.speechSynthesis) { onDone?.(); return; }
 
@@ -160,7 +168,10 @@ export function useVoiceCall() {
     const { voiceURI, rate } = useVoicePrefsStore.getState();
 
     const finish = () => {
-      if (speakGenerationRef.current !== myGeneration) return;
+      if (speakGenerationRef.current !== myGeneration) {
+        voiceLog(`finish() ignoré (génération #${myGeneration} périmée, actuelle #${speakGenerationRef.current})`);
+        return;
+      }
       speakQueueRef.current = null;
       if (onDone) onDone();
       else restartListening();
@@ -169,7 +180,11 @@ export function useVoiceCall() {
     setState('speaking');
     pickBestVoice(lang, voiceURI).then((voice) => {
       // Une lecture plus récente a déjà pris le dessus pendant cette attente async.
-      if (speakGenerationRef.current !== myGeneration) return;
+      if (speakGenerationRef.current !== myGeneration) {
+        voiceLog(`génération #${myGeneration} abandonnée avant démarrage (périmée par #${speakGenerationRef.current})`);
+        return;
+      }
+      voiceLog(`voix choisie pour la génération #${myGeneration} :`, voice?.name || '(voix par défaut du navigateur)');
       speakQueueRef.current = speakSentenceQueue(
         blocks,
         { lang, voice, rate, pitch: VOICE_DEFAULT_PITCH, volume: VOICE_DEFAULT_VOLUME },
@@ -180,6 +195,7 @@ export function useVoiceCall() {
   }, [locale, restartListening]);
 
   const handleFinalTranscript = useCallback(async (text: string) => {
+    voiceLog('transcription finale reçue, micro coupé pour traiter le tour :', text);
     listeningIntentRef.current = false;
     try { recognitionRef.current?.stop(); } catch {}
     setInterimTranscript('');
@@ -189,6 +205,7 @@ export function useVoiceCall() {
     try {
       const res = await api.post('/voice/chat', { sessionId: sessionIdRef.current, message: text });
       const reply: string = res.data.reply;
+      voiceLog('réponse Gemini reçue, lecture à voix haute :', reply);
       setTurns(t => [...t, { role: 'model', text: reply }]);
       speak(reply);
     } catch (e: any) {
@@ -228,7 +245,12 @@ export function useVoiceCall() {
         else interim += transcript;
       }
       setInterimTranscript(interim);
-      if (final.trim()) handleFinalTranscript(final.trim());
+      if (final.trim() && !finalHandledRef.current) {
+        finalHandledRef.current = true;
+        handleFinalTranscript(final.trim());
+      } else if (final.trim()) {
+        voiceLog('résultat final PARASITE ignoré (un tour est déjà en cours de traitement) :', final.trim());
+      }
     };
 
     recognition.onerror = (event: any) => {
@@ -339,6 +361,7 @@ export function useVoiceCall() {
       recognitionRef.current = recognition;
       try {
         listeningIntentRef.current = true;
+        finalHandledRef.current = false;
         recognition.start();
       } catch {
         listeningIntentRef.current = false;
@@ -379,7 +402,7 @@ export function useVoiceCall() {
   const interrupt = useCallback(() => {
     // cancel() sur la file ET sur speechSynthesis : sans ça, la file continuerait
     // d'enchaîner les phrases suivantes après l'arrêt de la phrase en cours.
-    speakQueueRef.current?.cancel();
+    speakQueueRef.current?.cancel('bouton "couper la voix" cliqué par l\'utilisateur');
     speakQueueRef.current = null;
     if (typeof window !== 'undefined') window.speechSynthesis?.cancel();
   }, []);

@@ -113,13 +113,13 @@ export function speechLangFor(locale: string): string {
 // Modifie ces valeurs pour changer le rendu par défaut de la synthèse vocale
 // (l'utilisateur peut aussi régler la vitesse lui-même dans
 // Paramètres > Apparence > Voix de l'assistant, ce qui prime sur cette valeur).
-export const VOICE_DEFAULT_RATE = 1.0;     // 1.0 = vitesse normale du navigateur — un débit trop lent sonne artificiel.
-export const VOICE_DEFAULT_PITCH = 1.0;    // 1.0 = hauteur de voix normale — évite le ton artificiellement aigu.
+export const VOICE_DEFAULT_RATE = 1.05;    // 1.0 = vitesse normale. Légèrement > 1 = débit plus enjoué/dynamique, sans forcer.
+export const VOICE_DEFAULT_PITCH = 1.05;   // 1.0 = hauteur normale. Légèrement > 1 = sonne un peu plus jeune, sans devenir aigu/artificiel.
 export const VOICE_DEFAULT_VOLUME = 1.0;   // Volume maximum.
 // Pause entre deux BLOCS de lecture (pas entre chaque phrase — voir
 // groupSentencesIntoBlocks ci-dessous). Une conversation naturelle n'a
-// quasiment pas de silence entre deux phrases : reste entre 0 et 40ms.
-export const VOICE_BLOCK_GAP_MS = 25;
+// quasiment pas de silence entre deux phrases : reste entre 0 et 30ms.
+export const VOICE_BLOCK_GAP_MS = 20;
 // Regroupe les phrases courtes dans un même bloc de lecture au lieu de
 // marquer une pause à chaque point — c'est ça qui évite le débit haché.
 export const VOICE_BLOCK_MAX_CHARS = 200;
@@ -127,6 +127,15 @@ export const VOICE_BLOCK_MAX_CHARS = 200;
 // lecture continue (bug connu) — on rappelle resume() à intervalle régulier
 // pour contourner ça, sans effet sur les navigateurs non concernés.
 const VOICE_RESUME_WORKAROUND_MS = 10_000;
+
+// Logs de diagnostic temporaires pour tracer précisément ce qui coupe la
+// voix (démarrage/fin de chaque bloc, erreurs, et CHAQUE appel à
+// speechSynthesis.cancel() avec sa raison). Repasser à false une fois le
+// souci confirmé résolu en production.
+const VOICE_DEBUG = true;
+export function voiceLog(...args: unknown[]) {
+  if (VOICE_DEBUG && typeof console !== 'undefined') console.log('[voix]', ...args);
+}
 
 // Les voix ne sont pas toujours disponibles immédiatement (chargement async
 // par le navigateur) — cette fonction attend l'évènement 'voiceschanged' si
@@ -147,16 +156,25 @@ export function getVoices(): Promise<SpeechSynthesisVoice[]> {
 }
 
 // Voix connues pour sonner nettement moins robotique que la synthèse "compact"
-// par défaut. Ordre de priorité demandé : Neural/Natural (Edge/Windows) >
-// Google > voix locales de qualité connues (Apple) > n'importe quelle voix
-// de la langue en dernier recours.
+// par défaut, ET plus jeune/chaleureuse qu'une voix de standard téléphonique.
+// Ordre de priorité : voix féminine française moderne de type Neural/Natural
+// (ex: "Microsoft Denise Natural") > Neural/Natural générique > Google >
+// voix locales de qualité connues (Apple) > n'importe quelle voix de la
+// langue en dernier recours.
 const NEURAL_HINTS = ['neural', 'natural'];
 const GOOGLE_HINT = 'google';
 const QUALITY_LOCAL_NAMES = ['amélie', 'amelie', 'thomas', 'aurélie', 'aurelie', 'audrey'];
+// Prénoms de voix françaises féminines connues, pour repérer les voix
+// modernes qui sonnent le plus jeune/dynamique (Web Speech API n'expose pas
+// de champ "genre" — seule la détection par nom est possible).
+const YOUNG_FEMALE_HINTS = ['denise', 'julie', 'joséphine', 'josephine', 'charlotte', 'céline', 'celine', 'léa', 'lea', 'hortense', 'éloise', 'eloise', 'brigitte'];
 
 function voiceQualityScore(v: SpeechSynthesisVoice): number {
   const name = v.name.toLowerCase();
-  if (NEURAL_HINTS.some(h => name.includes(h))) return 4;
+  const isNeural = NEURAL_HINTS.some(h => name.includes(h));
+  const isYoungFemale = YOUNG_FEMALE_HINTS.some(h => name.includes(h));
+  if (isNeural && isYoungFemale) return 5;
+  if (isNeural) return 4;
   if (name.includes(GOOGLE_HINT)) return 3;
   if (QUALITY_LOCAL_NAMES.some(n => name.includes(n))) return 2;
   return 1;
@@ -316,7 +334,7 @@ export interface SpeakVoiceOptions {
 }
 
 export interface SpeakQueueHandle {
-  cancel: () => void;
+  cancel: (reason?: string) => void;
 }
 
 // Lit une liste de blocs de texte l'un après l'autre avec un gap quasi nul
@@ -338,14 +356,37 @@ export function speakSentenceQueue(
     return { cancel: () => {} };
   }
 
+  voiceLog(`nouvelle file : ${blocks.length} bloc(s), ${blocks.join(' ').length} caractères au total`);
+  voiceLog("cancel() → purge d'un éventuel reliquat avant de démarrer cette nouvelle file");
   window.speechSynthesis.cancel();
+
+  // Toutes les utterances sont construites À L'AVANCE (le bloc suivant est
+  // donc déjà "prêt" pendant que le précédent se termine — aucun temps de
+  // construction à l'enchaînement), ET conservées dans ce tableau pendant
+  // toute la durée de la file : sur certaines versions de Chrome, une
+  // SpeechSynthesisUtterance sans référence JS externe peut être récupérée
+  // par le garbage collector EN PLEINE LECTURE, ce qui coupe la voix net
+  // sans la moindre erreur — bug classique et bien documenté.
+  const utterances = blocks.map((text) => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = opts.lang;
+    if (opts.voice) u.voice = opts.voice;
+    u.rate = opts.rate;
+    u.pitch = opts.pitch;
+    u.volume = opts.volume;
+    return u;
+  });
+
   let index = 0;
   let cancelled = false;
   let gapTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Contournement du bug Chrome qui met la synthèse en pause après ~15s.
   const resumeTimer = setInterval(() => {
-    if (!cancelled) window.speechSynthesis.resume();
+    if (!cancelled) {
+      voiceLog('resume() périodique (contournement de la pause auto de Chrome ~15s)');
+      window.speechSynthesis.resume();
+    }
   }, VOICE_RESUME_WORKAROUND_MS);
 
   const finish = () => {
@@ -357,26 +398,28 @@ export function speakSentenceQueue(
 
   const speakNext = () => {
     if (cancelled) return;
-    if (index >= blocks.length) {
+    if (index >= utterances.length) {
+      voiceLog('file terminée — tous les blocs ont été lus');
       finish();
       onEnd();
       return;
     }
-    const utterance = new SpeechSynthesisUtterance(blocks[index]);
-    utterance.lang = opts.lang;
-    if (opts.voice) utterance.voice = opts.voice;
-    utterance.rate = opts.rate;
-    utterance.pitch = opts.pitch;
-    utterance.volume = opts.volume;
+    const blockIndex = index;
+    const utterance = utterances[blockIndex];
     index += 1;
-    const isLast = index >= blocks.length;
+    const isLast = index >= utterances.length;
 
+    utterance.onstart = () => {
+      voiceLog(`bloc ${blockIndex + 1}/${utterances.length} démarré (${blocks[blockIndex].length} car.)`);
+    };
     utterance.onend = () => {
+      voiceLog(`bloc ${blockIndex + 1}/${utterances.length} terminé`);
       if (cancelled) return;
       if (VOICE_BLOCK_GAP_MS > 0) gapTimer = setTimeout(speakNext, VOICE_BLOCK_GAP_MS);
       else speakNext();
     };
-    utterance.onerror = () => {
+    utterance.onerror = (ev: any) => {
+      voiceLog(`ERREUR sur le bloc ${blockIndex + 1}/${utterances.length} : ${ev?.error || 'inconnue'}`);
       if (cancelled) return;
       // Ne stoppe pas tout en silence : s'il reste des blocs, on les lit quand même.
       if (isLast) {
@@ -392,7 +435,8 @@ export function speakSentenceQueue(
   speakNext();
 
   return {
-    cancel: () => {
+    cancel: (reason?: string) => {
+      voiceLog(`cancel() appelé — raison : ${reason || 'non précisée'}`);
       finish();
       window.speechSynthesis.cancel();
     },

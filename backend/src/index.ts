@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
 import { rateLimit } from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
 
 import { prisma } from './config/database';
 import { setupSocketIO } from './config/socket';
@@ -117,6 +118,10 @@ app.use(
 // Limite la taille des corps de requête
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
+// Nécessaire pour lire le cookie d'identification appareil des visiteurs
+// anonymes de l'appel vocal (voir voice.routes.ts) — jamais utilisé pour de
+// l'authentification, aucun contenu sensible.
+app.use(cookieParser());
 
 // ── Rate Limiting global ────────────────────────────────────────────────
 const globalLimiter = rateLimit({

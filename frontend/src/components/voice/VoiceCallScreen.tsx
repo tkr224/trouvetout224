@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   Phone, PhoneOff, Mic, MicOff, X, VolumeX, AlertTriangle,
-  MessageCircle, Sparkles, Loader2, ShieldCheck,
+  MessageCircle, Loader2, ShieldCheck,
 } from 'lucide-react';
 import { useVoiceCallStore } from '@/store/voiceCall.store';
 import { useVoiceCall } from '@/hooks/useVoiceCall';
@@ -294,20 +294,6 @@ export default function VoiceCallScreen() {
                 <MessageCircle size={16} /> {t('talkOnWhatsapp')}
               </a>
             </div>
-
-            {quota?.tier !== 'MANSA' && (
-              <a
-                href="/premium"
-                onClick={closeModal}
-                className="w-full mt-3 p-4 rounded-xl border border-gold-400/40 bg-gold-500/10 text-left flex items-center gap-3 hover:bg-gold-500/15 transition-colors"
-              >
-                <Sparkles size={20} className="text-gold-300 shrink-0" />
-                <span>
-                  <span className="block font-semibold text-gold-200 text-sm">{t('mansaUpsellTitle')}</span>
-                  <span className="block text-white/60 text-xs">{t('mansaUpsellDesc')}</span>
-                </span>
-              </a>
-            )}
 
             <button onClick={closeModal} className="mt-4 text-white/50 text-sm hover:text-white/80 transition-colors">
               {t('close')}

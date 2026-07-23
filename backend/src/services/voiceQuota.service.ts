@@ -6,10 +6,12 @@ import {
 } from '../config/voiceCall';
 
 // Identifie l'appelant pour le quota : un utilisateur connecté est suivi par
-// userId, un visiteur anonyme par IP (jamais les deux à la fois).
+// userId, un visiteur anonyme par un identifiant d'appareil (cookie) — jamais
+// par IP seule, ni les deux à la fois. Voir voice.routes.ts pour la génération
+// du visitorId.
 export interface QuotaIdentity {
   userId?: string;
-  ip?: string;
+  visitorId?: string;
 }
 
 export interface QuotaState {
@@ -44,14 +46,19 @@ export async function resolveTier(userId?: string): Promise<VoiceCallTier> {
 }
 
 async function getOrResetQuota(identity: QuotaIdentity) {
-  const where = identity.userId ? { userId: identity.userId } : { ip: identity.ip };
+  const where = identity.userId ? { userId: identity.userId } : { visitorId: identity.visitorId };
   const today = todayUTC();
 
   const existing = await prisma.voiceQuota.findFirst({ where });
 
   if (!existing) {
     return prisma.voiceQuota.create({
-      data: { userId: identity.userId, ip: identity.userId ? undefined : identity.ip, secondsUsed: 0, usageDate: today },
+      data: {
+        userId: identity.userId,
+        visitorId: identity.userId ? undefined : identity.visitorId,
+        secondsUsed: 0,
+        usageDate: today,
+      },
     });
   }
 
