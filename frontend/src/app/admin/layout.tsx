@@ -5,10 +5,11 @@ import Link from 'next/link';
 import {
   LayoutDashboard, Users, ShoppingBag, AlertTriangle,
   Tag, LogOut, Home, Shield, ClipboardCheck, Megaphone, BarChart2, Palette, Trash2,
-  Briefcase, Utensils, Globe, Bot,
+  Briefcase, Utensils, Globe, Bot, ChevronLeft,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
+import { useSmartBack } from '@/hooks/useSmartBack';
 
 const NAV = [
   { href: '/admin', label: 'Tableau de bord', icon: LayoutDashboard, exact: true },
@@ -34,6 +35,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [pendingCount, setPendingCount] = useState(0);
   const [iaCount, setIaCount] = useState(0);
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const isRoot = pathname === '/admin';
+  const goBack = useSmartBack(isRoot ? '/' : '/admin');
+  // Trie par longueur de href décroissante pour que les routes les plus
+  // spécifiques (ex: /admin/signalements-ia) soient testées avant leurs
+  // préfixes plus courts (ex: /admin/signalements) qui les matcheraient sinon.
+  const currentNavLabel = [...NAV]
+    .sort((a, b) => b.href.length - a.href.length)
+    .find(n => (n.exact ? pathname === n.href : pathname.startsWith(n.href)))?.label;
 
   // Rafraîchit le profil depuis le serveur pour éviter les redirections
   // causées par un rôle obsolète dans le cache localStorage.
@@ -164,6 +173,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* ── Contenu principal ────────────────────────────────────── */}
       <main className="ml-64 flex-1 min-h-screen">
+        <div className="px-6 pt-4">
+          <button
+            onClick={goBack}
+            aria-label={currentNavLabel ? `Retour : ${currentNavLabel}` : 'Retour'}
+            className="inline-flex items-center gap-1.5 -ml-2 pl-2 pr-3 min-h-[44px] min-w-[44px] rounded-xl text-dark-500 hover:bg-dark-100 active:scale-95 transition-all"
+          >
+            <ChevronLeft size={20} className="shrink-0" />
+            {currentNavLabel && <span className="font-semibold text-sm truncate">{currentNavLabel}</span>}
+          </button>
+        </div>
         {children}
       </main>
     </div>

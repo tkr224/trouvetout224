@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import CulturalPattern from '@/components/CulturalPattern';
 import PageViewTracker from '@/components/PageViewTracker';
+import BackButton from '@/components/BackButton';
 import { api } from '@/lib/api';
 import {
   Search, Store, MapPin, ShieldCheck, Users, Package,
@@ -94,6 +95,7 @@ export default function BoutiquesPage() {
 
       <div className="relative isolate overflow-hidden max-w-6xl mx-auto px-4 py-8">
         <CulturalPattern />
+        <BackButton label={t('title')} fallbackHref="/" className="mb-3" />
 
         {/* En-tête */}
         <div className="flex items-center gap-3 mb-6">

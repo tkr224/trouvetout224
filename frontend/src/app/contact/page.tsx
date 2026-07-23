@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import BackButton from '@/components/BackButton';
 import toast from 'react-hot-toast';
 import { Mail, Phone, MapPin, MessageCircle, Send } from 'lucide-react';
 
@@ -41,6 +42,9 @@ export default function ContactPage() {
           }}
         />
         <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+        <div className="relative max-w-3xl mx-auto px-4" style={{ zIndex: 2 }}>
+          <BackButton label={t('heroTitle')} fallbackHref="/" className="text-white/80 hover:bg-white/10 hover:text-white mb-4" />
+        </div>
         <div className="relative max-w-3xl mx-auto px-4 text-center" style={{ zIndex: 2 }}>
           <div className="w-14 h-14 rounded-2xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center mx-auto mb-5">
             <Mail size={26} className="text-gold-300" />

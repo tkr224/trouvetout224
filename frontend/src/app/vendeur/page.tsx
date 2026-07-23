@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
+import BackButton from '@/components/BackButton';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import {
@@ -136,6 +137,7 @@ export default function VendeurDashboard() {
     <div className="min-h-screen bg-dark-50">
       <Navbar />
       <div className="max-w-6xl mx-auto px-4 py-8">
+        <BackButton label={t('pageTitle')} fallbackHref="/profil" className="mb-3" />
 
         {/* En-tête */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">

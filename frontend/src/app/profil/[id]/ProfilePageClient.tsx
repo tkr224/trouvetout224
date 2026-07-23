@@ -12,6 +12,7 @@ import { fr } from 'date-fns/locale';
 import { useAuthStore } from '@/store/auth.store';
 import toast from 'react-hot-toast';
 import SubscribeButton from '@/components/SubscribeButton';
+import BackButton from '@/components/BackButton';
 
 const SHOP_COLORS = [
   { key: 'vert',   gradient: 'linear-gradient(135deg,#16a34a,#14532d)', dot: '#16a34a' },
@@ -120,6 +121,7 @@ export default function PublicProfilPage() {
     <div className="min-h-screen bg-dark-50">
       <Navbar/>
       <div className="max-w-5xl mx-auto px-4 py-8">
+        <BackButton label={hasShop ? profile.shopName : profile.firstName} fallbackHref="/boutiques" className="mb-3" />
         <div className="card overflow-hidden mb-6 animate-fade-in-up">
 
           {/* ── Bannière ── */}

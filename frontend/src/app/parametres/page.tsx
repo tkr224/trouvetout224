@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useTheme, COLOR_THEMES, SPECIAL_THEMES } from '@/components/providers/ThemeProvider';
 import { useLanguageSwitch } from '@/hooks/useLanguageSwitch';
+import BackButton from '@/components/BackButton';
 import Link from 'next/link';
 
 const TAB_HREFS = [
@@ -376,6 +377,7 @@ export default function ParametresPage() {
       >
         <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
         <div className="relative max-w-5xl mx-auto px-4" style={{ zIndex: 2 }}>
+          <BackButton label={t('header.title')} fallbackHref="/profil" className="text-white/80 hover:bg-white/10 hover:text-white mb-3" />
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-2xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center shrink-0">
               <Settings size={20} className="text-gold-300" />
@@ -1155,14 +1157,14 @@ export default function ParametresPage() {
                 <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">Aide & Support</h2>
                 <div className="space-y-3">
                   {HELP_ITEMS.map(({ Icon, text, href }) => (
-                    <a key={href} href={href}
+                    <Link key={href} href={href}
                       className="flex items-center gap-3 p-4 rounded-xl border border-dark-200 hover:border-primary-400 hover:bg-primary-50 transition-colors group">
                       <div className="w-9 h-9 bg-dark-50 group-hover:bg-primary-100 rounded-xl flex items-center justify-center transition-colors shrink-0">
                         <Icon size={16} className="text-dark-500 group-hover:text-primary-700 transition-colors" />
                       </div>
                       <span className="font-medium text-dark-700 flex-1">{text}</span>
                       <ArrowRight size={15} className="text-dark-300 group-hover:text-primary-700 transition-colors shrink-0" />
-                    </a>
+                    </Link>
                   ))}
                 </div>
               </div>

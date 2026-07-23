@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { api } from '@/lib/api';
 import { AnnonceCard } from '@/components/annonces/AnnonceGrid';
 import ProfileChecklist from '@/components/onboarding/ProfileChecklist';
+import BackButton from '@/components/BackButton';
 import Link from 'next/link';
 import {
   Settings, Plus, Star, Eye, ShoppingBag, LogOut, Share2, Camera, Loader2,
@@ -107,6 +108,7 @@ export default function ProfilPage() {
     <div className="min-h-screen bg-dark-50">
       <Navbar />
       <div className="max-w-5xl mx-auto px-4 py-8">
+        <BackButton fallbackHref="/" className="mb-3" />
 
         {/* Carte profil */}
         <div className="bg-white rounded-2xl border border-dark-100 shadow-card overflow-hidden mb-6">

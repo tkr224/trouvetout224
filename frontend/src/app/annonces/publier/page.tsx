@@ -13,6 +13,7 @@ import {
   Waves, Dumbbell, Coffee, UtensilsCrossed, FileCheck, Lightbulb,
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
+import BackButton from '@/components/BackButton';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 
@@ -360,6 +361,11 @@ function PublierAnnonceContent() {
       {/* Header band */}
       <div className="bg-gradient-to-r from-primary-800 to-primary-600 text-white">
         <div className="max-w-2xl mx-auto px-4 py-6">
+          <BackButton
+            label={editId ? t('pageTitleEdit') : t('pageTitle')}
+            fallbackHref="/annonces/lister"
+            className="text-white/80 hover:bg-white/10 hover:text-white mb-3"
+          />
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center">
               <FileText size={20} />

@@ -21,6 +21,7 @@ import toast from 'react-hot-toast';
 import ReviewSection from '@/components/ReviewSection';
 import { AnnonceCard } from '@/components/annonces/AnnonceGrid';
 import { useRecentlyViewed, type RecentAnnonce } from '@/hooks/useRecentlyViewed';
+import BackButton from '@/components/BackButton';
 
 const REPORT_REASON_KEYS = [
   { value: 'SCAM',                  key: 'scam',                  Icon: AlertTriangle },
@@ -320,6 +321,7 @@ export default function AnnonceDetailPage() {
       <Navbar />
 
       <div className="max-w-5xl mx-auto px-4 py-6">
+        <BackButton label={annonce.title} fallbackHref="/annonces/lister" className="mb-2 -mt-1" />
 
         {/* Fil d'Ariane */}
         <nav className="flex items-center gap-1.5 text-sm text-dark-400 mb-5">

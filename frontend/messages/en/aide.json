@@ -25,5 +25,47 @@
     "title": "Need help? We respond fast.",
     "subtitle": "Our team is available on WhatsApp and by email to support you.",
     "whatsapp": "WhatsApp"
+  },
+  "publierArticle": {
+    "breadcrumb": "How to post",
+    "heroTitle": "How do I post a listing?",
+    "heroSubtitle": "The full step-by-step guide — free and unlimited",
+    "steps": [
+      { "title": "Log in or create an account", "desc": "Free signup in a few seconds: name, email or phone number, password. You can also use your Google account." },
+      { "title": "Click \"Post a listing\"", "desc": "The gold button is visible at the top of every page, on desktop and mobile." },
+      { "title": "Choose a category", "desc": "Phones, vehicles, real estate, jobs, services... Pick the one that best fits your listing." },
+      { "title": "Fill in the details", "desc": "Title, description, price (or \"negotiable\"), quantity if needed. A good title = brand + model + condition — it attracts more buyers." },
+      { "title": "Add your photos", "desc": "Up to 10 photos. Sharp, well-lit photos noticeably increase your chances of selling fast." },
+      { "title": "Enter your city and neighborhood", "desc": "This helps nearby buyers find you easily." },
+      { "title": "Submit your listing", "desc": "If your account is verified, your listing goes live immediately. Otherwise, our team reviews it quickly (usually within 24h) before it's visible to everyone." }
+    ],
+    "tipsTitle": "Tips to sell faster",
+    "tips": [
+      "A clear, precise title gets a lot more views.",
+      "Several photos from different angles reassure buyers.",
+      "Reply quickly to messages: buyers in Guinea often contact several sellers at once.",
+      "Mention if the price is negotiable — it encourages buyers to reach out."
+    ],
+    "cta": "Post a listing now"
+  },
+  "signalementArticle": {
+    "breadcrumb": "Report a problem",
+    "heroTitle": "How do I report a problem?",
+    "heroSubtitle": "You help keep TrouveTout224 safe — here's how to alert us",
+    "sections": [
+      { "title": "Report a listing", "desc": "Open the listing, click \"Report this listing\", then choose a reason: scam, forbidden product, suspicious price, duplicate, inappropriate content, or other." },
+      { "title": "Report a profile or shop", "desc": "On the seller's profile page, click \"Report\" and describe the issue." },
+      { "title": "Report inside a conversation", "desc": "In messaging, open the menu (⋮) at the top of the conversation and choose \"Report\". You can also block the person directly from that same menu." },
+      { "title": "What happens next?", "desc": "Our team reviews every report, usually within 24 hours, and takes the necessary action (warning, content removal, account suspension if needed)." }
+    ],
+    "safetyTitle": "Anti-scam tips",
+    "safetyTips": [
+      "Never pay in advance without seeing the product in person.",
+      "Meet the seller or buyer in a public, busy place.",
+      "Never send money by transfer to a stranger.",
+      "Check the product carefully before paying.",
+      "Be wary of prices far below market value."
+    ],
+    "cta": "Contact support"
   }
 }

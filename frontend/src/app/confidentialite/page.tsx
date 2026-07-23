@@ -1,6 +1,7 @@
 import { getTranslations, getLocale } from 'next-intl/server';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import BackButton from '@/components/BackButton';
 import Link from 'next/link';
 import {
   Lock, Database, Target, ShieldCheck, Share2, Cookie, UserCheck,
@@ -62,6 +63,9 @@ export default async function ConfidentialitePage() {
           }}
         />
         <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+        <div className="relative max-w-3xl mx-auto px-4" style={{ zIndex: 2 }}>
+          <BackButton label={t('hero.title')} fallbackHref="/" className="text-white/80 hover:bg-white/10 hover:text-white mb-4" />
+        </div>
         <div className="relative max-w-3xl mx-auto px-4 text-center" style={{ zIndex: 2 }}>
           <div className="w-14 h-14 rounded-2xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center mx-auto mb-5">
             <Lock size={26} className="text-gold-300" />

@@ -25,5 +25,47 @@
     "title": "Besoin d'aide ? On répond vite.",
     "subtitle": "Notre équipe est disponible sur WhatsApp et par email pour t'accompagner.",
     "whatsapp": "WhatsApp"
+  },
+  "publierArticle": {
+    "breadcrumb": "Comment publier ?",
+    "heroTitle": "Comment publier une annonce ?",
+    "heroSubtitle": "Le guide complet, étape par étape — gratuit et sans limite",
+    "steps": [
+      { "title": "Connecte-toi ou crée un compte", "desc": "Inscription gratuite en quelques secondes : nom, email ou numéro de téléphone, mot de passe. Tu peux aussi utiliser ton compte Google." },
+      { "title": "Clique sur \"Publier une annonce\"", "desc": "Le bouton doré est visible en haut de chaque page du site, sur ordinateur comme sur mobile." },
+      { "title": "Choisis une catégorie", "desc": "Téléphones, véhicules, immobilier, emplois, services... Choisis celle qui correspond le mieux à ton annonce." },
+      { "title": "Remplis les informations", "desc": "Titre, description, prix (ou \"à négocier\"), quantité si besoin. Un bon titre = marque + modèle + état, ça attire plus d'acheteurs." },
+      { "title": "Ajoute tes photos", "desc": "Jusqu'à 10 photos. Des photos nettes et sous un bon éclairage augmentent nettement tes chances de vendre vite." },
+      { "title": "Indique ta ville et ton quartier", "desc": "Ça aide les acheteurs proches de toi à te trouver facilement." },
+      { "title": "Valide ta publication", "desc": "Si ton compte est vérifié, ton annonce est visible immédiatement. Sinon, elle est vérifiée rapidement par notre équipe (généralement sous 24h) avant d'être visible par tous." }
+    ],
+    "tipsTitle": "Nos conseils pour vendre plus vite",
+    "tips": [
+      "Un titre clair et précis attire beaucoup plus de vues.",
+      "Plusieurs photos sous différents angles rassurent l'acheteur.",
+      "Réponds vite aux messages : les acheteurs guinéens contactent souvent plusieurs vendeurs en même temps.",
+      "Indique si le prix est négociable, ça encourage les acheteurs à te contacter."
+    ],
+    "cta": "Publier une annonce maintenant"
+  },
+  "signalementArticle": {
+    "breadcrumb": "Signaler un problème",
+    "heroTitle": "Comment signaler un problème ?",
+    "heroSubtitle": "On garde TrouveTout224 sain grâce à toi — voici comment nous alerter",
+    "sections": [
+      { "title": "Signaler une annonce", "desc": "Ouvre l'annonce concernée, clique sur le bouton \"Signaler cette annonce\", puis choisis un motif : arnaque, produit interdit, prix suspect, doublon, contenu inapproprié ou autre." },
+      { "title": "Signaler un profil ou une boutique", "desc": "Sur la page de profil du vendeur, clique sur \"Signaler\" et décris le problème rencontré." },
+      { "title": "Signaler dans une conversation", "desc": "Dans la messagerie, ouvre le menu (⋮) en haut de la conversation puis choisis \"Signaler\". Tu peux aussi bloquer la personne directement depuis ce même menu." },
+      { "title": "Que se passe-t-il ensuite ?", "desc": "Notre équipe examine chaque signalement, généralement sous 24h, et prend les mesures nécessaires (avertissement, suppression du contenu, suspension du compte si besoin)." }
+    ],
+    "safetyTitle": "Conseils anti-arnaque",
+    "safetyTips": [
+      "Ne paie jamais d'avance sans avoir vu le produit en personne.",
+      "Rencontre le vendeur ou l'acheteur dans un lieu public et fréquenté.",
+      "N'envoie jamais d'argent par transfert à une personne inconnue.",
+      "Vérifie bien le produit avant de payer.",
+      "Méfie-toi des prix beaucoup trop bas par rapport au marché."
+    ],
+    "cta": "Contacter le support"
   }
 }

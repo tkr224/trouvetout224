@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import BackButton from '@/components/BackButton';
 import { Camera } from 'lucide-react';
 import imageCredits from '../../../scripts/image-credits.json';
 
@@ -24,6 +25,9 @@ export default async function CreditsImagesPage() {
         style={{ background: 'linear-gradient(135deg, rgb(var(--p-900)) 0%, rgb(var(--p-800)) 55%, rgb(var(--p-900)) 100%)' }}
       >
         <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+        <div className="relative max-w-3xl mx-auto px-4" style={{ zIndex: 2 }}>
+          <BackButton label={t('heroTitle')} fallbackHref="/" className="text-white/80 hover:bg-white/10 hover:text-white mb-4" />
+        </div>
         <div className="relative max-w-3xl mx-auto px-4 text-center" style={{ zIndex: 2 }}>
           <div className="w-14 h-14 rounded-2xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center mx-auto mb-5">
             <Camera size={26} className="text-gold-300" />

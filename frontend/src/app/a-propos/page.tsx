@@ -3,6 +3,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import CulturalPattern from '@/components/CulturalPattern';
 import Logo from '@/components/Logo';
+import BackButton from '@/components/BackButton';
 import Link from 'next/link';
 import {
   Lightbulb, Search, Rocket, Target, ShieldCheck, Sparkles, Heart,
@@ -50,6 +51,9 @@ export default async function AProposPage() {
         />
         <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
 
+        <div className="relative max-w-4xl mx-auto px-4" style={{ zIndex: 2 }}>
+          <BackButton label={t('badge')} fallbackHref="/" className="text-white/80 hover:bg-white/10 hover:text-white mb-4" />
+        </div>
         <div className="relative max-w-4xl mx-auto px-4 text-center" style={{ zIndex: 2 }}>
           <div className="flex items-center justify-center gap-3 mb-5">
             <Logo size={48} />
