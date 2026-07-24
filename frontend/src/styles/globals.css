@@ -2362,6 +2362,20 @@ html.dark[data-color="cristal"] .bg-dark-50 { background-color: var(--bg-page); 
   .hero-blob { animation: none !important; }
 }
 
+/* Lueur douce autour des CTA du hero, qui s'intensifie au survol */
+.hero-cta-glow-gold {
+  box-shadow: 0 4px 22px rgba(245, 197, 24, 0.35), 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+.hero-cta-glow-gold:hover {
+  box-shadow: 0 6px 32px rgba(245, 197, 24, 0.55), 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+.hero-cta-glow-outline {
+  box-shadow: 0 4px 18px rgba(255, 255, 255, 0.10);
+}
+.hero-cta-glow-outline:hover {
+  box-shadow: 0 6px 26px rgba(255, 255, 255, 0.20);
+}
+
 /* ══════════════════════════════════════════════════════════════════════
    MOTIF CULTUREL GUINÉEN — filigrane SVG (masque Nimba + carte Guinée)
    La couleur suit le thème actif via --p-600 (mode clair) / --p-400 (dark).
