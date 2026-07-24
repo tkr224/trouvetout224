@@ -35,6 +35,10 @@
     "annonces": "Active listings",
     "boutiques": "Shops"
   },
+  "searchOverlay": {
+    "categoryAll": "All categories",
+    "popularLabel": "Popular searches:"
+  },
   "latestSection": {
     "kicker": "Listings",
     "title": "Latest listings",
@@ -42,7 +46,9 @@
     "sortLabel": "Sort: {label}",
     "emptyTitle": "Be the first to post here!",
     "emptySubtitle": "No listings yet — yours could be the very first one visible on TrouveTout224.",
-    "viewAll": "View all listings"
+    "viewAll": "View all listings",
+    "fillerLabel": "Your listing could be here",
+    "fillerCta": "Post now"
   },
   "categoriesSection": {
     "kicker": "Categories",
@@ -59,5 +65,44 @@
     "buy": { "title": "Buy with confidence", "desc": "Sellers verified by our team" },
     "contact": { "title": "Direct contact on WhatsApp", "desc": "Talk to the seller right away" },
     "shop": { "title": "Your online shop", "desc": "Visible across Guinea 🇬🇳" }
+  },
+  "howItWorks": {
+    "kicker": "How it works",
+    "title": "Sell in 3 simple steps",
+    "subtitle": "No hidden fees, no waiting — just you and the buyer.",
+    "step1": { "title": "Post your listing for free", "desc": "Add photos, a price and a description in minutes." },
+    "step2": { "title": "Buyers reach you on WhatsApp", "desc": "Directly, with no middleman or matching fee." },
+    "step3": { "title": "You sell, with no commission", "desc": "Visible across Guinea, with no time limit." }
+  },
+  "boutiquesSection": {
+    "kicker": "Shops",
+    "title": "Shops to discover",
+    "subtitle": "Active sellers, with all their listings in one place",
+    "viewAll": "View all shops",
+    "listings": "{count, plural, one {# listing} other {# listings}}",
+    "emptyTitle": "Be the first shop featured here",
+    "emptyDesc": "Create your free shop: logo, description and all your listings grouped together, visible across Guinea.",
+    "emptyCta": "Create my shop"
+  },
+  "whyUs": {
+    "kicker": "Why us",
+    "title": "Why choose TrouveTout224",
+    "subtitle": "A marketplace built for Guinea, by Guineans."
+  },
+  "ctaVendeurs": {
+    "title": "Got something to sell?",
+    "subtitle": "Post your listing in minutes, for free.",
+    "cta": "Post my listing for free"
+  },
+  "faqSection": {
+    "kicker": "FAQ",
+    "title": "Everything you need to know",
+    "subtitle": "Answers to the most common questions",
+    "viewAll": "View the full FAQ"
+  },
+  "finalCta": {
+    "slogan": "Find anything. Sell anything. In Guinea.",
+    "ctaPublish": "Post a listing",
+    "ctaBrowse": "Browse listings"
   }
 }

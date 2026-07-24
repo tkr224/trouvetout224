@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { MapPin, Heart, Globe, Camera, AtSign, PlayCircle } from 'lucide-react';
+import { MapPin, Heart, Globe, Camera, AtSign, PlayCircle, MessageCircle } from 'lucide-react';
 
 export default function Footer() {
   const t = useTranslations('footer');
@@ -52,6 +52,7 @@ export default function Footer() {
             </p>
             <div className="flex gap-3 mt-4">
               {[
+                { Icon: MessageCircle, label: t('contactWhatsapp'), href: 'https://wa.me/224627543486' },
                 { Icon: Globe,       label: t('socials.website'),  href: '/' },
                 { Icon: Camera,      label: t('socials.instagram'), href: 'https://www.instagram.com' },
                 { Icon: AtSign,      label: t('socials.twitter'), href: 'https://twitter.com' },

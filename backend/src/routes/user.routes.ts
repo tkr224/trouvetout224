@@ -37,7 +37,7 @@ router.get('/shops', async (req, res) => {
         orderBy: { createdAt: 'desc' },
         select: {
           id: true, firstName: true, lastName: true,
-          shopName: true, shopLogo: true, shopDescription: true,
+          shopName: true, shopLogo: true, shopBanner: true, shopSlogan: true, shopDescription: true,
           shopCategories: true, shopHasPhysical: true,
           isVerified: true, createdAt: true,
           city: { select: { id: true, name: true } },

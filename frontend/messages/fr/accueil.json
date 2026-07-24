@@ -35,6 +35,10 @@
     "annonces": "Annonces actives",
     "boutiques": "Boutiques"
   },
+  "searchOverlay": {
+    "categoryAll": "Toutes catégories",
+    "popularLabel": "Recherches populaires :"
+  },
   "latestSection": {
     "kicker": "Annonces",
     "title": "Dernières annonces",
@@ -42,7 +46,9 @@
     "sortLabel": "Trier : {label}",
     "emptyTitle": "Sois le premier à publier ici !",
     "emptySubtitle": "Aucune annonce pour le moment — la tienne pourrait être la toute première visible sur TrouveTout224.",
-    "viewAll": "Voir toutes les annonces"
+    "viewAll": "Voir toutes les annonces",
+    "fillerLabel": "Ton annonce pourrait être ici",
+    "fillerCta": "Publier"
   },
   "categoriesSection": {
     "kicker": "Catégories",
@@ -59,5 +65,44 @@
     "buy": { "title": "Achète en toute confiance", "desc": "Vendeurs vérifiés par notre équipe" },
     "contact": { "title": "Contact direct sur WhatsApp", "desc": "Parle au vendeur tout de suite" },
     "shop": { "title": "Ta boutique en ligne", "desc": "Visible par toute la Guinée 🇬🇳" }
+  },
+  "howItWorks": {
+    "kicker": "Comment ça marche",
+    "title": "Vendre en 3 étapes, sans complication",
+    "subtitle": "Pas de frais caché, pas d'attente — juste toi et l'acheteur.",
+    "step1": { "title": "Publie ton annonce gratuitement", "desc": "Ajoute des photos, un prix et une description en quelques minutes." },
+    "step2": { "title": "Les acheteurs te contactent sur WhatsApp", "desc": "Directement, sans intermédiaire ni frais de mise en relation." },
+    "step3": { "title": "Tu vends, sans commission", "desc": "Visible par toute la Guinée, sans limite de durée." }
+  },
+  "boutiquesSection": {
+    "kicker": "Boutiques",
+    "title": "Boutiques à découvrir",
+    "subtitle": "Des vendeurs actifs, avec toutes leurs annonces au même endroit",
+    "viewAll": "Voir toutes les boutiques",
+    "listings": "{count, plural, one {# annonce} other {# annonces}}",
+    "emptyTitle": "Sois la première boutique visible ici",
+    "emptyDesc": "Crée ta boutique gratuite : logo, description et toutes tes annonces regroupées, visibles par toute la Guinée.",
+    "emptyCta": "Créer ma boutique"
+  },
+  "whyUs": {
+    "kicker": "Pourquoi nous",
+    "title": "Pourquoi choisir TrouveTout224",
+    "subtitle": "Une marketplace pensée pour la Guinée, par des Guinéens."
+  },
+  "ctaVendeurs": {
+    "title": "Tu as quelque chose à vendre ?",
+    "subtitle": "Publie ton annonce en quelques minutes, gratuitement.",
+    "cta": "Publier mon annonce gratuitement"
+  },
+  "faqSection": {
+    "kicker": "Questions fréquentes",
+    "title": "Tout ce qu'il faut savoir",
+    "subtitle": "Les réponses aux questions les plus posées",
+    "viewAll": "Voir toute la FAQ"
+  },
+  "finalCta": {
+    "slogan": "Trouvez tout. Vendez tout. En Guinée.",
+    "ctaPublish": "Publier une annonce",
+    "ctaBrowse": "Voir les annonces"
   }
 }

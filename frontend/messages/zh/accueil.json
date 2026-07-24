@@ -35,6 +35,10 @@
     "annonces": "有效广告",
     "boutiques": "店铺"
   },
+  "searchOverlay": {
+    "categoryAll": "所有分类",
+    "popularLabel": "热门搜索："
+  },
   "latestSection": {
     "kicker": "广告",
     "title": "最新广告",
@@ -42,7 +46,9 @@
     "sortLabel": "排序：{label}",
     "emptyTitle": "成为第一个发布的人！",
     "emptySubtitle": "暂时还没有广告——您的广告可能是 TrouveTout224 上的第一条。",
-    "viewAll": "查看所有广告"
+    "viewAll": "查看所有广告",
+    "fillerLabel": "您的广告可以出现在这里",
+    "fillerCta": "立即发布"
   },
   "categoriesSection": {
     "kicker": "分类",
@@ -59,5 +65,44 @@
     "buy": { "title": "放心购买", "desc": "卖家经过我们团队验证" },
     "contact": { "title": "通过 WhatsApp 直接联系", "desc": "立即与卖家沟通" },
     "shop": { "title": "您的在线店铺", "desc": "面向全几内亚展示 🇬🇳" }
+  },
+  "howItWorks": {
+    "kicker": "运作方式",
+    "title": "3 步轻松出售",
+    "subtitle": "没有隐藏费用，无需等待——只有您和买家。",
+    "step1": { "title": "免费发布您的广告", "desc": "几分钟内添加照片、价格和描述。" },
+    "step2": { "title": "买家通过 WhatsApp 联系您", "desc": "直接联系，没有中间商，也没有撮合费用。" },
+    "step3": { "title": "成交，无需支付佣金", "desc": "面向全几内亚展示，没有时间限制。" }
+  },
+  "boutiquesSection": {
+    "kicker": "店铺",
+    "title": "发现店铺",
+    "subtitle": "活跃卖家，所有广告集中在一处",
+    "viewAll": "查看所有店铺",
+    "listings": "{count} 条广告",
+    "emptyTitle": "成为第一家展示在此的店铺",
+    "emptyDesc": "免费创建您的店铺：标志、简介，以及集中展示、面向全几内亚的所有广告。",
+    "emptyCta": "创建我的店铺"
+  },
+  "whyUs": {
+    "kicker": "为什么选择我们",
+    "title": "为什么选择 TrouveTout224",
+    "subtitle": "为几内亚打造，由几内亚人打造。"
+  },
+  "ctaVendeurs": {
+    "title": "有东西要卖吗？",
+    "subtitle": "几分钟内免费发布您的广告。",
+    "cta": "免费发布我的广告"
+  },
+  "faqSection": {
+    "kicker": "常见问题",
+    "title": "您需要了解的一切",
+    "subtitle": "最常见问题的答案",
+    "viewAll": "查看完整常见问题"
+  },
+  "finalCta": {
+    "slogan": "在几内亚，找到一切，卖出一切。",
+    "ctaPublish": "发布广告",
+    "ctaBrowse": "浏览广告"
   }
 }

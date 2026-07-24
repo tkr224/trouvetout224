@@ -677,6 +677,28 @@ body {
   .badge-green   { @apply badge bg-primary-100 text-primary-700; }
   .badge-gold    { @apply badge bg-gold-100 text-gold-600; }
   .section-title { @apply text-2xl font-display font-bold text-dark-900; }
+
+  /* Carte verre dépoli — pour éléments premium sur fond sombre (utilisée avec parcimonie) */
+  .glass-card {
+    @apply rounded-2xl border border-white/15 backdrop-blur-md transition-all duration-300;
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+  /* Lueur douce verte/or au survol — pour cartes ou blocs mis en avant */
+  .glow-on-hover {
+    transition: box-shadow 0.35s ease, transform 0.35s ease;
+  }
+  .glow-on-hover:hover {
+    box-shadow: 0 8px 30px rgb(var(--p-700) / 0.25), 0 0 24px rgba(245, 197, 24, 0.12);
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-on-hover:hover { transform: none; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════
