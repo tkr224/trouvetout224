@@ -11,11 +11,17 @@ import { v4 as uuidv4 } from 'uuid';
 import { SECURITY_QUESTIONS, normalizeAnswer } from '../constants/securityQuestions';
 import { checkCooldown, cooldownMessage } from '../config/security';
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+// .trim() : une valeur Railway copiée-collée avec un espace ou un retour à la ligne en trop
+// suffit à faire échouer la vérification "audience" ci-dessous (le Client ID ne matcherait
+// plus exactement celui envoyé par le frontend), avec le message trompeur "token expiré".
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID?.trim();
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
+const GOOGLE_LOG = '[google-auth]';
 
 interface VerifiedOAuthProfile {
   providerId: string;
   email?: string;
+  emailVerified: boolean;
   firstName: string;
   lastName: string;
   avatar?: string;
@@ -23,18 +29,39 @@ interface VerifiedOAuthProfile {
 
 // Vérifie l'id_token Google directement auprès de Google — seule source de vérité
 async function verifyGoogleToken(idToken: string): Promise<VerifiedOAuthProfile> {
-  if (!process.env.GOOGLE_CLIENT_ID) {
+  if (!GOOGLE_CLIENT_ID) {
+    console.error(`${GOOGLE_LOG} GOOGLE_CLIENT_ID absent côté serveur (Railway) — impossible de vérifier le token.`);
     throw new Error('GOOGLE_CLIENT_ID non configuré côté serveur.');
   }
-  const ticket = await googleClient.verifyIdToken({
-    idToken,
-    audience: process.env.GOOGLE_CLIENT_ID,
-  });
+
+  let ticket;
+  try {
+    // "audience" = le Client ID pour lequel le token a été émis. Doit être identique,
+    // caractère pour caractère, au NEXT_PUBLIC_GOOGLE_CLIENT_ID utilisé par le frontend.
+    ticket = await googleClient.verifyIdToken({ idToken, audience: GOOGLE_CLIENT_ID });
+  } catch (e: any) {
+    // On loggue le message exact de google-auth-library (ex: "Wrong recipient, payload
+    // audience != requiredAudience" = Client ID différent du frontend, "Token used too late"
+    // = vraie expiration ou horloge serveur décalée, "Wrong number of segments" = token
+    // tronqué/corrompu) — c'est ce message, visible dans les logs Railway, qui donne la
+    // vraie cause derrière le message générique renvoyé au client.
+    console.error(`${GOOGLE_LOG} Échec verifyIdToken (audience="${GOOGLE_CLIENT_ID}") :`, e?.message || e);
+    throw new Error('Token Google invalide ou expiré.');
+  }
+
   const payload = ticket.getPayload();
-  if (!payload?.sub) throw new Error('Token Google invalide.');
+  if (!payload?.sub) {
+    console.error(`${GOOGLE_LOG} Payload sans "sub" — réponse Google inattendue.`);
+    throw new Error('Token Google invalide.');
+  }
+
+  console.log(`${GOOGLE_LOG} Token valide pour ${payload.email} (email_verified=${payload.email_verified === true})`);
   return {
     providerId: payload.sub,
     email: payload.email,
+    // Toujours vrai en pratique pour un compte Google, mais on vérifie explicitement avant
+    // de faire confiance à cet email pour lier ou créer un compte (voir oauthLogin).
+    emailVerified: payload.email_verified === true,
     firstName: payload.given_name || '',
     lastName: payload.family_name || '',
     avatar: payload.picture,
@@ -67,6 +94,8 @@ async function verifyFacebookToken(accessToken: string): Promise<VerifiedOAuthPr
   return {
     providerId: profile.id,
     email: profile.email,
+    // Facebook ne renvoie le champ email que si le compte l'a déjà vérifié.
+    emailVerified: !!profile.email,
     firstName: profile.first_name || '',
     lastName: profile.last_name || '',
     avatar: profile.picture?.data?.url,
@@ -259,7 +288,10 @@ export const oauthLogin = async (req: Request, res: Response) => {
     }
 
     const { providerId, firstName, lastName, avatar } = verified;
-    const email = verified.email ? verified.email.toLowerCase().trim() : undefined;
+    // Sécurité : on ne fait confiance à l'email (pour lier ou créer un compte) que si le
+    // fournisseur confirme explicitement qu'il est vérifié — sinon on ignore ce champ,
+    // le compte est alors identifié uniquement par providerId (googleId/facebookId).
+    const email = verified.email && verified.emailVerified ? verified.email.toLowerCase().trim() : undefined;
 
     let user = await prisma.user.findFirst({
       where: {
