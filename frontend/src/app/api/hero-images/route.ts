@@ -38,8 +38,11 @@ async function getLocalImages(): Promise<HeroImage[]> {
   }
 }
 
+const LOG = '[hero-images]';
+
 async function getUnsplashImages(): Promise<HeroImage[]> {
   const key = process.env.UNSPLASH_ACCESS_KEY;
+  console.log(`${LOG} UNSPLASH_ACCESS_KEY ${key ? `présente (${key.length} caractères)` : 'ABSENTE — fallback dégradé'}`);
   if (!key) return [];
 
   const settled = await Promise.allSettled(
@@ -49,7 +52,8 @@ async function getUnsplashImages(): Promise<HeroImage[]> {
         headers: { Authorization: `Client-ID ${key}`, 'Accept-Version': 'v1' },
         next: { revalidate: 86400 },
       });
-      if (!res.ok) throw new Error(`Unsplash ${res.status}`);
+      console.log(`${LOG} Unsplash "${query}" → HTTP ${res.status}`);
+      if (!res.ok) throw new Error(`Unsplash ${res.status} pour "${query}"`);
       const data = await res.json();
       const results: any[] = Array.isArray(data?.results) ? data.results : [];
       return results.map((p): HeroImage => ({
@@ -62,6 +66,10 @@ async function getUnsplashImages(): Promise<HeroImage[]> {
     })
   );
 
+  settled.forEach((r, i) => {
+    if (r.status === 'rejected') console.error(`${LOG} échec recherche "${UNSPLASH_QUERIES[i]}" :`, r.reason?.message || r.reason);
+  });
+
   return settled
     .filter((r): r is PromiseFulfilledResult<HeroImage[]> => r.status === 'fulfilled')
     .flatMap(r => r.value);
@@ -70,17 +78,20 @@ async function getUnsplashImages(): Promise<HeroImage[]> {
 export async function GET() {
   const local = await getLocalImages();
   if (local.length > 0) {
+    console.log(`${LOG} ${local.length} photo(s) locale(s) trouvée(s) dans public/images/hero/ — Unsplash ignoré`);
     return NextResponse.json({ images: local }, { headers: { 'Cache-Control': 'public, max-age=3600' } });
   }
 
   try {
     const images = await getUnsplashImages();
+    console.log(`${LOG} ${images.length} image(s) Unsplash reçue(s) au total`);
     return NextResponse.json(
       { images },
       { headers: { 'Cache-Control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800' } }
     );
-  } catch {
+  } catch (err) {
     // Clé absente, quota dépassé, panne réseau… → tableau vide, le hero affiche son dégradé de secours.
+    console.error(`${LOG} échec complet, fallback dégradé :`, err);
     return NextResponse.json({ images: [] });
   }
 }
