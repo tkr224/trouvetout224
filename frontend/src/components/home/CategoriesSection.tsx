@@ -10,38 +10,41 @@ import {
   Package, ArrowRight, MoreHorizontal,
 } from 'lucide-react';
 
-const CAT_META: Record<string, { icon: React.ElementType; bg: string; href: string }> = {
-  telephones:   { icon: Smartphone,      bg: 'bg-blue-500',    href: '/categories/telephones' },
-  electronique: { icon: Cpu,             bg: 'bg-pink-500',    href: '/categories/electronique' },
-  informatique: { icon: Laptop,          bg: 'bg-violet-500',  href: '/categories/informatique' },
-  vehicules:    { icon: Car,             bg: 'bg-amber-500',   href: '/vehicules' },
-  immobilier:   { icon: Home,            bg: 'bg-emerald-600', href: '/immobilier' },
-  terrains:     { icon: Trees,           bg: 'bg-lime-600',    href: '/categories/terrains' },
-  emplois:      { icon: Briefcase,       bg: 'bg-sky-600',     href: '/emplois' },
-  services:     { icon: Wrench,          bg: 'bg-orange-500',  href: '/services' },
-  restaurants:  { icon: UtensilsCrossed, bg: 'bg-red-500',     href: '/restaurants' },
-  hotels:       { icon: Hotel,           bg: 'bg-fuchsia-500', href: '/hotels' },
-  mode:         { icon: Shirt,           bg: 'bg-pink-400',    href: '/categories/mode' },
-  chaussures:   { icon: Footprints,      bg: 'bg-teal-500',    href: '/categories/chaussures' },
-  beaute:       { icon: Sparkles,        bg: 'bg-rose-500',    href: '/categories/beaute' },
-  sante:        { icon: HeartPulse,      bg: 'bg-green-500',   href: '/categories/sante' },
-  formation:    { icon: GraduationCap,   bg: 'bg-indigo-500',  href: '/categories/formation' },
-  evenements:   { icon: PartyPopper,     bg: 'bg-purple-500',  href: '/evenements' },
-  maison:       { icon: Sofa,            bg: 'bg-lime-500',    href: '/categories/maison' },
-  agriculture:  { icon: Wheat,           bg: 'bg-green-700',   href: '/categories/agriculture' },
-  animaux:      { icon: PawPrint,        bg: 'bg-orange-400',  href: '/categories/animaux' },
-  sports:       { icon: Dumbbell,        bg: 'bg-cyan-500',    href: '/categories/sports' },
-  divers:       { icon: Package,         bg: 'bg-slate-500',   href: '/categories/divers' },
+const CAT_META: Record<string, { icon: React.ElementType; href: string }> = {
+  telephones:   { icon: Smartphone,      href: '/categories/telephones' },
+  electronique: { icon: Cpu,             href: '/categories/electronique' },
+  informatique: { icon: Laptop,          href: '/categories/informatique' },
+  vehicules:    { icon: Car,             href: '/vehicules' },
+  immobilier:   { icon: Home,            href: '/immobilier' },
+  terrains:     { icon: Trees,           href: '/categories/terrains' },
+  emplois:      { icon: Briefcase,       href: '/emplois' },
+  services:     { icon: Wrench,          href: '/services' },
+  restaurants:  { icon: UtensilsCrossed, href: '/restaurants' },
+  hotels:       { icon: Hotel,           href: '/hotels' },
+  mode:         { icon: Shirt,           href: '/categories/mode' },
+  chaussures:   { icon: Footprints,      href: '/categories/chaussures' },
+  beaute:       { icon: Sparkles,        href: '/categories/beaute' },
+  sante:        { icon: HeartPulse,      href: '/categories/sante' },
+  formation:    { icon: GraduationCap,   href: '/categories/formation' },
+  evenements:   { icon: PartyPopper,     href: '/evenements' },
+  maison:       { icon: Sofa,            href: '/categories/maison' },
+  agriculture:  { icon: Wheat,           href: '/categories/agriculture' },
+  animaux:      { icon: PawPrint,        href: '/categories/animaux' },
+  sports:       { icon: Dumbbell,        href: '/categories/sports' },
+  divers:       { icon: Package,         href: '/categories/divers' },
 };
 
-function CategoryCard({ cat }: { cat: { slug: string; label: string; count: number; icon: React.ElementType; bg: string; href: string } }) {
+function CategoryCard({ cat }: { cat: { slug: string; label: string; count: number; icon: React.ElementType; href: string } }) {
   const t = useTranslations('accueil.categoriesSection');
   const Icon = cat.icon;
   return (
     <Link
       href={cat.href}
-      className={`group relative aspect-[4/3] rounded-xl overflow-hidden ${cat.bg} border border-dark-100 dark:border-dark-700 shadow-sm hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300`}
+      className="group relative block aspect-[4/3] rounded-xl overflow-hidden bg-gradient-to-br from-primary-700 to-primary-900 border border-dark-100 dark:border-dark-700 shadow-sm hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300"
     >
+      {/* Fallback dégradé vert/or/rouge (identité guinéenne) — visible seulement si la photo ci-dessous échoue */}
+      <span className="absolute inset-x-0 top-0 h-1 bg-gold-400" aria-hidden="true" />
+      <span className="absolute inset-x-0 bottom-0 h-1 bg-guinea-500" aria-hidden="true" />
       <img
         src={`/images/categories/${cat.slug}.jpg`}
         alt=""
@@ -78,7 +81,6 @@ export default function CategoriesSection() {
         label: c.nameFr || c.name,
         count: c._count.annonces,
         icon:  CAT_META[c.slug]?.icon ?? Package,
-        bg:    CAT_META[c.slug]?.bg   ?? 'bg-slate-400',
         href:  CAT_META[c.slug]?.href ?? `/categories/${c.slug}`,
       }));
   }, [categories]);

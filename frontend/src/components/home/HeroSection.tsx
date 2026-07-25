@@ -8,22 +8,20 @@ import HeroRotatingText from '@/components/home/HeroRotatingText';
 import { Sparkles, MessageCircle, ShieldCheck, Zap, Eye, ArrowRight } from 'lucide-react';
 
 /* ══════════════════════════════════════════════════════════════════════
-   DIAPORAMA DU HÉRO — photos locales (public/images/hero/)
+   DIAPORAMA DU HÉRO — photos servies par /api/hero-images
    ──────────────────────────────────────────────────────────────────────
-   Pour ajouter vos photos :
-     1. Déposez vos fichiers dans frontend/public/images/hero/
-        (noms recommandés : hero-1.jpg, hero-2.jpg, hero-3.jpg…)
-     2. Ajoutez une ligne ci-dessous par photo (1 à 6 images acceptées).
-     3. Rien à ajouter ? Laissez le tableau vide (HERO_IMAGES = []) :
-        un dégradé vert élégant s'affiche automatiquement à la place.
-   Format recommandé : JPG, ≥ 1600×900 px (ratio paysage 16/9), poids
-   optimisé (~150-300 Ko/photo max — connexions mobiles en Guinée).
+   Ordre de priorité (voir src/app/api/hero-images/route.ts) :
+     1. Photos locales dans frontend/public/images/hero/ (hero-1.jpg,
+        hero-2.jpg…) si présentes — pratique pour remplacer par vos
+        propres photos sans toucher au code.
+     2. Sinon, photos Unsplash (clé UNSPLASH_ACCESS_KEY, voir .env.local.example),
+        mises en cache côté serveur 24h — Unsplash n'est PAS rappelé à
+        chaque visite.
+     3. Si tout échoue (clé absente, quota dépassé, panne réseau) : le
+        dégradé vert défini plus bas sur la <section> reste seul visible,
+        le hero n'est jamais cassé ni vide.
    ─────────────────────────────────────────────────────────────────── */
-const HERO_IMAGES: { url: string; alt: string }[] = [
-  // { url: '/images/hero/hero-1.jpg', alt: 'Marché animé à Conakry' },
-  // { url: '/images/hero/hero-2.jpg', alt: 'Commerçant souriant dans sa boutique' },
-  // { url: '/images/hero/hero-3.jpg', alt: 'Jeune Guinéen utilisant son smartphone' },
-];
+interface HeroImage { url: string; alt: string; credit?: { name: string; profileUrl: string } }
 
 /* Vitesse du diaporama — modifiez uniquement ces deux constantes.
    HERO_SLIDE_INTERVAL_MS : durée d'affichage de chaque photo.
@@ -33,9 +31,28 @@ const HERO_TRANSITION_MS     = 1400;
 
 export default function HeroSection() {
   const t = useTranslations('accueil');
+  const [heroImages, setHeroImages]     = useState<HeroImage[]>([]);
+  const [imagesMounted, setImagesMounted] = useState(false);
   const [heroSlide, setHeroSlide]       = useState(0);
   const [heroReady, setHeroReady]       = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
+
+  /* Récupère les photos du hero (cache serveur 24h, voir plus haut) */
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/hero-images')
+      .then(res => (res.ok ? res.json() : { images: [] }))
+      .then(data => { if (!cancelled) setHeroImages(Array.isArray(data.images) ? data.images : []); })
+      .catch(() => { if (!cancelled) setHeroImages([]); });
+    return () => { cancelled = true; };
+  }, []);
+
+  /* Fondu d'apparition doux à l'arrivée des photos (jamais de pop brutal) */
+  useEffect(() => {
+    if (heroImages.length === 0) return;
+    const raf = requestAnimationFrame(() => setImagesMounted(true));
+    return () => cancelAnimationFrame(raf);
+  }, [heroImages]);
 
   /* Préférence utilisateur "mouvement réduit" — désactive les animations décoratives */
   useEffect(() => {
@@ -52,10 +69,10 @@ export default function HeroSection() {
 
   /* Avancement automatique du diaporama hero (voir HERO_SLIDE_INTERVAL_MS) */
   useEffect(() => {
-    if (HERO_IMAGES.length <= 1 || reduceMotion) return;
-    const t = setInterval(() => setHeroSlide(i => (i + 1) % HERO_IMAGES.length), HERO_SLIDE_INTERVAL_MS);
+    if (heroImages.length <= 1 || reduceMotion) return;
+    const t = setInterval(() => setHeroSlide(i => (i + 1) % heroImages.length), HERO_SLIDE_INTERVAL_MS);
     return () => clearInterval(t);
-  }, [reduceMotion]);
+  }, [reduceMotion, heroImages.length]);
 
   /* Style d'apparition en cascade — désactivé si mouvement réduit (affichage statique immédiat) */
   const heroFadeIn = (delayMs: number): React.CSSProperties => reduceMotion
@@ -73,14 +90,14 @@ export default function HeroSection() {
       style={{ background: 'linear-gradient(135deg, rgb(var(--p-900)) 0%, rgb(var(--p-800)) 55%, rgb(var(--p-900)) 100%)' }}
     >
 
-      {/* Diaporama de photos en arrière-plan — fondu doux, voir HERO_IMAGES plus haut.
+      {/* Diaporama de photos en arrière-plan — fondu doux, voir /api/hero-images.
           Tableau vide ⇒ seul le dégradé vert de la section reste visible (fallback). */}
-      {HERO_IMAGES.map((img, i) => (
+      {heroImages.map((img, i) => (
         <div
           key={img.url}
           className="absolute inset-0 ease-in-out"
           style={{
-            opacity: i === heroSlide ? 1 : 0,
+            opacity: imagesMounted && i === heroSlide ? 1 : 0,
             transitionProperty: 'opacity',
             transitionDuration: `${HERO_TRANSITION_MS}ms`,
             zIndex: 0,
@@ -171,7 +188,7 @@ export default function HeroSection() {
               style={{ textShadow: '0 2px 20px rgba(0,0,0,0.9), 0 1px 6px rgba(0,0,0,0.7)', ...heroFadeIn(90) }}
             >
               {t('hero.titleLine1')}<br className="hidden sm:block" />{' '}
-              <span className="bg-gradient-to-r from-white via-primary-200 to-gold-200 bg-clip-text text-transparent">
+              <span style={{ color: '#F5C518' }}>
                 {t('hero.titleLine2')}
               </span>
             </h1>
@@ -230,9 +247,9 @@ export default function HeroSection() {
       </div>
 
       {/* Points de navigation du diaporama — affichés seulement s'il y a plusieurs photos */}
-      {HERO_IMAGES.length > 1 && (
+      {heroImages.length > 1 && (
         <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2" style={{ zIndex: 5, ...heroFadeIn(500) }}>
-          {HERO_IMAGES.map((img, i) => (
+          {heroImages.map((img, i) => (
             <button
               key={img.url}
               onClick={() => setHeroSlide(i)}
@@ -241,6 +258,19 @@ export default function HeroSection() {
             />
           ))}
         </div>
+      )}
+
+      {/* Attribution Unsplash — requise par leur licence, discrète dans un coin */}
+      {heroImages.length > 0 && heroImages[heroSlide]?.credit && (
+        <a
+          href={heroImages[heroSlide]!.credit!.profileUrl}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+          className="absolute bottom-2 right-3 text-[10px] text-white/55 hover:text-white/90 transition-colors"
+          style={{ zIndex: 5, textShadow: '0 1px 4px rgba(0,0,0,0.85)' }}
+        >
+          Photo : {heroImages[heroSlide]!.credit!.name} / Unsplash
+        </a>
       )}
     </section>
   );

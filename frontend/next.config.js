@@ -71,6 +71,15 @@ const nextConfig = {
 
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
+
+  experimental: {
+    // La route /api/hero-images lit public/images/hero/ via fs.readdir() à l'exécution ;
+    // ce dossier n'est pas détecté automatiquement par le traçage de fichiers de Next/Vercel
+    // (contrairement à un chemin littéral en dur), donc on l'inclut explicitement.
+    outputFileTracingIncludes: {
+      '/api/hero-images': ['./public/images/hero/**'],
+    },
+  },
 };
 
 module.exports = withNextIntl(nextConfig);
