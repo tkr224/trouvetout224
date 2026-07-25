@@ -20,6 +20,26 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Le refreshToken est à usage unique côté serveur (rotation) : si deux requêtes expirées
+// en même temps (ex. plusieurs composants au chargement de la page) appellent chacune
+// /auth/refresh, la 2e arrive avec un token déjà consommé par la 1re et se fait rejeter,
+// ce qui déconnectait l'utilisateur alors que sa session était valide.
+// → on fait partager le même appel de rafraîchissement à toutes les requêtes concurrentes.
+let refreshPromise: Promise<string> | null = null;
+
+async function refreshAccessToken(): Promise<string> {
+  const auth = JSON.parse(localStorage.getItem('tt224-auth') || '{}');
+  const refreshToken = auth?.state?.refreshToken;
+  if (!refreshToken) throw new Error('No refresh token');
+
+  const res = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken });
+  const { accessToken, refreshToken: newRefreshToken } = res.data;
+
+  // Sauvegarder BOTH les nouveaux tokens (bug précédent : seul accessToken était sauvegardé)
+  useAuthStore.getState().setTokens(accessToken, newRefreshToken || refreshToken);
+  return accessToken;
+}
+
 // Intercepteur : refresh token automatique quand le token expire (401)
 api.interceptors.response.use(
   (response) => response,
@@ -28,15 +48,12 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && original && !original._retry) {
       original._retry = true;
       try {
-        const auth = JSON.parse(localStorage.getItem('tt224-auth') || '{}');
-        const refreshToken = auth?.state?.refreshToken;
-        if (!refreshToken) throw new Error('No refresh token');
-
-        const res = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken });
-        const { accessToken, refreshToken: newRefreshToken } = res.data;
-
-        // Sauvegarder BOTH les nouveaux tokens (bug précédent : seul accessToken était sauvegardé)
-        useAuthStore.getState().setTokens(accessToken, newRefreshToken || refreshToken);
+        if (!refreshPromise) {
+          refreshPromise = refreshAccessToken().finally(() => {
+            refreshPromise = null;
+          });
+        }
+        const accessToken = await refreshPromise;
 
         original.headers.Authorization = `Bearer ${accessToken}`;
         return api(original);
