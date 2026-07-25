@@ -14,6 +14,7 @@ import {
 import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
+import GoogleButton from '@/components/auth/GoogleButton';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 
@@ -128,6 +129,20 @@ export default function RegisterPage() {
 
   const toggleCat = (id: string) =>
     setSelCats(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]);
+
+  // Inscription Google — le token (JWT) est vérifié par le backend auprès de Google,
+  // jamais par le frontend. Le compte est créé directement, sans passer par le formulaire.
+  const handleGoogleCredential = async (idToken: string) => {
+    try {
+      const res = await api.post('/auth/oauth', { provider: 'google', token: idToken });
+      setTokens(res.data.accessToken, res.data.refreshToken);
+      setUser(res.data.user);
+      router.push(res.data.isNewUser ? '/auth/choisir-profil' : '/');
+    } catch (err: any) {
+      const d = err.response?.data;
+      toast.error(d?.error ?? t('genericError'));
+    }
+  };
 
   // Validation étape 1 → passe à 2
   const goStep2 = handleSubmit(data => {
@@ -331,6 +346,13 @@ export default function RegisterPage() {
                 <div className="flex flex-wrap items-center gap-2 mb-6">
                   <span className="badge-green"><Sparkles size={11} /> {t('badgeFree')}</span>
                   <span className="badge-gold"><ShieldCheck size={11} /> {t('badgeSecure')}</span>
+                </div>
+
+                <GoogleButton onCredential={handleGoogleCredential} text="signup_with" />
+                <div className="flex items-center gap-3 my-6">
+                  <div className="flex-1 h-px bg-dark-100" />
+                  <span className="text-xs text-dark-400 font-medium">{t('orDivider')}</span>
+                  <div className="flex-1 h-px bg-dark-100" />
                 </div>
 
                 <form onSubmit={goStep2} className="space-y-5">

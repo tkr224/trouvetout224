@@ -9,6 +9,7 @@ import { Loader2, Eye, EyeOff, ShoppingBag, Lock, Zap, Ban } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
+import GoogleButton from '@/components/auth/GoogleButton';
 
 function LoginContent() {
   const t = useTranslations('auth.login');
@@ -42,6 +43,30 @@ function LoginContent() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Connexion Google — le token (JWT) est vérifié par le backend auprès de Google,
+  // jamais par le frontend, avant de créer la session.
+  const handleGoogleCredential = async (idToken: string) => {
+    try {
+      const res = await api.post('/auth/oauth', { provider: 'google', token: idToken });
+      setUser(res.data.user);
+      setTokens(res.data.accessToken, res.data.refreshToken);
+      if (res.data.isNewUser) {
+        router.push('/auth/choisir-profil');
+        return;
+      }
+      toast.success(t('successToast'));
+      const redirect = searchParams.get('redirect');
+      router.push(redirect && redirect.startsWith('/') ? redirect : '/');
+    } catch (err: any) {
+      const errData = err.response?.data;
+      if (err.response?.status === 403 && errData?.suspended) {
+        setSuspended({ reason: errData.suspendedReason || null });
+      } else {
+        toast.error(errData?.error || t('errorToast'));
+      }
     }
   };
 
@@ -178,6 +203,14 @@ function LoginContent() {
                 : t('submit')}
             </button>
           </form>
+
+          {/* Connexion Google */}
+          <div className="flex items-center gap-3 my-7">
+            <div className="flex-1 h-px bg-dark-100" />
+            <span className="text-xs text-dark-400 font-medium">{t('orDivider')}</span>
+            <div className="flex-1 h-px bg-dark-100" />
+          </div>
+          <GoogleButton onCredential={handleGoogleCredential} text="signin_with" />
 
           {/* Séparateur */}
           <div className="flex items-center gap-3 my-7">

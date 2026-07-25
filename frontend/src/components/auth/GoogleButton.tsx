@@ -19,6 +19,14 @@ export default function GoogleButton({ onCredential, text = 'signin_with' }: Goo
   const containerRef = useRef<HTMLDivElement>(null);
   const [scriptReady, setScriptReady] = useState(false);
 
+  // LOG TEMPORAIRE : confirme, depuis la console du navigateur en production, si la
+  // variable est bien lue côté client. Le Client ID Google n'est pas un secret (il est
+  // de toute façon visible dans les requêtes vers Google), donc l'afficher en entier ne
+  // pose pas de risque. À retirer une fois le diagnostic terminé.
+  useEffect(() => {
+    console.log('[GoogleButton] NEXT_PUBLIC_GOOGLE_CLIENT_ID =', clientId || '(ABSENT)');
+  }, [clientId]);
+
   useEffect(() => {
     if (!scriptReady || !clientId || !containerRef.current) return;
     const g = (window as any).google;
