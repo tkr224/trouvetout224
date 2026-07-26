@@ -24,12 +24,14 @@ function ShopCard({ shop }: { shop: Shop }) {
       </div>
 
       <div className="p-4 pt-0 flex-1 flex flex-col">
-        {/* Logo à cheval sur la bannière */}
-        <div className="-mt-7 mb-2.5">
+        {/* Logo à cheval sur la bannière — "relative z-10" est indispensable :
+            sans ça, la bannière (position: relative) se peint par-dessus ce bloc
+            non positionné, même s'il vient après elle dans le DOM. */}
+        <div className="-mt-7 mb-2.5 relative z-10">
           {shop.shopLogo ? (
-            <img src={shop.shopLogo} alt={displayName} className="w-14 h-14 rounded-xl object-cover border-2 border-white dark:border-dark-900 shadow-sm" />
+            <img src={shop.shopLogo} alt={displayName} className="w-14 h-14 shrink-0 rounded-xl object-cover border-2 border-white dark:border-dark-900 shadow-sm" />
           ) : (
-            <div className="w-14 h-14 rounded-xl bg-primary-100 dark:bg-primary-900/40 border-2 border-white dark:border-dark-900 shadow-sm flex items-center justify-center text-primary-700 dark:text-primary-300 font-bold">
+            <div className="w-14 h-14 shrink-0 rounded-xl bg-primary-100 dark:bg-primary-900/40 border-2 border-white dark:border-dark-900 shadow-sm flex items-center justify-center text-primary-700 dark:text-primary-300 font-bold">
               {initials}
             </div>
           )}
