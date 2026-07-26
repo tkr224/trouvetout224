@@ -13,6 +13,7 @@ import { useAuthStore } from '@/store/auth.store';
 import toast from 'react-hot-toast';
 import SubscribeButton from '@/components/SubscribeButton';
 import BackButton from '@/components/BackButton';
+import ImageLightbox from '@/components/ImageLightbox';
 
 const SHOP_COLORS = [
   { key: 'vert',   gradient: 'linear-gradient(135deg,#16a34a,#14532d)', dot: '#16a34a' },
@@ -46,6 +47,7 @@ export default function PublicProfilPage() {
   const [reportReason, setReportReason] = useState('');
   const [reportDesc, setReportDesc] = useState('');
   const [reportLoading, setReportLoading] = useState(false);
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
   const { isAuthenticated } = useAuthStore();
 
   const submitReport = async () => {
@@ -127,7 +129,16 @@ export default function PublicProfilPage() {
           {/* ── Bannière ── */}
           <div className="h-36 sm:h-44 relative">
             {(hasShop && profile.shopBanner)
-              ? <img src={profile.shopBanner} alt="" className="w-full h-full object-cover"/>
+              ? (
+                <button
+                  type="button"
+                  onClick={() => setLightboxImg(profile.shopBanner)}
+                  className="w-full h-full cursor-zoom-in"
+                  aria-label={t('public.viewFullscreen')}
+                >
+                  <img src={profile.shopBanner} alt="" className="w-full h-full object-cover"/>
+                </button>
+              )
               : <div className="w-full h-full" style={{ background: hasShop ? shopColorData.gradient : 'linear-gradient(135deg,#16a34a,#14532d)' }}/>}
             {hasShop && (
               <div className="absolute top-3 left-3 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5"
@@ -151,9 +162,17 @@ export default function PublicProfilPage() {
             <div className="flex items-end justify-between -mt-10 sm:-mt-12 mb-4 relative z-10">
               <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border-4 border-white bg-primary-100 flex items-center justify-center shadow-card overflow-hidden shrink-0">
                 {(hasShop && profile.shopLogo)
-                  ? <img src={profile.shopLogo} alt="" className="w-full h-full object-cover"/>
+                  ? (
+                    <button type="button" onClick={() => setLightboxImg(profile.shopLogo)} className="w-full h-full cursor-zoom-in" aria-label={t('public.viewFullscreen')}>
+                      <img src={profile.shopLogo} alt="" className="w-full h-full object-cover"/>
+                    </button>
+                  )
                   : profile.avatar
-                  ? <img src={profile.avatar} alt="" className="w-full h-full object-cover"/>
+                  ? (
+                    <button type="button" onClick={() => setLightboxImg(profile.avatar)} className="w-full h-full cursor-zoom-in" aria-label={t('public.viewFullscreen')}>
+                      <img src={profile.avatar} alt="" className="w-full h-full object-cover"/>
+                    </button>
+                  )
                   : <span className="text-2xl sm:text-3xl font-bold text-primary-700">{profile.firstName[0]}{profile.lastName[0]}</span>}
               </div>
               <div className="flex items-center gap-2 pb-1">
@@ -257,6 +276,10 @@ export default function PublicProfilPage() {
 
         <ReviewSection sellerId={id as string} />
       </div>
+
+      {lightboxImg && (
+        <ImageLightbox images={[lightboxImg]} index={0} onClose={() => setLightboxImg(null)} />
+      )}
 
       {/* Modal Signalement profil */}
       {showReport && (

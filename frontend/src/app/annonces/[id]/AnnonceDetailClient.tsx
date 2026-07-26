@@ -22,6 +22,7 @@ import ReviewSection from '@/components/ReviewSection';
 import { AnnonceCard } from '@/components/annonces/AnnonceGrid';
 import { useRecentlyViewed, type RecentAnnonce } from '@/hooks/useRecentlyViewed';
 import BackButton from '@/components/BackButton';
+import ImageLightbox from '@/components/ImageLightbox';
 
 const REPORT_REASON_KEYS = [
   { value: 'SCAM',                  key: 'scam',                  Icon: AlertTriangle },
@@ -37,6 +38,7 @@ export default function AnnonceDetailPage() {
   const { id } = useParams();
   const { data, isLoading } = useAnnonce(id as string);
   const [imgIndex, setImgIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [showReport, setShowReport] = useState(false);
@@ -386,11 +388,18 @@ export default function AnnonceDetailPage() {
             <div className="bg-white rounded-2xl border border-dark-100 overflow-hidden">
               <div className="relative aspect-[4/3] bg-dark-100">
                 {images.length > 0 ? (
-                  <img
-                    src={images[imgIndex]?.url}
-                    alt={annonce.title}
-                    className="w-full h-full object-cover"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setLightboxOpen(true)}
+                    className="w-full h-full cursor-zoom-in"
+                    aria-label={t('gallery.viewFullscreen')}
+                  >
+                    <img
+                      src={images[imgIndex]?.url}
+                      alt={annonce.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-dark-50 to-dark-100">
                     <ImageIcon size={64} className="text-dark-200" />
@@ -485,6 +494,16 @@ export default function AnnonceDetailPage() {
                 </div>
               )}
             </div>
+
+            {lightboxOpen && images.length > 0 && (
+              <ImageLightbox
+                images={images.map((img: any) => img.url)}
+                index={imgIndex}
+                onClose={() => setLightboxOpen(false)}
+                onIndexChange={setImgIndex}
+                alt={annonce.title}
+              />
+            )}
 
             {/* Infos annonce */}
             <div className="bg-white rounded-2xl border border-dark-100 p-6">

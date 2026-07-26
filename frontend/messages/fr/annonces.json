@@ -82,7 +82,8 @@
     "gallery": {
       "removeFavorite": "Retirer des favoris",
       "addFavorite": "Ajouter aux favoris",
-      "share": "Partager"
+      "share": "Partager",
+      "viewFullscreen": "Voir en grand"
     },
     "badges": {
       "featured": "À la une"

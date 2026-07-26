@@ -82,7 +82,8 @@
     "gallery": {
       "removeFavorite": "取消收藏",
       "addFavorite": "添加到收藏",
-      "share": "分享"
+      "share": "分享",
+      "viewFullscreen": "查看大图"
     },
     "badges": {
       "featured": "精选"

@@ -64,12 +64,15 @@ function showNudgeToast(task: Task, t: ReturnType<typeof useTranslations>) {
 // temps, entièrement désactivable. Célèbre aussi les tâches accomplies.
 export default function OnboardingNudge() {
   const t = useTranslations('onboarding');
-  const { isAuthenticated, _hasHydrated } = useAuthStore();
+  const { user, isAuthenticated, _hasHydrated } = useAuthStore();
   const pathname = usePathname();
   const prevTasksRef = useRef<Record<string, boolean> | null>(null);
 
   useEffect(() => {
     if (!_hasHydrated || !isAuthenticated) return;
+    // Les tâches proposées (publier une annonce, ouvrir une boutique...) ne concernent
+    // pas les comptes admin, qui se retrouvaient donc relancés indéfiniment.
+    if (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') return;
     if (localStorage.getItem(HIDE_KEY) === '1') return;
 
     let cancelled = false;
@@ -104,7 +107,7 @@ export default function OnboardingNudge() {
     }, CHECK_DELAY_MS);
 
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [_hasHydrated, isAuthenticated, pathname]);
+  }, [_hasHydrated, isAuthenticated, pathname, user?.role]);
 
   return null;
 }

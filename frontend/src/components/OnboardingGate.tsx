@@ -16,6 +16,9 @@ export default function OnboardingGate() {
   useEffect(() => {
     if (!_hasHydrated || !isAuthenticated || !user) return;
     if (user.onboardingDone) return;
+    // Les comptes admin ne doivent jamais voir ce sondage (basé sur le rôle en base,
+    // donc pas de risque de réapparition après reconnexion/mise à jour).
+    if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') return;
 
     // Ne montre le sondage qu'aux comptes récents (≤ 30 jours)
     if (user.createdAt) {

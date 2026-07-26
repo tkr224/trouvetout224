@@ -82,7 +82,8 @@
     "gallery": {
       "removeFavorite": "Remove from favorites",
       "addFavorite": "Add to favorites",
-      "share": "Share"
+      "share": "Share",
+      "viewFullscreen": "View fullscreen"
     },
     "badges": {
       "featured": "Featured"
