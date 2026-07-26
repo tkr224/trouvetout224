@@ -16,13 +16,17 @@ interface ImageLightboxProps {
 // l'ouverture), donc rien n'est chargé en avance.
 export default function ImageLightbox({ images, index, onClose, onIndexChange, alt = '' }: ImageLightboxProps) {
   const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const imgRef = useRef<HTMLImageElement>(null);
   const touchStartX = useRef<number | null>(null);
   const pinchStartDist = useRef<number | null>(null);
   const pinchStartScale = useRef(1);
+  const panStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
   const count = images.length;
 
   const goTo = useCallback((i: number) => {
     setScale(1);
+    setOffset({ x: 0, y: 0 });
     onIndexChange?.((i + count) % count);
   }, [count, onIndexChange]);
   const goPrev = useCallback(() => goTo(index - 1), [goTo, index]);
@@ -43,6 +47,15 @@ export default function ImageLightbox({ images, index, onClose, onIndexChange, a
     };
   }, [onClose, goPrev, goNext, count]);
 
+  // Empêche de faire glisser l'image entièrement hors de l'écran une fois zoomée.
+  const clamp = useCallback((ox: number, oy: number, s: number) => {
+    const el = imgRef.current;
+    if (!el) return { x: ox, y: oy };
+    const maxX = Math.max(0, (el.offsetWidth * s - window.innerWidth) / 2);
+    const maxY = Math.max(0, (el.offsetHeight * s - window.innerHeight) / 2);
+    return { x: Math.min(maxX, Math.max(-maxX, ox)), y: Math.min(maxY, Math.max(-maxY, oy)) };
+  }, []);
+
   const touchDistance = (touches: React.TouchList) =>
     Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
 
@@ -52,17 +65,25 @@ export default function ImageLightbox({ images, index, onClose, onIndexChange, a
       pinchStartScale.current = scale;
     } else if (e.touches.length === 1) {
       touchStartX.current = e.touches[0].clientX;
+      panStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, ox: offset.x, oy: offset.y };
     }
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
     if (e.touches.length === 2 && pinchStartDist.current) {
       const ratio = touchDistance(e.touches) / pinchStartDist.current;
-      setScale(Math.min(4, Math.max(1, pinchStartScale.current * ratio)));
+      const next = Math.min(4, Math.max(1, pinchStartScale.current * ratio));
+      setScale(next);
+      setOffset((o) => clamp(o.x, o.y, next));
+    } else if (e.touches.length === 1 && scale > 1 && panStart.current) {
+      const dx = e.touches[0].clientX - panStart.current.x;
+      const dy = e.touches[0].clientY - panStart.current.y;
+      setOffset(clamp(panStart.current.ox + dx, panStart.current.oy + dy, scale));
     }
   };
 
   const onTouchEnd = (e: React.TouchEvent) => {
+    // Glissement pour changer d'image : seulement si on n'est pas zoomé (sinon ça sert à se déplacer dans l'image).
     if (scale === 1 && touchStartX.current !== null && e.changedTouches.length === 1) {
       const dx = e.changedTouches[0].clientX - touchStartX.current;
       if (Math.abs(dx) > 50 && count > 1) {
@@ -71,6 +92,37 @@ export default function ImageLightbox({ images, index, onClose, onIndexChange, a
     }
     touchStartX.current = null;
     pinchStartDist.current = null;
+    panStart.current = null;
+  };
+
+  // Glisser à la souris (ordinateur) pour se déplacer dans l'image une fois zoomée.
+  const onMouseDown = (e: React.MouseEvent) => {
+    if (scale === 1) return;
+    e.preventDefault();
+    panStart.current = { x: e.clientX, y: e.clientY, ox: offset.x, oy: offset.y };
+
+    const onMove = (ev: MouseEvent) => {
+      if (!panStart.current) return;
+      const dx = ev.clientX - panStart.current.x;
+      const dy = ev.clientY - panStart.current.y;
+      setOffset(clamp(panStart.current.ox + dx, panStart.current.oy + dy, scale));
+    };
+    const onUp = () => {
+      panStart.current = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
+  const toggleZoom = () => {
+    if (scale > 1) {
+      setScale(1);
+      setOffset({ x: 0, y: 0 });
+    } else {
+      setScale(2);
+    }
   };
 
   return (
@@ -114,15 +166,21 @@ export default function ImageLightbox({ images, index, onClose, onIndexChange, a
       )}
 
       <img
+        ref={imgRef}
         src={images[index]}
         alt={alt}
         onClick={(e) => e.stopPropagation()}
-        onDoubleClick={(e) => { e.stopPropagation(); setScale((s) => (s > 1 ? 1 : 2)); }}
+        onDoubleClick={(e) => { e.stopPropagation(); toggleZoom(); }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
-        style={{ transform: `scale(${scale})` }}
-        className="max-w-full max-h-full object-contain rounded select-none touch-none transition-transform duration-150"
+        onMouseDown={onMouseDown}
+        style={{
+          transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+          transition: panStart.current ? 'none' : 'transform 0.15s ease',
+          cursor: scale > 1 ? 'grab' : 'zoom-in',
+        }}
+        className="max-w-full max-h-full object-contain rounded select-none touch-none"
         draggable={false}
       />
     </div>
