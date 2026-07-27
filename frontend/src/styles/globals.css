@@ -2,7 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700;800&display=swap');
+/* Police : Plus Jakarta Sans, auto-hébergée via next/font (voir src/lib/fonts.ts)
+   — la variable --font-jakarta est injectée par la classe posée sur <html>,
+   pas besoin de @import ici (évite une requête externe bloquante). */
 
 /* ══════════════════════════════════════════════════════════════════════
    VARIABLES CSS — Palette primary (RGB triplets pour Tailwind /opacity)
@@ -10,9 +12,6 @@
    Thème par défaut : Vert Guinée
    ══════════════════════════════════════════════════════════════════════ */
 :root {
-  --font-inter:   'Inter', sans-serif;
-  --font-poppins: 'Poppins', sans-serif;
-
   /* Fonds par défaut — thème de base GUINÉEN : blanc-vert doux (pas de beige/blanc pur) */
   --bg-page: #F2F8F4;
   --card-bg: #FCFEFD;
@@ -647,7 +646,7 @@ html[data-color="futur3d"] body::before {
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: var(--font-inter);
+  font-family: var(--font-jakarta), system-ui, sans-serif;
   background-color: var(--bg-page, #f5f2eb);
   color: #1e293b;
   -webkit-font-smoothing: antialiased;

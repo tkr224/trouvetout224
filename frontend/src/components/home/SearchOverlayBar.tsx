@@ -45,13 +45,13 @@ export default function SearchOverlayBar({ selectedCity, onCityChange }: Props) 
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder={t('search.placeholder')}
-              className="w-full pl-10 pr-4 py-2.5 border border-dark-200 dark:border-dark-600 rounded-xl text-sm bg-dark-50 dark:bg-dark-800 dark:text-white focus:bg-white dark:focus:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+              className="w-full pl-10 pr-4 py-3 border border-dark-200 dark:border-dark-600 rounded-xl text-sm bg-dark-50 dark:bg-dark-800 dark:text-white focus:bg-white dark:focus:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
             />
           </div>
           <select
             value={categorySlug}
             onChange={e => setCategorySlug(e.target.value)}
-            className="border border-dark-200 dark:border-dark-600 rounded-xl px-3 py-2.5 text-sm bg-dark-50 dark:bg-dark-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all max-w-full sm:max-w-[180px]"
+            className="border border-dark-200 dark:border-dark-600 rounded-xl px-3 py-3 text-sm bg-dark-50 dark:bg-dark-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all max-w-full sm:max-w-[180px]"
           >
             <option value="">{t('searchOverlay.categoryAll')}</option>
             {categories?.map(c => (
@@ -61,21 +61,21 @@ export default function SearchOverlayBar({ selectedCity, onCityChange }: Props) 
           <select
             value={selectedCity}
             onChange={e => onCityChange(e.target.value)}
-            className="border border-dark-200 dark:border-dark-600 rounded-xl px-3 py-2.5 text-sm bg-dark-50 dark:bg-dark-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all max-w-full sm:max-w-[160px]"
+            className="border border-dark-200 dark:border-dark-600 rounded-xl px-3 py-3 text-sm bg-dark-50 dark:bg-dark-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all max-w-full sm:max-w-[160px]"
           >
             <option value="">{t('search.cityAll')}</option>
             {cities?.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
           </select>
           <button
             type="submit"
-            className="flex items-center justify-center gap-1.5 px-5 py-2.5 bg-gold-400 hover:bg-gold-500 active:scale-95 text-dark-900 font-bold rounded-xl text-sm transition-all whitespace-nowrap shadow-sm"
+            className="flex items-center justify-center gap-1.5 px-5 py-3 bg-gold-400 hover:bg-gold-500 active:scale-95 text-dark-900 font-bold rounded-xl text-sm transition-all whitespace-nowrap shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2"
           >
             <Search size={14} />
             {t('search.button')}
           </button>
           <Link
             href="/annonces/publier"
-            className="hidden md:flex items-center gap-1.5 px-4 py-2.5 bg-primary-700 hover:bg-primary-800 active:scale-95 text-white font-bold rounded-xl text-sm transition-all whitespace-nowrap"
+            className="hidden md:flex items-center gap-1.5 px-4 py-3 bg-primary-700 hover:bg-primary-800 active:scale-95 text-white font-bold rounded-xl text-sm transition-all whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2"
           >
             <Plus size={14} /> {t('search.publish')}
           </Link>

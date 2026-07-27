@@ -58,7 +58,7 @@ export default function LatestAnnoncesSection() {
           <button
             onClick={() => setSortMenuOpen(v => !v)}
             onBlur={() => setTimeout(() => setSortMenuOpen(false), 150)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border border-dark-200 dark:border-dark-600 bg-white dark:bg-dark-800 text-dark-600 dark:text-dark-300"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border border-dark-200 dark:border-dark-600 bg-white dark:bg-dark-800 text-dark-600 dark:text-dark-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             {(() => {
               const cur = SORTS.find(s => s.key === sort) || SORTS[0];
@@ -97,7 +97,7 @@ export default function LatestAnnoncesSection() {
               <button
                 key={s.key}
                 onClick={() => setSort(s.key)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border transition-all ${
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                   sort === s.key
                     ? 'bg-primary-700 text-white border-primary-700 shadow-premium'
                     : 'bg-white dark:bg-dark-800 text-dark-600 dark:text-dark-300 border-dark-200 dark:border-dark-600 hover:border-primary-400 hover:text-primary-700'

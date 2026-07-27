@@ -7,6 +7,7 @@ import { QueryProvider } from '@/components/providers/QueryProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import dynamic from 'next/dynamic';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
+import { plusJakartaSans, outfit } from '@/lib/fonts';
 
 const SplashScreen        = dynamic(() => import('@/components/SplashScreen'),                    { ssr: false });
 const OnboardingGate      = dynamic(() => import('@/components/OnboardingGate'),                  { ssr: false });
@@ -151,7 +152,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const messages = await getMessages();
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning className={`${plusJakartaSans.variable} ${outfit.variable}`}>
       <head>
         {/* Anti-flash thème sombre — doit s'exécuter avant le premier paint */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />

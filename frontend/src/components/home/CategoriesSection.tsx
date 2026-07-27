@@ -40,7 +40,7 @@ function CategoryCard({ cat }: { cat: { slug: string; label: string; count: numb
   return (
     <Link
       href={cat.href}
-      className="group relative block aspect-[4/3] rounded-xl overflow-hidden bg-gradient-to-br from-primary-700 to-primary-900 border border-dark-100 dark:border-dark-700 shadow-sm hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300"
+      className="group relative block aspect-[4/3] rounded-xl overflow-hidden bg-gradient-to-br from-primary-700 to-primary-900 border border-dark-100 dark:border-dark-700 shadow-sm hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 focus-visible:ring-offset-2"
     >
       {/* Fallback dégradé vert/or/rouge (identité guinéenne) — visible seulement si la photo ci-dessous échoue */}
       <span className="absolute inset-x-0 top-0 h-1 bg-gold-400" aria-hidden="true" />
@@ -112,7 +112,7 @@ export default function CategoriesSection() {
             ))}
         <Link
           href="/annonces/lister"
-          className="shrink-0 w-28 snap-start relative aspect-[4/3] rounded-xl overflow-hidden bg-gradient-to-br from-primary-700 to-primary-900 border border-primary-800 flex flex-col items-center justify-center text-center p-2.5"
+          className="shrink-0 w-28 snap-start relative aspect-[4/3] rounded-xl overflow-hidden bg-gradient-to-br from-primary-700 to-primary-900 border border-primary-800 flex flex-col items-center justify-center text-center p-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 focus-visible:ring-offset-2"
         >
           <MoreHorizontal size={16} className="text-white mb-1" />
           <p className="font-bold text-xs text-white leading-tight">{t('categoriesSection.seeAll')}</p>
@@ -127,7 +127,7 @@ export default function CategoriesSection() {
         {!loadingCats && (
           <Link
             href="/annonces/lister"
-            className="group relative aspect-[4/3] rounded-xl overflow-hidden bg-gradient-to-br from-primary-700 to-primary-900 border border-primary-800 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300 flex flex-col items-center justify-center text-center p-2.5"
+            className="group relative aspect-[4/3] rounded-xl overflow-hidden bg-gradient-to-br from-primary-700 to-primary-900 border border-primary-800 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300 flex flex-col items-center justify-center text-center p-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 focus-visible:ring-offset-2"
           >
             <div className="w-8 h-8 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center mb-1.5 group-hover:bg-gold-400/90 transition-colors">
               <MoreHorizontal size={16} className="text-white" />

@@ -230,13 +230,13 @@ export default function HeroSection() {
             <div className="flex flex-wrap items-center gap-3 justify-center lg:justify-start" style={heroFadeIn(450)}>
               <Link
                 href="/annonces/publier"
-                className="hero-cta-glow-gold inline-flex items-center gap-2 bg-gold-400 hover:bg-gold-500 active:scale-95 text-dark-900 font-bold px-5 py-2.5 rounded-xl text-sm transition-all"
+                className="hero-cta-glow-gold inline-flex items-center gap-2 bg-gold-400 hover:bg-gold-500 active:scale-95 text-dark-900 font-bold px-5 py-3 rounded-xl text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-900"
               >
                 <Zap size={16} /> {t('hero.ctaPublish')}
               </Link>
               <Link
                 href="/annonces/lister"
-                className="hero-cta-glow-outline inline-flex items-center gap-2 border-2 border-white/50 text-white font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-white/15 active:scale-95 transition-all backdrop-blur-sm"
+                className="hero-cta-glow-outline inline-flex items-center gap-2 border-2 border-white/50 text-white font-semibold px-5 py-3 rounded-xl text-sm hover:bg-white/15 active:scale-95 transition-all backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-900"
               >
                 <Eye size={14} /> {t('hero.ctaBrowse')} <ArrowRight size={14} />
               </Link>

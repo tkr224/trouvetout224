@@ -52,8 +52,8 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans:    ['var(--font-inter)', 'system-ui', 'sans-serif'],
-        display: ['var(--font-poppins)', 'system-ui', 'sans-serif'],
+        sans:    ['var(--font-jakarta)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-outfit)', 'var(--font-jakarta)', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         card:        '0 2px 12px rgba(0,0,0,0.07)',
