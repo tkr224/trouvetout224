@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import BackButton from '@/components/BackButton';
+import CulturalPattern from '@/components/CulturalPattern';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import {
@@ -136,7 +137,8 @@ export default function VendeurDashboard() {
     <>
     <div className="min-h-screen bg-dark-50">
       <Navbar />
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="relative isolate overflow-hidden max-w-6xl mx-auto px-4 py-8">
+        <CulturalPattern />
         <BackButton label={t('pageTitle')} fallbackHref="/profil" className="mb-3" />
 
         {/* En-tête */}

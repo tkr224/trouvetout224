@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
+import CulturalPattern from '@/components/CulturalPattern';
+import EmptyState from '@/components/ui/EmptyState';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import Link from 'next/link';
@@ -98,7 +100,8 @@ export default function NotificationsPage() {
   return (
     <div className="min-h-screen bg-dark-50">
       <Navbar />
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="relative isolate overflow-hidden max-w-2xl mx-auto px-4 py-8">
+        <CulturalPattern />
 
         {/* En-tête */}
         <div className="flex items-center justify-between mb-6">
@@ -134,10 +137,8 @@ export default function NotificationsPage() {
             ))}
           </div>
         ) : notifications.length === 0 ? (
-          <div className="card p-16 text-center">
-            <Bell size={52} className="text-dark-200 mx-auto mb-4" />
-            <p className="font-semibold text-dark-700 text-lg mb-1">{t('emptyTitle')}</p>
-            <p className="text-dark-500 text-sm">{t('emptyMsg')}</p>
+          <div className="card">
+            <EmptyState icon={Bell} title={t('emptyTitle')} message={t('emptyMsg')} />
           </div>
         ) : (
           <div className="space-y-2">

@@ -5,5 +5,11 @@
   "home": "首页",
   "browseListings": "浏览广告",
   "help": "帮助",
-  "whatsapp": "WhatsApp 客服"
+  "whatsapp": "WhatsApp 客服",
+  "error": {
+    "title": "出现错误",
+    "subtitle": "我们这边出了点问题。请重试，或返回首页——网站其他部分运行正常。",
+    "retry": "重试",
+    "home": "首页"
+  }
 }

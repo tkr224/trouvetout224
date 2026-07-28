@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import CulturalPattern from '@/components/CulturalPattern';
 import { Zap, Clock, Bell, X, Sparkles } from 'lucide-react';
 
 export default function PremiumPage() {
@@ -12,7 +13,8 @@ export default function PremiumPage() {
   return (
     <div className="min-h-screen bg-dark-50">
       <Navbar />
-      <div className="max-w-3xl mx-auto px-4 py-20">
+      <div className="relative isolate overflow-hidden max-w-3xl mx-auto px-4 py-20">
+        <CulturalPattern />
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-gold-100 text-gold-700 px-4 py-2 rounded-full text-sm font-semibold mb-6">
             <Zap size={16} /> {t('badge')}

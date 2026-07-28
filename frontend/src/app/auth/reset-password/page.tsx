@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Loader2, Eye, EyeOff, CheckCircle, XCircle, ArrowLeft, ShoppingBag, Lock, Zap } from 'lucide-react';
 import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
+import CulturalPattern from '@/components/CulturalPattern';
 
 function ResetPasswordContent() {
   const t = useTranslations('auth.resetPassword');
@@ -53,6 +54,9 @@ function ResetPasswordContent() {
 
       {/* Panneau gauche décoratif — desktop uniquement */}
       <aside className="hidden lg:flex w-[460px] flex-shrink-0 sticky top-0 h-screen flex-col items-center justify-center p-12 overflow-hidden bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900">
+        <div style={{ ['--cultural-stroke' as any]: '#ffffff', ['--cultural-pattern-opacity' as any]: 0.06 }}>
+          <CulturalPattern />
+        </div>
         <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-gold-400/20 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-guinea-500/20 blur-3xl pointer-events-none" />
         <div className="absolute top-1/3 right-8 w-40 h-40 rounded-full bg-primary-500/25 blur-2xl pointer-events-none" />

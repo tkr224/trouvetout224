@@ -119,7 +119,14 @@
       "available": "有",
       "unavailable": "无",
       "serviceType": "服务类型",
-      "amenities": "配套设施"
+      "amenities": "配套设施",
+      "vehicleMake": "品牌",
+      "vehicleModel": "型号",
+      "vehicleYear": "年份",
+      "vehicleMileage": "里程",
+      "vehicleFuel": "燃料",
+      "vehicleTransmission": "变速箱",
+      "eventDate": "活动日期"
     },
     "description": {
       "title": "描述"

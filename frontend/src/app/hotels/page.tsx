@@ -6,6 +6,9 @@ import { Search, MapPin, Building2, Star, Wifi, Car, Wind, Waves, Coffee, Zap } 
 import Navbar from '@/components/layout/Navbar';
 import PageViewTracker from '@/components/PageViewTracker';
 import Footer from '@/components/layout/Footer';
+import CulturalPattern from '@/components/CulturalPattern';
+import ScrollReveal from '@/components/ScrollReveal';
+import EmptyState from '@/components/ui/EmptyState';
 import { api } from '@/lib/api';
 import Link from 'next/link';
 
@@ -66,6 +69,9 @@ export default function HotelsPage() {
 
       {/* Hero */}
       <section className="bg-gradient-to-br from-violet-700 via-violet-800 to-violet-900 py-16 px-4 relative overflow-hidden">
+        <div style={{ ['--cultural-stroke' as any]: '#ffffff', ['--cultural-pattern-opacity' as any]: 0.06 }}>
+          <CulturalPattern />
+        </div>
         <div className="absolute right-8 top-4 opacity-5 pointer-events-none">
           <Building2 size={200} className="text-white" />
         </div>
@@ -151,31 +157,24 @@ export default function HotelsPage() {
             ))}
           </div>
         ) : hotels.length === 0 ? (
-          <div className="card p-16 text-center max-w-md mx-auto">
-            <div className="w-20 h-20 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-5">
-              <Building2 size={36} className="text-violet-400" />
-            </div>
-            <h3 className="font-display font-bold text-dark-800 text-xl mb-2">
-              {t('noResultsTitle')}
-            </h3>
-            <p className="text-dark-500 text-sm mb-6">
-              {t('noResultsMsg')}
-            </p>
-            <Link href="/annonces/publier" className="btn-primary inline-flex items-center gap-2">
-              <Building2 size={15} /> {t('publishAccommodation')}
-            </Link>
-          </div>
+          <EmptyState
+            icon={Building2}
+            title={t('noResultsTitle')}
+            message={t('noResultsMsg')}
+            actionLabel={t('publishAccommodation')}
+            actionHref="/annonces/publier"
+          />
         ) : (
           <>
             <p className="text-sm text-dark-500 mb-5">
               {t('resultsCount', { count: hotels.length })}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {hotels.map((h: any) => (
+              {hotels.map((h: any, i: number) => (
+                <ScrollReveal key={h.id} delay={Math.min(i, 5) * 40}>
                 <Link
-                  key={h.id}
                   href={`/hotels/${h.slug || h.id}`}
-                  className="card group overflow-hidden hover:shadow-card-hover transition-all duration-300"
+                  className="card group overflow-hidden hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300"
                 >
                   <div className="aspect-[4/3] bg-violet-50 overflow-hidden relative">
                     {h.images?.[0]?.url ? (
@@ -245,6 +244,7 @@ export default function HotelsPage() {
                     </div>
                   </div>
                 </Link>
+                </ScrollReveal>
               ))}
             </div>
           </>

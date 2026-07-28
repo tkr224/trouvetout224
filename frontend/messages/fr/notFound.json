@@ -5,5 +5,11 @@
   "home": "Accueil",
   "browseListings": "Parcourir les annonces",
   "help": "Aide",
-  "whatsapp": "Support WhatsApp"
+  "whatsapp": "Support WhatsApp",
+  "error": {
+    "title": "Une erreur est survenue",
+    "subtitle": "Quelque chose s'est mal passé de notre côté. Réessaie, ou reviens à l'accueil — le reste du site fonctionne très bien.",
+    "retry": "Réessayer",
+    "home": "Accueil"
+  }
 }

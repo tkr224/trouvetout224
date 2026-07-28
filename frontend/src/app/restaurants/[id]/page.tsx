@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   Utensils, MapPin, Phone, MessageCircle, Clock, ChevronLeft, UtensilsCrossed,
-  Truck, ShoppingBag, X, ChevronRight,
+  Truck, ShoppingBag, X, ChevronRight, Globe,
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -228,6 +228,15 @@ export default function RestaurantDetailPage() {
                     <span className="font-semibold text-dark-700">{Number(r.avgPrice).toLocaleString('fr-GN')} GNF</span>
                     <span className="text-dark-400">{t('perPersonAvg')}</span>
                   </p>
+                )}
+                {r.website && (
+                  <a
+                    href={r.website.startsWith('http') ? r.website : `https://${r.website}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="text-dark-500 text-sm flex items-center gap-1.5 hover:text-red-600 transition-colors w-fit"
+                  >
+                    <Globe size={14} className="text-red-400 shrink-0" /> {r.website}
+                  </a>
                 )}
               </div>
 

@@ -5,5 +5,11 @@
   "home": "Home",
   "browseListings": "Browse listings",
   "help": "Help",
-  "whatsapp": "WhatsApp support"
+  "whatsapp": "WhatsApp support",
+  "error": {
+    "title": "Something went wrong",
+    "subtitle": "An error happened on our end. Try again, or head back home — the rest of the site works just fine.",
+    "retry": "Try again",
+    "home": "Home"
+  }
 }

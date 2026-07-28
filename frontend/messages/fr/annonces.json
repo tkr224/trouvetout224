@@ -119,7 +119,14 @@
       "available": "Disponible",
       "unavailable": "Non disponible",
       "serviceType": "Type de service",
-      "amenities": "Commodités"
+      "amenities": "Commodités",
+      "vehicleMake": "Marque",
+      "vehicleModel": "Modèle",
+      "vehicleYear": "Année",
+      "vehicleMileage": "Kilométrage",
+      "vehicleFuel": "Carburant",
+      "vehicleTransmission": "Transmission",
+      "eventDate": "Date de l'événement"
     },
     "description": {
       "title": "Description"

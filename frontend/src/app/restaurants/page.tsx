@@ -6,6 +6,9 @@ import { Search, MapPin, Utensils, MessageCircle, Phone, Clock, ChefHat, Externa
 import Navbar from '@/components/layout/Navbar';
 import PageViewTracker from '@/components/PageViewTracker';
 import Footer from '@/components/layout/Footer';
+import CulturalPattern from '@/components/CulturalPattern';
+import ScrollReveal from '@/components/ScrollReveal';
+import EmptyState from '@/components/ui/EmptyState';
 import { api } from '@/lib/api';
 import Link from 'next/link';
 
@@ -51,6 +54,9 @@ export default function RestaurantsPage() {
 
       {/* Hero */}
       <section className="bg-gradient-to-br from-orange-600 via-red-600 to-red-800 py-16 px-4 relative overflow-hidden">
+        <div style={{ ['--cultural-stroke' as any]: '#ffffff', ['--cultural-pattern-opacity' as any]: 0.06 }}>
+          <CulturalPattern />
+        </div>
         <div className="absolute inset-0 opacity-5 pointer-events-none flex items-center justify-end pr-8">
           <Utensils size={200} className="text-white" />
         </div>
@@ -135,26 +141,22 @@ export default function RestaurantsPage() {
             ))}
           </div>
         ) : restaurants.length === 0 ? (
-          <div className="card p-16 text-center max-w-md mx-auto">
-            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-5">
-              <Utensils size={36} className="text-red-400" />
-            </div>
-            <h3 className="font-display font-bold text-dark-800 text-xl mb-2">{t('noResultsTitle')}</h3>
-            <p className="text-dark-500 text-sm mb-6">
-              {q ? t('noResultsForQuery', { query: q }) : t('noResultsGeneric')}
-            </p>
-            <Link href="/restaurants/publier" className="btn-primary inline-flex items-center gap-2">
-              <Plus size={15} /> {t('addYours')}
-            </Link>
-          </div>
+          <EmptyState
+            icon={Utensils}
+            title={t('noResultsTitle')}
+            message={q ? t('noResultsForQuery', { query: q }) : t('noResultsGeneric')}
+            actionLabel={t('addYours')}
+            actionHref="/restaurants/publier"
+          />
         ) : (
           <>
             <p className="text-sm text-dark-500 mb-5">
               {t('resultsCount', { count: restaurants.length })}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {restaurants.map((r: any) => (
-                <div key={r.id} className="card group overflow-hidden hover:shadow-card-hover transition-all duration-300">
+              {restaurants.map((r: any, i: number) => (
+                <ScrollReveal key={r.id} delay={Math.min(i, 5) * 40}>
+                <div className="card group overflow-hidden hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300">
                   {/* Image */}
                   <div className="aspect-[4/3] bg-red-50 overflow-hidden relative">
                     {r.images?.[0]?.url ? (
@@ -249,6 +251,7 @@ export default function RestaurantsPage() {
                     </div>
                   </div>
                 </div>
+                </ScrollReveal>
               ))}
             </div>
           </>

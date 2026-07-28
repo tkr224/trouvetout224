@@ -7,6 +7,7 @@ import { Loader2, ShoppingBag, Store, Repeat2, CheckCircle, ArrowRight } from 'l
 import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
+import CulturalPattern from '@/components/CulturalPattern';
 
 type AccountType = 'ACHETEUR' | 'VENDEUR' | 'LES_DEUX';
 
@@ -53,7 +54,8 @@ export default function ChoisirProfilPage() {
   if (!_hasHydrated || !isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-dark-50 px-6 py-12">
+    <div className="relative isolate overflow-hidden min-h-screen flex items-center justify-center bg-dark-50 px-6 py-12">
+      <CulturalPattern />
       <div className="w-full max-w-lg bg-white rounded-3xl shadow-premium p-8">
         <div className="flex justify-center mb-6">
           <Logo size={56} />

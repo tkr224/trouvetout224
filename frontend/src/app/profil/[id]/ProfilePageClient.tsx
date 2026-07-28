@@ -14,6 +14,7 @@ import toast from 'react-hot-toast';
 import SubscribeButton from '@/components/SubscribeButton';
 import BackButton from '@/components/BackButton';
 import ImageLightbox from '@/components/ImageLightbox';
+import CulturalPattern from '@/components/CulturalPattern';
 
 const SHOP_COLORS = [
   { key: 'vert',   gradient: 'linear-gradient(135deg,#16a34a,#14532d)', dot: '#16a34a' },
@@ -122,7 +123,8 @@ export default function PublicProfilPage() {
   return (
     <div className="min-h-screen bg-dark-50">
       <Navbar/>
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="relative isolate overflow-hidden max-w-5xl mx-auto px-4 py-8">
+        <CulturalPattern />
         <BackButton label={hasShop ? profile.shopName : profile.firstName} fallbackHref="/boutiques" className="mb-3" />
         <div className="card overflow-hidden mb-6 animate-fade-in-up">
 

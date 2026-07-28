@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import CulturalPattern from '@/components/CulturalPattern';
+import ScrollReveal from '@/components/ScrollReveal';
+import EmptyState from '@/components/ui/EmptyState';
 import { api } from '@/lib/api';
 import Link from 'next/link';
 import {
@@ -79,10 +82,13 @@ export default function ServicesPage() {
       <Navbar />
 
       {/* Hero */}
-      <div className="bg-gradient-to-br from-teal-700 to-teal-500 text-white py-10 px-4">
+      <div className="relative isolate overflow-hidden bg-gradient-to-br from-teal-700 to-teal-500 text-white py-10 px-4">
+        <div style={{ ['--cultural-stroke' as any]: '#ffffff', ['--cultural-pattern-opacity' as any]: 0.08 }}>
+          <CulturalPattern />
+        </div>
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.25)]">
               <Wrench size={20} />
             </div>
             <div>
@@ -149,20 +155,18 @@ export default function ServicesPage() {
             ))}
           </div>
         ) : annonces.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 bg-teal-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Wrench size={28} className="text-teal-500" />
-            </div>
-            <p className="text-dark-500 font-semibold text-lg mb-2">{t('noResultsTitle')}</p>
-            <p className="text-dark-400 text-sm mb-5">{t('noResultsMsg')}</p>
-            <Link href="/annonces/publier" className="btn-primary inline-flex items-center gap-2">
-              <Plus size={15} /> {t('publishMyService')}
-            </Link>
-          </div>
+          <EmptyState
+            icon={Wrench}
+            title={t('noResultsTitle')}
+            message={t('noResultsMsg')}
+            actionLabel={t('publishMyService')}
+            actionHref="/annonces/publier"
+          />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {annonces.map((a: any) => (
-              <div key={a.id} className="bg-white rounded-2xl border border-dark-100 overflow-hidden hover:shadow-card transition-shadow group">
+            {annonces.map((a: any, i: number) => (
+              <ScrollReveal key={a.id} delay={Math.min(i, 5) * 40}>
+              <div className="bg-white rounded-2xl border border-dark-100 overflow-hidden hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 group">
                 <Link href={`/annonces/${a.slug || a.id}`}>
                   <div className="aspect-[4/3] bg-teal-50 overflow-hidden">
                     {a.images?.[0]?.url ? (
@@ -214,6 +218,7 @@ export default function ServicesPage() {
                   </div>
                 </div>
               </div>
+              </ScrollReveal>
             ))}
           </div>
         )}

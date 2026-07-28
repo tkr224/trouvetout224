@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import BackButton from '@/components/BackButton';
+import CulturalPattern from '@/components/CulturalPattern';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 
@@ -359,7 +360,10 @@ function PublierAnnonceContent() {
       <Navbar />
 
       {/* Header band */}
-      <div className="bg-gradient-to-r from-primary-800 to-primary-600 text-white">
+      <div className="relative isolate overflow-hidden bg-gradient-to-r from-primary-800 to-primary-600 text-white">
+        <div style={{ ['--cultural-stroke' as any]: '#ffffff', ['--cultural-pattern-opacity' as any]: 0.08 }}>
+          <CulturalPattern />
+        </div>
         <div className="max-w-2xl mx-auto px-4 py-6">
           <BackButton
             label={editId ? t('pageTitleEdit') : t('pageTitle')}
@@ -367,7 +371,7 @@ function PublierAnnonceContent() {
             className="text-white/80 hover:bg-white/10 hover:text-white mb-3"
           />
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.25)]">
               <FileText size={20} />
             </div>
             <div>

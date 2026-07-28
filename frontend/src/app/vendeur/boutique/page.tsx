@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import BackButton from '@/components/BackButton';
+import CulturalPattern from '@/components/CulturalPattern';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import toast from 'react-hot-toast';
@@ -117,7 +118,8 @@ export default function BoutiquePage() {
   return (
     <div className="min-h-screen bg-dark-50">
       <Navbar />
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="relative isolate overflow-hidden max-w-3xl mx-auto px-4 py-8">
+        <CulturalPattern />
         <BackButton label={t('pageTitle')} fallbackHref="/vendeur" className="mb-3" />
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <h1 className="text-3xl font-display font-bold text-dark-900 flex items-center gap-2">

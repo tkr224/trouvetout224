@@ -5,11 +5,12 @@ import { useTranslations } from 'next-intl';
 import {
   Briefcase, MapPin, Clock, Search, Calendar,
   Mail, Send, Banknote, BadgeCheck, Timer, MessageCircle,
-  Plus, X, ChevronLeft, Building2, FileText, Users,
+  Plus, X, ChevronLeft, Building2, FileText, Users, Layers,
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import PageViewTracker from '@/components/PageViewTracker';
 import Footer from '@/components/layout/Footer';
+import CulturalPattern from '@/components/CulturalPattern';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import toast from 'react-hot-toast';
@@ -171,6 +172,9 @@ export default function EmploisPage() {
 
       {/* Hero */}
       <section className="bg-gradient-to-br from-sky-700 via-sky-800 to-slate-900 py-16 px-4 relative overflow-hidden">
+        <div style={{ ['--cultural-stroke' as any]: '#ffffff', ['--cultural-pattern-opacity' as any]: 0.06 }}>
+          <CulturalPattern />
+        </div>
         <div className="absolute right-8 top-4 opacity-5 pointer-events-none">
           <Briefcase size={200} className="text-white" />
         </div>
@@ -366,6 +370,15 @@ export default function EmploisPage() {
                       <p className="text-[10px] text-dark-500 font-medium">{t('deadline')}</p>
                       <p className="font-bold text-amber-700 text-sm mt-0.5">
                         {new Date(selectedJob.deadline).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                      </p>
+                    </div>
+                  )}
+                  {selectedJob.sector && (
+                    <div className="bg-sky-50 border border-sky-100 rounded-xl p-3 text-center">
+                      <Layers size={16} className="text-sky-600 mx-auto mb-1" />
+                      <p className="text-[10px] text-dark-500 font-medium">{t('sectorLabel')}</p>
+                      <p className="font-bold text-sky-700 text-sm mt-0.5">
+                        {t(SECTOR_META.find(s => s.value === selectedJob.sector)?.key ?? 'sectorAutre')}
                       </p>
                     </div>
                   )}

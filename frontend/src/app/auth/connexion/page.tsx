@@ -10,6 +10,7 @@ import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
 import GoogleButton from '@/components/auth/GoogleButton';
+import CulturalPattern from '@/components/CulturalPattern';
 
 function LoginContent() {
   const t = useTranslations('auth.login');
@@ -78,6 +79,9 @@ function LoginContent() {
 
       {/* ── Panneau gauche décoratif — desktop uniquement ─────────── */}
       <aside className="hidden lg:flex w-[460px] flex-shrink-0 sticky top-0 h-screen flex-col items-center justify-center p-12 overflow-hidden bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900">
+        <div style={{ ['--cultural-stroke' as any]: '#ffffff', ['--cultural-pattern-opacity' as any]: 0.06 }}>
+          <CulturalPattern />
+        </div>
         {/* Ambiances colorées */}
         <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-gold-400/20 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-guinea-500/20 blur-3xl pointer-events-none" />

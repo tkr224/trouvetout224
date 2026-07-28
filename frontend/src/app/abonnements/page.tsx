@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
+import CulturalPattern from '@/components/CulturalPattern';
+import EmptyState from '@/components/ui/EmptyState';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import Link from 'next/link';
@@ -75,7 +77,8 @@ export default function AbonnementsPage() {
   return (
     <div className="min-h-screen bg-dark-50">
       <Navbar />
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="relative isolate overflow-hidden max-w-2xl mx-auto px-4 py-8">
+        <CulturalPattern />
 
         {/* En-tête */}
         <div className="mb-6">
@@ -105,15 +108,14 @@ export default function AbonnementsPage() {
 
         /* Vide */
         ) : subs.length === 0 ? (
-          <div className="card p-16 text-center">
-            <Store size={52} className="text-dark-200 mx-auto mb-4" />
-            <p className="font-semibold text-dark-700 text-lg mb-1">{t('noShopsTitle')}</p>
-            <p className="text-dark-500 text-sm mb-6">
-              {t('noShopsMsg')}
-            </p>
-            <Link href="/annonces/lister" className="btn-primary inline-flex items-center gap-2">
-              {t('discoverListings')}
-            </Link>
+          <div className="card">
+            <EmptyState
+              icon={Store}
+              title={t('noShopsTitle')}
+              message={t('noShopsMsg')}
+              actionLabel={t('discoverListings')}
+              actionHref="/annonces/lister"
+            />
           </div>
 
         /* Liste */

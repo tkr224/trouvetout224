@@ -14,6 +14,7 @@ import {
 import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
+import CulturalPattern from '@/components/CulturalPattern';
 import GoogleButton from '@/components/auth/GoogleButton';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
@@ -243,6 +244,9 @@ export default function RegisterPage() {
 
       {/* ── Panneau gauche décoratif (desktop) ───────────────────── */}
       <aside className="hidden lg:flex w-[420px] flex-shrink-0 sticky top-0 h-screen flex-col items-center justify-center p-10 overflow-hidden bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900">
+        <div style={{ ['--cultural-stroke' as any]: '#ffffff', ['--cultural-pattern-opacity' as any]: 0.06 }}>
+          <CulturalPattern />
+        </div>
         <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-gold-400/20 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-guinea-500/20 blur-3xl pointer-events-none" />
         <div className="relative z-10 text-center">

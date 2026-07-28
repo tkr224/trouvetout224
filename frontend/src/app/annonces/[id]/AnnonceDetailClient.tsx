@@ -23,6 +23,7 @@ import { AnnonceCard } from '@/components/annonces/AnnonceGrid';
 import { useRecentlyViewed, type RecentAnnonce } from '@/hooks/useRecentlyViewed';
 import BackButton from '@/components/BackButton';
 import ImageLightbox from '@/components/ImageLightbox';
+import CulturalPattern from '@/components/CulturalPattern';
 
 const REPORT_REASON_KEYS = [
   { value: 'SCAM',                  key: 'scam',                  Icon: AlertTriangle },
@@ -316,13 +317,21 @@ export default function AnnonceDetailPage() {
     isCatTerrain && a.hasTitleDeed != null && { label: t('specs.titleDeed'), value: a.hasTitleDeed ? t('specs.available') : t('specs.unavailable') },
     a.serviceType      && { label: t('specs.serviceType'),  value: a.serviceType },
     a.amenities        && { label: t('specs.amenities'),    value: a.amenities },
+    a.vehicleMake       && { label: t('specs.vehicleMake'),       value: a.vehicleMake },
+    a.vehicleModel      && { label: t('specs.vehicleModel'),      value: a.vehicleModel },
+    a.vehicleYear       && { label: t('specs.vehicleYear'),       value: String(a.vehicleYear) },
+    a.vehicleMileage != null && { label: t('specs.vehicleMileage'), value: `${Number(a.vehicleMileage).toLocaleString('fr-GN')} km` },
+    a.vehicleFuel       && { label: t('specs.vehicleFuel'),       value: a.vehicleFuel },
+    a.vehicleTransmission && { label: t('specs.vehicleTransmission'), value: a.vehicleTransmission },
+    a.eventDate         && { label: t('specs.eventDate'),         value: new Date(a.eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) },
   ].filter(Boolean) as { label: string; value: string }[];
 
   return (
     <div className="min-h-screen bg-dark-50">
       <Navbar />
 
-      <div className="max-w-5xl mx-auto px-4 py-6">
+      <div className="relative isolate overflow-hidden max-w-5xl mx-auto px-4 py-6">
+        <CulturalPattern />
         <BackButton label={annonce.title} fallbackHref="/annonces/lister" className="mb-2 -mt-1" />
 
         {/* Fil d'Ariane */}

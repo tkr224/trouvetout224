@@ -31,6 +31,7 @@
     "toNegotiate": "Negotiable",
     "experience": "Experience",
     "deadline": "Deadline",
+    "sectorLabel": "Sector",
     "jobDescriptionTitle": "Job description",
     "requiredLevelTitle": "Required level",
     "howToApplyTitle": "How to apply",
