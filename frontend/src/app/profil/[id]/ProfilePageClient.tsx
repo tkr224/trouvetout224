@@ -6,7 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import { AnnonceCard } from '@/components/annonces/AnnonceGrid';
 import ReviewSection from '@/components/ReviewSection';
 import { api } from '@/lib/api';
-import { MapPin, Star, MessageCircle, ShoppingBag, Eye, Award, CheckCircle, Calendar, TrendingUp, Store, User, Package, Sparkles, Flag, AlertTriangle, AlertCircle, HelpCircle, X, Loader2, Users, Mail } from 'lucide-react';
+import { MapPin, Star, MessageCircle, ShoppingBag, Eye, Award, CheckCircle, Calendar, TrendingUp, Store, User, Package, Sparkles, Flag, AlertTriangle, AlertCircle, HelpCircle, X, Loader2, Users, Mail, Crown } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useAuthStore } from '@/store/auth.store';
@@ -111,8 +111,10 @@ export default function PublicProfilPage() {
 
   const shopColorData = SHOP_COLORS.find(c => c.key === profile.shopColor) || SHOP_COLORS[0];
   const sortedAnnonces = [...annonces].sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+  const isAdmin = profile.role === 'ADMIN' || profile.role === 'SUPER_ADMIN';
 
   const badges = [];
+  if (isAdmin) badges.push({ icon: Crown, label: t('public.badges.admin'), color: 'admin-official-badge' });
   if (profile.isVerified) badges.push({ icon: CheckCircle, label: t('public.badges.verifiedSeller'), color: 'bg-blue-100 text-blue-700' });
   if (profile.emailVerified) badges.push({ icon: Mail, label: t('public.badges.emailVerified'), color: 'bg-sky-100 text-sky-700' });
   if ((profile._count?.annonces || 0) >= 10 && avgRating >= 4.0) badges.push({ icon: Award, label: t('public.badges.topSeller'), color: 'bg-yellow-100 text-yellow-700' });
@@ -162,20 +164,27 @@ export default function PublicProfilPage() {
 
             {/* Ligne 1 : avatar (chevauchant la bannière) + boutons d'action */}
             <div className="flex items-end justify-between -mt-10 sm:-mt-12 mb-4 relative z-10">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border-4 border-white bg-primary-100 flex items-center justify-center shadow-card overflow-hidden shrink-0">
-                {(hasShop && profile.shopLogo)
-                  ? (
-                    <button type="button" onClick={() => setLightboxImg(profile.shopLogo)} className="w-full h-full cursor-zoom-in" aria-label={t('public.viewFullscreen')}>
-                      <img src={profile.shopLogo} alt="" className="w-full h-full object-cover"/>
-                    </button>
-                  )
-                  : profile.avatar
-                  ? (
-                    <button type="button" onClick={() => setLightboxImg(profile.avatar)} className="w-full h-full cursor-zoom-in" aria-label={t('public.viewFullscreen')}>
-                      <img src={profile.avatar} alt="" className="w-full h-full object-cover"/>
-                    </button>
-                  )
-                  : <span className="text-2xl sm:text-3xl font-bold text-primary-700">{profile.firstName[0]}{profile.lastName[0]}</span>}
+              <div className={`relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl ${isAdmin ? 'admin-avatar-ring' : ''}`}>
+                <div className="w-full h-full rounded-2xl border-4 border-white bg-primary-100 flex items-center justify-center shadow-card overflow-hidden">
+                  {(hasShop && profile.shopLogo)
+                    ? (
+                      <button type="button" onClick={() => setLightboxImg(profile.shopLogo)} className="w-full h-full cursor-zoom-in" aria-label={t('public.viewFullscreen')}>
+                        <img src={profile.shopLogo} alt="" className="w-full h-full object-cover"/>
+                      </button>
+                    )
+                    : profile.avatar
+                    ? (
+                      <button type="button" onClick={() => setLightboxImg(profile.avatar)} className="w-full h-full cursor-zoom-in" aria-label={t('public.viewFullscreen')}>
+                        <img src={profile.avatar} alt="" className="w-full h-full object-cover"/>
+                      </button>
+                    )
+                    : <span className="text-2xl sm:text-3xl font-bold text-primary-700">{profile.firstName[0]}{profile.lastName[0]}</span>}
+                </div>
+                {isAdmin && (
+                  <div className="admin-crown-badge" title={t('public.badges.admin')}>
+                    <Crown size={13} className="text-white" fill="currentColor" />
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2 pb-1">
                 {(hasShop && profile.shopWhatsapp) ? (
@@ -207,6 +216,7 @@ export default function PublicProfilPage() {
             <div className="mb-3">
               <h1 className="text-xl sm:text-2xl font-display font-bold text-dark-900 flex items-center gap-2 flex-wrap leading-snug">
                 {hasShop ? profile.shopName : `${profile.firstName} ${profile.lastName}`}
+                {isAdmin && <Crown size={18} className="text-amber-500 shrink-0" fill="currentColor" />}
                 {profile.isVerified && <CheckCircle size={18} className="text-blue-500 shrink-0" />}
               </h1>
               {hasShop && (

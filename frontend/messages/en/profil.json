@@ -86,6 +86,7 @@
       "reviews": "Reviews"
     },
     "badges": {
+      "admin": "Administrator",
       "verifiedSeller": "Verified seller",
       "emailVerified": "Verified email",
       "topSeller": "Top seller",

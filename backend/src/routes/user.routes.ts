@@ -62,7 +62,7 @@ router.get('/profile/:id', async (req, res) => {
     const user = await prisma.user.findUnique({
       where: { id: req.params.id },
       select: {
-        id: true, firstName: true, lastName: true, avatar: true,
+        id: true, firstName: true, lastName: true, avatar: true, role: true,
         city: true, isVerified: true, isShopVerified: true, emailVerified: true, createdAt: true,
         shopName: true, shopLogo: true, shopBanner: true, shopDescription: true, shopWhatsapp: true, shopActive: true, shopColor: true, shopSlogan: true,
         _count: { select: { annonces: true, ratingsReceived: true, subscribers: true } },

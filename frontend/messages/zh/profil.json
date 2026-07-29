@@ -86,6 +86,7 @@
       "reviews": "评价"
     },
     "badges": {
+      "admin": "管理员",
       "verifiedSeller": "认证卖家",
       "emailVerified": "邮箱已验证",
       "topSeller": "顶级卖家",
