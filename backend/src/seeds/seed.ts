@@ -68,10 +68,10 @@ async function main() {
   const conakry = await prisma.city.findUnique({ where: { name: 'Conakry' } });
 
   await prisma.user.upsert({
-    where: { email: 'admin@trouvetout224.gn' },
+    where: { email: 'contact.trouvetout224@gmail.com' },
     update: {},
     create: {
-      email: 'admin@trouvetout224.gn',
+      email: 'contact.trouvetout224@gmail.com',
       password: adminPassword,
       firstName: 'Admin',
       lastName: 'TrouveTout224',
@@ -80,7 +80,7 @@ async function main() {
       cityId: conakry?.id,
     },
   });
-  console.log('✅ Admin créé: admin@trouvetout224.gn / Admin@TrouveTout224!');
+  console.log('✅ Admin créé: contact.trouvetout224@gmail.com / Admin@TrouveTout224!');
   console.log('🎉 Seed terminé avec succès !');
 }
 
