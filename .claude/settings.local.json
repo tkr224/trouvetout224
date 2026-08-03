@@ -156,7 +156,9 @@
       "Bash(npx ui-ux-pro-max-cli *)",
       "Bash(xargs -I{} grep -Hm1 '^description:' {})",
       "Artifact",
-      "Bash(powershell -NoProfile -Command 'Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match '\\\\''next dev|ts-node src/index.ts'\\\\'' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }')"
+      "Bash(powershell -NoProfile -Command 'Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match '\\\\''next dev|ts-node src/index.ts'\\\\'' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }')",
+      "Bash(tasklist //FI \"IMAGENAME eq node.exe\" //V)",
+      "Bash(tasklist *)"
     ]
   }
 }
