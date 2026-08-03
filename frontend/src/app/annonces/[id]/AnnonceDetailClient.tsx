@@ -628,7 +628,8 @@ export default function AnnonceDetailPage() {
 
             {/* Carte vendeur */}
             {!isOwner && (
-              <div className="bg-white rounded-2xl border border-dark-100 overflow-hidden shadow-card">
+              <div className="halo-behind sticky top-20">
+              <div className="glass-light overflow-hidden">
                 {/* Barre d'accent vert */}
                 <div className="h-1.5 bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700" />
                 <div className="p-5">
@@ -667,7 +668,7 @@ export default function AnnonceDetailPage() {
                   <div className="space-y-2.5">
                     <button
                       onClick={openContactModal}
-                      className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-sm"
+                      className="btn-primary btn-glow w-full flex items-center justify-center gap-2 py-3 text-sm"
                     >
                       <MessageCircle size={17} /> {t('seller.sendMessage')}
                     </button>
@@ -691,6 +692,7 @@ export default function AnnonceDetailPage() {
                     )}
                   </div>
                 </div>
+              </div>
               </div>
             )}
 

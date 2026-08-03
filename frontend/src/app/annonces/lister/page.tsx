@@ -269,7 +269,8 @@ function AnnoncesList() {
 
       {/* ── Sidebar filtres (desktop) ───────────────────────── */}
       <aside className="hidden lg:block w-64 shrink-0">
-        <div className="bg-white rounded-2xl border border-dark-100 shadow-card overflow-hidden sticky top-24">
+        <div className="halo-behind sticky top-24">
+          <div className="glass-light overflow-hidden">
           <div className="bg-primary-700 px-4 py-3 flex items-center justify-between">
             <h2 className="text-sm font-display font-bold text-white flex items-center gap-2">
               <SlidersHorizontal size={15} /> {t('filters.title')}
@@ -282,6 +283,7 @@ function AnnoncesList() {
           </div>
           <div className="p-5">
             <FilterSidebar {...filterProps} />
+          </div>
           </div>
         </div>
       </aside>
@@ -313,7 +315,7 @@ function AnnoncesList() {
             onClick={() => setShowFilters(!showFilters)}
             className={`lg:hidden flex items-center gap-1.5 px-3.5 py-3 rounded-xl border text-sm font-semibold transition-all shadow-sm ${
               hasFilters || showFilters
-                ? 'bg-primary-700 text-white border-primary-700'
+                ? 'btn-glow bg-primary-700 text-white border-primary-700'
                 : 'bg-white text-dark-700 border-dark-200 hover:border-primary-400 hover:text-primary-700'
             }`}
           >
@@ -329,7 +331,7 @@ function AnnoncesList() {
 
         {/* Panel filtres mobile */}
         {showFilters && (
-          <div className="lg:hidden mb-4 bg-white rounded-2xl border border-dark-100 shadow-card overflow-hidden animate-fadeIn">
+          <div className="lg:hidden mb-4 glass-light overflow-hidden animate-fadeIn">
             <div className="bg-primary-700 px-4 py-3 flex items-center justify-between">
               <h2 className="text-sm font-display font-bold text-white flex items-center gap-2">
                 <SlidersHorizontal size={15} /> {t('filters.title')}

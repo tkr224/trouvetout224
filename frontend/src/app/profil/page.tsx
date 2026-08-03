@@ -113,7 +113,8 @@ export default function ProfilPage() {
         <BackButton fallbackHref="/" className="mb-3" />
 
         {/* Carte profil */}
-        <div className="bg-white rounded-2xl border border-dark-100 shadow-card overflow-hidden mb-6">
+        <div className="halo-behind mb-6">
+        <div className="glass-light overflow-hidden">
 
           {/* Bannière */}
           <div className="h-44 relative group cursor-pointer" onClick={() => bannerInputRef.current?.click()}>
@@ -154,7 +155,7 @@ export default function ProfilPage() {
 
               {/* Actions — icônes compactes sur mobile pour éviter le wrapping dans la zone bannière */}
               <div className="flex gap-1.5 sm:gap-2 pb-1 items-end flex-shrink-0">
-                <Link href="/vendeur" className="bg-primary-700 text-white py-2 px-3 flex items-center gap-1.5 text-sm font-semibold rounded-xl hover:bg-primary-800 transition-colors shadow-sm">
+                <Link href="/vendeur" className="btn-glow bg-primary-700 text-white py-2 px-3 flex items-center gap-1.5 text-sm font-semibold rounded-xl hover:bg-primary-800 transition-colors shadow-sm">
                   <Store size={14} />
                   <span className="hidden sm:inline">{t('sellerSpacePrefix')}</span>{t('sellerSpaceSuffix')}
                 </Link>
@@ -196,6 +197,7 @@ export default function ProfilPage() {
               <Camera size={11} /> {t('hint')}
             </p>
           </div>
+        </div>
         </div>
 
         {/* Checklist "bien démarrer" (onboarding gamifié) */}
