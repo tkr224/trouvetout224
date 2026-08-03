@@ -404,6 +404,20 @@ export const updateAnnonce = async (req: Request, res: Response) => {
     const str = (v: any) => v !== undefined ? (v || null) : undefined;
     const bool = (v: any) => v !== undefined ? (v !== '' ? Boolean(v) : null) : undefined;
 
+    // categoryId/cityId acceptent soit un id direct, soit un slug (resolveCategoryId/
+    // resolveCityId gèrent les deux, comme à la création) — on ne les touche que si
+    // le frontend les a envoyés, pour ne jamais effacer une valeur existante.
+    let realCategoryId: string | undefined;
+    if (updates.categoryId !== undefined) {
+      realCategoryId = (await resolveCategoryId(updates.categoryId)) ?? undefined;
+      if (!realCategoryId) return res.status(400).json({ error: 'Catégorie invalide. Choisissez une catégorie.' });
+    }
+    let realCityId: string | undefined;
+    if (updates.cityId !== undefined) {
+      realCityId = (await resolveCityId(updates.cityId)) ?? undefined;
+      if (!realCityId) return res.status(400).json({ error: 'Ville invalide. Choisissez une ville.' });
+    }
+
     const updatedAnnonce = await prisma.annonce.update({
       where: { id },
       data: {
@@ -411,6 +425,9 @@ export const updateAnnonce = async (req: Request, res: Response) => {
         description:  def(updates.description),
         price:        num(updates.price),
         isNegotiable: updates.isNegotiable !== undefined ? Boolean(updates.isNegotiable) : undefined,
+        categoryId:   realCategoryId,
+        cityId:       realCityId,
+        listingType:  str(updates.listingType),
         neighborhood: str(updates.neighborhood),
         phone:        str(updates.phone),
         whatsapp:     str(updates.whatsapp),

@@ -137,7 +137,7 @@ export default function ProfilPage() {
             <div className="flex items-end justify-between -mt-12 mb-4">
 
               {/* Avatar */}
-              <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
+              <div className="relative glow-accent group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
                 <div className="w-24 h-24 rounded-2xl border-4 border-white bg-primary-100 flex items-center justify-center shadow-card overflow-hidden">
                   {uploadingAvatar
                     ? <Loader2 size={28} className="text-primary-700 animate-spin" />

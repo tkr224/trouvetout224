@@ -13,6 +13,7 @@ import type { Locale } from 'date-fns';
 import { fr, enUS, zhCN } from 'date-fns/locale';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import CulturalPattern from '@/components/CulturalPattern';
 
 const DATE_LOCALES: Record<string, Locale> = { fr, en: enUS, zh: zhCN };
 
@@ -158,7 +159,8 @@ export default function MessagesPage() {
   return (
     <div className="min-h-screen bg-dark-50">
       <Navbar />
-      <div className="max-w-5xl mx-auto px-4 py-4">
+      <div className="relative isolate overflow-hidden max-w-5xl mx-auto px-4 py-4">
+        <CulturalPattern />
         <div className="bg-white rounded-2xl shadow-card overflow-hidden" style={{ height: 'calc(100vh - 120px)' }}>
           <div className="flex h-full">
             {/* Liste conversations */}

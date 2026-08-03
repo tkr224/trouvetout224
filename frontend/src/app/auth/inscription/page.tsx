@@ -16,6 +16,7 @@ import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
 import CulturalPattern from '@/components/CulturalPattern';
 import GoogleButton from '@/components/auth/GoogleButton';
+import { CATEGORY_ICON_MAP, CATEGORY_ICON_FALLBACK } from '@/components/annonces/CategoryGrid';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 
@@ -725,14 +726,15 @@ export default function RegisterPage() {
                         <div className="flex flex-wrap gap-2">
                           {cats.map(cat => {
                             const active = selCats.includes(cat.id);
+                            const CatIcon = CATEGORY_ICON_MAP[cat.slug] || CATEGORY_ICON_FALLBACK;
                             return (
                               <button key={cat.id} type="button" onClick={() => toggleCat(cat.id)}
                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium border transition-all ${
                                   active
                                     ? 'bg-primary-700 text-white border-primary-700'
-                                    : 'bg-white text-dark-600 border-dark-200 hover:border-primary-400'
+                                    : 'bg-white dark:bg-dark-800 text-dark-600 dark:text-dark-300 border-dark-200 dark:border-dark-700 hover:border-primary-400'
                                 }`}>
-                                <span>{cat.icon}</span>
+                                <CatIcon size={14} />
                                 {cat.nameFr || cat.name}
                               </button>
                             );

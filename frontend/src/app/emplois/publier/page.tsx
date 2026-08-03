@@ -8,6 +8,7 @@ import Footer from '@/components/layout/Footer';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import CulturalPattern from '@/components/CulturalPattern';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 
@@ -87,7 +88,8 @@ export default function PublierEmploiPage() {
     <div className="min-h-screen bg-dark-50">
       <Navbar />
 
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="relative isolate overflow-hidden max-w-3xl mx-auto px-4 py-8">
+        <CulturalPattern />
         <nav className="flex items-center gap-1.5 text-sm text-dark-400 mb-6">
           <Link href="/" className="hover:text-primary-700 transition-colors">{t('breadcrumbHome')}</Link>
           <span>/</span>

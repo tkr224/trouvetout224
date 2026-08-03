@@ -7,6 +7,10 @@ import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import AnnonceGrid from '@/components/annonces/AnnonceGrid';
+import CulturalPattern from '@/components/CulturalPattern';
+import ScrollReveal from '@/components/ScrollReveal';
+import BackButton from '@/components/BackButton';
+import { CATEGORY_ICON_MAP, CATEGORY_ICON_FALLBACK } from '@/components/annonces/CategoryGrid';
 import { api } from '@/lib/api';
 import { useAnnonces } from '@/hooks/useAnnonces';
 
@@ -25,22 +29,32 @@ export default function CategoryPage() {
     limit: 20,
   });
 
+  const HeroIcon = CATEGORY_ICON_MAP[category?.slug] || CATEGORY_ICON_FALLBACK;
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-dark-50">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <nav className="flex items-center gap-2 text-sm text-dark-500 mb-6">
-          <Link href="/" className="hover:text-primary-700">{t('breadcrumbHome')}</Link><span>/</span>
-          <span className="text-dark-700">{category?.nameFr || '...'}</span>
+      <div className="relative isolate overflow-hidden max-w-7xl mx-auto px-4 py-8">
+        <CulturalPattern />
+        <BackButton label={category?.nameFr || t('breadcrumbHome')} fallbackHref="/" className="mb-2" />
+        <nav className="flex items-center gap-2 text-sm text-dark-500 dark:text-dark-300 mb-6">
+          <Link href="/" className="hover:text-primary-700 dark:hover:text-primary-300 transition-colors">{t('breadcrumbHome')}</Link><span>/</span>
+          <span className="text-dark-700 dark:text-dark-200">{category?.nameFr || '...'}</span>
         </nav>
 
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl" style={{ background: (category?.color || '#1B8B3B') + '20' }}>
-            {category?.icon}
+          <div className="relative w-14 h-14 shrink-0">
+            <div className="absolute inset-0 rounded-2xl blur-lg bg-primary-300/40 dark:bg-primary-600/20" />
+            <div
+              className="relative w-full h-full rounded-2xl flex items-center justify-center shadow-sm"
+              style={{ background: (category?.color || '#1B8B3B') + '20' }}
+            >
+              <HeroIcon size={26} style={{ color: category?.color || '#1B8B3B' }} strokeWidth={2} />
+            </div>
           </div>
           <div>
-            <h1 className="text-3xl font-display font-bold text-dark-900">{category?.nameFr}</h1>
-            <p className="text-dark-500 text-sm">{t('resultsCount', { count: data?.pagination?.total || 0 })}</p>
+            <h1 className="text-3xl font-display font-bold text-dark-900 dark:text-white">{category?.nameFr}</h1>
+            <p className="text-dark-500 dark:text-dark-300 text-sm">{t('resultsCount', { count: data?.pagination?.total || 0 })}</p>
           </div>
         </div>
 
@@ -48,19 +62,24 @@ export default function CategoryPage() {
         {category?.children?.length > 0 && (
           <div className="flex gap-2 flex-wrap mb-8">
             <button onClick={() => setActiveSub('')}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${!activeSub ? 'bg-primary-700 text-white' : 'bg-dark-50 text-dark-600 hover:bg-primary-50'}`}>
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${!activeSub ? 'bg-primary-700 text-white shadow-premium' : 'bg-dark-50 dark:bg-dark-800 text-dark-600 dark:text-dark-300 hover:bg-primary-50 dark:hover:bg-primary-900/30'}`}>
               {t('viewAll')}
             </button>
-            {category.children.map((sub: any) => (
-              <button key={sub.id} onClick={() => setActiveSub(sub.slug)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-1.5 ${activeSub === sub.slug ? 'bg-primary-700 text-white' : 'bg-dark-50 text-dark-600 hover:bg-primary-50'}`}>
-                <span>{sub.icon}</span> {sub.nameFr}
-              </button>
-            ))}
+            {category.children.map((sub: any) => {
+              const SubIcon = CATEGORY_ICON_MAP[sub.slug] || CATEGORY_ICON_FALLBACK;
+              return (
+                <button key={sub.id} onClick={() => setActiveSub(sub.slug)}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-1.5 ${activeSub === sub.slug ? 'bg-primary-700 text-white shadow-premium' : 'bg-dark-50 dark:bg-dark-800 text-dark-600 dark:text-dark-300 hover:bg-primary-50 dark:hover:bg-primary-900/30'}`}>
+                  <SubIcon size={14} /> {sub.nameFr}
+                </button>
+              );
+            })}
           </div>
         )}
 
-        <AnnonceGrid annonces={data?.data} isLoading={isLoading} />
+        <ScrollReveal>
+          <AnnonceGrid annonces={data?.data} isLoading={isLoading} />
+        </ScrollReveal>
       </div>
       <Footer />
     </div>

@@ -13,6 +13,7 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import CulturalPattern from '@/components/CulturalPattern';
 
 function PhotoGallery({ images, name }: { images: any[]; name: string }) {
   const [selected, setSelected] = useState(0);
@@ -169,7 +170,8 @@ export default function RestaurantDetailPage() {
     <div className="min-h-screen bg-dark-50">
       <Navbar />
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="relative isolate overflow-hidden max-w-5xl mx-auto px-4 py-8">
+        <CulturalPattern />
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-dark-400 mb-5">
           <Link href="/" className="hover:text-primary-700 transition-colors">{t('breadcrumbHome')}</Link>

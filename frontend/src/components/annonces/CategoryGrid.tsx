@@ -3,7 +3,8 @@ import Link from 'next/link';
 import {
   Smartphone, Laptop, Cpu, Car, Home, Trees, Briefcase, Wrench,
   UtensilsCrossed, Hotel, Shirt, Footprints, Sparkles, HeartPulse,
-  GraduationCap, PartyPopper, Sofa, Wheat, PawPrint, Dumbbell, Package
+  GraduationCap, PartyPopper, Sofa, Wheat, PawPrint, Dumbbell, Package,
+  type LucideIcon,
 } from 'lucide-react';
 
 const CATEGORIES = [
@@ -29,6 +30,13 @@ const CATEGORIES = [
   { slug: 'sports', icon: Dumbbell, label: 'Sports', color: 'text-cyan-600 bg-cyan-50' },
   { slug: 'divers', icon: Package, label: 'Divers', color: 'text-gray-600 bg-gray-50' },
 ];
+
+/** Icône Lucide par slug de catégorie — remplace les emoji stockés en base pour
+ *  une identité visuelle cohérente (même famille d'icônes partout sur le site). */
+export const CATEGORY_ICON_MAP: Record<string, LucideIcon> = Object.fromEntries(
+  CATEGORIES.map(c => [c.slug, c.icon])
+);
+export const CATEGORY_ICON_FALLBACK: LucideIcon = Package;
 
 export default function CategoryGrid() {
   return (

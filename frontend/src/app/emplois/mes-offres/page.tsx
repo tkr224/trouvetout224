@@ -12,6 +12,7 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import CulturalPattern from '@/components/CulturalPattern';
 
 const STATUS_BADGE: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-700',
@@ -200,7 +201,8 @@ export default function MesOffresPage() {
     <div className="min-h-screen bg-dark-50">
       <Navbar />
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="relative isolate overflow-hidden max-w-4xl mx-auto px-4 py-8">
+        <CulturalPattern />
         <div className="flex items-center justify-between mb-6">
           <div>
             <Link href="/emplois" className="flex items-center gap-1 text-sm text-dark-400 hover:text-primary-700 mb-1 transition-colors">

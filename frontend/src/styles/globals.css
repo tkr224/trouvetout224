@@ -686,6 +686,23 @@ body {
     background: rgba(255, 255, 255, 0.09);
     border-color: rgba(255, 255, 255, 0.25);
   }
+
+  /* Verre liquide clair — pour cartes/panneaux premium sur fond clair (léger, CSS pur).
+     Repli automatique sans backdrop-filter sur petits écrans (voir media query plus bas). */
+  .glass-light {
+    @apply rounded-2xl border transition-all duration-300;
+    background: rgba(255, 255, 255, 0.55);
+    border-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 8px 24px rgba(0,0,0,0.05);
+  }
+  html.dark .glass-light {
+    background: rgba(28, 33, 40, 0.55);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 8px 24px rgba(0,0,0,0.35);
+  }
+
   /* Lueur douce verte/or au survol — pour cartes ou blocs mis en avant */
   .glow-on-hover {
     transition: box-shadow 0.35s ease, transform 0.35s ease;
@@ -694,10 +711,51 @@ body {
     box-shadow: 0 8px 30px rgb(var(--p-700) / 0.25), 0 0 24px rgba(245, 197, 24, 0.12);
     transform: translateY(-3px);
   }
+
+  /* Halo lumineux discret derrière un élément important (bouton CTA, carte mise en avant) */
+  .glow-accent {
+    position: relative;
+  }
+  .glow-accent::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    z-index: -1;
+    border-radius: inherit;
+    background: radial-gradient(closest-side, rgb(var(--p-500) / 0.35), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .glow-accent:hover::before { opacity: 1; }
+
+  /* Bouton avec lueur qui s'intensifie au survol — usage avec parcimonie sur CTA clés */
+  .btn-glow {
+    box-shadow: 0 2px 12px rgb(var(--p-700) / 0.18);
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+  }
+  .btn-glow:hover {
+    box-shadow: 0 6px 24px rgb(var(--p-700) / 0.38), 0 0 20px rgba(245, 197, 24, 0.18);
+    transform: translateY(-2px);
+  }
+  .btn-glow:active { transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .glow-on-hover:hover { transform: none; }
+  .glow-on-hover:hover,
+  .btn-glow:hover { transform: none; }
+}
+
+/* Repli léger du verre liquide sur mobile bas de gamme : on garde la transparence
+   et la bordure (peu coûteuses) mais on retire le flou (le plus coûteux en rendu). */
+@media (max-width: 480px), (max-resolution: 1.5dppx) {
+  .glass-light {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.85);
+  }
+  html.dark .glass-light {
+    background: rgba(28, 33, 40, 0.85);
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════════

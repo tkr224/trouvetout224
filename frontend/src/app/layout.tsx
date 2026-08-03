@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import '../styles/globals.css';
-import { Toaster } from 'react-hot-toast';
+import AppToaster from '@/components/AppToaster';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { QueryProvider } from '@/components/providers/QueryProvider';
@@ -178,7 +178,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <EmailVerificationBanner />
               <LocaleSync />
               {children}
-              <Toaster position="top-center" />
+              <AppToaster />
               <PWAInstallBanner />
               <PWARegister />
               <AiChatWidget />

@@ -6,6 +6,9 @@ import Navbar from '@/components/layout/Navbar';
 import CulturalPattern from '@/components/CulturalPattern';
 import PageViewTracker from '@/components/PageViewTracker';
 import BackButton from '@/components/BackButton';
+import ScrollReveal from '@/components/ScrollReveal';
+import SkeletonGrid from '@/components/ui/SkeletonGrid';
+import EmptyState from '@/components/ui/EmptyState';
 import { api } from '@/lib/api';
 import {
   Search, Store, MapPin, ShieldCheck, Users, Package,
@@ -99,8 +102,11 @@ export default function BoutiquesPage() {
 
         {/* En-tête */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-primary-100 rounded-2xl flex items-center justify-center">
-            <Store size={20} className="text-primary-700" />
+          <div className="relative w-10 h-10 shrink-0">
+            <div className="absolute inset-0 rounded-2xl blur-lg bg-primary-300/40 dark:bg-primary-600/20" />
+            <div className="relative w-full h-full bg-primary-100 dark:bg-primary-900/40 rounded-2xl flex items-center justify-center">
+              <Store size={20} className="text-primary-700 dark:text-primary-300" />
+            </div>
           </div>
           <div>
             <h1 className="text-2xl font-display font-bold text-dark-900">{t('title')}</h1>
@@ -187,37 +193,21 @@ export default function BoutiquesPage() {
 
         {/* Liste des boutiques */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-dark-100 p-4 animate-pulse">
-                <div className="flex gap-3 mb-3">
-                  <div className="w-14 h-14 rounded-xl bg-dark-100 shrink-0" />
-                  <div className="flex-1 space-y-2 pt-1">
-                    <div className="h-4 bg-dark-100 rounded w-3/4" />
-                    <div className="h-3 bg-dark-100 rounded w-1/2" />
-                  </div>
-                </div>
-                <div className="h-3 bg-dark-100 rounded w-full mb-2" />
-                <div className="h-3 bg-dark-100 rounded w-4/5" />
-              </div>
-            ))}
-          </div>
+          <SkeletonGrid count={6} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" />
         ) : shops.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Store size={28} className="text-primary-400" />
-            </div>
-            <h3 className="font-bold text-dark-800 text-lg mb-2">{t('empty.title')}</h3>
-            <p className="text-dark-500 text-sm">
-              {search || hasFilters ? t('empty.withFilters') : t('empty.noFilters')}
-            </p>
-          </div>
+          <EmptyState
+            icon={Store}
+            title={t('empty.title')}
+            message={search || hasFilters ? t('empty.withFilters') : t('empty.noFilters')}
+          />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {shops.map(shop => (
-              <ShopCard key={shop.id} shop={shop} />
-            ))}
-          </div>
+          <ScrollReveal>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {shops.map(shop => (
+                <ShopCard key={shop.id} shop={shop} />
+              ))}
+            </div>
+          </ScrollReveal>
         )}
 
         {/* Pagination */}
@@ -255,7 +245,7 @@ function ShopCard({ shop }: { shop: Shop }) {
   return (
     <Link
       href={`/profil/${shop.id}`}
-      className="group bg-white rounded-2xl border border-dark-100 shadow-card hover:shadow-card-hover hover:border-primary-200 transition-all p-4 flex flex-col gap-3"
+      className="group glow-on-hover bg-white rounded-2xl border border-dark-100 shadow-card hover:border-primary-200 transition-all p-4 flex flex-col gap-3"
     >
       {/* Header : logo + nom */}
       <div className="flex items-center gap-3">

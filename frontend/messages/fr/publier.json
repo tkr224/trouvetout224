@@ -310,6 +310,8 @@
     "whatsappLabel": "WhatsApp",
     "emailLabel": "Email",
     "emailPlaceholder": "email@exemple.com",
+    "websiteLabel": "Site web",
+    "websitePlaceholder": "https://...",
     "cancelBtn": "Annuler",
     "creatingBtn": "Création...",
     "continueBtn": "Continuer → Ajouter le menu",

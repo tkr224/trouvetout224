@@ -310,6 +310,8 @@
     "whatsappLabel": "WhatsApp",
     "emailLabel": "邮箱",
     "emailPlaceholder": "email@example.com",
+    "websiteLabel": "网站",
+    "websitePlaceholder": "https://...",
     "cancelBtn": "取消",
     "creatingBtn": "正在创建...",
     "continueBtn": "继续 → 添加菜单",

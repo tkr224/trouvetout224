@@ -56,7 +56,7 @@ function showNudgeToast(task: Task, t: ReturnType<typeof useTranslations>) {
         </button>
       </div>
     ),
-    { duration: 8000, position: 'bottom-right' },
+    { duration: 8000, position: 'top-center' },
   );
 }
 
