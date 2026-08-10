@@ -37,10 +37,10 @@ export default function LatestAnnoncesSection() {
   const SORTS = SORT_KEYS.map(s => ({ key: s.key, label: t(`sorts.${s.sortKey}`), icon: s.icon }));
   const [sort, setSort] = useState('recent');
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
-  const { data: annonces, isLoading } = useAnnonces({ sort, limit: 12 });
+  const { data: annonces, isLoading, isError, error, refetch } = useAnnonces({ sort, limit: 12 });
 
   const list = annonces?.data as any[] | undefined;
-  const fillerCount = list && list.length > 0 && list.length < 4 ? 4 - list.length : 0;
+  const fillerCount = !isError && list && list.length > 0 && list.length < 4 ? 4 - list.length : 0;
 
   return (
     <section className="max-w-7xl mx-auto px-4 py-7 w-full">
@@ -121,13 +121,17 @@ export default function LatestAnnoncesSection() {
         <AnnonceGrid
           annonces={list}
           isLoading={isLoading}
+          isError={isError}
+          error={error}
+          onRetry={() => refetch()}
           cols={4}
           emptyTitle={t('latestSection.emptyTitle')}
           emptySubtitle={t('latestSection.emptySubtitle')}
         />
       )}
 
-      <div className="mt-5 text-center">
+      {/* Le lien « voir tout » n'a pas de sens si la liste n'a pas pu charger */}
+      <div className={`mt-5 text-center ${isError ? 'hidden' : ''}`}>
         <Link
           href="/annonces/lister"
           className="inline-flex items-center gap-2 bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 text-dark-700 dark:text-dark-200 font-semibold px-6 py-2.5 rounded-xl text-sm hover:border-primary-400 hover:text-primary-700 transition-all"

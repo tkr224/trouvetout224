@@ -39,5 +39,7 @@
   "toastConversationDeleted": "Conversation deleted",
   "toastChooseReason": "Choose a reason",
   "toastReportSent": "Report sent. Thank you!",
-  "toastMessageSendError": "Message not sent. Check your connection and try again."
+  "toastMessageSendError": "Message not sent. Check your connection and try again.",
+  "noConversationsHint": "Message a seller from a listing and the conversation will show up here.",
+  "noConversationsCta": "Browse listings"
 }

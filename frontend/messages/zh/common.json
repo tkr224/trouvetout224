@@ -19,5 +19,25 @@
   "genericError": "出现错误，请重试。",
   "networkError": "无法连接服务器，请检查网络连接。",
   "requiredField": "此字段为必填项。",
-  "free": "免费"
+  "free": "免费",
+  "errorState": {
+    "retry": "重试",
+    "retrying": "正在重试…",
+    "network": {
+      "title": "网络未连接",
+      "message": "无法连接到 TrouveTout224。请检查您的网络连接后重试。"
+    },
+    "server": {
+      "title": "服务器出了点问题",
+      "message": "加载此页面时服务器出现故障。这不是您的问题——请稍后重试。"
+    },
+    "notFound": {
+      "title": "未找到",
+      "message": "该内容已不存在或已被下架，可能已被作者删除。"
+    },
+    "unknown": {
+      "title": "无法加载",
+      "message": "暂时无法显示此内容，请稍后重试。"
+    }
+  }
 }

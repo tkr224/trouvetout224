@@ -113,6 +113,10 @@
       "loginRequired": "Connectez-vous pour signaler",
       "success": "Signalement envoyé. Merci !",
       "error": "Erreur lors du signalement"
-    }
+    },
+    "browseShops": "Voir les boutiques",
+    "emptyShopTitle": "Cette boutique n'a pas encore de produit",
+    "emptyAnnoncesTitle": "Aucune annonce publiée pour l'instant",
+    "emptyAnnoncesMessage": "{name} n'a rien mis en ligne pour le moment. Abonnez-vous pour être prévenu dès la première publication."
   }
 }

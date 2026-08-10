@@ -8,10 +8,34 @@ import { useHomeStats } from '@/hooks/useHomeStats';
 export default function StatsStrip() {
   const t = useTranslations('accueil');
   const { data: categories } = useCategories();
-  const { data: stats } = useHomeStats();
+  const { data: stats, isLoading, isError } = useHomeStats();
+
+  // Sans ça le compteur s'anime jusqu'à « 0 » avant l'arrivée des vrais chiffres
+  // (le bandeau annonçait donc brièvement un site vide).
+  if (isLoading) {
+    return (
+      <section className="bg-white dark:bg-dark-900 border-b border-dark-100 dark:border-dark-700 pt-7 pb-5">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex flex-col items-center gap-1">
+                <div className="skeleton w-9 h-9 rounded-xl mb-1" />
+                <div className="skeleton h-6 w-12 rounded" />
+                <div className="skeleton h-3 w-16 rounded mt-1" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Bandeau purement décoratif : en cas d'échec on le retire plutôt que d'afficher
+  // des zéros trompeurs — le reste de la page reste utilisable.
+  if (isError && !stats && !categories) return null;
 
   return (
-    <section className="bg-white dark:bg-dark-900 border-b border-dark-100 dark:border-dark-700 pt-7 pb-5">
+    <section className="bg-white dark:bg-dark-900 border-b border-dark-100 dark:border-dark-700 pt-7 pb-5 animate-fadeIn">
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[

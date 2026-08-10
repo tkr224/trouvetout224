@@ -1,6 +1,6 @@
 'use client';
 export const dynamic = 'force-dynamic';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { Send, MessageCircle, ArrowLeft, MoreVertical, User, Ban, Flag, Trash2, X, Check, CheckCheck, Reply, Camera, AlertTriangle, Mail, AlertOctagon, HelpCircle, ShoppingBag, ShieldAlert, ChevronDown } from 'lucide-react';
@@ -14,6 +14,8 @@ import { fr, enUS, zhCN } from 'date-fns/locale';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import CulturalPattern from '@/components/CulturalPattern';
+import ErrorState from '@/components/ui/ErrorState';
+import EmptyState from '@/components/ui/EmptyState';
 
 const DATE_LOCALES: Record<string, Locale> = { fr, en: enUS, zh: zhCN };
 
@@ -26,7 +28,11 @@ export default function MessagesPage() {
   const router = useRouter();
   const conversationId = Array.isArray(params.id) ? params.id[0] : params.id;
   const [conversations, setConversations] = useState<any[]>([]);
+  const [convLoading, setConvLoading] = useState(true);
+  const [convError, setConvError] = useState<unknown>(null);
   const [messages, setMessages] = useState<any[]>([]);
+  const [msgLoading, setMsgLoading] = useState(false);
+  const [msgError, setMsgError] = useState<unknown>(null);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -71,18 +77,42 @@ export default function MessagesPage() {
     return () => { socket?.disconnect(); };
   }, [accessToken, conversationId, user?.id]);
 
-  useEffect(() => {
-    api.get('/messages/conversations').then((res) => setConversations(res.data.data || [])).catch(() => {});
+  // La liste est rechargée à chaque changement de conversation (pour rafraîchir
+  // le dernier message et les compteurs de non-lus) : on n'affiche le squelette
+  // qu'au tout premier chargement, sinon la colonne clignoterait à chaque clic.
+  const convLoadedOnce = useRef(false);
+
+  const loadConversations = useCallback(() => {
+    if (!convLoadedOnce.current) setConvLoading(true);
+    setConvError(null);
+    api.get('/messages/conversations')
+      .then((res) => { setConversations(res.data.data || []); convLoadedOnce.current = true; })
+      // En cas d'échec on « oublie » le premier chargement : la prochaine
+      // tentative (bouton Réessayer) réaffichera bien le squelette.
+      .catch((e) => { setConvError(e); convLoadedOnce.current = false; })
+      .finally(() => setConvLoading(false));
+  }, []);
+
+  useEffect(() => { loadConversations(); }, [loadConversations, conversationId]);
+
+  const loadMessages = useCallback(() => {
+    if (!conversationId) return;
+    setMsgLoading(true);
+    setMsgError(null);
+    socket?.emit('join_conversation', conversationId);
+    api.get(`/messages/conversations/${conversationId}/messages`)
+      .then((res) => {
+        setMessages(res.data.data || []);
+        socket?.emit('mark_read', { conversationId });
+      })
+      .catch((e) => setMsgError(e))
+      .finally(() => setMsgLoading(false));
   }, [conversationId]);
 
   useEffect(() => {
-    if (!conversationId) return;
-    socket?.emit('join_conversation', conversationId);
-    api.get(`/messages/conversations/${conversationId}/messages`).then((res) => {
-      setMessages(res.data.data || []);
-      socket?.emit('mark_read', { conversationId });
-    }).catch(() => {});
-  }, [conversationId]);
+    if (!conversationId) { setMessages([]); setMsgError(null); setMsgLoading(false); return; }
+    loadMessages();
+  }, [conversationId, loadMessages]);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, typing]);
 
@@ -167,8 +197,30 @@ export default function MessagesPage() {
             <div className={`w-80 border-r border-dark-100 flex flex-col ${conversationId ? 'hidden md:flex' : 'flex'}`}>
               <div className="p-4 border-b border-dark-100"><h2 className="font-display font-bold text-dark-900">{t('pageTitle')}</h2></div>
               <div className="flex-1 overflow-y-auto">
-                {conversations.length === 0 ? (
-                  <div className="p-8 text-center"><MessageCircle size={40} className="text-dark-300 mx-auto mb-3" /><p className="text-dark-500 text-sm">{t('noConversations')}</p></div>
+                {convLoading ? (
+                  /* Squelette calqué sur une ligne de conversation : avatar rond + 2 lignes.
+                     Avant, la liste affichait « aucune conversation » le temps du chargement. */
+                  <div className="animate-fadeIn">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="flex items-center gap-3 p-4 border-b border-dark-50">
+                        <div className="skeleton w-11 h-11 rounded-full shrink-0" />
+                        <div className="flex-1 space-y-2">
+                          <div className="skeleton h-3.5 w-2/3 rounded" />
+                          <div className="skeleton h-3 w-4/5 rounded" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : convError ? (
+                  <ErrorState error={convError} onRetry={loadConversations} compact />
+                ) : conversations.length === 0 ? (
+                  <EmptyState
+                    icon={MessageCircle}
+                    title={t('noConversations')}
+                    message={t('noConversationsHint')}
+                    actionLabel={t('noConversationsCta')}
+                    actionHref="/annonces/lister"
+                  />
                 ) : conversations.map((conv) => {
                   const other = conv.participants?.find((p: any) => p.id !== user?.id);
                   const fullName = other ? `${other.firstName} ${other.lastName}` : t('unknownUser');
@@ -275,7 +327,19 @@ export default function MessagesPage() {
                   )}
 
                   <div className="flex-1 overflow-y-auto p-4 space-y-2" onClick={() => { setShowMenu(false); setMsgMenu(null); }}>
-                    {messages.length === 0 ? (
+                    {msgLoading ? (
+                      /* Bulles fantômes alternées gauche/droite — même gabarit
+                         que le fil réel, donc aucun saut à l'arrivée des messages. */
+                      <div className="space-y-3 animate-fadeIn">
+                        {[false, true, false, true, false].map((isMe, i) => (
+                          <div key={i} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`skeleton h-12 rounded-2xl ${i % 3 === 0 ? 'w-48' : i % 3 === 1 ? 'w-64' : 'w-40'} max-w-xs`} />
+                          </div>
+                        ))}
+                      </div>
+                    ) : msgError ? (
+                      <ErrorState error={msgError} onRetry={loadMessages} compact />
+                    ) : messages.length === 0 ? (
                       <div className="text-center py-10"><MessageCircle size={40} className="text-dark-200 mx-auto mb-2" /><p className="text-dark-400 text-sm">{t('startConversationPrompt')}</p></div>
                     ) : messages.map((msg) => {
                       const isMe = msg.senderId === user?.id;

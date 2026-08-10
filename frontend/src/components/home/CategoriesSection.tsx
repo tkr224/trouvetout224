@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useCategories } from '@/hooks/useCategories';
+import ErrorState from '@/components/ui/ErrorState';
 import {
   Smartphone, Laptop, Cpu, Car, Home, Trees, Briefcase, Wrench,
   UtensilsCrossed, Hotel, Shirt, Footprints, Sparkles, HeartPulse,
@@ -69,7 +70,7 @@ function CategoryCard({ cat }: { cat: { slug: string; label: string; count: numb
 
 export default function CategoriesSection() {
   const t = useTranslations('accueil');
-  const { data: categories, isLoading: loadingCats } = useCategories();
+  const { data: categories, isLoading: loadingCats, isError, error, refetch } = useCategories();
 
   const topCats = useMemo(() => {
     if (!categories) return [];
@@ -101,8 +102,15 @@ export default function CategoriesSection() {
         </Link>
       </div>
 
+      {/* Erreur : un seul bloc qui remplace carrousel + grille */}
+      {isError && (
+        <div className="card">
+          <ErrorState error={error} onRetry={() => refetch()} compact />
+        </div>
+      )}
+
       {/* Mobile : carrousel horizontal qui défile au doigt */}
-      <div className="flex sm:hidden gap-2.5 overflow-x-auto snap-x snap-mandatory pb-1 -mx-4 px-4">
+      <div className={`${isError ? 'hidden' : 'flex'} sm:hidden gap-2.5 overflow-x-auto snap-x snap-mandatory pb-1 -mx-4 px-4`}>
         {loadingCats
           ? Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton shrink-0 w-28 aspect-[4/3] rounded-xl snap-start" />)
           : topCats.map(cat => (
@@ -120,7 +128,7 @@ export default function CategoriesSection() {
       </div>
 
       {/* Tablette / desktop : grille */}
-      <div className="hidden sm:grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
+      <div className={`${isError ? 'hidden' : 'hidden sm:grid'} grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5`}>
         {loadingCats
           ? Array.from({ length: 10 }).map((_, i) => <div key={i} className="skeleton aspect-[4/3] rounded-xl" />)
           : topCats.map(cat => <CategoryCard key={cat.slug} cat={cat} />)}

@@ -25,7 +25,8 @@
   "empty": {
     "title": "未找到店铺",
     "withFilters": "请尝试修改您的搜索条件或筛选条件。",
-    "noFilters": "目前没有正在营业的店铺。"
+    "noFilters": "目前没有正在营业的店铺。",
+    "cta": "开设我的店铺"
   },
   "pagination": {
     "previous": "上一页",

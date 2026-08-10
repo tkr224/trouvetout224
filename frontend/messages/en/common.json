@@ -19,5 +19,25 @@
   "genericError": "Something went wrong. Please try again.",
   "networkError": "Couldn't reach the server. Check your connection.",
   "requiredField": "This field is required.",
-  "free": "Free"
+  "free": "Free",
+  "errorState": {
+    "retry": "Try again",
+    "retrying": "Trying again…",
+    "network": {
+      "title": "No connection",
+      "message": "We can't reach TrouveTout224. Check your internet connection, then try again."
+    },
+    "server": {
+      "title": "This one's on us",
+      "message": "Our servers hit a snag loading this page. It's not your fault — please try again in a moment."
+    },
+    "notFound": {
+      "title": "Not found",
+      "message": "This content no longer exists or has been taken down. It may have been deleted by its author."
+    },
+    "unknown": {
+      "title": "Couldn't load",
+      "message": "We can't show this content right now. Please try again in a moment."
+    }
+  }
 }

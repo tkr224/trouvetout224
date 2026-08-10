@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Store, ShieldCheck, Package, ArrowRight, Plus, MapPin } from 'lucide-react';
 import { useShops, type Shop } from '@/hooks/useShops';
+import ErrorState from '@/components/ui/ErrorState';
 
 function ShopCard({ shop }: { shop: Shop }) {
   const t = useTranslations('accueil.boutiquesSection');
@@ -61,7 +62,7 @@ function ShopCard({ shop }: { shop: Shop }) {
 
 export default function BoutiquesSection() {
   const t = useTranslations('accueil.boutiquesSection');
-  const { data: shops, isLoading } = useShops(6);
+  const { data: shops, isLoading, isError, error, refetch } = useShops(6);
 
   return (
     <section className="max-w-7xl mx-auto px-4 py-7 w-full">
@@ -80,11 +81,29 @@ export default function BoutiquesSection() {
       </div>
 
       {isLoading ? (
+        /* Squelette calqué sur ShopCard : bandeau 80px, logo carré, 2 lignes de texte, pied de carte */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {Array.from({ length: 3 }).map((_, i) => <div key={i} className="skeleton h-52 rounded-2xl" />)}
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="card overflow-hidden">
+              <div className="skeleton h-20 rounded-none" />
+              <div className="p-4 pt-0">
+                <div className="skeleton w-14 h-14 rounded-xl -mt-7 mb-2.5 relative z-10" />
+                <div className="skeleton h-4 w-2/3 rounded" />
+                <div className="skeleton h-3 w-1/2 rounded mt-2" />
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-dark-50 dark:border-dark-700">
+                  <div className="skeleton h-3 w-20 rounded" />
+                  <div className="skeleton h-3 w-4 rounded" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : isError ? (
+        <div className="card">
+          <ErrorState error={error} onRetry={() => refetch()} />
         </div>
       ) : shops && shops.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 animate-fadeIn">
           {shops.map(shop => <ShopCard key={shop.id} shop={shop} />)}
         </div>
       ) : (

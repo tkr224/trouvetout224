@@ -2,9 +2,10 @@
 import Link from 'next/link';
 import { MapPin } from 'lucide-react';
 import { useCities } from '@/hooks/useCities';
+import ErrorState from '@/components/ui/ErrorState';
 
 export default function VillesSection() {
-  const { data: cities, isLoading } = useCities();
+  const { data: cities, isLoading, isError, error, refetch } = useCities();
 
   return (
     <section className="relative max-w-7xl mx-auto px-4 py-9 w-full">
@@ -26,9 +27,24 @@ export default function VillesSection() {
         <p className="text-dark-400 text-sm mt-1">TrouveTout224 est disponible dans toute la Guinée</p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {isError && (
+        <div className="card">
+          <ErrorState error={error} onRetry={() => refetch()} compact />
+        </div>
+      )}
+
+      <div className={`${isError ? 'hidden' : 'grid'} grid-cols-2 sm:grid-cols-4 gap-3`}>
         {isLoading
-          ? Array.from({ length: 8 }).map((_, i) => <div key={i} className="skeleton h-20 rounded-2xl" />)
+          ? Array.from({ length: 8 }).map((_, i) => (
+              /* Squelette calqué sur la carte ville : pastille 40px + 2 lignes */
+              <div key={i} className="flex items-center gap-3 p-4 bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700">
+                <div className="skeleton w-10 h-10 rounded-xl shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="skeleton h-3.5 w-2/3 rounded" />
+                  <div className="skeleton h-2.5 w-1/2 rounded" />
+                </div>
+              </div>
+            ))
           : cities?.map((city) => (
               <Link
                 key={city.id}

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Heart, Eye, MapPin, BadgeCheck, ImageIcon, Star, Sparkles, Tag, ShieldCheck, ShieldAlert, CheckCircle2, Plus, PartyPopper } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import ErrorState from '@/components/ui/ErrorState';
 
 interface Annonce {
   id: string; slug: string; title: string; price?: number; currency?: string;
@@ -116,15 +117,42 @@ export function AnnonceCard({ annonce }: { annonce: Annonce }) {
   );
 }
 
+/** Squelette d'une carte annonce — reprend exactement la forme d'`AnnonceCard`
+ *  (image 4/3, titre, prix, ligne ville, pied de carte) pour éviter le saut de
+ *  mise en page au passage chargement → contenu. */
+export function AnnonceCardSkeleton() {
+  return (
+    <div className="card overflow-hidden">
+      <div className="skeleton aspect-[4/3] rounded-none" />
+      <div className="p-3">
+        <div className="skeleton h-4 w-3/4 rounded" />
+        <div className="skeleton h-5 w-1/2 rounded mt-2" />
+        <div className="skeleton h-3 w-2/3 rounded mt-2.5" />
+        <div className="flex items-center justify-between mt-3 pt-1.5 border-t border-dark-50 dark:border-dark-700">
+          <div className="skeleton h-2.5 w-16 rounded" />
+          <div className="skeleton h-2.5 w-8 rounded" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AnnonceGrid({
   annonces,
   isLoading,
+  isError,
+  error,
+  onRetry,
   cols = 6,
   emptyTitle = 'Sois le premier à publier ici !',
   emptySubtitle = 'Cette section est encore vide — ta prochaine annonce pourrait être la première que les gens verront.',
 }: {
   annonces?: Annonce[];
   isLoading?: boolean;
+  /** Affiche l'état d'erreur (avec « Réessayer ») au lieu de l'état vide. */
+  isError?: boolean;
+  error?: unknown;
+  onRetry?: () => void;
   cols?: number;
   emptyTitle?: string;
   emptySubtitle?: string;
@@ -136,16 +164,17 @@ export default function AnnonceGrid({
   if (isLoading) {
     return (
       <div className={`grid ${gridCols} gap-4`}>
-        {Array.from({ length: cols === 4 ? 4 : 6 }).map((_, i) => (
-          <div key={i} className="card overflow-hidden">
-            <div className="skeleton aspect-[4/3]" />
-            <div className="p-3 space-y-2">
-              <div className="skeleton h-4 w-3/4" />
-              <div className="skeleton h-5 w-1/2" />
-              <div className="skeleton h-3 w-2/3" />
-            </div>
-          </div>
-        ))}
+        {Array.from({ length: cols === 4 ? 8 : 12 }).map((_, i) => <AnnonceCardSkeleton key={i} />)}
+      </div>
+    );
+  }
+
+  // L'erreur passe AVANT l'état vide : sans ça une panne réseau s'affiche
+  // comme « aucune annonce », ce qui est faux et sans issue pour l'utilisateur.
+  if (isError) {
+    return (
+      <div className="card">
+        <ErrorState error={error} onRetry={onRetry} />
       </div>
     );
   }
@@ -169,7 +198,7 @@ export default function AnnonceGrid({
   }
 
   return (
-    <div className={`grid ${gridCols} gap-4`}>
+    <div className={`grid ${gridCols} gap-4 animate-fadeIn`}>
       {annonces.map((a) => <AnnonceCard key={a.id} annonce={a} />)}
     </div>
   );

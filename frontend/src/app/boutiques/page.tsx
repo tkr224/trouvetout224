@@ -9,6 +9,7 @@ import BackButton from '@/components/BackButton';
 import ScrollReveal from '@/components/ScrollReveal';
 import SkeletonGrid from '@/components/ui/SkeletonGrid';
 import EmptyState from '@/components/ui/EmptyState';
+import ErrorState from '@/components/ui/ErrorState';
 import { api } from '@/lib/api';
 import {
   Search, Store, MapPin, ShieldCheck, Users, Package,
@@ -56,6 +57,7 @@ export default function BoutiquesPage() {
   const [total, setTotal]         = useState(0);
   const [page, setPage]           = useState(1);
   const [loading, setLoading]     = useState(true);
+  const [loadError, setLoadError] = useState<unknown>(null);
   const [search, setSearch]       = useState('');
   const [cityId, setCityId]       = useState('');
   const [category, setCategory]   = useState('');
@@ -68,6 +70,7 @@ export default function BoutiquesPage() {
 
   const fetchShops = useCallback(async (pg = 1) => {
     setLoading(true);
+    setLoadError(null);
     try {
       const params: Record<string, string> = { page: String(pg) };
       if (search.trim())  params.q        = search.trim();
@@ -76,8 +79,9 @@ export default function BoutiquesPage() {
       const r = await api.get('/users/shops', { params });
       setShops(r.data?.data ?? []);
       setTotal(r.data?.pagination?.total ?? 0);
-    } catch {
+    } catch (e) {
       setShops([]);
+      setLoadError(e);
     } finally {
       setLoading(false);
     }
@@ -194,11 +198,15 @@ export default function BoutiquesPage() {
         {/* Liste des boutiques */}
         {loading ? (
           <SkeletonGrid count={6} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" />
+        ) : loadError ? (
+          <ErrorState error={loadError} onRetry={() => fetchShops(page)} />
         ) : shops.length === 0 ? (
           <EmptyState
             icon={Store}
             title={t('empty.title')}
             message={search || hasFilters ? t('empty.withFilters') : t('empty.noFilters')}
+            actionLabel={search || hasFilters ? undefined : t('empty.cta')}
+            actionHref={search || hasFilters ? undefined : '/vendeur/boutique'}
           />
         ) : (
           <ScrollReveal>
@@ -211,7 +219,7 @@ export default function BoutiquesPage() {
         )}
 
         {/* Pagination */}
-        {total > 20 && !loading && (
+        {total > 20 && !loading && !loadError && (
           <div className="flex justify-center items-center gap-3 mt-8">
             <button
               disabled={page <= 1}

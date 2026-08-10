@@ -1,9 +1,12 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
-import { AnnonceCard } from '@/components/annonces/AnnonceGrid';
+import { AnnonceCard, AnnonceCardSkeleton } from '@/components/annonces/AnnonceGrid';
+import ErrorState from '@/components/ui/ErrorState';
+import EmptyState from '@/components/ui/EmptyState';
 import ReviewSection from '@/components/ReviewSection';
 import { api } from '@/lib/api';
 import { MapPin, Star, MessageCircle, ShoppingBag, Eye, Award, CheckCircle, Calendar, TrendingUp, Store, User, Package, Sparkles, Flag, AlertTriangle, AlertCircle, HelpCircle, X, Loader2, Users, Mail, Crown } from 'lucide-react';
@@ -44,6 +47,7 @@ export default function PublicProfilPage() {
   const [avgRating, setAvgRating] = useState(0);
   const [ratingsCount, setRatingsCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<unknown>(null);
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportDesc, setReportDesc] = useState('');
@@ -68,7 +72,9 @@ export default function PublicProfilPage() {
     }
   };
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setLoading(true);
+    setLoadError(null);
     Promise.all([
       api.get(`/users/profile/${id}`),
       api.get(`/annonces?userId=${id}&limit=12`),
@@ -78,24 +84,61 @@ export default function PublicProfilPage() {
       setAnnonces(a.data.data || []);
       setRatingsCount((r.data.data || []).length);
       setAvgRating(p.data.data.averageRating || r.data.average || 0);
-      setLoading(false);
-    }).catch(() => setLoading(false));
+    }).catch((e) => setLoadError(e))
+      .finally(() => setLoading(false));
   }, [id]);
 
+  useEffect(() => { load(); }, [load]);
+
+  /* Squelette calqué sur la vraie carte profil : bannière, avatar carré
+     chevauchant, nom, badges, 4 tuiles de stats, puis grille d'annonces. */
   if (loading) return (
     <div className="min-h-screen bg-dark-50"><Navbar/>
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-4">
-        <div className="card p-6 space-y-4"><div className="skeleton h-32 w-full rounded-2xl"/><div className="skeleton h-8 w-48"/></div>
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="skeleton h-5 w-32 rounded mb-3" />
+        <div className="card overflow-hidden mb-6">
+          <div className="skeleton h-36 sm:h-44 rounded-none" />
+          <div className="px-4 sm:px-6 pb-6">
+            <div className="flex items-end justify-between -mt-10 sm:-mt-12 mb-4 relative z-10">
+              <div className="skeleton w-20 h-20 sm:w-24 sm:h-24 rounded-2xl" />
+              <div className="flex gap-2 pb-1">
+                <div className="skeleton h-9 w-28 rounded-xl" />
+                <div className="skeleton h-9 w-20 rounded-xl" />
+              </div>
+            </div>
+            <div className="skeleton h-7 w-56 rounded" />
+            <div className="skeleton h-4 w-40 rounded mt-2" />
+            <div className="flex gap-2 mt-3">
+              {Array.from({ length: 3 }).map((_, i) => <div key={i} className="skeleton h-7 w-24 rounded-full" />)}
+            </div>
+            <div className="grid grid-cols-4 gap-3 mt-4">
+              {Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton h-20 rounded-xl" />)}
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => <AnnonceCardSkeleton key={i} />)}
+        </div>
       </div>
     </div>
   );
 
-  if (!profile) return (
-    <div className="min-h-screen bg-dark-50"><Navbar/>
-      <div className="flex items-center justify-center min-h-[60vh] text-center">
-        <div>
-          <div className="w-14 h-14 bg-dark-100 rounded-2xl flex items-center justify-center mx-auto mb-4"><User size={26} className="text-dark-400" /></div>
-          <p className="font-semibold text-dark-700">{t('public.notFound')}</p>
+  /* Erreur réseau/serveur : on propose de réessayer.
+     Profil réellement absent (404 → profile null) : message dédié. */
+  if (loadError || !profile) return (
+    <div className="min-h-screen bg-dark-50 flex flex-col"><Navbar/>
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="w-full max-w-md">
+          <ErrorState
+            error={loadError}
+            kind={loadError ? undefined : 'notFound'}
+            onRetry={load}
+          />
+          <div className="text-center">
+            <Link href="/boutiques" className="btn-outline inline-flex items-center gap-2 text-sm mt-1">
+              <Store size={14} /> {t('public.browseShops')}
+            </Link>
+          </div>
         </div>
       </div>
     </div>
@@ -277,14 +320,28 @@ export default function PublicProfilPage() {
           </div>
         </div>
 
-        {annonces.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-xl font-display font-bold text-dark-900 mb-4 flex items-center gap-2"><Package size={18} className="text-dark-400" />{hasShop ? t('public.shopProducts') : t('public.userAnnonces', { name: profile.firstName })} ({annonces.length})</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 stagger">
+        <div className="mb-8">
+          <h2 className="text-xl font-display font-bold text-dark-900 mb-4 flex items-center gap-2">
+            <Package size={18} className="text-dark-400" />
+            {hasShop ? t('public.shopProducts') : t('public.userAnnonces', { name: profile.firstName })}
+            {annonces.length > 0 && ` (${annonces.length})`}
+          </h2>
+          {annonces.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 stagger animate-fadeIn">
               {sortedAnnonces.map(a => <AnnonceCard key={a.id} annonce={a}/>)}
             </div>
-          </div>
-        )}
+          ) : (
+            /* Avant : la section disparaissait entièrement — la boutique donnait
+               l'impression d'être cassée. On explique et on propose de s'abonner. */
+            <div className="card">
+              <EmptyState
+                icon={Package}
+                title={hasShop ? t('public.emptyShopTitle') : t('public.emptyAnnoncesTitle')}
+                message={t('public.emptyAnnoncesMessage', { name: hasShop ? profile.shopName : profile.firstName })}
+              />
+            </div>
+          )}
+        </div>
 
         <ReviewSection sellerId={id as string} />
       </div>

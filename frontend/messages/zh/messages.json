@@ -39,5 +39,7 @@
   "toastConversationDeleted": "对话已删除",
   "toastChooseReason": "请选择一个原因",
   "toastReportSent": "举报已发送，谢谢！",
-  "toastMessageSendError": "消息发送失败，请检查网络连接后重试。"
+  "toastMessageSendError": "消息发送失败，请检查网络连接后重试。",
+  "noConversationsHint": "从信息页面联系卖家，对话就会显示在这里。",
+  "noConversationsCta": "浏览信息"
 }

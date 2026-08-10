@@ -9,6 +9,7 @@ import Footer from '@/components/layout/Footer';
 import CulturalPattern from '@/components/CulturalPattern';
 import ScrollReveal from '@/components/ScrollReveal';
 import EmptyState from '@/components/ui/EmptyState';
+import ErrorState from '@/components/ui/ErrorState';
 import { api } from '@/lib/api';
 import Link from 'next/link';
 
@@ -32,7 +33,7 @@ export default function RestaurantsPage() {
   const [cuisineType, setCuisineType] = useState('');
   const [hasDelivery, setHasDelivery] = useState(false);
 
-  const { data, isLoading } = useQuery(
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery(
     ['restaurants', q, cityId, cuisineType, hasDelivery],
     () => api.get('/restaurants', {
       params: {
@@ -140,6 +141,8 @@ export default function RestaurantsPage() {
               </div>
             ))}
           </div>
+        ) : isError ? (
+          <ErrorState error={error} onRetry={() => refetch()} retrying={isFetching} />
         ) : restaurants.length === 0 ? (
           <EmptyState
             icon={Utensils}

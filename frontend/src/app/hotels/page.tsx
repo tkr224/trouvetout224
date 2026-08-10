@@ -9,6 +9,7 @@ import Footer from '@/components/layout/Footer';
 import CulturalPattern from '@/components/CulturalPattern';
 import ScrollReveal from '@/components/ScrollReveal';
 import EmptyState from '@/components/ui/EmptyState';
+import ErrorState from '@/components/ui/ErrorState';
 import { api } from '@/lib/api';
 import Link from 'next/link';
 
@@ -38,7 +39,7 @@ export default function HotelsPage() {
   const [priceRange, setPriceRange] = useState(0);
   const [amenityFilter, setAmenityFilter] = useState('');
 
-  const { data, isLoading } = useQuery(
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery(
     ['hotels', q, city, priceRange, amenityFilter],
     () => api.get('/annonces', {
       params: {
@@ -156,6 +157,9 @@ export default function HotelsPage() {
               </div>
             ))}
           </div>
+        ) : isError ? (
+          /* Sans ce cas, une panne serveur s'affichait comme « aucun hébergement » */
+          <ErrorState error={error} onRetry={() => refetch()} retrying={isFetching} />
         ) : hotels.length === 0 ? (
           <EmptyState
             icon={Building2}

@@ -25,7 +25,8 @@
   "empty": {
     "title": "Aucune boutique trouvée",
     "withFilters": "Essayez de modifier votre recherche ou vos filtres.",
-    "noFilters": "Aucune boutique active pour le moment."
+    "noFilters": "Aucune boutique active pour le moment.",
+    "cta": "Ouvrir ma boutique"
   },
   "pagination": {
     "previous": "Précédent",

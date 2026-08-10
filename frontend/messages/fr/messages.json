@@ -39,5 +39,7 @@
   "toastConversationDeleted": "Conversation supprimée",
   "toastChooseReason": "Choisissez une raison",
   "toastReportSent": "Signalement envoyé. Merci !",
-  "toastMessageSendError": "Message non envoyé. Vérifiez votre connexion et réessayez."
+  "toastMessageSendError": "Message non envoyé. Vérifiez votre connexion et réessayez.",
+  "noConversationsHint": "Contactez un vendeur depuis une annonce et la discussion apparaîtra ici.",
+  "noConversationsCta": "Parcourir les annonces"
 }

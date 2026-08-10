@@ -1,10 +1,11 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import CulturalPattern from '@/components/CulturalPattern';
 import EmptyState from '@/components/ui/EmptyState';
+import ErrorState from '@/components/ui/ErrorState';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import Link from 'next/link';
@@ -58,15 +59,21 @@ export default function NotificationsPage() {
   const locale = useLocale();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<unknown>(null);
   const { isAuthenticated } = useAuthStore();
   const router = useRouter();
 
-  useEffect(() => {
+  const load = useCallback(() => {
     if (!isAuthenticated) { setLoading(false); return; }
+    setLoading(true);
+    setLoadError(null);
     api.get('/notifications')
-      .then(r => { setNotifications(r.data.data || []); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then(r => setNotifications(r.data.data || []))
+      .catch(e => setLoadError(e))
+      .finally(() => setLoading(false));
   }, [isAuthenticated]);
+
+  useEffect(() => { load(); }, [load]);
 
   const markAllRead = async () => {
     await api.put('/notifications/read-all').catch(() => {});
@@ -136,6 +143,8 @@ export default function NotificationsPage() {
               </div>
             ))}
           </div>
+        ) : loadError ? (
+          <ErrorState error={loadError} onRetry={load} />
         ) : notifications.length === 0 ? (
           <div className="card">
             <EmptyState icon={Bell} title={t('emptyTitle')} message={t('emptyMsg')} />

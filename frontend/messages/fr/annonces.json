@@ -54,7 +54,8 @@
     "pagination": {
       "previous": "← Précédent",
       "next": "Suivant →"
-    }
+    },
+    "publishCta": "Publier une annonce"
   },
   "detail": {
     "breadcrumb": {
@@ -221,6 +222,7 @@
       "loginToReport": "Connectez-vous pour signaler",
       "reportSent": "Signalement envoyé. Notre équipe va examiner.",
       "reportError": "Erreur lors du signalement"
-    }
+    },
+    "browseOther": "Parcourir les autres annonces"
   }
 }

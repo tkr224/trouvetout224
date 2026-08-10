@@ -1,5 +1,7 @@
 {
   "breadcrumbHome": "首页",
   "resultsCount": "{count} 条广告",
-  "viewAll": "查看全部"
+  "viewAll": "查看全部",
+  "emptyTitle": "该分类暂无信息",
+  "emptySubtitle": "这里还没有任何发布——您的信息将是访客看到的第一条。"
 }

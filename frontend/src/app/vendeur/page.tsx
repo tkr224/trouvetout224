@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import BackButton from '@/components/BackButton';
 import CulturalPattern from '@/components/CulturalPattern';
+import ErrorState from '@/components/ui/ErrorState';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import {
@@ -40,6 +41,7 @@ export default function VendeurDashboard() {
   const { user } = useAuthStore();
   const [stats, setStats]           = useState<any>(null);
   const [loading, setLoading]       = useState(true);
+  const [loadError, setLoadError]   = useState<unknown>(null);
   const [mounted, setMounted]       = useState(false);
   const [subscribers, setSubscribers] = useState<any[]>([]);
   const [subTotal, setSubTotal]     = useState(0);
@@ -54,6 +56,8 @@ export default function VendeurDashboard() {
 
   const reload = () => {
     if (!user) return;
+    setLoading(true);
+    setLoadError(null);
     Promise.all([
       api.get('/users/me/stats'),
       api.get('/subscriptions/my-subscribers').catch(() => ({ data: { data: [], total: 0 } })),
@@ -61,8 +65,8 @@ export default function VendeurDashboard() {
       setStats(r.data.data);
       setSubscribers(s.data.data || []);
       setSubTotal(s.data.total || 0);
-      setLoading(false);
-    }).catch(() => setLoading(false));
+    }).catch((e) => setLoadError(e))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -117,6 +121,36 @@ export default function VendeurDashboard() {
           </div>
           <p className="font-semibold text-dark-700 text-xl mb-4">{t('loginRequiredMsg')}</p>
           <Link href="/auth/connexion" className="btn-primary">{t('login')}</Link>
+        </div>
+      </div>
+    </div>
+  );
+
+  /* Les stats du tableau de bord n'ont pas pu être chargées : afficher des
+     zéros partout ferait croire au vendeur qu'il a tout perdu. On montre donc
+     une erreur explicite avec « Réessayer », en gardant l'en-tête et les accès
+     rapides (Ma boutique / Publier) qui, eux, restent utilisables. */
+  if (!loading && loadError) return (
+    <div className="min-h-screen bg-dark-50">
+      <Navbar />
+      <div className="relative isolate overflow-hidden max-w-6xl mx-auto px-4 py-8">
+        <CulturalPattern />
+        <BackButton label={t('pageTitle')} fallbackHref="/profil" className="mb-3" />
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+          <h1 className="text-3xl font-display font-bold text-dark-900 flex items-center gap-2">
+            <Store className="text-primary-700" size={28} /> {t('pageTitle')}
+          </h1>
+          <div className="flex gap-2">
+            <Link href="/vendeur/boutique" className="btn-outline flex items-center gap-2 text-sm">
+              <Settings size={15} /> {t('myShop')}
+            </Link>
+            <Link href="/annonces/publier" className="btn-primary flex items-center gap-2 text-sm">
+              <Plus size={15} /> {t('publish')}
+            </Link>
+          </div>
+        </div>
+        <div className="card">
+          <ErrorState error={loadError} onRetry={reload} />
         </div>
       </div>
     </div>

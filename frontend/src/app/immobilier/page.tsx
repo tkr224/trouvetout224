@@ -1,12 +1,13 @@
 'use client';
 export const dynamic = 'force-dynamic';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import CulturalPattern from '@/components/CulturalPattern';
 import ScrollReveal from '@/components/ScrollReveal';
 import EmptyState from '@/components/ui/EmptyState';
+import ErrorState from '@/components/ui/ErrorState';
 import { api } from '@/lib/api';
 import Link from 'next/link';
 import {
@@ -31,6 +32,7 @@ export default function ImmobilierPage() {
   const router = useRouter();
   const [annonces, setAnnonces] = useState<any[]>([]);
   const [loading, setLoading]   = useState(true);
+  const [loadError, setLoadError] = useState<unknown>(null);
   const [page, setPage]         = useState(1);
   const [total, setTotal]       = useState(0);
   const [cities, setCities]     = useState<any[]>([]);
@@ -47,8 +49,9 @@ export default function ImmobilierPage() {
     api.get('/cities').then(r => setCities(r.data.data || [])).catch(() => {});
   }, []);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     setLoading(true);
+    setLoadError(null);
     const fetchAll = categories.map(cat => {
       const params: any = { categoryId: cat, page, limit: 6 };
       if (q)            params.q = q;
@@ -69,9 +72,11 @@ export default function ImmobilierPage() {
         setAnnonces(all);
         setTotal(t);
       })
-      .catch(() => setAnnonces([]))
+      .catch(e => { setAnnonces([]); setLoadError(e); })
       .finally(() => setLoading(false));
   }, [q, cityId, contractType, minPrice, maxPrice, minBedrooms, categories, page]);
+
+  useEffect(() => { load(); }, [load]);
 
   const startConversation = async (ownerId: string) => {
     if (!isAuthenticated) { toast.error(t('toastLoginToMessage')); return; }
@@ -162,7 +167,11 @@ export default function ImmobilierPage() {
           )}
         </div>
 
-        <p className="text-dark-400 text-sm mb-4">{t('resultsCount', { count: total })}</p>
+        {loading ? (
+          <div className="skeleton h-4 w-32 rounded mb-4" />
+        ) : !loadError && (
+          <p className="text-dark-400 text-sm mb-4">{t('resultsCount', { count: total })}</p>
+        )}
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -174,6 +183,8 @@ export default function ImmobilierPage() {
               </div>
             ))}
           </div>
+        ) : loadError ? (
+          <ErrorState error={loadError} onRetry={load} />
         ) : annonces.length === 0 ? (
           <EmptyState
             icon={Home}

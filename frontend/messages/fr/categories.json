@@ -1,5 +1,7 @@
 {
   "breadcrumbHome": "Accueil",
   "resultsCount": "{count, plural, one {# annonce} other {# annonces}}",
-  "viewAll": "Tout voir"
+  "viewAll": "Tout voir",
+  "emptyTitle": "Aucune annonce dans cette catégorie pour l'instant",
+  "emptySubtitle": "Personne n'a encore publié ici — votre annonce serait la première que les visiteurs verront."
 }

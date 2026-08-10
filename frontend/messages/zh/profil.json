@@ -113,6 +113,10 @@
       "loginRequired": "请先登录后再举报",
       "success": "举报已发送，谢谢！",
       "error": "举报发送失败"
-    }
+    },
+    "browseShops": "浏览店铺",
+    "emptyShopTitle": "该店铺暂无商品",
+    "emptyAnnoncesTitle": "暂未发布任何信息",
+    "emptyAnnoncesMessage": "{name} 目前还没有发布内容。订阅后可在首次发布时收到通知。"
   }
 }

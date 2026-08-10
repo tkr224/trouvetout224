@@ -19,5 +19,25 @@
   "genericError": "Une erreur est survenue. Veuillez réessayer.",
   "networkError": "Impossible de contacter le serveur. Vérifiez votre connexion.",
   "requiredField": "Ce champ est obligatoire.",
-  "free": "Gratuit"
+  "free": "Gratuit",
+  "errorState": {
+    "retry": "Réessayer",
+    "retrying": "Nouvelle tentative…",
+    "network": {
+      "title": "Pas de connexion",
+      "message": "On n'arrive pas à joindre TrouveTout224. Vérifiez votre connexion internet, puis réessayez."
+    },
+    "server": {
+      "title": "Ça vient de nous",
+      "message": "Nos serveurs ont eu un souci en chargeant cette page. Ce n'est pas de votre faute — réessayez dans un instant."
+    },
+    "notFound": {
+      "title": "Introuvable",
+      "message": "Ce contenu n'existe plus ou a été retiré. Il a peut-être été supprimé par son auteur."
+    },
+    "unknown": {
+      "title": "Chargement impossible",
+      "message": "Impossible d'afficher ce contenu pour le moment. Réessayez dans un instant."
+    }
+  }
 }

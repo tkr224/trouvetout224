@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import ErrorState from '@/components/ui/ErrorState';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import Link from 'next/link';
@@ -99,7 +100,7 @@ export default function RestaurantDetailPage() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
 
-  const { data, isLoading } = useQuery(
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery(
     ['restaurant', id],
     () => api.get(`/restaurants/${id}`).then(r => r.data),
     { enabled: !!id }
@@ -142,15 +143,18 @@ export default function RestaurantDetailPage() {
   }
 
   if (!r) {
+    /* Panne réseau/serveur → « Réessayer » ; restaurant réellement absent → message dédié */
     return (
       <div className="min-h-screen bg-dark-50">
         <Navbar />
         <div className="max-w-lg mx-auto px-4 py-20 text-center">
-          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-5">
-            <Utensils size={36} className="text-red-400" />
-          </div>
-          <h1 className="text-2xl font-display font-bold text-dark-900 mb-3">{t('notFoundTitle')}</h1>
-          <Link href="/restaurants" className="btn-primary inline-flex items-center gap-2">
+          <ErrorState
+            error={error}
+            kind={isError ? undefined : 'notFound'}
+            onRetry={() => refetch()}
+            retrying={isFetching}
+          />
+          <Link href="/restaurants" className="btn-outline inline-flex items-center gap-2 mt-1">
             <ChevronLeft size={15} /> {t('backToRestaurants')}
           </Link>
         </div>

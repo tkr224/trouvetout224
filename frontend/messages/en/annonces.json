@@ -54,7 +54,8 @@
     "pagination": {
       "previous": "← Previous",
       "next": "Next →"
-    }
+    },
+    "publishCta": "Post a listing"
   },
   "detail": {
     "breadcrumb": {
@@ -221,6 +222,7 @@
       "loginToReport": "Log in to report",
       "reportSent": "Report sent. Our team will review it.",
       "reportError": "Error while reporting"
-    }
+    },
+    "browseOther": "Browse other listings"
   }
 }

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import ErrorState from '@/components/ui/ErrorState';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import Link from 'next/link';
@@ -118,7 +119,7 @@ export default function HotelDetailPage() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
 
-  const { data, isLoading } = useQuery(
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery(
     ['annonce-hotel', id],
     () => api.get(`/annonces/${id}`).then(r => r.data),
     { enabled: !!id }
@@ -162,9 +163,13 @@ export default function HotelDetailPage() {
       <div className="min-h-screen bg-dark-50">
         <Navbar />
         <div className="max-w-lg mx-auto px-4 py-20 text-center">
-          <Building2 size={48} className="text-violet-300 mx-auto mb-4" />
-          <h1 className="text-2xl font-display font-bold text-dark-900 mb-3">{t('notFoundTitle')}</h1>
-          <Link href="/hotels" className="btn-primary inline-flex items-center gap-2">
+          <ErrorState
+            error={error}
+            kind={isError ? undefined : 'notFound'}
+            onRetry={() => refetch()}
+            retrying={isFetching}
+          />
+          <Link href="/hotels" className="btn-outline inline-flex items-center gap-2 mt-1">
             <ChevronLeft size={15} /> {t('backToHotels')}
           </Link>
         </div>

@@ -11,6 +11,8 @@ import Navbar from '@/components/layout/Navbar';
 import PageViewTracker from '@/components/PageViewTracker';
 import Footer from '@/components/layout/Footer';
 import CulturalPattern from '@/components/CulturalPattern';
+import EmptyState from '@/components/ui/EmptyState';
+import ErrorState from '@/components/ui/ErrorState';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import toast from 'react-hot-toast';
@@ -157,7 +159,7 @@ export default function EmploisPage() {
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [showApply, setShowApply] = useState(false);
 
-  const { data, isLoading } = useQuery(
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery(
     ['jobs', q, cityFilter, typeFilter, sectorFilter],
     () => api.get('/jobs', { params: { q: q || undefined, cityId: cityFilter || undefined, type: typeFilter || undefined, sector: sectorFilter || undefined } }).then(r => r.data),
     { keepPreviousData: true }
@@ -269,11 +271,19 @@ export default function EmploisPage() {
                   <div className="skeleton h-4 w-3/4" />
                 </div>
               ))
+            ) : isError ? (
+              <div className="card">
+                <ErrorState error={error} onRetry={() => refetch()} retrying={isFetching} compact />
+              </div>
             ) : jobs.length === 0 ? (
-              <div className="card p-10 text-center">
-                <Search size={36} className="text-dark-300 mx-auto mb-3" />
-                <p className="font-semibold text-dark-700 mb-1">{t('noOffersFound')}</p>
-                <p className="text-dark-400 text-sm">{t('modifyFilters')}</p>
+              <div className="card">
+                <EmptyState
+                  icon={Search}
+                  title={t('noOffersFound')}
+                  message={t('modifyFilters')}
+                  actionLabel={t('publishOffer')}
+                  actionHref="/emplois/publier"
+                />
               </div>
             ) : jobs.map((job: any) => (
               <button

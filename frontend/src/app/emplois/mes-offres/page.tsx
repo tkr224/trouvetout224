@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import ErrorState from '@/components/ui/ErrorState';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import Link from 'next/link';
@@ -172,7 +173,7 @@ export default function MesOffresPage() {
   const t = useTranslations('emplois.mesOffres');
   const { isAuthenticated, _hasHydrated } = useAuthStore();
 
-  const { data, isLoading } = useQuery(
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery(
     ['mes-offres'],
     () => api.get('/jobs/mes-offres').then(r => r.data.data),
     { enabled: _hasHydrated && isAuthenticated }
@@ -226,6 +227,10 @@ export default function MesOffresPage() {
                 <div className="skeleton h-4 w-1/3" />
               </div>
             ))}
+          </div>
+        ) : isError ? (
+          <div className="card">
+            <ErrorState error={error} onRetry={() => refetch()} retrying={isFetching} />
           </div>
         ) : jobs.length === 0 ? (
           <div className="card p-16 text-center">

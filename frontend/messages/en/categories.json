@@ -1,5 +1,7 @@
 {
   "breadcrumbHome": "Home",
   "resultsCount": "{count, plural, one {# listing} other {# listings}}",
-  "viewAll": "View all"
+  "viewAll": "View all",
+  "emptyTitle": "No listings in this category yet",
+  "emptySubtitle": "Nobody has posted here yet — yours would be the first visitors see."
 }

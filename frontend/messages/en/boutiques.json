@@ -25,7 +25,8 @@
   "empty": {
     "title": "No shops found",
     "withFilters": "Try changing your search or filters.",
-    "noFilters": "No active shops at the moment."
+    "noFilters": "No active shops at the moment.",
+    "cta": "Open my shop"
   },
   "pagination": {
     "previous": "Previous",

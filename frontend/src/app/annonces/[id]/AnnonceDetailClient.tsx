@@ -24,6 +24,7 @@ import { useRecentlyViewed, type RecentAnnonce } from '@/hooks/useRecentlyViewed
 import BackButton from '@/components/BackButton';
 import ImageLightbox from '@/components/ImageLightbox';
 import CulturalPattern from '@/components/CulturalPattern';
+import ErrorState from '@/components/ui/ErrorState';
 
 const REPORT_REASON_KEYS = [
   { value: 'SCAM',                  key: 'scam',                  Icon: AlertTriangle },
@@ -37,7 +38,7 @@ const REPORT_REASON_KEYS = [
 export default function AnnonceDetailPage() {
   const t = useTranslations('annonces.detail');
   const { id } = useParams();
-  const { data, isLoading } = useAnnonce(id as string);
+  const { data, isLoading, isError, error, refetch, isFetching } = useAnnonce(id as string);
   const [imgIndex, setImgIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -137,30 +138,77 @@ export default function AnnonceDetailPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [annonce?.id, hasLoaded]);
 
-  /* ── Loading skeleton ─────────────────────────────────────── */
+  /* ── Loading skeleton ─────────────────────────────────────────
+     Reproduit la vraie structure de la page (galerie + vignettes,
+     bloc titre/prix/localisation, description, carte vendeur) pour
+     que le contenu réel se pose sans décalage. */
   if (isLoading) {
     return (
       <div className="min-h-screen bg-dark-50">
         <Navbar />
-        <div className="max-w-5xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
-            <div className="skeleton aspect-[4/3] rounded-2xl" />
-            <div className="bg-white rounded-2xl p-6 space-y-3 border border-dark-100">
-              <div className="skeleton h-7 w-3/4" />
-              <div className="skeleton h-9 w-1/3" />
-              <div className="skeleton h-4 w-1/2" />
+        <div className="max-w-5xl mx-auto px-4 py-8">
+          <div className="skeleton h-5 w-28 rounded mb-4" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="skeleton aspect-[4/3] rounded-2xl" />
+              <div className="flex gap-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="skeleton w-16 h-16 rounded-xl" />
+                ))}
+              </div>
+              <div className="card p-6">
+                <div className="skeleton h-7 w-3/4 rounded" />
+                <div className="skeleton h-9 w-1/3 rounded mt-3" />
+                <div className="skeleton h-4 w-1/2 rounded mt-3" />
+                <div className="h-px bg-dark-100 dark:bg-dark-700 my-5" />
+                <div className="skeleton h-4 w-full rounded" />
+                <div className="skeleton h-4 w-full rounded mt-2" />
+                <div className="skeleton h-4 w-2/3 rounded mt-2" />
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="card p-5">
+                <div className="flex items-center gap-3">
+                  <div className="skeleton w-14 h-14 rounded-2xl shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="skeleton h-4 w-3/4 rounded" />
+                    <div className="skeleton h-3 w-1/2 rounded" />
+                  </div>
+                </div>
+                <div className="skeleton h-11 w-full rounded-xl mt-5" />
+                <div className="skeleton h-11 w-full rounded-xl mt-2.5" />
+              </div>
+              <div className="skeleton h-32 rounded-2xl" />
             </div>
           </div>
-          <div className="skeleton h-80 rounded-2xl" />
         </div>
       </div>
     );
   }
 
-  if (!annonce) {
+  /* ── Erreur de chargement ─────────────────────────────────────
+     Distinguée du « annonce introuvable » : une coupure réseau ne veut
+     pas dire que l'annonce a été supprimée, et l'utilisateur doit pouvoir
+     réessayer au lieu de croire que le vendeur l'a retirée. */
+  if (isError || !annonce) {
     return (
-      <div className="min-h-screen bg-dark-50 flex items-center justify-center">
-        <p className="text-dark-500">{t('notFound')}</p>
+      <div className="min-h-screen bg-dark-50 flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="w-full max-w-md">
+            <ErrorState
+              error={error}
+              kind={isError ? undefined : 'notFound'}
+              onRetry={() => refetch()}
+              retrying={isFetching}
+            />
+            <div className="text-center">
+              <Link href="/annonces/lister" className="btn-outline inline-flex items-center gap-2 text-sm mt-1">
+                <ArrowRight size={14} /> {t('browseOther')}
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

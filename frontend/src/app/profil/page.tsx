@@ -1,10 +1,11 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { useAuthStore } from '@/store/auth.store';
 import { useTranslations } from 'next-intl';
 import { api } from '@/lib/api';
-import { AnnonceCard } from '@/components/annonces/AnnonceGrid';
+import { AnnonceCard, AnnonceCardSkeleton } from '@/components/annonces/AnnonceGrid';
+import ErrorState from '@/components/ui/ErrorState';
 import ProfileChecklist from '@/components/onboarding/ProfileChecklist';
 import BackButton from '@/components/BackButton';
 import CulturalPattern from '@/components/CulturalPattern';
@@ -26,6 +27,11 @@ export default function ProfilPage() {
   const [salesStats, setSalesStats] = useState<any>(null);
   const [tab, setTab] = useState<'annonces' | 'favoris' | 'recherches' | 'ventes'>('annonces');
   const [loading, setLoading] = useState(true);
+  // Une erreur par onglet : un échec sur les favoris ne doit pas masquer
+  // les annonces qui, elles, se sont bien chargées.
+  const [errors, setErrors] = useState<{ annonces?: unknown; favoris?: unknown; recherches?: unknown; ventes?: unknown }>({});
+  const [favLoading, setFavLoading] = useState(true);
+  const [searchLoading, setSearchLoading] = useState(true);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [localAvatar, setLocalAvatar] = useState<string | null>(null);
@@ -33,14 +39,48 @@ export default function ProfilPage() {
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
+  const loadAnnonces = useCallback(() => {
+    setLoading(true);
+    setErrors(e => ({ ...e, annonces: undefined }));
+    api.get('/annonces/me')
+      .then(r => setMyAnnonces(r.data.data || []))
+      .catch(err => setErrors(e => ({ ...e, annonces: err })))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const loadFavoris = useCallback(() => {
+    setFavLoading(true);
+    setErrors(e => ({ ...e, favoris: undefined }));
+    api.get('/annonces/saved')
+      .then(r => setFavoris(r.data.data || []))
+      .catch(err => setErrors(e => ({ ...e, favoris: err })))
+      .finally(() => setFavLoading(false));
+  }, []);
+
+  const loadSearches = useCallback(() => {
+    setSearchLoading(true);
+    setErrors(e => ({ ...e, recherches: undefined }));
+    api.get('/saved-searches')
+      .then(r => setSavedSearches(r.data.data || []))
+      .catch(err => setErrors(e => ({ ...e, recherches: err })))
+      .finally(() => setSearchLoading(false));
+  }, []);
+
+  const loadSales = useCallback(() => {
+    setSalesStats(null);
+    setErrors(e => ({ ...e, ventes: undefined }));
+    api.get('/users/me/sales-stats')
+      .then(r => setSalesStats(r.data.data))
+      .catch(err => setErrors(e => ({ ...e, ventes: err })));
+  }, []);
+
   useEffect(() => {
-    if (user) {
-      api.get('/annonces/me').then(r => { setMyAnnonces(r.data.data || []); setLoading(false); }).catch(() => setLoading(false));
-      api.get('/annonces/saved').then(r => setFavoris(r.data.data || [])).catch(() => {});
-      api.get('/saved-searches').then(r => setSavedSearches(r.data.data || [])).catch(() => {});
-      api.get('/users/me/sales-stats').then(r => setSalesStats(r.data.data)).catch(() => {});
-    }
-  }, [user]);
+    if (!user) return;
+    loadAnnonces();
+    loadFavoris();
+    loadSearches();
+    loadSales();
+  }, [user, loadAnnonces, loadFavoris, loadSearches, loadSales]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -214,7 +254,11 @@ export default function ProfilPage() {
               <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mx-auto mb-1.5 ${s.color}`}>
                 <s.Icon size={16} />
               </div>
-              <p className="text-xl sm:text-2xl font-bold text-dark-900">{s.value}</p>
+              {/* Sans ce garde-fou les compteurs affichent « 0 » une fraction de
+                  seconde avant l'arrivée des données — le profil semblait vide. */}
+              {loading
+                ? <div className="skeleton h-7 w-10 rounded mx-auto" />
+                : <p className="text-xl sm:text-2xl font-bold text-dark-900">{s.value}</p>}
               <p className="text-dark-500 text-xs sm:text-sm">{s.label}</p>
             </div>
           ))}
@@ -240,10 +284,15 @@ export default function ProfilPage() {
         {tab === 'annonces' && (
           loading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="card"><div className="skeleton aspect-[4/3]" /><div className="p-3 space-y-2"><div className="skeleton h-4 w-3/4" /></div></div>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="flex flex-col gap-1.5">
+                  <div className="skeleton h-6 w-20 rounded-lg" />
+                  <AnnonceCardSkeleton />
+                </div>
               ))}
             </div>
+          ) : errors.annonces ? (
+            <div className="card"><ErrorState error={errors.annonces} onRetry={loadAnnonces} /></div>
           ) : myAnnonces.length === 0 ? (
             <div className="bg-white rounded-2xl border border-dark-100 shadow-card p-14 text-center">
               <div className="w-16 h-16 bg-dark-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -287,7 +336,13 @@ export default function ProfilPage() {
 
         {/* Mes favoris */}
         {tab === 'favoris' && (
-          favoris.length === 0 ? (
+          favLoading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => <AnnonceCardSkeleton key={i} />)}
+            </div>
+          ) : errors.favoris ? (
+            <div className="card"><ErrorState error={errors.favoris} onRetry={loadFavoris} /></div>
+          ) : favoris.length === 0 ? (
             <div className="bg-white rounded-2xl border border-dark-100 shadow-card p-14 text-center">
               <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Heart size={28} className="text-red-300" />
@@ -304,7 +359,22 @@ export default function ProfilPage() {
 
         {/* Recherches sauvegardées */}
         {tab === 'recherches' && (
-          savedSearches.length === 0 ? (
+          searchLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-dark-100 shadow-card p-4 flex items-center gap-4">
+                  <div className="skeleton w-10 h-10 rounded-xl shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="skeleton h-4 w-1/3 rounded" />
+                    <div className="skeleton h-3 w-1/2 rounded" />
+                  </div>
+                  <div className="skeleton h-8 w-20 rounded-lg shrink-0" />
+                </div>
+              ))}
+            </div>
+          ) : errors.recherches ? (
+            <div className="card"><ErrorState error={errors.recherches} onRetry={loadSearches} /></div>
+          ) : savedSearches.length === 0 ? (
             <div className="bg-white rounded-2xl border border-dark-100 shadow-card p-14 text-center">
               <div className="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Bookmark size={28} className="text-primary-300" />
@@ -368,10 +438,17 @@ export default function ProfilPage() {
         )}
         {/* Mes ventes */}
         {tab === 'ventes' && (
-          salesStats === null ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="card p-5"><div className="skeleton h-8 w-3/4 mx-auto" /></div>
+          errors.ventes ? (
+            <div className="card"><ErrorState error={errors.ventes} onRetry={loadSales} /></div>
+          ) : salesStats === null ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-dark-100 shadow-card p-4 text-center">
+                  <div className="skeleton w-10 h-10 rounded-xl mx-auto mb-2" />
+                  <div className="skeleton h-7 w-12 rounded mx-auto" />
+                  <div className="skeleton h-3 w-20 rounded mx-auto mt-2" />
+                  <div className="skeleton h-3 w-16 rounded mx-auto mt-1.5" />
+                </div>
               ))}
             </div>
           ) : salesStats.total.count === 0 ? (

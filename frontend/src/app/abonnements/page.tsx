@@ -1,9 +1,10 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
 import CulturalPattern from '@/components/CulturalPattern';
 import EmptyState from '@/components/ui/EmptyState';
+import ErrorState from '@/components/ui/ErrorState';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import Link from 'next/link';
@@ -18,15 +19,21 @@ export default function AbonnementsPage() {
   const { isAuthenticated } = useAuthStore();
   const [subs, setSubs]           = useState<any[]>([]);
   const [loading, setLoading]     = useState(true);
+  const [loadError, setLoadError] = useState<unknown>(null);
   const [notifyLoading, setNotifyLoading] = useState<string | null>(null);
   const [unsubLoading, setUnsubLoading]   = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     if (!isAuthenticated) { setLoading(false); return; }
+    setLoading(true);
+    setLoadError(null);
     api.get('/subscriptions')
-      .then(r => { setSubs(r.data.data || []); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then(r => setSubs(r.data.data || []))
+      .catch(e => setLoadError(e))
+      .finally(() => setLoading(false));
   }, [isAuthenticated]);
+
+  useEffect(() => { load(); }, [load]);
 
   const handleUnsubscribe = async (vendorId: string) => {
     setUnsubLoading(vendorId);
@@ -104,6 +111,12 @@ export default function AbonnementsPage() {
                 </div>
               </div>
             ))}
+          </div>
+
+        /* Erreur */
+        ) : loadError ? (
+          <div className="card">
+            <ErrorState error={loadError} onRetry={load} />
           </div>
 
         /* Vide */

@@ -1,8 +1,10 @@
 'use client';
 export const dynamic = 'force-dynamic';
 import { useState, useEffect, Suspense } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import ErrorState from '@/components/ui/ErrorState';
 import Navbar from '@/components/layout/Navbar';
 import CulturalPattern from '@/components/CulturalPattern';
 import PageViewTracker from '@/components/PageViewTracker';
@@ -12,7 +14,7 @@ import { useAnnonces } from '@/hooks/useAnnonces';
 import { api } from '@/lib/api';
 import {
   Search, Filter, X, ChevronDown, Clock, TrendingUp, ArrowUp, ArrowDown,
-  RotateCcw, Eye, Star, SlidersHorizontal, CheckCircle, Bookmark,
+  RotateCcw, Eye, Star, SlidersHorizontal, CheckCircle, Bookmark, SearchX, Plus,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import toast from 'react-hot-toast';
@@ -206,7 +208,7 @@ function AnnoncesList() {
 
   const activeCatId = subcat || cat || undefined;
 
-  const { data, isLoading } = useAnnonces({
+  const { data, isLoading, isError, error, refetch, isFetching } = useAnnonces({
     sort, categoryId: activeCatId, q: q || undefined, limit: 20, page,
     cityId: selectedCity || undefined,
     minPrice: minPrice ? parseInt(minPrice) : undefined,
@@ -252,7 +254,7 @@ function AnnoncesList() {
       toast.success(t('saveSearchSuccess'));
     } catch { toast.error(t('saveSearchError')); }
   };
-  const isEmpty    = !isLoading && data && (!data.data || data.data.length === 0);
+  const isEmpty    = !isLoading && !isError && data && (!data.data || data.data.length === 0);
 
   const filterProps = {
     categories,
@@ -377,13 +379,20 @@ function AnnoncesList() {
         {/* En-tête résultats + tri */}
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
-            <span className="bg-primary-700 text-white text-xs font-bold px-2.5 py-1 rounded-lg tabular-nums">
-              {total.toLocaleString('fr-FR')}
-            </span>
-            <span className="text-sm text-dark-500">
-              {t('resultsCount', { count: total })}
-              {q && <> {t('resultsFor')} <span className="text-primary-700 font-semibold">&ldquo;{q}&rdquo;</span></>}
-            </span>
+            {/* Pendant le chargement / en cas d'erreur on ne prétend pas « 0 résultat » */}
+            {isLoading ? (
+              <div className="skeleton h-6 w-32 rounded-lg" />
+            ) : !isError && (
+              <>
+                <span className="bg-primary-700 text-white text-xs font-bold px-2.5 py-1 rounded-lg tabular-nums">
+                  {total.toLocaleString('fr-FR')}
+                </span>
+                <span className="text-sm text-dark-500">
+                  {t('resultsCount', { count: total })}
+                  {q && <> {t('resultsFor')} <span className="text-primary-700 font-semibold">&ldquo;{q}&rdquo;</span></>}
+                </span>
+              </>
+            )}
             {(hasFilters || q) && (
               <button
                 onClick={saveSearch}
@@ -411,29 +420,47 @@ function AnnoncesList() {
           </div>
         </div>
 
-        {/* Grille */}
-        <AnnonceGrid annonces={data?.data} isLoading={isLoading} cols={4} />
+        {/* Erreur de chargement — prioritaire sur l'état vide, sinon une panne
+            réseau se lit comme « aucun résultat » et l'utilisateur reformule
+            sa recherche indéfiniment sans jamais rien obtenir. */}
+        {isError && (
+          <div className="card">
+            <ErrorState error={error} onRetry={() => refetch()} retrying={isFetching} />
+          </div>
+        )}
+
+        {/* Grille — `isFetching` grise doucement la liste précédente pendant qu'un
+            nouveau filtre charge (keepPreviousData), au lieu d'un saut sec. */}
+        {!isError && !isEmpty && (
+          <div className={`transition-opacity duration-200 ${isFetching && !isLoading ? 'opacity-50' : 'opacity-100'}`}>
+            <AnnonceGrid annonces={data?.data} isLoading={isLoading} cols={4} />
+          </div>
+        )}
 
         {/* État vide */}
         {isEmpty && (
           <div className="flex flex-col items-center justify-center py-20 text-center animate-fadeIn">
-            <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mb-5 shadow-card border border-dark-100">
-              <Search size={32} className="text-dark-300" />
+            <div className="w-20 h-20 bg-white dark:bg-dark-800 rounded-3xl flex items-center justify-center mb-5 shadow-card border border-dark-100 dark:border-dark-700">
+              <SearchX size={32} className="text-dark-300" />
             </div>
-            <h3 className="text-xl font-display font-bold text-dark-900 mb-2">{t('empty.title')}</h3>
+            <h3 className="text-xl font-display font-bold text-dark-900 dark:text-white mb-2">{t('empty.title')}</h3>
             <p className="text-dark-400 text-sm max-w-xs leading-relaxed mb-6">
               {hasFilters ? t('empty.withFilters') : t('empty.noFilters')}
             </p>
-            {hasFilters && (
+            {hasFilters ? (
               <button onClick={handleReset} className="btn-primary flex items-center gap-2 text-sm">
                 <RotateCcw size={14} /> {t('filters.reset')}
               </button>
+            ) : (
+              <Link href="/annonces/publier" className="btn-primary inline-flex items-center gap-2 text-sm">
+                <Plus size={14} /> {t('publishCta')}
+              </Link>
             )}
           </div>
         )}
 
         {/* Pagination */}
-        {data?.pagination && data.pagination.pages > 1 && (
+        {!isError && data?.pagination && data.pagination.pages > 1 && (
           <div className="flex justify-center items-center gap-1.5 mt-10 flex-wrap">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}

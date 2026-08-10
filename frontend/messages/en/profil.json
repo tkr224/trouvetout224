@@ -113,6 +113,10 @@
       "loginRequired": "Log in to report",
       "success": "Report sent. Thank you!",
       "error": "Error while sending the report"
-    }
+    },
+    "browseShops": "Browse shops",
+    "emptyShopTitle": "This shop has no products yet",
+    "emptyAnnoncesTitle": "No listings published yet",
+    "emptyAnnoncesMessage": "{name} hasn't posted anything yet. Subscribe to be notified as soon as they do."
   }
 }
