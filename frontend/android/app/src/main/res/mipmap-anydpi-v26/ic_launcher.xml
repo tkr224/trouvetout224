@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Icône adaptative Android 8+.
+
+  Les `<inset android:inset="16.7%">` générés par @capacitor/assets ont été
+  retirés volontairement :
+   - sur le FOND, l'inset réduisait le dégradé vert exactement à la zone sûre
+     de 72dp ; les masques carrés/squircle (Samsung, Pixel) vont jusqu'aux
+     coins de cette zone et laissaient donc apparaître du vide sur les bords,
+     surtout avec le zoom de parallaxe de certains lanceurs. Le fond doit
+     couvrir les 108dp complets.
+   - sur l'AVANT-PLAN, la loupe est déjà dimensionnée à 52 % de la toile dans
+     `assets/icon-foreground.png` (soit ~56dp, bien à l'intérieur des 72dp
+     sûrs) ; un inset supplémentaire la rendait deux fois trop petite.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@mipmap/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+</adaptive-icon>

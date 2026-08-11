@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>TrouveTout224</title>
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px; text-align: center;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: #ffffff; color: #14251a;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { background: #0d1117; color: #e6edf3; }
+      .hint { color: #8b949e !important; }
+    }
+    .logo {
+      width: 72px; height: 72px; margin: 0 auto 20px;
+      border-radius: 20px; background: #1B8B3B;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 30px; font-weight: 800;
+    }
+    h1 { font-size: 20px; margin: 0 0 8px; }
+    p { font-size: 14px; line-height: 1.6; margin: 0; max-width: 320px; }
+    .hint { color: #5b6b60; }
+    button {
+      margin-top: 24px; padding: 13px 28px; border: 0; border-radius: 14px;
+      background: #1B8B3B; color: #fff; font-size: 15px; font-weight: 700;
+      font-family: inherit; cursor: pointer;
+    }
+    button:active { transform: scale(0.97); }
+  </style>
+</head>
+<body>
+  <!--
+    Page de repli embarquée dans l'APK.
+    Elle ne s'affiche que si https://trouvetout224.site est injoignable au
+    lancement (pas de réseau, serveur en maintenance). En fonctionnement
+    normal, la WebView charge directement le site en ligne.
+  -->
+  <main>
+    <div class="logo">T</div>
+    <h1>Pas de connexion</h1>
+    <p class="hint">
+      On n'arrive pas à joindre TrouveTout224. Vérifiez votre connexion
+      internet, puis réessayez.
+    </p>
+    <button onclick="location.replace('https://trouvetout224.site')">Réessayer</button>
+  </main>
+</body>
+</html>

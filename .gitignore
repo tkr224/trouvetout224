@@ -70,3 +70,19 @@ mobile/android/app/build/
 mobile/android/.gradle/
 mobile/ios/build/
 mobile/ios/Pods/
+
+# ── App Android Capacitor (frontend/android) ──────────────────────────
+# Secrets de signature : la perte de la clé empêche toute mise à jour de
+# l'app sur le Play Store, mais la publier serait pire (n'importe qui
+# pourrait signer une fausse mise à jour). À sauvegarder hors du dépôt.
+frontend/android/keystore.properties
+frontend/android/*.jks
+frontend/android/*.keystore
+# Artefacts de build Gradle
+frontend/android/.gradle/
+frontend/android/build/
+frontend/android/app/build/
+frontend/android/capacitor-cordova-android-plugins/
+frontend/android/local.properties
+# Aperçus temporaires générés par les scripts d'icônes
+frontend/assets/_apercu-*.png
