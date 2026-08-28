@@ -9,10 +9,13 @@ import { verificationEmail } from '../i18n/email/verification';
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-// Adresse de test fournie par Resend, à utiliser tant que le domaine trouvetout224.site
-// n'est pas vérifié sur Resend. Une fois vérifié, remplacer par :
-// 'TrouveTout224 🇬🇳 <contact@trouvetout224.site>'
-const FROM_ADDRESS = 'TrouveTout224 🇬🇳 <onboarding@resend.dev>';
+// Le domaine trouvetout224.site est vérifié sur Resend depuis le 2026-07-13 (statut
+// "verified", sending activé — vérifié via l'API Resend le 2026-08-28). L'adresse
+// sandbox 'onboarding@resend.dev' ci-dessous était restée en place par oubli après
+// la vérification du domaine : Resend limite cette adresse de test à n'envoyer QU'AU
+// propre email du compte Resend, ce qui bloquait silencieusement tous les emails
+// vers de vrais utilisateurs (vérification de compte, etc.) depuis plus d'un mois.
+const FROM_ADDRESS = 'TrouveTout224 🇬🇳 <contact@trouvetout224.site>';
 
 type SendEmailArgs = {
   to: string;
