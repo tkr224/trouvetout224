@@ -183,6 +183,7 @@
     "duration7d": "7 jours",
     "duration14d": "14 jours",
     "duration30d": "30 jours (Recommandé)",
+    "durationDisabledNotice": "Réglage temporairement désactivé : ton annonce reste visible sans limite de durée pour le moment.",
     "photosTitle": "Photos",
     "dragPhotos": "Glissez vos photos ici",
     "orClickBrowse": "ou cliquez pour parcourir",

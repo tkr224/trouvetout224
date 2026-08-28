@@ -183,6 +183,7 @@
     "duration7d": "7 天",
     "duration14d": "14 天",
     "duration30d": "30 天（推荐）",
+    "durationDisabledNotice": "该设置暂时停用：目前你的信息将无限期保持可见。",
     "photosTitle": "照片",
     "dragPhotos": "将照片拖到此处",
     "orClickBrowse": "或点击浏览",

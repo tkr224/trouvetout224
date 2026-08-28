@@ -156,11 +156,11 @@ export default function AiChatWidget() {
 
   if (dismissed && !isOpen) {
     return (
-      <>
+      <div className={`${launcherPos} z-40`}>
         <button
           onClick={() => { setDismissed(false); setIsOpen(true); }}
           aria-label={t('openAriaLabel')}
-          className={`${launcherPos} z-40 w-14 h-14 rounded-full bg-primary-700 dark:bg-primary-600 text-white shadow-card-hover flex items-center justify-center hover:scale-105 transition-transform relative`}
+          className="relative w-14 h-14 rounded-full bg-primary-700 dark:bg-primary-600 text-white shadow-card-hover flex items-center justify-center hover:scale-105 transition-transform"
         >
           <LauncherIcon size={24} />
           {unreadCount > 0 && (
@@ -172,28 +172,30 @@ export default function AiChatWidget() {
             </span>
           )}
         </button>
-      </>
+      </div>
     );
   }
 
   return (
     <>
       {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          aria-label={t('openAriaLabel')}
-          className={`${launcherPos} z-40 w-14 h-14 rounded-full bg-primary-700 dark:bg-primary-600 text-white shadow-card-hover flex items-center justify-center hover:scale-105 transition-transform ring-4 ring-gold-400/30 relative`}
-        >
-          <LauncherIcon size={24} />
-          {unreadCount > 0 && (
-            <span
-              style={{ background: prefs.badgeColor }}
-              className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-white text-[11px] font-bold flex items-center justify-center border-2 border-white dark:border-dark-900"
-            >
-              {unreadCount}
-            </span>
-          )}
-        </button>
+        <div className={`${launcherPos} z-40`}>
+          <button
+            onClick={() => setIsOpen(true)}
+            aria-label={t('openAriaLabel')}
+            className="relative w-14 h-14 rounded-full bg-primary-700 dark:bg-primary-600 text-white shadow-card-hover flex items-center justify-center hover:scale-105 transition-transform ring-4 ring-gold-400/30"
+          >
+            <LauncherIcon size={24} />
+            {unreadCount > 0 && (
+              <span
+                style={{ background: prefs.badgeColor }}
+                className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-white text-[11px] font-bold flex items-center justify-center border-2 border-white dark:border-dark-900"
+              >
+                {unreadCount}
+              </span>
+            )}
+          </button>
+        </div>
       )}
 
       {isOpen && (

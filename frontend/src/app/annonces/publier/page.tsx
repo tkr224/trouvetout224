@@ -955,15 +955,19 @@ function PublierAnnonceContent() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-dark-700 mb-2">{t('durationLabel')}</label>
-                <div className="grid grid-cols-2 gap-2">
+                {/* Désactivé temporairement (site a besoin d'un maximum de visibilité tant
+                    qu'il y a peu d'annonces) : le backend ignore aussi ce champ et applique
+                    une durée longue par défaut, quelle que soit la valeur envoyée. */}
+                <div className="grid grid-cols-2 gap-2 opacity-50 pointer-events-none select-none">
                   {DURATIONS.map(d => (
-                    <button key={d.value} type="button" onClick={() => set('duration', d.value)}
-                      className={`px-3 py-2.5 rounded-xl text-sm font-medium border-2 transition-colors
-                        ${form.duration === d.value ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'}`}>
+                    <button key={d.value} type="button" disabled
+                      className={`px-3 py-2.5 rounded-xl text-sm font-medium border-2
+                        ${form.duration === d.value ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600'}`}>
                       {d.label}
                     </button>
                   ))}
                 </div>
+                <p className="text-xs text-dark-400 mt-1.5">{t('durationDisabledNotice')}</p>
               </div>
             </div>
           )}

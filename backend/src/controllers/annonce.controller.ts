@@ -37,7 +37,13 @@ export const getAnnonces = async (req: Request, res: Response) => {
     const limitNum = parseInt(limit as string);
     const skip = (pageNum - 1) * limitNum;
 
-    const where: any = { status: 'ACTIVE', expiresAt: { gte: new Date() } };
+    // Filtre "expiresAt dépassé" désactivé temporairement (2026-08-28) : le site a
+    // besoin d'un maximum de visibilité tant qu'il y a peu d'annonces. Avant ce
+    // changement, 18 des 19 annonces ACTIVE en base étaient invisibles car leur
+    // expiresAt (7/14/30 jours après publication) était déjà dépassé — voir aussi
+    // createAnnonce() plus bas où la durée est désormais fixée à 1 an quel que soit
+    // le choix envoyé par le frontend (sélecteur de durée grisé côté UI).
+    const where: any = { status: 'ACTIVE' };
 
     if (categoryId) {
       const resolved = await resolveCategoryId(categoryId as string);
@@ -198,8 +204,14 @@ export const createAnnonce = async (req: Request, res: Response) => {
     //   }
     // }
 
+    // Sélecteur de durée désactivé temporairement côté UI (voir annonces/publier) :
+    // on ignore volontairement la valeur `duration` envoyée et on fixe une échéance
+    // longue (1 an) pour que toute nouvelle annonce reste visible tant que le
+    // filtre expiresAt de getAnnonces() est lui aussi désactivé — sinon une
+    // annonce créée avec une ancienne page en cache (duration courte) redeviendrait
+    // invisible avant que quiconque s'en aperçoive.
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + parseInt(duration));
+    expiresAt.setDate(expiresAt.getDate() + 365);
 
     const baseSlug = slugify(title, { lower: true, strict: true });
     const slug = `${baseSlug}-${uuidv4().split('-')[0]}`;
@@ -593,9 +605,10 @@ export const getSimilarAnnonces = async (req: Request, res: Response) => {
       user: { select: { id: true, firstName: true, lastName: true, isVerified: true } },
     };
 
+    // Voir le commentaire équivalent dans getAnnonces() : filtre expiresAt désactivé
+    // temporairement.
     const baseWhere = {
       status: 'ACTIVE' as const,
-      expiresAt: { gte: new Date() },
     };
 
     // Phase 1 — même catégorie + même ville (max 4)

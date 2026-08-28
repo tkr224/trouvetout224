@@ -183,6 +183,7 @@
     "duration7d": "7 days",
     "duration14d": "14 days",
     "duration30d": "30 days (Recommended)",
+    "durationDisabledNotice": "Temporarily disabled: your listing stays visible with no time limit for now.",
     "photosTitle": "Photos",
     "dragPhotos": "Drag your photos here",
     "orClickBrowse": "or click to browse",
