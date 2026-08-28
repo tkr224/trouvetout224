@@ -1059,4 +1059,64 @@ router.delete('/restaurants/:id', async (req: any, res) => {
   } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
+// ─── Annonces système (pop-up de diffusion admin → tous les utilisateurs connectés) ──
+
+router.get('/system-announcements', async (req, res) => {
+  try {
+    const items = await prisma.systemAnnouncement.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { _count: { select: { views: true } } },
+    });
+    res.json({ data: items });
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.post('/system-announcements', async (req: any, res) => {
+  try {
+    const { title, message, buttonText, buttonLink, expiresAt } = req.body;
+    if (!title?.trim() || !message?.trim()) {
+      return res.status(400).json({ error: 'Titre et message requis.' });
+    }
+    if (buttonLink && !buttonText?.trim()) {
+      return res.status(400).json({ error: 'Un texte de bouton est requis si un lien est renseigné.' });
+    }
+    const item = await prisma.systemAnnouncement.create({
+      data: {
+        title: title.trim().slice(0, 100),
+        message: message.trim().slice(0, 500),
+        buttonText: buttonText?.trim().slice(0, 40) || null,
+        buttonLink: buttonLink?.trim().slice(0, 500) || null,
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
+        createdById: req.userId,
+      },
+    });
+    res.status(201).json({ message: 'Annonce système créée.', data: item });
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+// Mise à jour partielle — sert surtout à désactiver/réactiver une annonce en cours
+// (isActive), mais permet aussi de corriger le contenu tant que rien n'est verrouillé.
+router.put('/system-announcements/:id', async (req: any, res) => {
+  try {
+    const { title, message, buttonText, buttonLink, expiresAt, isActive } = req.body;
+    const data: Record<string, any> = {};
+    if (title !== undefined) data.title = String(title).trim().slice(0, 100);
+    if (message !== undefined) data.message = String(message).trim().slice(0, 500);
+    if (buttonText !== undefined) data.buttonText = buttonText ? String(buttonText).trim().slice(0, 40) : null;
+    if (buttonLink !== undefined) data.buttonLink = buttonLink ? String(buttonLink).trim().slice(0, 500) : null;
+    if (expiresAt !== undefined) data.expiresAt = expiresAt ? new Date(expiresAt) : null;
+    if (isActive !== undefined) data.isActive = !!isActive;
+
+    const item = await prisma.systemAnnouncement.update({ where: { id: req.params.id }, data });
+    res.json({ message: 'Annonce système mise à jour.', data: item });
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+router.delete('/system-announcements/:id', async (req, res) => {
+  try {
+    await prisma.systemAnnouncement.delete({ where: { id: req.params.id } });
+    res.json({ message: 'Annonce système supprimée.' });
+  } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
 export default router;

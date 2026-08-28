@@ -20,6 +20,7 @@ const AiChatWidget        = dynamic(() => import('@/components/AiChatWidget'),  
 const OnboardingNudge     = dynamic(() => import('@/components/onboarding/OnboardingNudge'),       { ssr: false });
 const LocaleSync          = dynamic(() => import('@/components/LocaleSync'),                       { ssr: false });
 const VoiceCallScreen     = dynamic(() => import('@/components/voice/VoiceCallScreen'),             { ssr: false });
+const SystemAnnouncementModal = dynamic(() => import('@/components/SystemAnnouncementModal'),        { ssr: false });
 
 /* ── Métadonnées globales (SEO + Open Graph + PWA) ───────────────── */
 export const metadata: Metadata = {
@@ -184,6 +185,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <AiChatWidget />
               <OnboardingNudge />
               <VoiceCallScreen />
+              <SystemAnnouncementModal />
             </ThemeProvider>
           </QueryProvider>
         </NextIntlClientProvider>

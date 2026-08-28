@@ -40,6 +40,7 @@ import statsRoutes from './routes/stats.routes';
 import aiRoutes from './routes/ai.routes';
 import voiceRoutes from './routes/voice.routes';
 import chatbotPrefsRoutes from './routes/chatbotPrefs.routes';
+import systemAnnouncementRoutes from './routes/systemAnnouncement.routes';
 import { optionalAuthenticate } from './middleware/optionalAuth';
 
 dotenv.config();
@@ -211,6 +212,7 @@ app.use('/api/stats',        statsRoutes);
 app.use('/api/ai',           aiRoutes);
 app.use('/api/voice',        voiceRoutes);
 app.use('/api/chatbot-prefs', chatbotPrefsRoutes);
+app.use('/api/system-announcements', systemAnnouncementRoutes);
 
 // Health check
 app.get('/api/health', (req: Request, res: Response) => {

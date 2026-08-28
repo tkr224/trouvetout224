@@ -112,6 +112,8 @@ model User {
   voiceQuota        VoiceQuota?
   voiceCallSessions VoiceCallSession[]
   chatbotPreference ChatbotPreference?
+  createdAnnouncements   SystemAnnouncement[]     @relation("AnnouncementCreatedBy")
+  systemAnnouncementViews SystemAnnouncementView[]
 
   onboardingDone Boolean @default(false)
 
@@ -941,6 +943,44 @@ enum ChatbotFontFamily {
 enum ChatbotPosition {
   BOTTOM_RIGHT
   BOTTOM_LEFT
+}
+
+// =============================================
+// ANNONCES SYSTÈME (pop-up de diffusion admin -> tous les utilisateurs connectés)
+// =============================================
+
+model SystemAnnouncement {
+  id         String    @id @default(cuid())
+  title      String
+  message    String
+  buttonText String?
+  buttonLink String?
+  isActive   Boolean   @default(true)
+  expiresAt  DateTime?
+
+  createdById String?
+  createdBy   User?   @relation("AnnouncementCreatedBy", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  views SystemAnnouncementView[]
+
+  @@map("system_announcements")
+}
+
+// Une ligne = "cet utilisateur a déjà vu (ou fermé) cette annonce" — empêche le
+// pop-up de se réafficher en boucle à chaque visite.
+model SystemAnnouncementView {
+  id             String             @id @default(cuid())
+  announcementId String
+  announcement   SystemAnnouncement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  viewedAt       DateTime           @default(now())
+
+  @@unique([announcementId, userId])
+  @@map("system_announcement_views")
 }
 
 model VoiceQuota {
