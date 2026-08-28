@@ -15,6 +15,7 @@ const isDev = process.env.NODE_ENV !== 'production';
 const DEFAULT_USER_MESSAGE = `Désolé, je rencontre un souci technique. Contacte le support WhatsApp au ${VOICE_CALL_WHATSAPP_NUMBER}.`;
 const USER_MESSAGES: Record<string, string> = {
   QUOTA_EXCEEDED: 'On dirait que je suis très sollicité en ce moment. Réessaie dans quelques minutes.',
+  SERVICE_UNAVAILABLE: 'Le service est temporairement surchargé côté Google. Réessaie dans un instant.',
 };
 
 const VISITOR_COOKIE_NAME = 'tt224_vid';

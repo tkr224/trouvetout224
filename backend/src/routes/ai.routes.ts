@@ -11,6 +11,7 @@ const router = Router();
 const USER_MESSAGES: Record<string, string> = {
   QUOTA_EXCEEDED: 'Je suis très sollicité en ce moment 😅 Réessaie dans quelques minutes, ou écris-nous directement sur WhatsApp : +224 627 54 34 86.',
   RATE_LIMITED: 'Tu m\'as posé pas mal de questions d\'un coup 🙂 Patiente une minute avant de continuer, ou écris-nous sur WhatsApp : +224 627 54 34 86.',
+  SERVICE_UNAVAILABLE: 'Le service IA est temporairement surchargé côté Google 🙏 Réessaie dans quelques instants, ou écris-nous sur WhatsApp : +224 627 54 34 86.',
 };
 const DEFAULT_USER_MESSAGE = 'Assistant indisponible pour le moment. Contacte le support WhatsApp : +224 627 54 34 86.';
 
@@ -44,21 +45,27 @@ router.post('/chat', chatLimiter, async (req: any, res) => {
 
     // Personnalisation par compte : uniquement pour un utilisateur connecté
     // (req.userId posé par optionalAuthenticate en amont, voir index.ts) — un visiteur
-    // anonyme garde le comportement par défaut d'Ibkek.
+    // anonyme garde le comportement par défaut d'Ibkek. Isolée dans son propre
+    // try/catch : un pépin ici (base de données, etc.) ne doit JAMAIS faire échouer
+    // toute la réponse du chat — Ibkek répond simplement sans personnalisation.
     let personalization: ChatPersonalization | undefined;
     if (req.userId) {
-      const [prefs, user] = await Promise.all([
-        prisma.chatbotPreference.findUnique({ where: { userId: req.userId } }),
-        prisma.user.findUnique({ where: { id: req.userId }, select: { firstName: true } }),
-      ]);
-      if (prefs) {
-        personalization = {
-          botName: prefs.botName,
-          tone: prefs.tone as 'FORMAL' | 'CASUAL',
-          personality: prefs.personality as 'PRO' | 'FUNNY' | 'DIRECT',
-          botLanguage: prefs.botLanguage as 'FR' | 'EN',
-          firstName: prefs.useFirstName ? user?.firstName : undefined,
-        };
+      try {
+        const [prefs, user] = await Promise.all([
+          prisma.chatbotPreference.findUnique({ where: { userId: req.userId } }),
+          prisma.user.findUnique({ where: { id: req.userId }, select: { firstName: true } }),
+        ]);
+        if (prefs) {
+          personalization = {
+            botName: prefs.botName,
+            tone: prefs.tone as 'FORMAL' | 'CASUAL',
+            personality: prefs.personality as 'PRO' | 'FUNNY' | 'DIRECT',
+            botLanguage: prefs.botLanguage as 'FR' | 'EN',
+            firstName: prefs.useFirstName ? user?.firstName : undefined,
+          };
+        }
+      } catch (prefsError) {
+        console.error('[ai.routes] Impossible de charger les préférences du chatbot (réponse envoyée sans personnalisation) :', prefsError);
       }
     }
 
@@ -75,6 +82,8 @@ router.post('/chat', chatLimiter, async (req: any, res) => {
       console.error('[ai.routes] ACTION REQUISE : clé GEMINI_API_KEY invalide, expirée ou révoquée — vérifier la variable d\'environnement côté serveur (Railway).');
     } else if (code === 'NOT_CONFIGURED') {
       console.error('[ai.routes] ACTION REQUISE : GEMINI_API_KEY absente côté serveur — l\'assistant ne peut pas fonctionner tant qu\'elle n\'est pas définie.');
+    } else if (code === 'SERVICE_UNAVAILABLE') {
+      console.error('[ai.routes] Surcharge temporaire du modèle Gemini côté Google (503 UNAVAILABLE) — 2 nouvelles tentatives automatiques ont déjà échoué, aucune action requise si ça reste ponctuel.');
     }
 
     res.status(503).json({

@@ -249,10 +249,20 @@ export default function AdminSystemAnnouncements() {
                     value={form.buttonLink}
                     onChange={e => setForm({ ...form, buttonLink: e.target.value })}
                     placeholder="/aide ou https://..."
-                    className="input"
+                    disabled={form.buttonLink === '#chat'}
+                    className="input disabled:opacity-50"
                   />
                 </div>
               </div>
+              <label className="flex items-center gap-2 text-sm text-dark-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.buttonLink === '#chat'}
+                  onChange={e => setForm({ ...form, buttonLink: e.target.checked ? '#chat' : '' })}
+                  className="rounded"
+                />
+                Ouvrir directement le chat Ibkek au clic (au lieu d'un lien)
+              </label>
               <div>
                 <label className="block text-sm font-semibold text-dark-700 mb-1.5">
                   Date d'expiration <span className="text-dark-400 font-normal">(optionnel)</span>

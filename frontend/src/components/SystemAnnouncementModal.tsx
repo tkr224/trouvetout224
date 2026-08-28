@@ -39,12 +39,20 @@ export default function SystemAnnouncementModal() {
     setAnnouncement(null);
   };
 
+  // Convention spéciale : un lien de bouton "#chat" ouvre directement la fenêtre de
+  // discussion d'Ibkek (même événement que "Continuer par écrit" depuis l'appel
+  // vocal, voir VoiceCallScreen.tsx) au lieu de naviguer vers une page.
+  const opensChat = announcement.buttonLink === '#chat';
+
   const handleAction = () => {
     markSeen();
     setAnnouncement(null);
+    if (opensChat) {
+      window.dispatchEvent(new CustomEvent('tt224:open-chat'));
+    }
   };
 
-  const isExternal = announcement.buttonLink?.startsWith('http');
+  const isExternal = !opensChat && announcement.buttonLink?.startsWith('http');
 
   return (
     <div
@@ -79,15 +87,24 @@ export default function SystemAnnouncementModal() {
 
           <div className="flex items-center gap-3">
             {announcement.buttonText && announcement.buttonLink && (
-              <a
-                href={announcement.buttonLink}
-                target={isExternal ? '_blank' : undefined}
-                rel={isExternal ? 'noopener noreferrer' : undefined}
-                onClick={handleAction}
-                className="flex-1 text-center bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 rounded-xl transition-colors"
-              >
-                {announcement.buttonText}
-              </a>
+              opensChat ? (
+                <button
+                  onClick={handleAction}
+                  className="flex-1 text-center bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 rounded-xl transition-colors"
+                >
+                  {announcement.buttonText}
+                </button>
+              ) : (
+                <a
+                  href={announcement.buttonLink}
+                  target={isExternal ? '_blank' : undefined}
+                  rel={isExternal ? 'noopener noreferrer' : undefined}
+                  onClick={handleAction}
+                  className="flex-1 text-center bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 rounded-xl transition-colors"
+                >
+                  {announcement.buttonText}
+                </a>
+              )
             )}
             <button
               onClick={close}

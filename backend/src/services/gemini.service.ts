@@ -2,14 +2,37 @@
 import { GoogleGenAI } from '@google/genai';
 
 const apiKey = process.env.GEMINI_API_KEY;
-// 'gemini-flash-latest' est un alias maintenu par Google qui pointe toujours
-// vers le modèle flash courant — évite de se retrouver avec un nom de modèle
-// périmé (Google déprécie régulièrement les noms de modèles versionnés).
-const MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+// L'alias 'gemini-flash-latest' était censé toujours pointer vers un modèle flash
+// disponible, mais s'est retrouvé bloqué en prod le 2026-08-28 avec des 503
+// UNAVAILABLE ("high demand") persistants pendant 15+ minutes — vérifié en
+// interrogeant directement l'API Google avec la clé de prod : 'gemini-2.5-flash'
+// est carrément retiré ("no longer available to new users"), alors que
+// 'gemini-3.5-flash' répondait normalement au même moment. On fixe donc un nom de
+// modèle concret plutôt que de dépendre d'un alias dont la cible peut changer sans
+// préavis et retomber sur une version surchargée ou dépréciée.
+const MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 if (!ai) {
   console.error('[gemini.service] GEMINI_API_KEY manquante — fonctionnalités IA désactivées (le site continue de fonctionner normalement).');
+}
+
+// Le modèle "flash" renvoie de temps en temps un 503 UNAVAILABLE ("high demand")
+// sous forte charge côté Google — une surcharge transitoire, pas une vraie panne.
+// On réessaie automatiquement 2 fois avant d'abandonner ; toute autre erreur
+// (quota, clé invalide, argument invalide...) est propagée immédiatement, sans
+// retry inutile qui ne ferait que retarder un échec certain.
+async function generateContentWithRetry(params: any, retries = 2, delayMs = 700): Promise<any> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await ai!.models.generateContent(params);
+    } catch (e: any) {
+      const { code } = classifyGeminiError(e);
+      if (code !== 'SERVICE_UNAVAILABLE' || attempt >= retries) throw e;
+      console.error(`[gemini.service] 503 UNAVAILABLE (tentative ${attempt + 1}/${retries + 1}) — nouvel essai dans ${delayMs}ms...`);
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
 }
 
 // ============================
@@ -91,18 +114,21 @@ export async function moderateAnnonce(input: ModerationInput): Promise<Moderatio
     // longtemps : au-delà de 10s, on abandonne et l'annonce suit le parcours
     // normal (fail-open), comme si Gemini était indisponible.
     const response = await Promise.race([
-      ai.models.generateContent({
+      generateContentWithRetry({
         model: MODEL,
         contents: buildModerationPrompt(input),
         config: {
           responseMimeType: 'application/json',
           temperature: 0.1,
           maxOutputTokens: 800,
-          // NE PAS ajouter thinkingConfig ici : sur le modèle actuel derrière
-          // l'alias 'gemini-flash-latest', ce champ fait échouer 100% des
-          // requêtes avec 400 INVALID_ARGUMENT (le modèle ne supporte pas
-          // qu'on configure le "thinking"). Vérifié le 2026-07-23 — voir
-          // classifyGeminiError() plus bas si ça recasse un jour.
+          // gemini-3.5-flash "réfléchit" par défaut (tokens de raisonnement cachés,
+          // décomptés du même budget que maxOutputTokens) — sans le désactiver, une
+          // réponse JSON complexe peut être tronquée avant même d'avoir commencé
+          // (vérifié le 2026-08-28 : sur un budget de 220 tokens, 207 partaient déjà
+          // en "thinking", ne laissant que 9 tokens pour la vraie réponse). Contraire
+          // à l'ancien modèle où ajouter thinkingConfig cassait tout — ici c'est
+          // l'inverse, il FAUT l'ajouter pour désactiver le raisonnement.
+          thinkingConfig: { thinkingBudget: 0 },
         },
       }),
       new Promise<null>((resolve) => setTimeout(() => resolve(null), 10000)),
@@ -239,16 +265,18 @@ export async function chatWithAssistant(message: string, history: ChatTurn[] = [
     { role: 'user', parts: [{ text: message }] },
   ];
 
-  const response = await ai.models.generateContent({
+  const response = await generateContentWithRetry({
     model: MODEL,
     contents,
     config: {
       systemInstruction: CHATBOT_SYSTEM_PROMPT + buildPersonalizationBlock(personalization),
       temperature: 0.4,
       maxOutputTokens: 700,
-      // NE PAS ajouter thinkingConfig ici : voir le commentaire équivalent dans
-      // moderateAnnonce() — ce champ casse 100% des requêtes (400 INVALID_ARGUMENT)
-      // sur le modèle actuel derrière l'alias 'gemini-flash-latest'.
+      // Voir le commentaire équivalent dans moderateAnnonce() : le "thinking" par
+      // défaut de gemini-3.5-flash grignote le budget maxOutputTokens et peut
+      // tronquer la réponse avant la fin — désactivé pour un chatbot FAQ qui n'a pas
+      // besoin de raisonnement caché.
+      thinkingConfig: { thinkingBudget: 0 },
     },
   });
 
@@ -349,7 +377,9 @@ export async function chatWithVoiceAssistant(
     { role: 'user', parts: [{ text: message }] },
   ];
 
-  const response = await ai.models.generateContent({
+  // Délai de retry plus court qu'à l'écrit : en plein appel vocal, chaque
+  // seconde d'attente supplémentaire se ressent beaucoup plus qu'un message texte.
+  const response = await generateContentWithRetry({
     model: MODEL,
     contents,
     config: {
@@ -357,9 +387,11 @@ export async function chatWithVoiceAssistant(
       temperature: 0.5,
       // Réponses volontairement courtes à l'oral — pas besoin d'un gros budget.
       maxOutputTokens: 220,
-      // NE PAS ajouter thinkingConfig ici — voir chatWithAssistant() ci-dessus.
+      // Voir chatWithAssistant() ci-dessus — budget encore plus serré ici, donc
+      // encore plus critique de couper le "thinking" par défaut du modèle.
+      thinkingConfig: { thinkingBudget: 0 },
     },
-  });
+  }, 2, 350);
 
   const text = response.text?.trim();
   if (!text) throw new Error('EMPTY_RESPONSE');
@@ -371,12 +403,13 @@ export async function chatWithVoiceAssistant(
 // ============================
 
 export type GeminiErrorCode =
-  | 'NOT_CONFIGURED'   // GEMINI_API_KEY absente
-  | 'QUOTA_EXCEEDED'   // 429 / RESOURCE_EXHAUSTED — quota gratuit dépassé
-  | 'AUTH_ERROR'       // 401/403 — clé invalide ou refusée
-  | 'MODEL_NOT_FOUND'  // 404 — nom de modèle invalide/déprécié
-  | 'INVALID_ARGUMENT' // 400 — requête malformée (mauvais paramètre, etc.)
-  | 'EMPTY_RESPONSE'   // réponse vide renvoyée par le modèle
+  | 'NOT_CONFIGURED'        // GEMINI_API_KEY absente
+  | 'QUOTA_EXCEEDED'        // 429 / RESOURCE_EXHAUSTED — quota gratuit dépassé
+  | 'AUTH_ERROR'            // 401/403 — clé invalide ou refusée
+  | 'MODEL_NOT_FOUND'       // 404 — nom de modèle invalide/déprécié
+  | 'INVALID_ARGUMENT'      // 400 — requête malformée (mauvais paramètre, etc.)
+  | 'SERVICE_UNAVAILABLE'   // 503 / UNAVAILABLE — surcharge temporaire côté Google, pas notre faute
+  | 'EMPTY_RESPONSE'        // réponse vide renvoyée par le modèle
   | 'UNKNOWN';
 
 export interface GeminiErrorInfo {
@@ -406,6 +439,13 @@ export function classifyGeminiError(e: any): GeminiErrorInfo {
   }
   if (status === 400 || /INVALID_ARGUMENT/i.test(message)) {
     return { code: 'INVALID_ARGUMENT', status, detail: message };
+  }
+  // Surcharge temporaire du modèle côté Google ("This model is currently
+  // experiencing high demand... UNAVAILABLE") — observé en prod le 2026-08-28,
+  // rien à voir avec notre clé/quota. Se résout généralement en quelques
+  // secondes : voir generateContentWithRetry() qui réessaie automatiquement.
+  if (status === 503 || /UNAVAILABLE/i.test(message)) {
+    return { code: 'SERVICE_UNAVAILABLE', status, detail: message };
   }
   return { code: 'UNKNOWN', status, detail: message };
 }
