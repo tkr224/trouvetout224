@@ -123,7 +123,7 @@ export async function moderateAnnonce(input: ModerationInput): Promise<Moderatio
 // ASSISTANT / CHATBOT
 // ============================
 
-const CHATBOT_SYSTEM_PROMPT = `Tu es l'assistant virtuel officiel de TrouveTout224, un site de petites annonces gratuit en Guinée. Tu réponds en français, de façon brève (2 à 5 phrases max), chaleureuse et simple, comme si tu expliquais à quelqu'un qui découvre le site.
+const CHATBOT_SYSTEM_PROMPT = `Tu t'appelles Ibkek, l'assistant virtuel officiel de TrouveTout224, un site de petites annonces gratuit en Guinée. Si on te demande ton nom, réponds "Ibkek". Tu réponds en français, de façon brève (2 à 5 phrases max), chaleureuse et simple, comme si tu expliquais à quelqu'un qui découvre le site.
 
 TON RÔLE : aider les visiteurs à utiliser le site TrouveTout224 (inscription, publication, boutique, sécurité, etc.). Tu ne réponds QU'AUX questions concernant TrouveTout224 et son fonctionnement.
 
@@ -186,10 +186,52 @@ export interface ChatTurn {
   text: string;
 }
 
+// Personnalisation par utilisateur (voir ChatbotPreference en base) qui influence
+// vraiment le COMPORTEMENT du modèle — les réglages purement visuels (couleurs,
+// polices, position...) ne concernent que le rendu côté frontend et n'ont pas leur
+// place ici. L'emoji signature / signature de message sont ajoutés côté frontend
+// après coup (concaténation simple) plutôt que demandés au modèle — plus fiable
+// qu'une instruction que l'IA pourrait oublier de suivre.
+export interface ChatPersonalization {
+  botName?: string;
+  tone?: 'FORMAL' | 'CASUAL';
+  personality?: 'PRO' | 'FUNNY' | 'DIRECT';
+  botLanguage?: 'FR' | 'EN';
+  firstName?: string; // fourni uniquement si useFirstName est activé et l'utilisateur connecté
+}
+
+function buildPersonalizationBlock(p?: ChatPersonalization): string {
+  if (!p) return '';
+  const lines: string[] = [];
+  if (p.botName && p.botName !== 'Ibkek') {
+    lines.push(`- Ton nom a été personnalisé par cet utilisateur : réponds à "${p.botName}" si on t'appelle ainsi, mais tu restes fondamentalement Ibkek.`);
+  }
+  if (p.tone === 'FORMAL') {
+    lines.push('- Ton demandé : FORMEL. Vouvoie l\'utilisateur, phrases soignées, pas d\'abréviations ni de familiarités.');
+  } else {
+    lines.push('- Ton demandé : DÉCONTRACTÉ. Tutoie l\'utilisateur, style naturel et détendu (déjà ton style par défaut).');
+  }
+  if (p.personality === 'FUNNY') {
+    lines.push('- Personnalité demandée : DRÔLE. Ajoute une touche d\'humour léger et de bonne humeur dans tes réponses, sans jamais sacrifier l\'exactitude des informations ni devenir long.');
+  } else if (p.personality === 'DIRECT') {
+    lines.push('- Personnalité demandée : DIRECT. Va droit au but, réponses très courtes (1 à 2 phrases), zéro superflu.');
+  } else {
+    lines.push('- Personnalité demandée : PROFESSIONNELLE. Reste posé, clair et efficace (comportement par défaut).');
+  }
+  if (p.botLanguage === 'EN') {
+    lines.push('- Langue demandée : réponds en ANGLAIS (et uniquement en anglais), même si l\'utilisateur t\'écrit dans une autre langue.');
+  }
+  if (p.firstName) {
+    lines.push(`- L'utilisateur s'appelle ${p.firstName} : tu peux l'appeler par son prénom de temps en temps (pas à chaque phrase) pour personnaliser la conversation.`);
+  }
+  if (!lines.length) return '';
+  return `\n\nPRÉFÉRENCES DE CET UTILISATEUR (à respecter en plus des règles ci-dessus, qui restent prioritaires) :\n${lines.join('\n')}`;
+}
+
 // Contrairement à moderateAnnonce, cette fonction lève une exception en cas
 // d'échec : il n'y a pas de "réponse de repli sûre" pour un message de chat,
 // c'est à l'appelant (la route) d'attraper l'erreur et de répondre poliment.
-export async function chatWithAssistant(message: string, history: ChatTurn[] = []): Promise<string> {
+export async function chatWithAssistant(message: string, history: ChatTurn[] = [], personalization?: ChatPersonalization): Promise<string> {
   if (!ai) throw new Error('GEMINI_NOT_CONFIGURED');
 
   const contents = [
@@ -201,7 +243,7 @@ export async function chatWithAssistant(message: string, history: ChatTurn[] = [
     model: MODEL,
     contents,
     config: {
-      systemInstruction: CHATBOT_SYSTEM_PROMPT,
+      systemInstruction: CHATBOT_SYSTEM_PROMPT + buildPersonalizationBlock(personalization),
       temperature: 0.4,
       maxOutputTokens: 700,
       // NE PAS ajouter thinkingConfig ici : voir le commentaire équivalent dans
@@ -246,7 +288,7 @@ export interface VoiceCallerContext {
 }
 
 function buildVoiceSystemPrompt(caller: VoiceCallerContext | null): string {
-  const base = `Tu es l'assistant vocal officiel de TrouveTout224, un site de petites annonces gratuit en Guinée. Tu es en plein APPEL TÉLÉPHONIQUE avec quelqu'un : tes réponses sont lues à voix haute par une synthèse vocale, donc c'est très important :
+  const base = `Tu t'appelles Ibkek, l'assistant vocal officiel de TrouveTout224, un site de petites annonces gratuit en Guinée. Si on te demande ton nom, réponds "Ibkek". Tu es en plein APPEL TÉLÉPHONIQUE avec quelqu'un : tes réponses sont lues à voix haute par une synthèse vocale, donc c'est très important :
 
 STYLE OBLIGATOIRE (à l'oral — une synthèse vocale va LIRE ta réponse mot à mot) :
 - 2 à 3 phrases MAXIMUM par réponse, courtes et simples. Jamais de liste à puces, jamais de markdown (pas de **gras**, pas de #titres, pas de tirets de liste), jamais de pavé de texte — on est à l'oral, pas à l'écrit.

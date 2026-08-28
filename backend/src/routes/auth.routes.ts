@@ -4,6 +4,7 @@ import rateLimit from 'express-rate-limit';
 import { validate } from '../middleware/validate';
 import { authenticate } from '../middleware/auth';
 import { optionalAuthenticate } from '../middleware/optionalAuth';
+import { normalizeGuineaPhone, GUINEA_PHONE_FORMAT_HINT } from '../utils/phone';
 import {
   register,
   login,
@@ -44,7 +45,15 @@ router.post(
       .matches(/[a-z]/).withMessage('Mot de passe : au moins une minuscule requise')
       .matches(/[0-9]/).withMessage('Mot de passe : au moins un chiffre requis'),
     body('email').optional().isEmail().normalizeEmail().withMessage('Email invalide'),
-    body('phone').optional().isMobilePhone('any').withMessage('Téléphone invalide'),
+    // isMobilePhone('any') ne reconnaît pas de façon fiable les numéros guinéens (pas de
+    // locale 'gn-GN' dans validator.js) — c'était la cause du "numéro invalide" rejeté à
+    // tort à l'inscription pour des numéros pourtant réels. On valide nous-mêmes avec la
+    // même règle que le reste de l'app (normalizeGuineaPhone, tolérante aux formats
+    // +224/224/0 initial/espaces-tirets).
+    body('phone').optional({ checkFalsy: true }).custom((value) => {
+      if (!normalizeGuineaPhone(value)) throw new Error(`Numéro de téléphone invalide. ${GUINEA_PHONE_FORMAT_HINT}`);
+      return true;
+    }),
     body().custom((_, { req }) => {
       if (!req.body.email && !req.body.phone) {
         throw new Error('Un email ou un numéro de téléphone est requis.');

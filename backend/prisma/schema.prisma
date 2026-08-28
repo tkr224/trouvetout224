@@ -111,6 +111,7 @@ model User {
   securityQuestions UserSecurityQuestion[]
   voiceQuota        VoiceQuota?
   voiceCallSessions VoiceCallSession[]
+  chatbotPreference ChatbotPreference?
 
   onboardingDone Boolean @default(false)
 
@@ -838,6 +839,110 @@ enum AdminDeletionType {
 // chaque jour : voir usageDate (format 'YYYY-MM-DD', calculé en UTC — la
 // Guinée étant en UTC+0, ça correspond exactement à minuit à Conakry). Les
 // valeurs de quota par palier sont dans backend/src/config/voiceCall.ts.
+// =============================================
+// PERSONNALISATION DU CHATBOT "IBKEK" (par utilisateur)
+// =============================================
+
+model ChatbotPreference {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Identité du bot
+  botName String @default("Ibkek")
+
+  // Apparence des bulles / nom
+  bubbleColor String            @default("#16a34a")
+  nameColor   String            @default("#16a34a")
+  avatarType  ChatbotAvatarType @default(EMOJI)
+  avatarValue String            @default("🤖") // emoji, clé d'icône Lucide, ou URL d'image uploadée
+
+  // Comportement de l'IA
+  tone        ChatbotTone        @default(CASUAL)
+  personality ChatbotPersonality @default(PRO)
+  botLanguage ChatbotLanguage    @default(FR)
+  useFirstName Boolean           @default(true)
+
+  // Fenêtre de chat
+  windowTheme ChatbotTheme      @default(SYSTEM)
+  windowSize  ChatbotWindowSize @default(COMPACT)
+  fontSize    ChatbotFontSize   @default(MEDIUM)
+  fontFamily  ChatbotFontFamily @default(SYSTEM)
+  chatBackground String         @default("NONE")
+  bubblePosition ChatbotPosition @default(BOTTOM_RIGHT)
+  launcherIcon   String          @default("message-circle")
+
+  // Sons / vibrations / notifications
+  soundEnabled     Boolean @default(true)
+  sendSoundEnabled Boolean @default(true)
+  vibrationEnabled Boolean @default(true)
+  silentMode       Boolean @default(false)
+  badgeColor       String  @default("#dc2626")
+
+  // Contenu personnalisé
+  welcomeMessage          String?
+  signatureEmoji          String?
+  messageSignature        String?
+  quickReplies            Json    @default("[]") // [{ id, label, message, pinned }]
+  historyVisibleByDefault Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("chatbot_preferences")
+}
+
+enum ChatbotAvatarType {
+  EMOJI
+  ICON
+  CUSTOM
+}
+
+enum ChatbotTone {
+  FORMAL
+  CASUAL
+}
+
+enum ChatbotPersonality {
+  PRO
+  FUNNY
+  DIRECT
+}
+
+enum ChatbotLanguage {
+  FR
+  EN
+}
+
+enum ChatbotTheme {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+enum ChatbotWindowSize {
+  COMPACT
+  LARGE
+}
+
+enum ChatbotFontSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum ChatbotFontFamily {
+  SYSTEM
+  SERIF
+  MONO
+  ROUNDED
+}
+
+enum ChatbotPosition {
+  BOTTOM_RIGHT
+  BOTTOM_LEFT
+}
+
 model VoiceQuota {
   id          String   @id @default(cuid())
   userId      String?  @unique

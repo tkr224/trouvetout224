@@ -2582,3 +2582,15 @@ html.dark {
   .admin-crown-badge,
   .admin-official-badge { animation: none !important; }
 }
+
+/* Police "arrondie" pour la personnalisation du chatbot Ibkek — repli sur les
+   polices système à chanfrein doux, aucune police externe à charger. */
+.chat-font-rounded {
+  font-family: ui-rounded, "SF Pro Rounded", "Segoe UI Rounded", "Nunito", system-ui, sans-serif;
+}
+
+@keyframes chat-typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30%           { transform: translateY(-3px); opacity: 1; }
+}
+.chat-typing-dot { animation: chat-typing-dot 1.2s ease-in-out infinite; }

@@ -97,7 +97,12 @@ export default function BoutiquePage() {
       await api.put('/users/me/shop', { ...form, shopLogo, shopBanner, shopActive: true });
       toast.success(t('toastShopSaved'));
       router.push(`/profil/${user?.id}`);
-    } catch { toast.error(t('toastError')); }
+    } catch (err: any) {
+      // Affiche le message précis du serveur (ex: format WhatsApp attendu) plutôt qu'une
+      // erreur générique — sinon un numéro mal formaté échoue sans que l'utilisateur
+      // comprenne pourquoi.
+      toast.error(err?.response?.data?.error || t('toastError'));
+    }
     finally { setLoading(false); }
   };
 

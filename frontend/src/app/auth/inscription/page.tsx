@@ -171,7 +171,11 @@ export default function RegisterPage() {
         preferredLanguage: locale.toUpperCase(),
       };
       if (step1Data.email?.trim()) payload.email = step1Data.email.trim();
-      if (step1Data.phone?.trim()) payload.phone = `+224${step1Data.phone.replace(/\D/g, '')}`;
+      // On envoie la saisie brute (espaces/tirets/+224 éventuel compris) : le backend
+      // (normalizeGuineaPhone) sait déjà reconnaître tous ces formats. Préfixer "+224"
+      // ici en plus provoquait un double indicatif si l'utilisateur l'avait déjà tapé
+      // lui-même, ce qui faisait rejeter des numéros pourtant valides.
+      if (step1Data.phone?.trim()) payload.phone = step1Data.phone.trim();
       if (step1Data.dateOfBirth) payload.dateOfBirth = step1Data.dateOfBirth;
       if (step1Data.cityId) payload.cityId = step1Data.cityId;
 
@@ -200,7 +204,7 @@ export default function RegisterPage() {
           shopDescription: shopDesc.trim() || undefined,
           shopLogo: logoUrl || undefined,
           shopBanner: bannerUrl || undefined,
-          shopWhatsapp: shopWa.trim() ? `+224${shopWa.replace(/\D/g, '')}` : undefined,
+          shopWhatsapp: shopWa.trim() || undefined,
           shopCategories: selCats,
           shopHasPhysical: physical,
           shopAddress: shopAddr.trim() || undefined,

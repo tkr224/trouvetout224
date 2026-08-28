@@ -6,9 +6,9 @@ import { listVoicesFor, speechLangFor, isVoiceCallSupported, VOICE_DEFAULT_PITCH
 import { useVoicePrefsStore, VOICE_RATE_MIN, VOICE_RATE_MAX, VOICE_RATE_STEP } from '@/store/voicePrefs.store';
 
 const SAMPLE_TEXT: Record<string, string> = {
-  fr: "Bonjour, je suis l'assistant vocal de TrouveTout224. Comment puis-je t'aider aujourd'hui ?",
-  en: "Hello, I'm the TrouveTout224 voice assistant. How can I help you today?",
-  zh: '你好，我是 TrouveTout224 的语音助手。今天能帮你什么？',
+  fr: "Bonjour, je suis Ibkek, l'assistant vocal de TrouveTout224. Comment puis-je t'aider aujourd'hui ?",
+  en: "Hello, I'm Ibkek, the TrouveTout224 voice assistant. How can I help you today?",
+  zh: '你好，我是 Ibkek，TrouveTout224 的语音助手。今天能帮你什么？',
 };
 
 // Section "Voix de l'assistant" des Paramètres — liste les voix françaises (ou

@@ -10,6 +10,9 @@ import { resolveEmailLocale } from '../i18n/emailLocales';
 import { v4 as uuidv4 } from 'uuid';
 import { SECURITY_QUESTIONS, normalizeAnswer } from '../constants/securityQuestions';
 import { checkCooldown, cooldownMessage } from '../config/security';
+import { normalizeGuineaPhone, GUINEA_PHONE_FORMAT_HINT } from '../utils/phone';
+
+const AUTH_LOG = '[auth]';
 
 // .trim() : une valeur Railway copiée-collée avec un espace ou un retour à la ligne en trop
 // suffit à faire échouer la vérification "audience" ci-dessous (le Client ID ne matcherait
@@ -108,6 +111,7 @@ async function verifyFacebookToken(accessToken: string): Promise<VerifiedOAuthPr
 export const register = async (req: Request, res: Response) => {
   try {
     const { email, phone, password, firstName, lastName, dateOfBirth, gender, cityId, accountType, preferredLanguage } = req.body;
+    console.log(`${AUTH_LOG} register — tentative reçue (email=${email || 'none'}, phone=${phone || 'none'})`);
 
     if (dateOfBirth) {
       const age = (Date.now() - new Date(dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365);
@@ -128,8 +132,18 @@ export const register = async (req: Request, res: Response) => {
       });
     }
 
-    if (phone) {
-      const existingPhone = await prisma.user.findUnique({ where: { phone } });
+    // Le validateur de la route a déjà vérifié le format, mais on renormalise ici pour
+    // stocker EXACTEMENT la même forme canonique (+224XXXXXXXXX) que /me/phone — sinon
+    // un compte créé avec un numéro mal formaté (ex: "+224" en double) ne serait plus
+    // jamais retrouvable à la connexion par téléphone.
+    const normalizedPhone = phone ? normalizeGuineaPhone(phone) : undefined;
+    if (phone && !normalizedPhone) {
+      console.log(`${AUTH_LOG} register — téléphone invalide reçu : "${phone}"`);
+      return res.status(400).json({ error: `Numéro de téléphone invalide. ${GUINEA_PHONE_FORMAT_HINT}`, field: 'phone' });
+    }
+
+    if (normalizedPhone) {
+      const existingPhone = await prisma.user.findUnique({ where: { phone: normalizedPhone } });
       if (existingPhone) return res.status(409).json({
         error: 'Ce numéro de téléphone est déjà utilisé. Connectez-vous ou utilisez un autre numéro.',
         field: 'phone',
@@ -157,7 +171,7 @@ export const register = async (req: Request, res: Response) => {
     const registerLocale = ['FR', 'EN', 'ZH'].includes(preferredLanguage) ? preferredLanguage : undefined;
     const user = await prisma.user.create({
       data: {
-        email: normalizedEmail, phone, password: hashedPassword, firstName, lastName,
+        email: normalizedEmail, phone: normalizedPhone, password: hashedPassword, firstName, lastName,
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
         gender, cityId: realCityId, isVerified: false,
         accountType: accountType || 'ACHETEUR',
@@ -179,13 +193,14 @@ export const register = async (req: Request, res: Response) => {
     }
 
     const { accessToken, refreshToken } = await generateTokens(user.id);
+    console.log(`${AUTH_LOG} register — compte créé avec succès (id=${user.id}, email=${normalizedEmail || 'none'}, phone=${normalizedPhone || 'none'})`);
 
     res.status(201).json({
       message: 'Compte créé avec succès !',
       user, accessToken, refreshToken,
     });
   } catch (error: any) {
-    console.error('Erreur register:', error);
+    console.error(`${AUTH_LOG} register — ERREUR (email=${req.body?.email || 'none'}, phone=${req.body?.phone || 'none'}) :`, error);
     if (error.code === 'P2002') {
       const field = error.meta?.target?.[0] ?? '';
       if (field === 'email') return res.status(409).json({
@@ -206,30 +221,60 @@ export const register = async (req: Request, res: Response) => {
 // ============================
 export const login = async (req: Request, res: Response) => {
   try {
-    const { identifier, password } = req.body;
+    const { identifier: rawIdentifier, password } = req.body;
+    // .trim() : un espace collé par erreur (copier-coller, clavier mobile) suffit à faire
+    // échouer un match exact — c'était une cause silencieuse de "identifiant introuvable"
+    // après une inscription pourtant réussie. Idem pour la casse de l'email : register
+    // stocke toujours l'email en minuscules (normalizedEmail), donc si on ne compare pas
+    // ici de façon insensible à la casse, "Jean@Gmail.com" à l'inscription (stocké
+    // "jean@gmail.com") ne matcherait plus jamais "Jean@Gmail.com" tapé à la connexion.
+    const identifier = String(rawIdentifier || '').trim();
+    // Si l'identifiant ressemble à un numéro de téléphone guinéen (dans n'importe quel
+    // format), on le normalise à la même forme canonique que celle stockée en base
+    // (register / /me/phone stockent tous les deux via normalizeGuineaPhone) — sinon un
+    // numéro tapé "0620000000" ne matcherait jamais "+224620000000" en base.
+    const normalizedPhone = normalizeGuineaPhone(identifier);
+    console.log(`${AUTH_LOG} login — tentative reçue (identifier="${identifier}", interprété comme téléphone=${!!normalizedPhone})`);
 
     const user = await prisma.user.findFirst({
-      where: { OR: [{ email: identifier }, { phone: identifier }], isActive: true },
+      where: {
+        OR: [
+          { email: { equals: identifier, mode: 'insensitive' } },
+          { phone: identifier },
+          ...(normalizedPhone ? [{ phone: normalizedPhone }] : []),
+        ],
+        isActive: true,
+      },
       include: { city: true },
     });
 
-    if (!user) return res.status(401).json({ error: 'Identifiants incorrects.' });
+    if (!user) {
+      console.log(`${AUTH_LOG} login — ÉCHEC : aucun compte actif trouvé pour "${identifier}".`);
+      return res.status(401).json({ error: 'Identifiants incorrects.' });
+    }
     if (user.isSuspended) return res.status(403).json({
       error: 'Votre compte a été suspendu.',
       suspended: true,
       suspendedReason: (user as any).suspendedReason || null,
     });
-    if (!user.password) return res.status(400).json({ error: 'Connectez-vous avec Google ou Facebook.' });
+    if (!user.password) {
+      console.log(`${AUTH_LOG} login — ÉCHEC : compte ${user.id} trouvé mais sans mot de passe (créé via Google/Facebook).`);
+      return res.status(400).json({ error: 'Connectez-vous avec Google ou Facebook.' });
+    }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) return res.status(401).json({ error: 'Identifiants incorrects.' });
+    if (!isPasswordValid) {
+      console.log(`${AUTH_LOG} login — ÉCHEC : mot de passe incorrect pour le compte ${user.id}.`);
+      return res.status(401).json({ error: 'Identifiants incorrects.' });
+    }
 
     const { accessToken, refreshToken } = await generateTokens(user.id);
     const { password: _, ...userWithoutPassword } = user;
+    console.log(`${AUTH_LOG} login — succès (id=${user.id}).`);
 
     res.json({ message: 'Connexion réussie !', user: { ...userWithoutPassword, hasPassword: true }, accessToken, refreshToken });
   } catch (error) {
-    console.error('Erreur login:', error);
+    console.error(`${AUTH_LOG} login — ERREUR :`, error);
     res.status(500).json({ error: 'Erreur lors de la connexion.' });
   }
 };
@@ -274,6 +319,7 @@ export const oauthLogin = async (req: Request, res: Response) => {
     if (!token || (provider !== 'google' && provider !== 'facebook')) {
       return res.status(400).json({ error: 'Requête de connexion invalide.' });
     }
+    console.log(`${AUTH_LOG} oauth — tentative reçue (provider=${provider}).`);
 
     // Étape critique : on ne fait confiance qu'à ce que Google/Facebook confirme,
     // jamais aux champs (email, nom...) envoyés directement par le client.
@@ -283,7 +329,7 @@ export const oauthLogin = async (req: Request, res: Response) => {
         ? await verifyGoogleToken(token)
         : await verifyFacebookToken(token);
     } catch (e: any) {
-      console.error('Erreur vérification OAuth:', e.message);
+      console.error(`${AUTH_LOG} oauth — ÉCHEC vérification (provider=${provider}) :`, e.message);
       return res.status(401).json({ error: 'Connexion refusée : token invalide ou expiré.' });
     }
 
@@ -292,6 +338,7 @@ export const oauthLogin = async (req: Request, res: Response) => {
     // fournisseur confirme explicitement qu'il est vérifié — sinon on ignore ce champ,
     // le compte est alors identifié uniquement par providerId (googleId/facebookId).
     const email = verified.email && verified.emailVerified ? verified.email.toLowerCase().trim() : undefined;
+    console.log(`${AUTH_LOG} oauth — token ${provider} vérifié (providerId=${providerId}, email=${email || 'none'}).`);
 
     let user = await prisma.user.findFirst({
       where: {
@@ -302,6 +349,7 @@ export const oauthLogin = async (req: Request, res: Response) => {
         ].filter((o) => Object.keys(o).length > 0),
       },
     });
+    console.log(`${AUTH_LOG} oauth — recherche compte existant : ${user ? `trouvé (id=${user.id})` : 'aucun'}.`);
 
     let isNewUser = false;
     if (!user) {
@@ -341,6 +389,7 @@ export const oauthLogin = async (req: Request, res: Response) => {
 
     const { accessToken, refreshToken } = await generateTokens(user.id);
     const { password, ...userWithoutPassword } = user as any;
+    console.log(`${AUTH_LOG} oauth — succès (id=${user.id}, isNewUser=${isNewUser}).`);
 
     res.json({
       message: 'Connexion réussie !',
@@ -350,7 +399,7 @@ export const oauthLogin = async (req: Request, res: Response) => {
       isNewUser,
     });
   } catch (error) {
-    console.error('Erreur OAuth:', error);
+    console.error(`${AUTH_LOG} oauth — ERREUR :`, error);
     res.status(500).json({ error: 'Erreur lors de la connexion OAuth.' });
   }
 };

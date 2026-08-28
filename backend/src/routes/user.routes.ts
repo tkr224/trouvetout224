@@ -8,6 +8,7 @@ import { SECURITY_QUESTIONS, normalizeAnswer } from '../constants/securityQuesti
 import { checkCooldown, cooldownMessage } from '../config/security';
 import { sendSecurityAlertEmail, sendEmailChangeConfirmation } from '../services/email.service';
 import { resolveEmailLocale } from '../i18n/emailLocales';
+import { normalizeGuineaPhone, GUINEA_PHONE_FORMAT_HINT } from '../utils/phone';
 
 const router = Router();
 
@@ -196,19 +197,14 @@ router.put('/me', authenticate, async (req: any, res) => {
   }
 });
 
-// Format attendu côté Guinée : 9 chiffres commençant par 6 (ex "620 00 00 00"),
-// stocké avec le préfixe international +224.
-const GUINEA_PHONE_REGEX = /^6\d{8}$/;
-
 // Ajouter ou modifier mon numéro de téléphone (sert au contact WhatsApp).
 // Protégé par le délai de sécurité si un numéro existait déjà (1ère saisie toujours libre).
 router.put('/me/phone', authenticate, async (req: any, res) => {
   try {
-    const digits = String(req.body?.phone || '').replace(/\D/g, '').replace(/^224/, '');
-    if (!GUINEA_PHONE_REGEX.test(digits)) {
-      return res.status(400).json({ error: 'Numéro invalide. Format attendu : 6XX XX XX XX (9 chiffres, commence par 6).' });
+    const phone = normalizeGuineaPhone(req.body?.phone);
+    if (!phone) {
+      return res.status(400).json({ error: `Numéro invalide. ${GUINEA_PHONE_FORMAT_HINT}` });
     }
-    const phone = `+224${digits}`;
 
     const user = await prisma.user.findUnique({ where: { id: req.userId } });
     if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé.' });
@@ -398,10 +394,26 @@ router.put('/me/shop', authenticate, async (req: any, res) => {
       shopName, shopLogo, shopBanner, shopDescription, shopWhatsapp, shopActive,
       shopCategories, shopHasPhysical, shopAddress, shopHours, shopColor, shopSlogan,
     } = req.body;
+
+    // Champ optionnel : si absent/vide on l'efface, mais s'il est renseigné il doit être
+    // un numéro guinéen valide — sinon le contact WhatsApp de la boutique serait cassé
+    // silencieusement (numéro mal formaté stocké tel quel).
+    let normalizedShopWhatsapp: string | null | undefined = undefined;
+    if (shopWhatsapp !== undefined) {
+      if (!shopWhatsapp || !String(shopWhatsapp).trim()) {
+        normalizedShopWhatsapp = null;
+      } else {
+        normalizedShopWhatsapp = normalizeGuineaPhone(shopWhatsapp);
+        if (!normalizedShopWhatsapp) {
+          return res.status(400).json({ error: `Numéro WhatsApp boutique invalide. ${GUINEA_PHONE_FORMAT_HINT}`, field: 'shopWhatsapp' });
+        }
+      }
+    }
+
     const user = await prisma.user.update({
       where: { id: req.userId },
       data: {
-        shopName, shopLogo, shopBanner, shopDescription, shopWhatsapp, shopActive,
+        shopName, shopLogo, shopBanner, shopDescription, shopWhatsapp: normalizedShopWhatsapp, shopActive,
         shopCategories: shopCategories ?? undefined,
         shopHasPhysical: shopHasPhysical ?? undefined,
         shopAddress, shopHours,
