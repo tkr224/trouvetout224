@@ -10,16 +10,18 @@ import {
   User, Lock, Bell, Shield, Globe, HelpCircle, FileText, Info, LogOut,
   Settings, CheckCircle, ArrowRight, Mail, CreditCard, ShieldCheck, Link2,
   Palette, Sun, Moon, Monitor, Eye, EyeOff, Loader2, KeyRound,
-  Camera, AtSign, XCircle, Phone, Type, Clock,
+  Camera, AtSign, XCircle, Phone, Type, Clock, MessageCircle, MapPin,
 } from 'lucide-react';
 import { useTheme, COLOR_THEMES, SPECIAL_THEMES } from '@/components/providers/ThemeProvider';
 import { useLanguageSwitch } from '@/hooks/useLanguageSwitch';
 import BackButton from '@/components/BackButton';
 import VoiceSettingsSection from '@/components/settings/VoiceSettingsSection';
+import SavedAddressesSection from '@/components/settings/SavedAddressesSection';
 import Link from 'next/link';
 
 const TAB_HREFS = [
   { key: 'profil',          icon: User },
+  { key: 'adresses',        icon: MapPin },
   { key: 'securite',        icon: Lock },
   { key: 'notifications',   icon: Bell },
   { key: 'confidentialite', icon: Shield },
@@ -32,7 +34,7 @@ const TAB_HREFS = [
 
 // Regroupement visuel de la sidebar (desktop) — ne change ni les clés ni la logique des onglets
 const TAB_GROUP_HREFS: { key: string; keys: string[] }[] = [
-  { key: 'compte',      keys: ['profil', 'securite', 'confidentialite', 'notifications'] },
+  { key: 'compte',      keys: ['profil', 'adresses', 'securite', 'confidentialite', 'notifications'] },
   { key: 'preferences', keys: ['apparence', 'langue'] },
   { key: 'support',     keys: ['aide', 'conditions', 'apropos'] },
 ];
@@ -50,7 +52,7 @@ const LANGS = [
   { code: 'zh', flag: '🇨🇳', label: '中文',      badge: 'ZH' },
 ] as const;
 
-const PROTECTED_TABS = ['profil', 'securite', 'notifications', 'confidentialite'];
+const PROTECTED_TABS = ['profil', 'adresses', 'securite', 'notifications', 'confidentialite'];
 
 // Doit correspondre à SENSITIVE_CHANGE_COOLDOWN_DAYS côté backend
 // (backend/src/config/security.ts) — purement informatif ici, le backend reste
@@ -113,10 +115,16 @@ export default function ParametresPage() {
   ]);
   const [sqSaving, setSqSaving]         = useState(false);
   const [sqError, setSqError]           = useState('');
-  // Téléphone (ajout/modification)
+  // Téléphone (ajout/modification, vérifié par code WhatsApp — voir savePhone plus bas)
   const [phoneInput, setPhoneInput]     = useState('');
   const [phoneSaving, setPhoneSaving]   = useState(false);
   const [phoneError, setPhoneError]     = useState('');
+  // 'input' = saisie du numéro, 'code' = saisie du code WhatsApp reçu
+  const [phoneStep, setPhoneStep]       = useState<'input' | 'code'>('input');
+  const [phoneCode, setPhoneCode]       = useState('');
+  const [phoneVerifying, setPhoneVerifying] = useState(false);
+  const [phoneResendAt, setPhoneResendAt]   = useState<number>(0); // timestamp autorisant un renvoi
+  const [phoneResendTick, setPhoneResendTick] = useState(0); // force le re-rendu du compte à rebours
   // Changement d'email
   const [newEmailInput, setNewEmailInput] = useState('');
   const [emailPwd, setEmailPwd]           = useState('');
@@ -317,7 +325,9 @@ export default function ParametresPage() {
     }
   };
 
-  const savePhone = async () => {
+  // Étape 1 : envoie un code de vérification par WhatsApp (ne modifie rien en base
+  // tant que le code n'a pas été confirmé, voir verifyPhoneCode ci-dessous).
+  const sendPhoneCode = async () => {
     setPhoneError('');
     if (!/^6\d{8}$/.test(phoneInput)) {
       setPhoneError(t('profil.phoneInvalid'));
@@ -325,16 +335,56 @@ export default function ParametresPage() {
     }
     setPhoneSaving(true);
     try {
-      const { data } = await api.put('/users/me/phone', { phone: phoneInput });
-      setMeData((m: any) => ({ ...m, phone: data.data.phone, phoneChangedAt: new Date().toISOString() }));
-      setPhoneInput('');
-      toast.success(t('toasts.phoneUpdated'));
+      await api.put('/users/me/phone/start-verification', { phone: phoneInput });
+      setPhoneStep('code');
+      setPhoneCode('');
+      setPhoneResendAt(Date.now() + 30_000); // renvoi possible après 30s
+      toast.success(t('toasts.phoneCodeSent'));
     } catch (e: any) {
       setPhoneError(e.response?.data?.error || t('securite.errors.phoneGeneric'));
     } finally {
       setPhoneSaving(false);
     }
   };
+
+  // Étape 2 : confirme le code reçu — c'est cet appel qui enregistre réellement le
+  // numéro en base avec phoneVerified: true.
+  const verifyPhoneCode = async () => {
+    setPhoneError('');
+    if (!/^\d{4,6}$/.test(phoneCode)) {
+      setPhoneError(t('profil.phoneInvalid'));
+      return;
+    }
+    setPhoneVerifying(true);
+    try {
+      const { data } = await api.put('/users/me/phone/verify', { phone: phoneInput, code: phoneCode });
+      setMeData((m: any) => ({ ...m, phone: data.data.phone, phoneVerified: true, phoneChangedAt: new Date().toISOString() }));
+      setPhoneInput('');
+      setPhoneCode('');
+      setPhoneStep('input');
+      toast.success(t('toasts.phoneVerified'));
+    } catch (e: any) {
+      setPhoneError(e.response?.data?.error || t('securite.errors.phoneGeneric'));
+    } finally {
+      setPhoneVerifying(false);
+    }
+  };
+
+  const cancelPhoneVerification = () => {
+    setPhoneStep('input');
+    setPhoneCode('');
+    setPhoneError('');
+  };
+
+  // Compte à rebours du bouton "Renvoyer le code" — un simple tick par seconde pour
+  // re-rendre le composant tant que le délai n'est pas écoulé.
+  useEffect(() => {
+    if (phoneStep !== 'code' || Date.now() >= phoneResendAt) return;
+    const timer = setInterval(() => setPhoneResendTick(t => t + 1), 1000);
+    return () => clearInterval(timer);
+  }, [phoneStep, phoneResendAt]);
+  const phoneResendSecondsLeft = Math.max(0, Math.ceil((phoneResendAt - Date.now()) / 1000));
+  void phoneResendTick; // sert uniquement à déclencher le re-rendu du compte à rebours
 
   const requestEmailChange = async () => {
     setEmailChangeError('');
@@ -584,7 +634,7 @@ export default function ParametresPage() {
                   </p>
                 </div>
 
-                {/* Téléphone — ajout/modification directe, sert au contact WhatsApp */}
+                {/* Téléphone — vérifié par un code envoyé sur WhatsApp avant d'être enregistré */}
                 <div>
                   <label className="text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
                     <Phone size={13} className="text-dark-400" /> {t('profil.phone')}
@@ -598,10 +648,59 @@ export default function ParametresPage() {
                         <Clock size={12} className="shrink-0" /> {t('profil.cooldownGeneric', { days: phoneCooldown.days, plural: phoneCooldown.days > 1 ? 's' : '', date: phoneCooldown.dateStr })}
                       </p>
                     </>
+                  ) : phoneStep === 'code' ? (
+                    <>
+                      <p className="text-sm text-dark-600 mb-3 flex items-start gap-1.5">
+                        <MessageCircle size={14} className="text-green-600 shrink-0 mt-0.5" />
+                        {t('profil.phoneCodeSentTo', { phone: phoneInput })}
+                      </p>
+                      <input
+                        value={phoneCode}
+                        onChange={e => setPhoneCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        placeholder={t('profil.phoneCodePlaceholder')}
+                        inputMode="numeric"
+                        autoFocus
+                        className="input text-center text-lg tracking-[0.3em] font-semibold"
+                      />
+                      {phoneError && <p className="text-xs text-guinea-600 mt-1.5">{phoneError}</p>}
+                      <div className="flex items-center gap-3 mt-2 flex-wrap">
+                        <button
+                          onClick={verifyPhoneCode}
+                          disabled={phoneVerifying || !/^\d{4,6}$/.test(phoneCode)}
+                          className="text-primary-700 text-sm font-semibold hover:underline disabled:opacity-50 disabled:no-underline flex items-center gap-1.5"
+                        >
+                          {phoneVerifying && <Loader2 size={13} className="animate-spin" />}
+                          {t('profil.phoneVerifyCode')}
+                        </button>
+                        <button
+                          onClick={sendPhoneCode}
+                          disabled={phoneSaving || phoneResendSecondsLeft > 0}
+                          className="text-dark-500 text-sm font-medium hover:underline disabled:opacity-50 disabled:no-underline"
+                        >
+                          {phoneResendSecondsLeft > 0
+                            ? t('profil.phoneResendCodeIn', { seconds: phoneResendSecondsLeft })
+                            : t('profil.phoneResendCode')}
+                        </button>
+                        <button onClick={cancelPhoneVerification} className="text-dark-400 text-sm hover:underline">
+                          {t('profil.phoneChangeNumber')}
+                        </button>
+                      </div>
+                    </>
                   ) : (
                     <>
                       {meData?.phone && (
-                        <p className="text-sm text-dark-600 mb-2">{t('profil.phoneCurrent', { phone: '' })}<strong>{meData.phone}</strong></p>
+                        <p className="text-sm text-dark-600 mb-2 flex items-center gap-2 flex-wrap">
+                          {t('profil.phoneCurrent', { phone: '' })}<strong>{meData.phone}</strong>
+                          {meData.phoneVerified ? (
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary-700 bg-primary-50 px-2 py-0.5 rounded-full">
+                              <ShieldCheck size={12} /> {t('profil.phoneVerifiedBadge')}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-gold-700 bg-gold-50 px-2 py-0.5 rounded-full">
+                              <XCircle size={12} /> {t('profil.phoneUnverifiedBadge')}
+                            </span>
+                          )}
+                        </p>
                       )}
                       <div className="relative">
                         <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-dark-400 text-sm font-semibold pointer-events-none">+224</span>
@@ -614,12 +713,12 @@ export default function ParametresPage() {
                       </div>
                       {phoneError && <p className="text-xs text-guinea-600 mt-1.5">{phoneError}</p>}
                       <button
-                        onClick={savePhone}
+                        onClick={sendPhoneCode}
                         disabled={phoneSaving || phoneInput.length !== 9}
                         className="mt-2 text-primary-700 text-sm font-semibold hover:underline disabled:opacity-50 disabled:no-underline flex items-center gap-1.5"
                       >
-                        {phoneSaving && <Loader2 size={13} className="animate-spin" />}
-                        {meData?.phone ? t('profil.phoneUpdate') : t('profil.phoneAdd')}
+                        {phoneSaving ? <Loader2 size={13} className="animate-spin" /> : <MessageCircle size={13} />}
+                        {t('profil.phoneSendCode')}
                       </button>
                     </>
                   )}
@@ -637,6 +736,12 @@ export default function ParametresPage() {
                   {profileLoading && <Loader2 size={15} className="animate-spin" />}
                   {t('profil.save')}
                 </button>
+              </div>
+            )}
+
+            {!showGate && tab === 'adresses' && (
+              <div className="space-y-5">
+                <SavedAddressesSection cities={cities} />
               </div>
             )}
 

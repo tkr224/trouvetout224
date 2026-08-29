@@ -17,6 +17,7 @@ import BackButton from '@/components/BackButton';
 import CulturalPattern from '@/components/CulturalPattern';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
+import { useSavedAddresses, SavedAddress } from '@/hooks/useSavedAddresses';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 const DURATION_META = [
@@ -125,6 +126,25 @@ function PublierAnnonceContent() {
     vehicleMake: '', vehicleModel: '', vehicleYear: '', vehicleMileage: '',
     vehicleFuel: '', vehicleTransmission: '',
   });
+
+  // Adresses enregistrées (téléphone + ville + quartier réutilisables) — voir
+  // Paramètres > Mes adresses. Évite de retaper ces champs à chaque annonce.
+  const { addresses, defaultAddress, create: createAddress } = useSavedAddresses();
+  const [saveAddressChecked, setSaveAddressChecked] = useState(false);
+  const [defaultAddressApplied, setDefaultAddressApplied] = useState(false);
+
+  const applyAddress = (a: SavedAddress) => {
+    setForm((p: any) => ({ ...p, cityId: a.city.name, neighborhood: a.neighborhood || '', phone: a.phone, whatsapp: a.phone }));
+  };
+
+  // Pré-remplit avec l'adresse par défaut une seule fois, seulement à la création
+  // (pas en édition, où les valeurs de l'annonce existante doivent primer).
+  useEffect(() => {
+    if (editId || defaultAddressApplied || !defaultAddress) return;
+    applyAddress(defaultAddress);
+    setDefaultAddressApplied(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultAddress, editId, defaultAddressApplied]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -283,6 +303,11 @@ function PublierAnnonceContent() {
         const res = await api.post('/annonces', payload);
         setPublishedDirect(res.data.data?.status === 'ACTIVE');
         setPublished(true);
+        // Best-effort : ne bloque jamais la publication (déjà réussie) si la
+        // sauvegarde de l'adresse échoue pour une raison quelconque.
+        if (saveAddressChecked && form.phone && form.cityId) {
+          createAddress({ phone: form.phone, cityId: form.cityId, neighborhood: form.neighborhood || undefined }).catch(() => {});
+        }
       }
     } catch (err: any) {
       toast.error(err.response?.data?.error || (editId ? t('toastEditError') : t('toastPublishError')));
@@ -918,6 +943,32 @@ function PublierAnnonceContent() {
               <h2 className="font-display font-semibold text-dark-900 pl-2.5 border-l-2 border-primary-500 mb-4">
                 {t('locationTitle')}
               </h2>
+
+              {!editId && addresses.length > 0 && (
+                <div>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">{t('savedAddressLabel')}</label>
+                  <div className="flex flex-wrap gap-2">
+                    {addresses.map(a => {
+                      const active = form.cityId === a.city.name && (form.neighborhood || '') === (a.neighborhood || '') && form.phone === a.phone;
+                      return (
+                        <button
+                          key={a.id}
+                          type="button"
+                          onClick={() => applyAddress(a)}
+                          className={`px-3 py-2 rounded-xl text-sm font-medium border-2 text-left transition-colors ${
+                            active ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-dark-200 text-dark-600 hover:border-dark-300'
+                          }`}
+                        >
+                          {a.label || a.city.name}{a.neighborhood ? ` · ${a.neighborhood}` : ''}
+                          {a.isDefault && <span className="ml-1 text-gold-500">★</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-dark-400 mt-1.5">{t('savedAddressHint')}</p>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('cityLabel')}</label>
                 <select value={form.cityId} onChange={e => set('cityId', e.target.value)} className="input">
@@ -953,6 +1004,17 @@ function PublierAnnonceContent() {
                 <input value={form.whatsapp} onChange={e => set('whatsapp', e.target.value)}
                   type="tel" placeholder={t('phonePlaceholder')} className="input" />
               </div>
+              {!editId && (
+                <label className="flex items-center gap-2 text-sm text-dark-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={saveAddressChecked}
+                    onChange={e => setSaveAddressChecked(e.target.checked)}
+                    className="rounded"
+                  />
+                  {t('saveAddressCheckbox')}
+                </label>
+              )}
               <div>
                 <label className="block text-sm font-semibold text-dark-700 mb-2">{t('durationLabel')}</label>
                 {/* Désactivé temporairement (site a besoin d'un maximum de visibilité tant

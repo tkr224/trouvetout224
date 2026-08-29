@@ -197,52 +197,10 @@ router.put('/me', authenticate, async (req: any, res) => {
   }
 });
 
-// Ajouter ou modifier mon numéro de téléphone (sert au contact WhatsApp).
-// Protégé par le délai de sécurité si un numéro existait déjà (1ère saisie toujours libre).
-router.put('/me/phone', authenticate, async (req: any, res) => {
-  try {
-    const phone = normalizeGuineaPhone(req.body?.phone);
-    if (!phone) {
-      return res.status(400).json({ error: `Numéro invalide. ${GUINEA_PHONE_FORMAT_HINT}` });
-    }
-
-    const user = await prisma.user.findUnique({ where: { id: req.userId } });
-    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé.' });
-
-    if (phone === user.phone) {
-      return res.status(400).json({ error: 'Ce numéro est déjà le vôtre.' });
-    }
-
-    if (user.phone) {
-      const cooldown = checkCooldown(user.phoneChangedAt);
-      if (cooldown.blocked) {
-        return res.status(403).json({
-          error: cooldownMessage(cooldown.daysRemaining, cooldown.nextAllowedAt!),
-          code: 'COOLDOWN_ACTIVE',
-          nextAllowedAt: cooldown.nextAllowedAt,
-        });
-      }
-    }
-
-    const existing = await prisma.user.findUnique({ where: { phone } });
-    if (existing && existing.id !== req.userId) {
-      return res.status(409).json({ error: 'Ce numéro est déjà utilisé par un autre compte.' });
-    }
-
-    const hadPhoneBefore = !!user.phone;
-    await prisma.user.update({ where: { id: req.userId }, data: { phone, phoneChangedAt: new Date() } });
-
-    if (hadPhoneBefore && user.email) {
-      sendSecurityAlertEmail(user.email, user.firstName, 'phone', resolveEmailLocale(user.preferredLanguage)).catch(e => console.log('Email alerte non envoyé:', e.message));
-    }
-
-    res.json({ message: 'Numéro de téléphone mis à jour.', data: { phone } });
-  } catch (error: any) {
-    if (error.code === 'P2002') return res.status(409).json({ error: 'Ce numéro est déjà utilisé par un autre compte.' });
-    console.error('Erreur PUT /me/phone:', error);
-    res.status(500).json({ error: 'Erreur.' });
-  }
-});
+// L'ancien PUT /me/phone (mise à jour directe sans vérification) a été remplacé par
+// le flux en 2 étapes /me/phone/start-verification + /me/phone/verify (voir
+// phoneVerification.routes.ts) — un numéro n'est désormais jamais enregistré sans
+// avoir été confirmé par un code WhatsApp.
 
 // Demander un changement d'email : envoie un lien de confirmation à la NOUVELLE
 // adresse (le changement n'est effectif qu'après avoir cliqué dessus).

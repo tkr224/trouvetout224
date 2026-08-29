@@ -18,6 +18,7 @@ import { swaggerOptions } from './config/swagger';
 // Routes
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
+import phoneVerificationRoutes from './routes/phoneVerification.routes';
 import annonceRoutes from './routes/annonce.routes';
 import categoryRoutes from './routes/category.routes';
 import cityRoutes from './routes/city.routes';
@@ -41,6 +42,7 @@ import aiRoutes from './routes/ai.routes';
 import voiceRoutes from './routes/voice.routes';
 import chatbotPrefsRoutes from './routes/chatbotPrefs.routes';
 import systemAnnouncementRoutes from './routes/systemAnnouncement.routes';
+import savedAddressRoutes from './routes/savedAddress.routes';
 import { optionalAuthenticate } from './middleware/optionalAuth';
 
 dotenv.config();
@@ -190,6 +192,7 @@ if (isDev) {
 // ============================
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/users', phoneVerificationRoutes);
 app.use('/api/annonces', annonceRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/cities', cityRoutes);
@@ -213,6 +216,7 @@ app.use('/api/ai',           aiRoutes);
 app.use('/api/voice',        voiceRoutes);
 app.use('/api/chatbot-prefs', chatbotPrefsRoutes);
 app.use('/api/system-announcements', systemAnnouncementRoutes);
+app.use('/api/saved-addresses', savedAddressRoutes);
 
 // Health check
 app.get('/api/health', (req: Request, res: Response) => {
