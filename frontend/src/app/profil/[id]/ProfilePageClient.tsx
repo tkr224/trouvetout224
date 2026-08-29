@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import { AnnonceCard, AnnonceCardSkeleton } from '@/components/annonces/AnnonceGrid';
 import ErrorState from '@/components/ui/ErrorState';
 import EmptyState from '@/components/ui/EmptyState';
@@ -345,6 +346,8 @@ export default function PublicProfilPage() {
 
         <ReviewSection sellerId={id as string} />
       </div>
+
+      <Footer />
 
       {lightboxImg && (
         <ImageLightbox images={[lightboxImg]} index={0} onClose={() => setLightboxImg(null)} />

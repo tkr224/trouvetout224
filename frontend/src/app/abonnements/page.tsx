@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import CulturalPattern from '@/components/CulturalPattern';
 import EmptyState from '@/components/ui/EmptyState';
 import ErrorState from '@/components/ui/ErrorState';
@@ -214,6 +215,7 @@ export default function AbonnementsPage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

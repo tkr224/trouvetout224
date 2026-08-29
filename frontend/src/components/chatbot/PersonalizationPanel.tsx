@@ -208,7 +208,8 @@ export default function PersonalizationPanel({
               <label className="block text-sm text-dark-700 dark:text-dark-200 mb-1.5">{t('botNameLabel')}</label>
               <input
                 value={prefs.botName}
-                onChange={e => update({ botName: e.target.value.slice(0, 30) || 'Ibkek' })}
+                onChange={e => update({ botName: e.target.value.slice(0, 30) })}
+                onBlur={() => { if (!prefs.botName.trim()) update({ botName: 'Ibkek' }); }}
                 placeholder={t('botNamePlaceholder')}
                 className="input"
               />

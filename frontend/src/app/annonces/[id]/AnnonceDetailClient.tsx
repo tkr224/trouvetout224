@@ -12,6 +12,7 @@ import {
   CheckCircle2, RotateCcw, TrendingUp,
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import { useAnnonce } from '@/hooks/useAnnonces';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -831,6 +832,8 @@ export default function AnnonceDetailPage() {
         )}
 
       </div>
+
+      <Footer />
 
       {/* ── Modal Contacter le vendeur ─────────────────────────── */}
       {showContactModal && (

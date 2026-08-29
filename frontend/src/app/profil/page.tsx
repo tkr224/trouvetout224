@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState, useRef } from 'react';
 import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import { useAuthStore } from '@/store/auth.store';
 import { useTranslations } from 'next-intl';
 import { api } from '@/lib/api';
@@ -518,6 +519,7 @@ export default function ProfilPage() {
         )}
 
       </div>
+      <Footer />
     </div>
   );
 }

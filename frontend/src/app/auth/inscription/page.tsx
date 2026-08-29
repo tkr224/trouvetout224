@@ -17,6 +17,7 @@ import Logo from '@/components/Logo';
 import CulturalPattern from '@/components/CulturalPattern';
 import GoogleButton from '@/components/auth/GoogleButton';
 import { CATEGORY_ICON_MAP, CATEGORY_ICON_FALLBACK } from '@/components/annonces/CategoryGrid';
+import { useRandomFirstName, useRandomLastName } from '@/lib/guineanNames';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 
@@ -74,6 +75,8 @@ const ACCOUNT_OPTION_META: Array<{
 export default function RegisterPage() {
   const t = useTranslations('auth.register');
   const locale = useLocale();
+  const firstNamePlaceholder = useRandomFirstName();
+  const lastNamePlaceholder = useRandomLastName();
   const ACCOUNT_OPTIONS = ACCOUNT_OPTION_META.map((o) => ({ ...o, label: t(o.labelKey), desc: t(o.descKey) }));
   const STEP_LABELS = [t('stepInfo'), t('stepAccountType'), t('stepShop')];
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -372,14 +375,14 @@ export default function RegisterPage() {
                       <label className={L}>{t('firstName')}</label>
                       <input
                         {...register('firstName', { required: t('firstNameRequired') })}
-                        type="text" placeholder={t('firstNamePlaceholder')} className={F} />
+                        type="text" placeholder={firstNamePlaceholder} className={F} />
                       {errors.firstName && <p className="text-xs text-guinea-600 mt-1">{errors.firstName.message}</p>}
                     </div>
                     <div>
                       <label className={L}>{t('lastName')}</label>
                       <input
                         {...register('lastName', { required: t('lastNameRequired') })}
-                        type="text" placeholder={t('lastNamePlaceholder')} className={F} />
+                        type="text" placeholder={lastNamePlaceholder} className={F} />
                       {errors.lastName && <p className="text-xs text-guinea-600 mt-1">{errors.lastName.message}</p>}
                     </div>
                   </div>

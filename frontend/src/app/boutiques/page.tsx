@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import CulturalPattern from '@/components/CulturalPattern';
 import PageViewTracker from '@/components/PageViewTracker';
 import BackButton from '@/components/BackButton';
@@ -241,6 +242,7 @@ export default function BoutiquesPage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }
