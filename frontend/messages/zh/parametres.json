@@ -33,6 +33,17 @@
   },
   "profil": {
     "title": "编辑个人资料",
+    "accounts": {
+      "title": "此设备上的账户",
+      "hint": "无需重新登录即可切换账户（最多 {max} 个）。",
+      "active": "当前",
+      "removeBtn": "移除此账户",
+      "removeConfirm": "从此设备移除该账户？下次需要重新登录才能再次添加。",
+      "removed": "账户已移除。",
+      "switched": "已切换账户。",
+      "addBtn": "添加账户",
+      "limitReached": "此设备最多支持 {max} 个账户。"
+    },
     "changePhoto": "更改头像",
     "firstName": "名",
     "lastName": "姓",
@@ -142,6 +153,14 @@
     "sqSave": "保存",
     "sqCancel": "取消",
     "sqFooterHint": "您的答案以加密方式存储（如同密码）— 任何人都无法读取，只能验证是否匹配。",
+    "sessionsTitle": "活跃会话",
+    "sessionsHint": "当前已登录你账户的设备。",
+    "sessionsEmpty": "没有其他活跃会话。",
+    "sessionCurrent": "本设备",
+    "sessionLastActive": "活跃于 {date}",
+    "sessionRevokeBtn": "退出此会话",
+    "sessionRevoked": "会话已退出。",
+    "sessionRevokeError": "无法退出此会话。",
     "errors": {
       "currentPasswordRequired": "请输入您当前的密码。",
       "newPasswordRequired": "请填写新密码的所有字段。",
@@ -162,7 +181,8 @@
     "title": "通知偏好设置",
     "newMessages": { "label": "新消息", "sub": "收到消息时通知我" },
     "annonceExpiry": { "label": "广告到期", "sub": "广告到期前提醒" },
-    "newViews": { "label": "新浏览记录", "sub": "有人查看您的广告时通知我" }
+    "newViews": { "label": "新浏览记录", "sub": "有人查看您的广告时通知我" },
+    "sound": { "label": "通知提示音", "sub": "通知出现时播放简短提示音" }
   },
   "confidentialite": {
     "title": "隐私",

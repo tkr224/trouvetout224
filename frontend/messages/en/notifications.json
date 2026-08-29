@@ -2,6 +2,7 @@
   "loginRequiredMsg": "Log in to see your notifications",
   "login": "Log in",
   "pageTitle": "Notifications",
+  "dismissToast": "Dismiss notification",
   "unreadCount": "{count, plural, one {# unread} other {# unread}}",
   "markAllRead": "Mark all as read",
   "emptyTitle": "No notifications",

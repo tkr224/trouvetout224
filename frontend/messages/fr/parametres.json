@@ -33,6 +33,17 @@
   },
   "profil": {
     "title": "Modifier le profil",
+    "accounts": {
+      "title": "Comptes sur cet appareil",
+      "hint": "Passez d'un compte à l'autre sans vous reconnecter (max {max}).",
+      "active": "Actif",
+      "removeBtn": "Retirer ce compte",
+      "removeConfirm": "Retirer ce compte de cet appareil ? Vous devrez ressaisir vos identifiants pour le rajouter.",
+      "removed": "Compte retiré.",
+      "switched": "Compte changé.",
+      "addBtn": "Ajouter un compte",
+      "limitReached": "Maximum {max} comptes sur cet appareil."
+    },
     "changePhoto": "Changer la photo de profil",
     "firstName": "Prénom",
     "lastName": "Nom",
@@ -142,6 +153,14 @@
     "sqSave": "Enregistrer",
     "sqCancel": "Annuler",
     "sqFooterHint": "Vos réponses sont stockées de façon chiffrée (comme un mot de passe) — personne ne peut les relire, seulement vérifier qu'elles correspondent.",
+    "sessionsTitle": "Sessions actives",
+    "sessionsHint": "Appareils actuellement connectés à ton compte.",
+    "sessionsEmpty": "Aucune autre session active.",
+    "sessionCurrent": "Cet appareil",
+    "sessionLastActive": "Actif le {date}",
+    "sessionRevokeBtn": "Déconnecter cette session",
+    "sessionRevoked": "Session déconnectée.",
+    "sessionRevokeError": "Impossible de déconnecter cette session.",
     "errors": {
       "currentPasswordRequired": "Saisissez votre mot de passe actuel.",
       "newPasswordRequired": "Remplissez tous les champs du nouveau mot de passe.",
@@ -162,7 +181,8 @@
     "title": "Préférences de notifications",
     "newMessages": { "label": "Nouveaux messages", "sub": "Être notifié quand vous recevez un message" },
     "annonceExpiry": { "label": "Expiration d'annonce", "sub": "Rappel avant que votre annonce expire" },
-    "newViews": { "label": "Nouvelles vues", "sub": "Quand quelqu'un consulte vos annonces" }
+    "newViews": { "label": "Nouvelles vues", "sub": "Quand quelqu'un consulte vos annonces" },
+    "sound": { "label": "Son des notifications", "sub": "Petit son quand une notification apparaît à l'écran" }
   },
   "confidentialite": {
     "title": "Confidentialité",

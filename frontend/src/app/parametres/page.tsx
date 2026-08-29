@@ -16,7 +16,10 @@ import { useTheme, COLOR_THEMES, SPECIAL_THEMES } from '@/components/providers/T
 import { useLanguageSwitch } from '@/hooks/useLanguageSwitch';
 import BackButton from '@/components/BackButton';
 import VoiceSettingsSection from '@/components/settings/VoiceSettingsSection';
+import { isNotificationSoundEnabled, setNotificationSoundEnabled } from '@/lib/notificationSound';
 import SavedAddressesSection from '@/components/settings/SavedAddressesSection';
+import ActiveSessionsSection from '@/components/settings/ActiveSessionsSection';
+import AccountSwitcherSection from '@/components/settings/AccountSwitcherSection';
 import Link from 'next/link';
 
 const TAB_HREFS = [
@@ -134,6 +137,10 @@ export default function ParametresPage() {
   const [notifMsg, setNotifMsg]         = useState(true);
   const [notifAnnonce, setNotifAnnonce] = useState(true);
   const [notifVue, setNotifVue]         = useState(false);
+  // Réglage son des notifications toast temps réel (voir GlobalNotificationToasts) —
+  // local à l'appareil, pas besoin d'aller-retour backend pour un simple mute.
+  const [notifSound, setNotifSound]     = useState(true);
+  useEffect(() => { setNotifSound(isNotificationSoundEnabled()); }, []);
   const [privPublic, setPrivPublic]     = useState(true);
   const [privPhone, setPrivPhone]       = useState(true);
   const [privMessages, setPrivMessages] = useState(true);
@@ -544,6 +551,8 @@ export default function ParametresPage() {
             {!showGate && tab === 'profil' && (
               <div className="space-y-5">
                 <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-1">{t('profil.title')}</h2>
+
+                <AccountSwitcherSection />
 
                 {/* Photo de profil — bien visible en haut */}
                 <div className="flex items-center gap-4 p-4 bg-dark-50 rounded-2xl">
@@ -1008,6 +1017,10 @@ export default function ParametresPage() {
                       </p>
                     </div>
                   )}
+
+                  <div className="pt-2 border-t border-dark-100">
+                    <ActiveSessionsSection />
+                  </div>
                 </div>
               </div>
             )}
@@ -1019,6 +1032,7 @@ export default function ParametresPage() {
                   { label: t('notifications.newMessages.label'),    sub: t('notifications.newMessages.sub'),    value: notifMsg,     fn: () => setNotifMsg(!notifMsg) },
                   { label: t('notifications.annonceExpiry.label'),  sub: t('notifications.annonceExpiry.sub'),  value: notifAnnonce, fn: () => setNotifAnnonce(!notifAnnonce) },
                   { label: t('notifications.newViews.label'),       sub: t('notifications.newViews.sub'),       value: notifVue,     fn: () => setNotifVue(!notifVue) },
+                  { label: t('notifications.sound.label'),          sub: t('notifications.sound.sub'),          value: notifSound,   fn: () => { const v = !notifSound; setNotifSound(v); setNotificationSoundEnabled(v); } },
                 ].map((n, i) => (
                   <button key={i} type="button" onClick={n.fn} role="switch" aria-checked={n.value}
                     className="w-full flex items-center justify-between gap-3 p-4 min-h-[44px] bg-dark-50 rounded-2xl text-left hover:bg-dark-100 transition-colors">

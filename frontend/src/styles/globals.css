@@ -1133,6 +1133,14 @@ html[data-color="animated"] .badge-green {
   overflow: hidden;
 }
 
+/* Rejoue les mêmes effets de thème (particules, motifs animés) À L'INTÉRIEUR du chat
+   Ibkek quand son réglage "suivre le thème du site" est actif (voir AiChatWidget.tsx)
+   — sans ça, .theme-overlay est fixed/plein écran et ignorerait les bords du chat. */
+.chat-effects-scope .theme-overlay {
+  position: absolute;
+  z-index: 0;
+}
+
 /* Étoiles — nuit étoilée + ramadan */
 .theme-star {
   position: absolute;

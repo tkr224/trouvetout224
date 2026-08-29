@@ -6,6 +6,19 @@
     "title": "所有广告",
     "subtitle": "在几内亚找到您需要的一切",
     "searchPlaceholder": "搜索广告...",
+    "compare": {
+      "selected": "已选 {count}/{max}",
+      "clear": "清空",
+      "compareBtn": "比较",
+      "title": "比较广告",
+      "subtitle": "并排比较价格、特点和位置。",
+      "notEnough": "请在列表中选择至少 2 条同一类别的广告进行比较。",
+      "backToList": "返回广告列表",
+      "removeBtn": "从比较中移除",
+      "rowPrice": "价格",
+      "rowLocation": "位置",
+      "negotiable": "可议价"
+    },
     "filters": {
       "title": "筛选",
       "category": "分类",
@@ -172,7 +185,8 @@
       "title": "分享该广告",
       "copyLink": "复制链接",
       "whatsapp": "分享到 WhatsApp",
-      "facebook": "分享到 Facebook"
+      "facebook": "分享到 Facebook",
+      "priceNegotiable": "价格可议"
     },
     "soldModal": {
       "title": "标记为已售",

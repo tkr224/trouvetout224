@@ -193,17 +193,27 @@ export default function VendeurDashboard() {
           </div>
         </div>
 
-        {/* Niveau vendeur */}
-        {!loading && stats?.sellerLevel && (() => {
-          const level = stats.sellerLevel;
-          const LIcon = LEVEL_ICONS[level.label] ?? Zap;
-          return (
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-semibold mb-6 ${level.color}`}>
-              <LIcon size={15} />
-              {level.label}
-            </div>
-          );
-        })()}
+        {/* Niveau vendeur + badge réactivité */}
+        {!loading && (stats?.sellerLevel || stats?.responsiveBadge) && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {stats?.sellerLevel && (() => {
+              const level = stats.sellerLevel;
+              const LIcon = LEVEL_ICONS[level.label] ?? Zap;
+              return (
+                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-semibold ${level.color}`}>
+                  <LIcon size={15} />
+                  {level.label}
+                </div>
+              );
+            })()}
+            {stats?.responsiveBadge && (
+              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-semibold ${stats.responsiveBadge.color}`}>
+                <span>{stats.responsiveBadge.emoji}</span>
+                {stats.responsiveBadge.label}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ── Cartes stats ────────────────────────────────── */}
         {loading ? (

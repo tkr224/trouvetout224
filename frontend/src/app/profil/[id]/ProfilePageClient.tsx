@@ -10,7 +10,7 @@ import ErrorState from '@/components/ui/ErrorState';
 import EmptyState from '@/components/ui/EmptyState';
 import ReviewSection from '@/components/ReviewSection';
 import { api } from '@/lib/api';
-import { MapPin, Star, MessageCircle, ShoppingBag, Eye, Award, CheckCircle, Calendar, TrendingUp, Store, User, Package, Sparkles, Flag, AlertTriangle, AlertCircle, HelpCircle, X, Loader2, Users, Mail, Crown } from 'lucide-react';
+import { MapPin, Star, MessageCircle, ShoppingBag, Eye, Award, CheckCircle, Calendar, TrendingUp, Store, User, Package, Sparkles, Flag, AlertTriangle, AlertCircle, HelpCircle, X, Loader2, Users, Mail, Crown, Zap } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useAuthStore } from '@/store/auth.store';
@@ -165,6 +165,7 @@ export default function PublicProfilPage() {
   if (avgRating >= 4.5 && ratingsCount >= 3) badges.push({ icon: Star, label: t('public.badges.excellent'), color: 'bg-green-100 text-green-700' });
   if (totalViews >= 100) badges.push({ icon: TrendingUp, label: t('public.badges.popular'), color: 'bg-purple-100 text-purple-700' });
   if (isNewSeller) badges.push({ icon: Sparkles, label: t('public.badges.new'), color: 'bg-primary-100 text-primary-700' });
+  if (profile.responsiveBadge) badges.push({ icon: Zap, label: profile.responsiveBadge.label, color: profile.responsiveBadge.color });
 
   return (
     <div className="min-h-screen bg-dark-50">

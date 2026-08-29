@@ -2,6 +2,7 @@
   "loginRequiredMsg": "Connectez-vous pour voir vos notifications",
   "login": "Se connecter",
   "pageTitle": "Notifications",
+  "dismissToast": "Fermer la notification",
   "unreadCount": "{count, plural, one {# non lue} other {# non lues}}",
   "markAllRead": "Tout marquer comme lu",
   "emptyTitle": "Aucune notification",

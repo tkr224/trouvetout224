@@ -53,7 +53,12 @@ router.get('/shops', async (req, res) => {
       prisma.user.count({ where }),
     ]);
 
-    res.json({ data: shops, pagination: { total, page: parseInt(page as string, 10), pages: Math.ceil(total / take) } });
+    const shopsWithBadge = await Promise.all(shops.map(async (shop) => ({
+      ...shop,
+      responsiveBadge: computeResponsiveBadge(await computeAvgResponseTimeMinutes(shop.id)),
+    })));
+
+    res.json({ data: shopsWithBadge, pagination: { total, page: parseInt(page as string, 10), pages: Math.ceil(total / take) } });
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
@@ -74,7 +79,9 @@ router.get('/profile/:id', async (req, res) => {
     const avg = user.ratingsReceived.length
       ? user.ratingsReceived.reduce((a, r) => a + r.score, 0) / user.ratingsReceived.length
       : 0;
-    res.json({ data: { ...user, averageRating: avg } });
+    const avgResponseMinutes = await computeAvgResponseTimeMinutes(user.id);
+    const responsiveBadge = computeResponsiveBadge(avgResponseMinutes);
+    res.json({ data: { ...user, averageRating: avg, responsiveBadge } });
   } catch { res.status(500).json({ error: 'Erreur.' }); }
 });
 
@@ -453,6 +460,42 @@ function computeSellerLevel(opts: {
   return { label: 'Nouveau Vendeur', color: 'text-blue-700 bg-blue-50 border-blue-200', emoji: '🆕' };
 }
 
+// Temps de réponse moyen du vendeur aux messages reçus (en minutes), basé sur
+// ses 50 conversations les plus récentes. Retourne null si l'échantillon est
+// trop petit (< 5 réponses) pour être représentatif.
+async function computeAvgResponseTimeMinutes(userId: string): Promise<number | null> {
+  const conversations = await prisma.conversation.findMany({
+    where: { participants: { some: { id: userId } } },
+    include: { messages: { orderBy: { createdAt: 'asc' }, select: { senderId: true, createdAt: true } } },
+    take: 50,
+    orderBy: { lastMessageAt: 'desc' },
+  });
+  const diffsMs: number[] = [];
+  for (const conv of conversations) {
+    const msgs = conv.messages;
+    for (let i = 1; i < msgs.length; i++) {
+      if (msgs[i].senderId === userId && msgs[i - 1].senderId !== userId) {
+        diffsMs.push(msgs[i].createdAt.getTime() - msgs[i - 1].createdAt.getTime());
+      }
+    }
+  }
+  if (diffsMs.length < 5) return null;
+  const avgMs = diffsMs.reduce((a, b) => a + b, 0) / diffsMs.length;
+  return avgMs / 60000;
+}
+
+// Badge "Vendeur réactif" dérivé du temps de réponse moyen
+function computeResponsiveBadge(avgResponseMinutes: number | null): { label: string; color: string; emoji: string } | null {
+  if (avgResponseMinutes == null) return null;
+  if (avgResponseMinutes <= 15) {
+    return { label: 'Très réactif', color: 'text-guinea-700 bg-guinea-50 border-guinea-200', emoji: '⚡' };
+  }
+  if (avgResponseMinutes <= 60) {
+    return { label: 'Vendeur réactif', color: 'text-primary-700 bg-primary-50 border-primary-200', emoji: '💬' };
+  }
+  return null;
+}
+
 // Statistiques du vendeur (tableau de bord)
 router.get('/me/stats', authenticate, async (req: any, res) => {
   try {
@@ -507,6 +550,10 @@ router.get('/me/stats', authenticate, async (req: any, res) => {
       subscribersCount,
       avgRating,
     });
+
+    // Badge "Vendeur réactif"
+    const avgResponseMinutes = await computeAvgResponseTimeMinutes(userId);
+    const responsiveBadge = computeResponsiveBadge(avgResponseMinutes);
 
     // Top 5 les plus vues (après tri, les épinglées apparaissent en premier dans allAnnonces)
     const topAnnonces = [...annonces].sort((a, b) => b.viewCount - a.viewCount).slice(0, 5);
@@ -583,6 +630,7 @@ router.get('/me/stats', authenticate, async (req: any, res) => {
         totalAnnonces, activeAnnonces, totalViews, totalFavoris, totalMessages, totalContacts,
         avgRating: Number(avgRating.toFixed(1)), ratingsCount: ratings.length,
         subscribersCount, sellerLevel,
+        avgResponseMinutes, responsiveBadge,
         topAnnonces, byStatus, byCategory, viewsByDay, allAnnonces,
         weeklyMessages: recentMessages.length, prevWeekMessages,
       },

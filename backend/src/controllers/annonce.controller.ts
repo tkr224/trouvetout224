@@ -3,6 +3,7 @@ import { prisma } from '../config/database';
 import slugify from 'slugify';
 import { v4 as uuidv4 } from 'uuid';
 import { moderateAnnonce } from '../services/gemini.service';
+import { normalizeHashtags, canonicalizeTag } from '../utils/hashtags';
 
 async function resolveCategoryId(value: string): Promise<string | null> {
   if (!value) return null;
@@ -31,7 +32,7 @@ export const getAnnonces = async (req: Request, res: Response) => {
       page = '1', limit = '20', categoryId, cityId, minPrice, maxPrice, sort = 'recent', q,
       neighborhood, condition, listingType, bedrooms, contractType,
       serviceType, vehicleMake, vehicleFuel, vehicleTransmission, vehicleYearMin, vehicleYearMax,
-      eventDateFrom,
+      eventDateFrom, hashtag,
     } = req.query;
     const pageNum = parseInt(page as string);
     const limitNum = parseInt(limit as string);
@@ -61,7 +62,18 @@ export const getAnnonces = async (req: Request, res: Response) => {
     if (neighborhood) where.neighborhood = { contains: neighborhood, mode: 'insensitive' };
     if (minPrice) where.price = { ...where.price, gte: parseFloat(minPrice as string) };
     if (maxPrice) where.price = { ...where.price, lte: parseFloat(maxPrice as string) };
-    if (q) where.OR = [{ title: { contains: q, mode: 'insensitive' } }, { description: { contains: q, mode: 'insensitive' } }];
+    // Recherche par hashtag : soit un filtre dédié (clic sur un hashtag cliquable),
+    // soit tapé directement dans la barre de recherche principale ("#iphone") —
+    // canonicalizeTag() garantit que les deux convergent vers la même valeur que
+    // celle normalisée à la publication (voir utils/hashtags.ts).
+    const hashtagQuery = hashtag
+      ? canonicalizeTag(hashtag as string)
+      : (q && String(q).trim().startsWith('#')) ? canonicalizeTag(q as string) : null;
+    if (hashtagQuery) {
+      where.hashtags = { has: hashtagQuery };
+    } else if (q) {
+      where.OR = [{ title: { contains: q, mode: 'insensitive' } }, { description: { contains: q, mode: 'insensitive' } }];
+    }
     if (condition) where.condition = condition as string;
     if (listingType) where.listingType = listingType as string;
     if (contractType) where.contractType = contractType as string;
@@ -181,6 +193,7 @@ export const createAnnonce = async (req: Request, res: Response) => {
       quantity, condition, listingType, bedrooms, surface, contractType, salary, experience,
       stars, amenities, isFurnished, cuisineType, priceRange, plotType, hasTitleDeed, serviceType,
       eventDate, vehicleMake, vehicleModel, vehicleYear, vehicleMileage, vehicleFuel, vehicleTransmission,
+      hashtags,
     } = req.body;
 
     const realCategoryId = await resolveCategoryId(categoryId);
@@ -290,6 +303,7 @@ export const createAnnonce = async (req: Request, res: Response) => {
         vehicleMileage: vehicleMileage ? parseInt(vehicleMileage) : null,
         vehicleFuel: vehicleFuel || null,
         vehicleTransmission: vehicleTransmission || null,
+        hashtags: normalizeHashtags(hashtags),
         images: { create: images.map((img: any, index: number) => ({ url: img.url, publicId: img.publicId, order: index })) },
       },
       include: { images: true, category: true, city: true },
@@ -465,6 +479,7 @@ export const updateAnnonce = async (req: Request, res: Response) => {
         vehicleMileage: int(updates.vehicleMileage),
         vehicleFuel:  str(updates.vehicleFuel),
         vehicleTransmission: str(updates.vehicleTransmission),
+        hashtags: updates.hashtags !== undefined ? normalizeHashtags(updates.hashtags) : undefined,
       },
       include: { images: true, category: true, city: true },
     });

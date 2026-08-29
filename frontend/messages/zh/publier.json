@@ -61,6 +61,8 @@
     "titleTipSuffix": "。这样能吸引更多买家！",
     "descriptionLabel": "描述 *",
     "descriptionPlaceholder": "详细描述...",
+    "hashtagsLabel": "话题标签（可选）",
+    "hashtagsPlaceholder": "添加话题标签后按回车键...",
     "priceLabel": "价格（几内亚法郎）",
     "quantityLabel": "可售数量",
     "quantityPlaceholder": "例如：10",

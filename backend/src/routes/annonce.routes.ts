@@ -4,6 +4,7 @@ import { authenticate } from '../middleware/auth';
 import { optionalAuthenticate } from '../middleware/optionalAuth';
 import { validate } from '../middleware/validate';
 import { prisma } from '../config/database';
+import { suggestHashtags } from '../utils/hashtags';
 import {
   getAnnonces,
   getAnnonceById,
@@ -49,6 +50,28 @@ router.get('/banner', async (req, res) => {
       });
     }
     res.json({ data: annonces });
+  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+});
+
+// Suggestions de hashtags pour le formulaire de publication (titre/description/catégorie)
+// Doit être avant /:id pour ne pas être capturé comme id="hashtag-suggestions"
+router.get('/hashtag-suggestions', async (req, res) => {
+  try {
+    const { title, description, categoryId } = req.query;
+    let categoryName: string | undefined;
+    if (categoryId) {
+      const cat = await prisma.category.findFirst({
+        where: { OR: [{ id: categoryId as string }, { slug: categoryId as string }] },
+        select: { nameFr: true },
+      });
+      categoryName = cat?.nameFr;
+    }
+    const suggestions = suggestHashtags({
+      title: title as string,
+      description: description as string,
+      categoryName,
+    });
+    res.json({ data: suggestions });
   } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 

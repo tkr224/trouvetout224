@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '../config/database';
-import { generateTokens, verifyRefreshToken } from '../utils/tokens';
+import { generateTokens, refreshSession } from '../utils/tokens';
 import { sendVerificationEmail, sendResetPasswordEmail, sendSecurityAlertEmail } from '../services/email.service';
 import { resolveEmailLocale } from '../i18n/emailLocales';
 import { v4 as uuidv4 } from 'uuid';
@@ -192,7 +192,7 @@ export const register = async (req: Request, res: Response) => {
       sendVerificationEmail(normalizedEmail, firstName, verifyUrl, resolveEmailLocale(user.preferredLanguage)).catch(e => console.log('Email non envoyé:', e.message));
     }
 
-    const { accessToken, refreshToken } = await generateTokens(user.id);
+    const { accessToken, refreshToken } = await generateTokens(user.id, { userAgent: req.headers['user-agent'] });
     console.log(`${AUTH_LOG} register — compte créé avec succès (id=${user.id}, email=${normalizedEmail || 'none'}, phone=${normalizedPhone || 'none'})`);
 
     res.status(201).json({
@@ -221,7 +221,7 @@ export const register = async (req: Request, res: Response) => {
 // ============================
 export const login = async (req: Request, res: Response) => {
   try {
-    const { identifier: rawIdentifier, password } = req.body;
+    const { identifier: rawIdentifier, password, rememberMe } = req.body;
     // .trim() : un espace collé par erreur (copier-coller, clavier mobile) suffit à faire
     // échouer un match exact — c'était une cause silencieuse de "identifiant introuvable"
     // après une inscription pourtant réussie. Idem pour la casse de l'email : register
@@ -236,10 +236,16 @@ export const login = async (req: Request, res: Response) => {
     const normalizedPhone = normalizeGuineaPhone(identifier);
     console.log(`${AUTH_LOG} login — tentative reçue (identifier="${identifier}", interprété comme téléphone=${!!normalizedPhone})`);
 
+    // Détection de format : un identifiant qui ressemble à un email ou à un numéro de
+    // téléphone n'est jamais un username valide (le formulaire d'inscription
+    // n'accepte de toute façon pas @ ou uniquement des chiffres pour un username) —
+    // mais comme un username peut en théorie ressembler à autre chose, on tente
+    // simplement les trois en une seule requête plutôt que de deviner le format.
     const user = await prisma.user.findFirst({
       where: {
         OR: [
           { email: { equals: identifier, mode: 'insensitive' } },
+          { username: { equals: identifier, mode: 'insensitive' } },
           { phone: identifier },
           ...(normalizedPhone ? [{ phone: normalizedPhone }] : []),
         ],
@@ -268,9 +274,12 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Identifiants incorrects.' });
     }
 
-    const { accessToken, refreshToken } = await generateTokens(user.id);
+    const { accessToken, refreshToken } = await generateTokens(user.id, {
+      rememberMe: !!rememberMe,
+      userAgent: req.headers['user-agent'],
+    });
     const { password: _, ...userWithoutPassword } = user;
-    console.log(`${AUTH_LOG} login — succès (id=${user.id}).`);
+    console.log(`${AUTH_LOG} login — succès (id=${user.id}, rememberMe=${!!rememberMe}).`);
 
     res.json({ message: 'Connexion réussie !', user: { ...userWithoutPassword, hasPassword: true }, accessToken, refreshToken });
   } catch (error) {
@@ -287,11 +296,10 @@ export const refreshToken = async (req: Request, res: Response) => {
     const { refreshToken: token } = req.body;
     if (!token) return res.status(401).json({ error: 'Token manquant.' });
 
-    const userId = await verifyRefreshToken(token);
-    if (!userId) return res.status(401).json({ error: 'Token invalide ou expiré.' });
+    const result = await refreshSession(token);
+    if (!result) return res.status(401).json({ error: 'Token invalide ou expiré.' });
 
-    const { accessToken, refreshToken: newRefreshToken } = await generateTokens(userId);
-    res.json({ accessToken, refreshToken: newRefreshToken });
+    res.json(result);
   } catch (error) {
     res.status(401).json({ error: 'Token invalide.' });
   }
@@ -303,7 +311,10 @@ export const refreshToken = async (req: Request, res: Response) => {
 export const logout = async (req: Request, res: Response) => {
   try {
     const { refreshToken: token } = req.body;
-    if (token) await prisma.refreshToken.deleteMany({ where: { token } });
+    // Le token présenté peut être soit la valeur courante d'une session, soit
+    // l'ancienne valeur juste avant rotation (fenêtre de grâce) — on couvre les deux
+    // pour être sûr de révoquer la bonne ligne.
+    if (token) await prisma.refreshToken.deleteMany({ where: { OR: [{ token }, { previousToken: token }] } });
     res.json({ message: 'Déconnexion réussie.' });
   } catch (error) {
     res.status(500).json({ error: 'Erreur lors de la déconnexion.' });
@@ -387,7 +398,7 @@ export const oauthLogin = async (req: Request, res: Response) => {
       });
     }
 
-    const { accessToken, refreshToken } = await generateTokens(user.id);
+    const { accessToken, refreshToken } = await generateTokens(user.id, { userAgent: req.headers['user-agent'] });
     const { password, ...userWithoutPassword } = user as any;
     console.log(`${AUTH_LOG} oauth — succès (id=${user.id}, isNewUser=${isNewUser}).`);
 

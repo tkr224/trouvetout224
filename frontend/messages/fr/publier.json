@@ -61,6 +61,8 @@
     "titleTipSuffix": ". Ça attire plus d'acheteurs !",
     "descriptionLabel": "Description *",
     "descriptionPlaceholder": "Décrivez en détail...",
+    "hashtagsLabel": "Hashtags (optionnel)",
+    "hashtagsPlaceholder": "Ajoutez un hashtag et appuyez sur Entrée...",
     "priceLabel": "Prix (GNF)",
     "quantityLabel": "Quantité disponible",
     "quantityPlaceholder": "Ex: 10",

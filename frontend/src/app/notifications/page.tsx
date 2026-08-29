@@ -9,50 +9,13 @@ import ErrorState from '@/components/ui/ErrorState';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import Link from 'next/link';
-import {
-  Bell, Check, MessageCircle, Star, Eye, Clock,
-  CheckCircle, AlertTriangle, Briefcase, Lock, ShoppingBag,
-} from 'lucide-react';
+import { Lock, Bell, Check } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { Locale } from 'date-fns';
 import { fr, enUS, zhCN } from 'date-fns/locale';
+import { NOTIF_CONFIG, getNotifLink } from '@/lib/notifTypes';
 
 const DATE_LOCALES: Record<string, Locale> = { fr, en: enUS, zh: zhCN };
-
-const NOTIF_CONFIG: Record<string, { icon: any; color: string }> = {
-  NEW_MESSAGE:        { icon: MessageCircle, color: 'bg-primary-100 text-primary-700' },
-  NEW_RATING:         { icon: Star,          color: 'bg-yellow-100 text-yellow-700'   },
-  NEW_VIEW:           { icon: Eye,           color: 'bg-blue-100 text-blue-600'       },
-  NEW_APPLICATION:    { icon: Briefcase,     color: 'bg-purple-100 text-purple-700'   },
-  ANNONCE_EXPIRED:    { icon: Clock,         color: 'bg-orange-100 text-orange-600'   },
-  ANNONCE_APPROVED:   { icon: CheckCircle,   color: 'bg-green-100 text-green-700'     },
-  ANNONCE_REJECTED:   { icon: AlertTriangle, color: 'bg-guinea-100 text-guinea-700'   },
-  ACCOUNT_SUSPENDED:  { icon: AlertTriangle, color: 'bg-red-100 text-red-600'         },
-  NEW_VENDOR_PRODUCT: { icon: ShoppingBag,   color: 'bg-primary-100 text-primary-700' },
-  SYSTEM:             { icon: Bell,          color: 'bg-dark-100 text-dark-500'       },
-};
-
-function getNotifLink(notif: any): string | null {
-  const data = notif.data as any;
-  switch (notif.type) {
-    case 'NEW_MESSAGE':
-      return data?.conversationId ? `/messages/${data.conversationId}` : '/messages';
-    case 'NEW_RATING':
-      return '/profil';
-    case 'NEW_APPLICATION':
-      return '/annonces/lister';
-    case 'ANNONCE_EXPIRED':
-    case 'ANNONCE_APPROVED':
-    case 'SYSTEM':
-      return data?.annonceId ? `/annonces/${data.annonceId}` : null;
-    case 'ANNONCE_REJECTED':
-      return '/profil';
-    case 'NEW_VENDOR_PRODUCT':
-      return data?.annonceId ? `/annonces/${data.annonceId}` : '/abonnements';
-    default:
-      return null;
-  }
-}
 
 export default function NotificationsPage() {
   const t = useTranslations('notifications');

@@ -8,7 +8,7 @@ import {
   ChevronLeft, ChevronRight, Flag, X, Copy, Edit, EyeOff, Trash2,
   Star, BadgeCheck, User, ShieldAlert, ImageIcon, ExternalLink,
   AlertTriangle, AlertCircle, HelpCircle, PackageX, DollarSign,
-  ArrowRight, Sparkles, History, Send, Loader2, Tag, ShieldCheck,
+  ArrowRight, Sparkles, Send, Loader2, Tag, ShieldCheck,
   CheckCircle2, RotateCcw, TrendingUp,
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
@@ -22,6 +22,7 @@ import toast from 'react-hot-toast';
 import ReviewSection from '@/components/ReviewSection';
 import { AnnonceCard } from '@/components/annonces/AnnonceGrid';
 import { useRecentlyViewed, type RecentAnnonce } from '@/hooks/useRecentlyViewed';
+import RecentlyViewedSection from '@/components/annonces/RecentlyViewedSection';
 import BackButton from '@/components/BackButton';
 import ImageLightbox from '@/components/ImageLightbox';
 import CulturalPattern from '@/components/CulturalPattern';
@@ -59,8 +60,7 @@ export default function AnnonceDetailPage() {
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, user } = useAuthStore();
-  const { items: recentItems, addViewed, removeById, hasLoaded } = useRecentlyViewed();
-  const [validatedRecent, setValidatedRecent] = useState<any[]>([]);
+  const { addViewed } = useRecentlyViewed();
 
   const annonce = data?.data;
 
@@ -112,32 +112,6 @@ export default function AnnonceDetailPage() {
       .catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [annonce?.id]);
-
-  // Valider les annonces récentes contre la BDD et nettoyer le localStorage
-  useEffect(() => {
-    if (!annonce?.id || !hasLoaded) return;
-
-    const toCheck = recentItems.filter(a => a.id !== annonce.id);
-    if (toCheck.length === 0) { setValidatedRecent([]); return; }
-
-    Promise.allSettled(
-      toCheck.map(item => api.get(`/annonces/${item.id}`))
-    ).then(results => {
-      const valid: any[] = [];
-      results.forEach((res, i) => {
-        const active =
-          res.status === 'fulfilled' &&
-          res.value.data?.data?.status === 'ACTIVE';
-        if (active) {
-          valid.push(toCheck[i]);
-        } else {
-          removeById(toCheck[i].id);
-        }
-      });
-      setValidatedRecent(valid);
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [annonce?.id, hasLoaded]);
 
   /* ── Loading skeleton ─────────────────────────────────────────
      Reproduit la vraie structure de la page (galerie + vignettes,
@@ -254,6 +228,13 @@ export default function AnnonceDetailPage() {
   const images = annonce.images || [];
   const timeAgo = formatDistanceToNow(new Date(annonce.createdAt), { addSuffix: true, locale: fr });
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+  // Titre + prix + lien — l'image de l'annonce apparaît automatiquement grâce aux
+  // balises Open Graph dynamiques (voir generateMetadata dans page.tsx) quand WhatsApp/
+  // Facebook dépliera l'aperçu du lien, pas besoin de la joindre manuellement ici.
+  const sharePriceLabel = annonce.price != null
+    ? `${annonce.price.toLocaleString('fr-GN')} GNF`
+    : t('shareModal.priceNegotiable');
+  const shareMessage = `${annonce.title} — ${sharePriceLabel}\n${shareUrl}`;
   const isOwner = user?.id === annonce.user?.id;
 
   const openContactModal = () => {
@@ -570,6 +551,21 @@ export default function AnnonceDetailPage() {
                 <h1 className="text-2xl font-display font-bold text-dark-900 leading-tight">{annonce.title}</h1>
               </div>
 
+              {/* Hashtags — cliquables vers une recherche filtrée */}
+              {(annonce as any).hashtags?.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4 -mt-2">
+                  {(annonce as any).hashtags.map((tag: string) => (
+                    <Link
+                      key={tag}
+                      href={`/annonces/lister?hashtag=${encodeURIComponent(tag)}`}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-primary-700 bg-primary-50 hover:bg-primary-100 px-2.5 py-1 rounded-full transition-colors"
+                    >
+                      #{tag}
+                    </Link>
+                  ))}
+                </div>
+              )}
+
               {/* Prix */}
               {(() => {
                 const a2 = annonce as any;
@@ -810,26 +806,9 @@ export default function AnnonceDetailPage() {
         )}
 
         {/* ── Vues récemment (validées contre la BDD) ─────────── */}
-        {validatedRecent.length > 0 && (
-          <section className="mt-10 pb-8">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-9 h-9 bg-dark-100 rounded-xl flex items-center justify-center">
-                <History size={17} className="text-dark-500" />
-              </div>
-              <div>
-                <h2 className="font-display font-bold text-dark-900 text-lg leading-tight">
-                  {t('recent.title')}
-                </h2>
-                <p className="text-dark-400 text-xs">{t('recent.subtitle')}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {validatedRecent.slice(0, 6).map((a: any) => (
-                <AnnonceCard key={a.id} annonce={a} />
-              ))}
-            </div>
-          </section>
-        )}
+        <div className="mt-10 pb-8">
+          <RecentlyViewedSection excludeId={annonce.id} />
+        </div>
 
       </div>
 
@@ -928,7 +907,7 @@ export default function AnnonceDetailPage() {
                 <span className="text-sm font-medium text-dark-700">{t('shareModal.copyLink')}</span>
               </button>
               <a
-                href={`https://wa.me/?text=${encodeURIComponent(annonce.title + ' - ' + shareUrl)}`}
+                href={`https://wa.me/?text=${encodeURIComponent(shareMessage)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full flex items-center gap-3 p-3.5 rounded-xl border border-dark-200 hover:bg-green-50 hover:border-green-200 transition-colors"

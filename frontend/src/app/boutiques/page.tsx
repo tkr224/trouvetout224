@@ -30,6 +30,7 @@ interface Shop {
   createdAt: string;
   city: { id: string; name: string } | null;
   _count: { annonces: number; subscribers: number };
+  responsiveBadge: { label: string; color: string; emoji: string } | null;
 }
 
 interface City {
@@ -288,6 +289,13 @@ function ShopCard({ shop }: { shop: Shop }) {
       {/* Description */}
       {shop.shopDescription && (
         <p className="text-dark-600 text-xs leading-relaxed line-clamp-2">{shop.shopDescription}</p>
+      )}
+
+      {/* Badge réactivité */}
+      {shop.responsiveBadge && (
+        <span className={`inline-flex items-center gap-1 self-start px-2 py-0.5 text-[10px] font-semibold rounded-full border ${shop.responsiveBadge.color}`}>
+          <span>{shop.responsiveBadge.emoji}</span>{shop.responsiveBadge.label}
+        </span>
       )}
 
       {/* Catégories */}

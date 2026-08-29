@@ -21,6 +21,9 @@ const OnboardingNudge     = dynamic(() => import('@/components/onboarding/Onboar
 const LocaleSync          = dynamic(() => import('@/components/LocaleSync'),                       { ssr: false });
 const VoiceCallScreen     = dynamic(() => import('@/components/voice/VoiceCallScreen'),             { ssr: false });
 const SystemAnnouncementModal = dynamic(() => import('@/components/SystemAnnouncementModal'),        { ssr: false });
+const SessionExpiryWatcher    = dynamic(() => import('@/components/SessionExpiryWatcher'),            { ssr: false });
+const GlobalNotificationToasts = dynamic(() => import('@/components/GlobalNotificationToasts'),       { ssr: false });
+const OfflineBanner       = dynamic(() => import('@/components/OfflineBanner'),                    { ssr: false });
 
 /* ── Métadonnées globales (SEO + Open Graph + PWA) ───────────────── */
 export const metadata: Metadata = {
@@ -186,6 +189,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <OnboardingNudge />
               <VoiceCallScreen />
               <SystemAnnouncementModal />
+              <SessionExpiryWatcher />
+              <GlobalNotificationToasts />
+              <OfflineBanner />
             </ThemeProvider>
           </QueryProvider>
         </NextIntlClientProvider>

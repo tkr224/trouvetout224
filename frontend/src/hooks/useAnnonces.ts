@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 interface AnnonceFilters {
   page?: number; limit?: number; categoryId?: string; cityId?: string;
   sort?: string; q?: string; minPrice?: number; maxPrice?: number;
-  condition?: string; listingType?: string; bedrooms?: number;
+  condition?: string; listingType?: string; bedrooms?: number; hashtag?: string;
 }
 
 export const useAnnonces = (filters: AnnonceFilters = {}) => {

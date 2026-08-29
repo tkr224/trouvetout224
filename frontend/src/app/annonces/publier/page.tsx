@@ -18,6 +18,7 @@ import CulturalPattern from '@/components/CulturalPattern';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { useSavedAddresses, SavedAddress } from '@/hooks/useSavedAddresses';
+import HashtagInput from '@/components/annonces/HashtagInput';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 const DURATION_META = [
@@ -125,6 +126,7 @@ function PublierAnnonceContent() {
     eventDate: '',
     vehicleMake: '', vehicleModel: '', vehicleYear: '', vehicleMileage: '',
     vehicleFuel: '', vehicleTransmission: '',
+    hashtags: [] as string[],
   });
 
   // Adresses enregistrées (téléphone + ville + quartier réutilisables) — voir
@@ -209,6 +211,7 @@ function PublierAnnonceContent() {
           vehicleMileage: a.vehicleMileage ? String(a.vehicleMileage) : '',
           vehicleFuel:  a.vehicleFuel || '',
           vehicleTransmission: a.vehicleTransmission || '',
+          hashtags:     a.hashtags || [],
         }));
         setStep(2);
       })
@@ -512,6 +515,16 @@ function PublierAnnonceContent() {
                 <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('descriptionLabel')}</label>
                 <textarea value={form.description} onChange={e => set('description', e.target.value)}
                   rows={4} placeholder={t('descriptionPlaceholder')} className="input resize-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('hashtagsLabel')}</label>
+                <HashtagInput
+                  value={form.hashtags}
+                  onChange={(tags) => set('hashtags', tags)}
+                  title={form.title}
+                  description={form.description}
+                  categoryId={selectedSub || selectedCategory}
+                />
               </div>
 
               {listingType === 'vente' && (

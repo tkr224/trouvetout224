@@ -6,6 +6,19 @@
     "title": "All listings",
     "subtitle": "Find what you need in Guinea",
     "searchPlaceholder": "Search a listing...",
+    "compare": {
+      "selected": "{count}/{max} selected",
+      "clear": "Clear",
+      "compareBtn": "Compare",
+      "title": "Compare listings",
+      "subtitle": "Compare price, features and location side by side.",
+      "notEnough": "Select at least 2 listings from the same category from the list to compare them.",
+      "backToList": "Back to listings",
+      "removeBtn": "Remove from comparison",
+      "rowPrice": "Price",
+      "rowLocation": "Location",
+      "negotiable": "Negotiable"
+    },
     "filters": {
       "title": "Filters",
       "category": "Category",
@@ -172,7 +185,8 @@
       "title": "Share the listing",
       "copyLink": "Copy link",
       "whatsapp": "Share on WhatsApp",
-      "facebook": "Share on Facebook"
+      "facebook": "Share on Facebook",
+      "priceNegotiable": "Price negotiable"
     },
     "soldModal": {
       "title": "Mark as sold",

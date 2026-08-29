@@ -19,8 +19,11 @@ function LoginContent() {
   const [suspended, setSuspended] = useState<{ reason: string | null } | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setUser, setTokens } = useAuthStore();
+  const { setUser, setTokens, addAccount } = useAuthStore();
   const { register, handleSubmit } = useForm<any>();
+  // ?mode=add : ajoute ce compte à la liste multi-comptes de l'appareil au lieu de
+  // remplacer la session active — voir le sélecteur de comptes dans Paramètres > Profil.
+  const isAddMode = searchParams.get('mode') === 'add';
 
   const onSubmit = async (data: any) => {
     setLoading(true);
@@ -29,7 +32,18 @@ function LoginContent() {
       const res = await api.post('/auth/login', {
         identifier: data.identifier,
         password: data.password,
+        rememberMe: !!data.rememberMe,
       });
+      if (isAddMode) {
+        const result = addAccount(res.data.user, res.data.accessToken, res.data.refreshToken);
+        if (!result.ok) {
+          toast.error(t('addAccountLimitReached', { max: 5 }));
+          return;
+        }
+        toast.success(t('accountAdded'));
+        router.push('/parametres');
+        return;
+      }
       setUser(res.data.user);
       setTokens(res.data.accessToken, res.data.refreshToken);
       toast.success(t('successToast'));
@@ -52,6 +66,16 @@ function LoginContent() {
   const handleGoogleCredential = async (idToken: string) => {
     try {
       const res = await api.post('/auth/oauth', { provider: 'google', token: idToken });
+      if (isAddMode) {
+        const result = addAccount(res.data.user, res.data.accessToken, res.data.refreshToken);
+        if (!result.ok) {
+          toast.error(t('addAccountLimitReached', { max: 5 }));
+          return;
+        }
+        toast.success(t('accountAdded'));
+        router.push('/parametres');
+        return;
+      }
       setUser(res.data.user);
       setTokens(res.data.accessToken, res.data.refreshToken);
       if (res.data.isNewUser) {
@@ -195,6 +219,16 @@ function LoginContent() {
                 </button>
               </div>
             </div>
+
+            <label className="flex items-center gap-2 text-sm text-dark-600 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                defaultChecked
+                {...register('rememberMe')}
+                className="rounded"
+              />
+              {t('rememberMe')}
+            </label>
 
             {/* Bouton */}
             <button

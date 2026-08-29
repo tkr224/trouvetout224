@@ -6,6 +6,19 @@
     "title": "Toutes les annonces",
     "subtitle": "Trouvez ce dont vous avez besoin en Guinée",
     "searchPlaceholder": "Rechercher une annonce...",
+    "compare": {
+      "selected": "{count}/{max} sélectionnée{count, plural, one {} other {s}}",
+      "clear": "Vider",
+      "compareBtn": "Comparer",
+      "title": "Comparer les annonces",
+      "subtitle": "Compare le prix, les caractéristiques et la localisation côte à côte.",
+      "notEnough": "Sélectionne au moins 2 annonces de la même catégorie depuis la liste pour les comparer.",
+      "backToList": "Retour aux annonces",
+      "removeBtn": "Retirer de la comparaison",
+      "rowPrice": "Prix",
+      "rowLocation": "Localisation",
+      "negotiable": "À négocier"
+    },
     "filters": {
       "title": "Filtres",
       "category": "Catégorie",
@@ -172,7 +185,8 @@
       "title": "Partager l'annonce",
       "copyLink": "Copier le lien",
       "whatsapp": "Partager sur WhatsApp",
-      "facebook": "Partager sur Facebook"
+      "facebook": "Partager sur Facebook",
+      "priceNegotiable": "Prix à négocier"
     },
     "soldModal": {
       "title": "Marquer comme vendu",

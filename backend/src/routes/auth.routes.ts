@@ -5,6 +5,7 @@ import { validate } from '../middleware/validate';
 import { authenticate } from '../middleware/auth';
 import { optionalAuthenticate } from '../middleware/optionalAuth';
 import { normalizeGuineaPhone, GUINEA_PHONE_FORMAT_HINT } from '../utils/phone';
+import { prisma } from '../config/database';
 import {
   register,
   login,
@@ -182,5 +183,62 @@ router.post(
   optionalAuthenticate,
   resendVerificationEmail
 );
+
+// ─── Sessions actives (paramètres > sécurité) ──────────────────────────────────
+
+// Analyse très simple du User-Agent — juste assez pour un libellé lisible dans
+// "Sessions actives" ("Chrome sur Windows"), jamais utilisé pour une décision de
+// sécurité. Pas de dépendance externe pour ça.
+function describeUserAgent(ua: string | null): string {
+  if (!ua) return 'Appareil inconnu';
+  const browser = /Edg\//.test(ua) ? 'Edge'
+    : /OPR\//.test(ua) ? 'Opera'
+    : /Chrome\//.test(ua) ? 'Chrome'
+    : /Firefox\//.test(ua) ? 'Firefox'
+    : /Safari\//.test(ua) ? 'Safari'
+    : 'Navigateur';
+  const os = /Android/.test(ua) ? 'Android'
+    : /iPhone|iPad|iPod/.test(ua) ? 'iOS'
+    : /Windows/.test(ua) ? 'Windows'
+    : /Mac OS X/.test(ua) ? 'macOS'
+    : /Linux/.test(ua) ? 'Linux'
+    : 'appareil inconnu';
+  return `${browser} sur ${os}`;
+}
+
+router.get('/sessions', authenticate, async (req: any, res) => {
+  try {
+    const currentToken = req.headers['x-refresh-token'] as string | undefined;
+    const sessions = await prisma.refreshToken.findMany({
+      where: { userId: req.userId, expiresAt: { gte: new Date() } },
+      orderBy: { lastUsedAt: 'desc' },
+    });
+    res.json({
+      data: sessions.map((s) => ({
+        id: s.id,
+        device: describeUserAgent(s.userAgent),
+        rememberMe: s.rememberMe,
+        createdAt: s.createdAt,
+        lastUsedAt: s.lastUsedAt,
+        current: !!currentToken && (s.token === currentToken || s.previousToken === currentToken),
+      })),
+    });
+  } catch (error) {
+    console.error('Erreur GET /auth/sessions:', error);
+    res.status(500).json({ error: 'Erreur lors de la récupération des sessions.' });
+  }
+});
+
+router.delete('/sessions/:id', authenticate, async (req: any, res) => {
+  try {
+    const session = await prisma.refreshToken.findFirst({ where: { id: req.params.id, userId: req.userId } });
+    if (!session) return res.status(404).json({ error: 'Session introuvable.' });
+    await prisma.refreshToken.delete({ where: { id: session.id } });
+    res.json({ message: 'Session déconnectée.' });
+  } catch (error) {
+    console.error('Erreur DELETE /auth/sessions/:id:', error);
+    res.status(500).json({ error: 'Erreur lors de la déconnexion de la session.' });
+  }
+});
 
 export default router;

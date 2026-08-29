@@ -148,13 +148,30 @@ enum Role {
   SUPER_ADMIN
 }
 
+// Une ligne = une session/appareil (utilisée aussi pour "Sessions actives" dans les
+// paramètres). La rotation du refresh token se fait EN PLACE sur la même ligne
+// (nouvelle valeur de `token`, ancienne conservée dans `previousToken` pendant une
+// courte fenêtre de grâce) plutôt qu'en créant une nouvelle ligne à chaque
+// rafraîchissement — sinon une session active toute une journée (rotation ~toutes les
+// 15 min, durée de vie du token d'accès) créerait des dizaines de lignes, et surtout
+// deux onglets qui rafraîchissent au même moment généraient deux JWT strictement
+// identiques (payload + iat + secret identiques) → collision sur la contrainte
+// d'unicité et déconnexion forcée. Cause du bug de déconnexion aléatoire (2026-08-29).
 model RefreshToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  id              String    @id @default(cuid())
+  token           String    @unique
+  previousToken   String?   @unique
+  previousTokenAt DateTime?
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt       DateTime
+  createdAt       DateTime  @default(now())
+  lastUsedAt      DateTime  @default(now())
+  rememberMe      Boolean   @default(false)
+  // User-Agent brut du navigateur ayant créé la session — sert uniquement à afficher
+  // un libellé lisible ("Chrome sur Windows") dans "Sessions actives", jamais utilisé
+  // pour une décision de sécurité.
+  userAgent       String?
 
   @@map("refresh_tokens")
 }
@@ -258,6 +275,8 @@ model Annonce {
   vehicleMileage      Int?
   vehicleFuel         String?
   vehicleTransmission String?
+
+  hashtags         String[]       @default([])
 
   images           AnnonceImage[]
   status           AnnonceStatus  @default(PENDING_REVIEW)

@@ -26,11 +26,15 @@ api.interceptors.request.use((config) => {
 // ce qui déconnectait l'utilisateur alors que sa session était valide.
 // → on fait partager le même appel de rafraîchissement à toutes les requêtes concurrentes.
 let refreshPromise: Promise<string> | null = null;
+// Le refreshToken tenté par le dernier appel — permet, en cas d'échec, de savoir si un
+// AUTRE onglet a entre-temps réussi son propre rafraîchissement (voir plus bas).
+let lastAttemptedRefreshToken: string | null = null;
 
 async function refreshAccessToken(): Promise<string> {
   const auth = JSON.parse(localStorage.getItem('tt224-auth') || '{}');
   const refreshToken = auth?.state?.refreshToken;
   if (!refreshToken) throw new Error('No refresh token');
+  lastAttemptedRefreshToken = refreshToken;
 
   const res = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken });
   const { accessToken, refreshToken: newRefreshToken } = res.data;
@@ -61,8 +65,21 @@ api.interceptors.response.use(
         // Déconnecter UNIQUEMENT si le serveur dit que le token est invalide (401 explicite)
         // → évite la déconnexion lors d'un redémarrage temporaire du backend (erreur réseau)
         if (refreshErr?.response?.status === 401) {
+          // Garde-fou supplémentaire (en plus de la fenêtre de grâce côté serveur) :
+          // si un autre onglet a entre-temps rafraîchi avec succès, localStorage
+          // contient déjà un refreshToken différent de celui qui vient d'échouer —
+          // dans ce cas la session est en réalité valide, on ne déconnecte pas.
+          const authNow = JSON.parse(localStorage.getItem('tt224-auth') || '{}');
+          const currentRefreshToken = authNow?.state?.refreshToken;
+          if (currentRefreshToken && currentRefreshToken !== lastAttemptedRefreshToken) {
+            original.headers.Authorization = `Bearer ${authNow.state.accessToken}`;
+            return api(original);
+          }
+          // logout() bascule automatiquement sur un autre compte enregistré sur cet
+          // appareil s'il en reste un (multi-comptes) — on ne renvoie vers la page de
+          // connexion que si PLUS AUCUN compte n'est disponible après ça.
           useAuthStore.getState().logout();
-          if (typeof window !== 'undefined') {
+          if (typeof window !== 'undefined' && !useAuthStore.getState().isAuthenticated) {
             window.location.href = '/auth/connexion';
           }
         }

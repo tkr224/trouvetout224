@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { Heart, Eye, MapPin, BadgeCheck, ImageIcon, Star, Sparkles, Tag, ShieldCheck, ShieldAlert, CheckCircle2, Plus, PartyPopper } from 'lucide-react';
+import { Heart, Eye, MapPin, BadgeCheck, ImageIcon, Star, Sparkles, Tag, ShieldCheck, ShieldAlert, CheckCircle2, Plus, PartyPopper, Check } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import ErrorState from '@/components/ui/ErrorState';
@@ -11,6 +11,7 @@ interface Annonce {
   images: { url: string }[]; city: { name: string }; category: { nameFr: string; icon: string };
   viewCount: number; createdAt: string; isPremium: boolean; isPinned?: boolean; neighborhood?: string;
   user: { firstName: string; lastName: string; isVerified: boolean; isShopVerified?: boolean; createdAt?: string };
+  categoryId?: string;
 }
 
 export function AnnonceCard({ annonce }: { annonce: Annonce }) {
@@ -146,6 +147,9 @@ export default function AnnonceGrid({
   cols = 6,
   emptyTitle = 'Sois le premier à publier ici !',
   emptySubtitle = 'Cette section est encore vide — ta prochaine annonce pourrait être la première que les gens verront.',
+  compareSelectedIds,
+  onToggleCompare,
+  compareDisabled,
 }: {
   annonces?: Annonce[];
   isLoading?: boolean;
@@ -156,6 +160,12 @@ export default function AnnonceGrid({
   cols?: number;
   emptyTitle?: string;
   emptySubtitle?: string;
+  /** Comparateur (voir /annonces/comparer) : quand fourni, affiche une case à cocher
+   * sur chaque carte. Absent partout ailleurs — comportement inchangé par défaut. */
+  compareSelectedIds?: string[];
+  onToggleCompare?: (annonce: Annonce) => void;
+  /** id des annonces dont la case doit être désactivée (catégorie différente / limite atteinte) */
+  compareDisabled?: (annonce: Annonce) => boolean;
 }) {
   const gridCols = cols === 4
     ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
@@ -199,7 +209,31 @@ export default function AnnonceGrid({
 
   return (
     <div className={`grid ${gridCols} gap-4 animate-fadeIn`}>
-      {annonces.map((a) => <AnnonceCard key={a.id} annonce={a} />)}
+      {annonces.map((a) => {
+        if (!onToggleCompare) return <AnnonceCard key={a.id} annonce={a} />;
+        const checked = !!compareSelectedIds?.includes(a.id);
+        const disabled = !checked && !!compareDisabled?.(a);
+        return (
+          <div key={a.id} className="relative">
+            <AnnonceCard annonce={a} />
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (!disabled) onToggleCompare(a); }}
+              disabled={disabled}
+              aria-pressed={checked}
+              className={`absolute bottom-2.5 left-2.5 z-10 w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-colors shadow-md ${
+                checked
+                  ? 'bg-primary-700 border-primary-700 text-white'
+                  : disabled
+                    ? 'bg-white/70 border-dark-200 text-transparent cursor-not-allowed'
+                    : 'bg-white/95 border-dark-200 hover:border-primary-500'
+              }`}
+            >
+              {checked && <Check size={14} />}
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }

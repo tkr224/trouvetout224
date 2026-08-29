@@ -2,6 +2,7 @@
   "loginRequiredMsg": "请登录以查看你的通知",
   "login": "登录",
   "pageTitle": "通知",
+  "dismissToast": "关闭通知",
   "unreadCount": "{count} 条未读",
   "markAllRead": "全部标记为已读",
   "emptyTitle": "暂无通知",

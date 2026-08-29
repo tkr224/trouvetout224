@@ -10,6 +10,7 @@ import CulturalPattern from '@/components/CulturalPattern';
 import PageViewTracker from '@/components/PageViewTracker';
 import Footer from '@/components/layout/Footer';
 import AnnonceGrid from '@/components/annonces/AnnonceGrid';
+import RecentlyViewedSection from '@/components/annonces/RecentlyViewedSection';
 import { useAnnonces } from '@/hooks/useAnnonces';
 import { api } from '@/lib/api';
 import {
@@ -18,6 +19,8 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import toast from 'react-hot-toast';
+import { useCompareSelection } from '@/hooks/useCompareSelection';
+import { Scale } from 'lucide-react';
 
 const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faranah', 'Nzérékoré'];
 
@@ -184,6 +187,7 @@ function AnnoncesList() {
   const SORTS = SORT_KEYS.map(s => ({ v: s.v, l: tSort(s.k), Icon: s.Icon }));
   const searchParams = useSearchParams();
   const { isAuthenticated } = useAuthStore();
+  const compare = useCompareSelection();
   const [categories, setCategories] = useState<any[]>([]);
   const [sort, setSort]               = useState(searchParams.get('sort') || 'recent');
   const [cat, setCat]                 = useState(searchParams.get('cat') || '');
@@ -196,6 +200,7 @@ function AnnoncesList() {
   const [showFilters, setShowFilters] = useState(false);
   const [localSearch, setLocalSearch] = useState(searchParams.get('q') || '');
   const [q, setQ]                     = useState(searchParams.get('q') || '');
+  const [hashtag, setHashtag]         = useState(searchParams.get('hashtag') || '');
 
   useEffect(() => {
     const t = setTimeout(() => { setQ(localSearch); setPage(1); }, 400);
@@ -214,11 +219,12 @@ function AnnoncesList() {
     minPrice: minPrice ? parseInt(minPrice) : undefined,
     maxPrice: maxPrice ? parseInt(maxPrice) : undefined,
     condition: condition || undefined,
+    hashtag: hashtag || undefined,
   });
 
   const handleReset = () => {
     setCat(''); setSubcat(''); setSelectedCity(''); setMinPrice('');
-    setMaxPrice(''); setCondition(''); setLocalSearch(''); setQ(''); setPage(1);
+    setMaxPrice(''); setCondition(''); setLocalSearch(''); setQ(''); setHashtag(''); setPage(1);
   };
 
   const selectedCatObj = categories.find((c: any) => c.slug === cat);
@@ -235,6 +241,7 @@ function AnnoncesList() {
     minPrice     && { key: 'min',    label: t('priceMin', { price: parseInt(minPrice).toLocaleString('fr-FR') }), clear: () => { setMinPrice(''); setPage(1); } },
     maxPrice     && { key: 'max',    label: t('priceMax', { price: parseInt(maxPrice).toLocaleString('fr-FR') }), clear: () => { setMaxPrice(''); setPage(1); } },
     q            && { key: 'q',      label: `"${q}"`,                                                          clear: () => { setLocalSearch(''); setQ(''); setPage(1); } },
+    hashtag      && { key: 'hashtag', label: `#${hashtag}`,                                                     clear: () => { setHashtag(''); setPage(1); } },
   ].filter(Boolean) as { key: string; label: string; clear: () => void }[];
 
   const hasFilters = activeFilters.length > 0;
@@ -420,6 +427,10 @@ function AnnoncesList() {
           </div>
         </div>
 
+        {/* Historique de navigation — uniquement en vue de parcours par défaut
+            (sans filtre actif), pour ne pas alourdir une recherche précise. */}
+        {!hasFilters && page === 1 && <RecentlyViewedSection />}
+
         {/* Erreur de chargement — prioritaire sur l'état vide, sinon une panne
             réseau se lit comme « aucun résultat » et l'utilisateur reformule
             sa recherche indéfiniment sans jamais rien obtenir. */}
@@ -433,7 +444,44 @@ function AnnoncesList() {
             nouveau filtre charge (keepPreviousData), au lieu d'un saut sec. */}
         {!isError && !isEmpty && (
           <div className={`transition-opacity duration-200 ${isFetching && !isLoading ? 'opacity-50' : 'opacity-100'}`}>
-            <AnnonceGrid annonces={data?.data} isLoading={isLoading} cols={4} />
+            <AnnonceGrid
+              annonces={data?.data}
+              isLoading={isLoading}
+              cols={4}
+              compareSelectedIds={compare.items.map(i => i.id)}
+              onToggleCompare={(a: any) => compare.toggle({
+                id: a.id, slug: a.slug, title: a.title,
+                categoryId: a.categoryId, categoryName: a.category?.nameFr,
+                image: a.images?.[0]?.url,
+              })}
+              compareDisabled={(a: any) => compare.isDisabled({ id: a.id, slug: a.slug, title: a.title, categoryId: a.categoryId })}
+            />
+          </div>
+        )}
+
+        {/* Barre flottante du comparateur — visible dès qu'au moins une annonce est
+            sélectionnée, "Comparer" activé à partir de 2 (voir /annonces/comparer). */}
+        {compare.items.length > 0 && (
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-700 shadow-card-hover rounded-2xl px-4 py-3 flex items-center gap-3 animate-fadeIn">
+            <div className="flex items-center gap-2">
+              <Scale size={16} className="text-primary-700 shrink-0" />
+              <span className="text-sm font-semibold text-dark-800 dark:text-dark-100">
+                {t('compare.selected', { count: compare.items.length, max: compare.max })}
+              </span>
+            </div>
+            <button onClick={compare.clear} className="text-xs font-semibold text-dark-500 hover:text-dark-700 dark:hover:text-dark-300">
+              {t('compare.clear')}
+            </button>
+            <Link
+              href={compare.items.length >= 2 ? `/annonces/comparer?ids=${compare.items.map(i => i.id).join(',')}` : '#'}
+              aria-disabled={compare.items.length < 2}
+              onClick={(e) => { if (compare.items.length < 2) e.preventDefault(); }}
+              className={`text-sm font-semibold px-4 py-2 rounded-xl transition-colors ${
+                compare.items.length >= 2 ? 'bg-primary-700 text-white hover:bg-primary-800' : 'bg-dark-100 text-dark-400 cursor-not-allowed'
+              }`}
+            >
+              {t('compare.compareBtn')}
+            </Link>
           </div>
         )}
 

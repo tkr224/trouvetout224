@@ -33,6 +33,17 @@
   },
   "profil": {
     "title": "Edit profile",
+    "accounts": {
+      "title": "Accounts on this device",
+      "hint": "Switch between accounts without signing in again (max {max}).",
+      "active": "Active",
+      "removeBtn": "Remove this account",
+      "removeConfirm": "Remove this account from this device? You'll need to sign in again to add it back.",
+      "removed": "Account removed.",
+      "switched": "Switched account.",
+      "addBtn": "Add an account",
+      "limitReached": "Maximum {max} accounts on this device."
+    },
     "changePhoto": "Change profile picture",
     "firstName": "First name",
     "lastName": "Last name",
@@ -142,6 +153,14 @@
     "sqSave": "Save",
     "sqCancel": "Cancel",
     "sqFooterHint": "Your answers are stored encrypted (like a password) — no one can read them, only verify that they match.",
+    "sessionsTitle": "Active sessions",
+    "sessionsHint": "Devices currently signed in to your account.",
+    "sessionsEmpty": "No other active session.",
+    "sessionCurrent": "This device",
+    "sessionLastActive": "Active on {date}",
+    "sessionRevokeBtn": "Sign out this session",
+    "sessionRevoked": "Session signed out.",
+    "sessionRevokeError": "Couldn't sign out this session.",
     "errors": {
       "currentPasswordRequired": "Enter your current password.",
       "newPasswordRequired": "Fill in all the new password fields.",
@@ -162,7 +181,8 @@
     "title": "Notification preferences",
     "newMessages": { "label": "New messages", "sub": "Be notified when you receive a message" },
     "annonceExpiry": { "label": "Listing expiry", "sub": "Reminder before your listing expires" },
-    "newViews": { "label": "New views", "sub": "When someone views your listings" }
+    "newViews": { "label": "New views", "sub": "When someone views your listings" },
+    "sound": { "label": "Notification sound", "sub": "Short sound when a notification appears on screen" }
   },
   "confidentialite": {
     "title": "Privacy",

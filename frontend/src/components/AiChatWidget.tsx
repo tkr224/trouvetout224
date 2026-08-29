@@ -11,6 +11,7 @@ import { useChatbotPrefs } from '@/hooks/useChatbotPrefs';
 import { useResolvedDarkMode } from '@/hooks/useResolvedDarkMode';
 import { CHATBOT_ICONS, chatBackgroundStyle, chatFontFamilyClass, chatFontSizeClass } from '@/components/chatbot/chatbotConstants';
 import { playSendSound, playNotificationSound, vibrateShort } from '@/components/chatbot/chatbotFeedback';
+import ThemeAnimations from '@/components/ThemeAnimations';
 
 type ChatMessage = { role: 'user' | 'model'; text: string };
 
@@ -228,8 +229,13 @@ export default function AiChatWidget() {
             </div>
           </div>
 
-          {/* Messages */}
-          <div className={`flex-1 overflow-y-auto px-4 py-4 space-y-3 ${messagesAreaBg}`} style={chatBackgroundStyle(prefs.chatBackground, effectiveDark)}>
+          {/* Messages — quand "suivre le thème du site" est actif, les effets visuels
+              du thème actif (particules, motifs animés...) sont rejoués ICI, cadrés au
+              chat (voir .chat-effects-scope dans globals.css), en plus de la palette de
+              couleurs déjà héritée automatiquement via les variables CSS --p-*. */}
+          <div className="flex-1 relative overflow-hidden chat-effects-scope">
+            {prefs.windowTheme === 'SYSTEM' && <ThemeAnimations />}
+            <div className={`relative z-[1] h-full overflow-y-auto px-4 py-4 space-y-3 ${messagesAreaBg}`} style={chatBackgroundStyle(prefs.chatBackground, effectiveDark)}>
             {messages.map((m, i) => (
               <div key={i} className={`flex items-end gap-2 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {m.role === 'model' && <ChatAvatar type={prefs.avatarType} value={prefs.avatarValue} size={24} />}
@@ -262,6 +268,7 @@ export default function AiChatWidget() {
               </div>
             )}
             <div ref={endRef} />
+            </div>
           </div>
 
           {/* Raccourcis rapides épinglés */}
