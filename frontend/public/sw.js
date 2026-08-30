@@ -5,7 +5,7 @@
 // réseau sans interception, exactement comme avant — pour ne jamais risquer
 // de servir un token périmé ou une réponse mutée depuis le cache.
 
-const CACHE_VERSION = 'tt224-v2';
+const CACHE_VERSION = 'tt224-v3';
 const ANNONCES_CACHE = `${CACHE_VERSION}-annonces`;
 const IMAGES_CACHE = `${CACHE_VERSION}-images`;
 const MAX_ANNONCES_ENTRIES = 60;

@@ -57,6 +57,17 @@ const nextConfig = {
         source: '/(.*)',
         headers: securityHeaders,
       },
+      {
+        // sw.js doit TOUJOURS être revalidé : sinon un CDN/navigateur peut
+        // continuer à servir une version périmée du service worker et les
+        // clients ne détecteront jamais la mise à jour (images cassées
+        // indéfiniment sur certains appareils).
+        source: '/sw.js',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Service-Worker-Allowed', value: '/' },
+        ],
+      },
     ];
   },
 

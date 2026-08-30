@@ -24,6 +24,7 @@ const SystemAnnouncementModal = dynamic(() => import('@/components/SystemAnnounc
 const SessionExpiryWatcher    = dynamic(() => import('@/components/SessionExpiryWatcher'),            { ssr: false });
 const GlobalNotificationToasts = dynamic(() => import('@/components/GlobalNotificationToasts'),       { ssr: false });
 const OfflineBanner       = dynamic(() => import('@/components/OfflineBanner'),                    { ssr: false });
+const ImageAutoRetry      = dynamic(() => import('@/components/ImageAutoRetry'),                    { ssr: false });
 
 /* ── Métadonnées globales (SEO + Open Graph + PWA) ───────────────── */
 export const metadata: Metadata = {
@@ -185,6 +186,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <AppToaster />
               <PWAInstallBanner />
               <PWARegister />
+              <ImageAutoRetry />
               <AiChatWidget />
               <OnboardingNudge />
               <VoiceCallScreen />
