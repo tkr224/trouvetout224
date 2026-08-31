@@ -138,7 +138,7 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             </Link>
             <Link
               href="/messages"
-              className="nav-icon-btn hidden sm:flex relative w-11 h-11 items-center justify-center rounded-xl border border-dark-200 text-dark-500 transition-colors"
+              className="nav-icon-btn hidden sm:flex relative w-9 h-9 items-center justify-center rounded-xl border border-dark-200 text-dark-500 transition-colors before:absolute before:-inset-1 before:content-['']"
               title={t('messaging')}
             >
               <MessageCircle size={18} />
@@ -146,7 +146,7 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             {loggedIn && ['ADMIN', 'SUPER_ADMIN'].includes(user.role) && (
               <Link
                 href="/admin"
-                className="nav-icon-btn nav-icon-admin relative w-11 h-11 flex items-center justify-center rounded-xl border border-primary-300 text-primary-700 transition-colors"
+                className="nav-icon-btn nav-icon-admin relative w-9 h-9 flex items-center justify-center rounded-xl border border-primary-300 text-primary-700 transition-colors before:absolute before:-inset-1 before:content-['']"
                 title={t('adminDashboard')}
               >
                 <Shield size={17} />
@@ -156,7 +156,7 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             <LanguageSwitcher />
             <Link
               href="/notifications"
-              className="nav-icon-btn relative w-11 h-11 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 transition-colors"
+              className="nav-icon-btn relative w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 transition-colors before:absolute before:-inset-1 before:content-['']"
             >
               <Bell size={18} />
               {loggedIn && unreadNotifs > 0 && (
@@ -167,7 +167,7 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             </Link>
             <Link
               href="/parametres"
-              className="nav-icon-btn hidden sm:flex w-11 h-11 items-center justify-center rounded-xl border border-dark-200 text-dark-500 transition-colors"
+              className="nav-icon-btn hidden sm:flex relative w-9 h-9 items-center justify-center rounded-xl border border-dark-200 text-dark-500 transition-colors before:absolute before:-inset-1 before:content-['']"
               title={t('settings')}
             >
               <Settings size={18} />
@@ -175,24 +175,24 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
             {loggedIn ? (
               <Link
                 href="/profil"
-                className="nav-avatar w-11 h-11 flex items-center justify-center rounded-xl bg-primary-700 text-white font-bold text-xs overflow-hidden"
+                className="nav-avatar relative w-9 h-9 flex items-center justify-center rounded-xl bg-primary-700 text-white font-bold text-xs before:absolute before:-inset-1 before:content-['']"
                 title={`${user.firstName} ${user.lastName}`}
               >
                 {user.avatar
-                  ? <img src={cloudinaryThumb(user.avatar, 80)} alt="" className="w-11 h-11 object-cover" />
+                  ? <img src={cloudinaryThumb(user.avatar, 80)} alt="" className="w-9 h-9 object-cover rounded-xl" />
                   : `${user.firstName[0]}${user.lastName[0]}`}
               </Link>
             ) : (
               <Link
                 href="/auth/connexion"
-                className="nav-icon-btn w-11 h-11 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 transition-colors"
+                className="nav-icon-btn relative w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 transition-colors before:absolute before:-inset-1 before:content-['']"
               >
                 <User size={18} />
               </Link>
             )}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="nav-icon-btn w-11 h-11 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 lg:hidden"
+              className="nav-icon-btn relative w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 lg:hidden before:absolute before:-inset-1 before:content-['']"
             >
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
             </button>

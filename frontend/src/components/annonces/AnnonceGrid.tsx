@@ -222,7 +222,7 @@ export default function AnnonceGrid({
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (!disabled) onToggleCompare(a); }}
               disabled={disabled}
               aria-pressed={checked}
-              className={`absolute bottom-2.5 left-2.5 z-10 w-11 h-11 rounded-lg border-2 flex items-center justify-center transition-colors shadow-md ${
+              className={`absolute bottom-2.5 left-2.5 z-10 w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-colors shadow-md before:absolute before:-inset-2 before:content-[''] ${
                 checked
                   ? 'bg-primary-700 border-primary-700 text-white'
                   : disabled
