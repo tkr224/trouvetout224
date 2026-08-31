@@ -93,6 +93,12 @@ export default function SplashScreen() {
       add(() => setPhase('exit'), T_EXIT);
       add(() => setPhase('hidden'), T_HIDDEN);
     }
+
+    // Filet de sécurité : sur un appareil/réseau lent, le thread JS peut retarder
+    // uniformément tous les timers ci-dessus (contention CPU pendant l'hydratation).
+    // Ce timer redondant, à une échéance large, garantit que l'écran d'accueil ne
+    // reste JAMAIS masqué indéfiniment même si la séquence normale est perturbée.
+    add(() => setPhase('hidden'), T_HIDDEN + 2500);
   }, []);
 
   // Permet de passer l'intro à tout moment (clic/tap n'importe où, ou clavier).

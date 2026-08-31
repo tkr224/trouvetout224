@@ -40,7 +40,13 @@ router.put('/read-all', authenticate, async (req: any, res) => {
 
 router.put('/:id/read', authenticate, async (req: any, res) => {
   try {
-    await prisma.notification.update({ where: { id: req.params.id }, data: { isRead: true } });
+    const result = await prisma.notification.updateMany({
+      where: { id: req.params.id, userId: req.userId },
+      data: { isRead: true },
+    });
+    if (result.count === 0) {
+      return res.status(404).json({ error: 'Notification introuvable.' });
+    }
     res.json({ message: 'OK' });
   } catch (e) {
     console.error('Erreur lecture notification:', e);

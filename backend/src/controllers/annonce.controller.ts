@@ -32,8 +32,29 @@ export const getAnnonces = async (req: Request, res: Response) => {
       page = '1', limit = '20', categoryId, cityId, minPrice, maxPrice, sort = 'recent', q,
       neighborhood, condition, listingType, bedrooms, contractType,
       serviceType, vehicleMake, vehicleFuel, vehicleTransmission, vehicleYearMin, vehicleYearMax,
-      eventDateFrom, hashtag,
+      eventDateFrom, hashtag, ids,
     } = req.query;
+
+    // Filtre par liste d'IDs précise (ex: widget "récemment consultées") : un seul
+    // aller-retour réseau pour recharger plusieurs annonces données, sans les
+    // filtres/tri/pagination habituels ni les annonces similaires (inutiles pour de
+    // simples vignettes). L'ordre de idList n'est PAS garanti par le "in" Prisma —
+    // c'est au consommateur de retrier selon son propre ordre si besoin.
+    if (ids) {
+      const idList = String(ids).split(',').map(s => s.trim()).filter(Boolean).slice(0, 50);
+      const annonces = idList.length
+        ? await prisma.annonce.findMany({
+            where: { id: { in: idList }, status: 'ACTIVE' },
+            include: {
+              images: { orderBy: { order: 'asc' }, take: 3 },
+              category: true, city: true,
+              user: { select: { id: true, firstName: true, lastName: true, avatar: true, isVerified: true, createdAt: true } },
+            },
+          })
+        : [];
+      return res.json({ data: annonces });
+    }
+
     const pageNum = parseInt(page as string);
     const limitNum = parseInt(limit as string);
     const skip = (pageNum - 1) * limitNum;
@@ -339,13 +360,20 @@ export const createAnnonce = async (req: Request, res: Response) => {
           }
         }
 
-        // Alertes recherches sauvegardées (toujours actives, peu importe le statut)
+        // Alertes recherches sauvegardées (toujours actives, peu importe le statut).
+        // categoryId/cityId (égalités simples, ou null = "toute catégorie/ville") sont
+        // filtrés directement en base pour éviter de charger toute la table en mémoire —
+        // seuls keyword/prix/condition, plus complexes, restent filtrés en JS ci-dessous.
         const savedSearches = await prisma.savedSearch.findMany({
-          where: { userId: { not: userId } },
+          where: {
+            userId: { not: userId },
+            AND: [
+              { OR: [{ categoryId: null }, { categoryId: annonce.categoryId }] },
+              { OR: [{ cityId: null }, { cityId: annonce.cityId }] },
+            ],
+          },
         });
         const toNotify = savedSearches.filter((s: any) => {
-          if (s.categoryId && s.categoryId !== annonce.categoryId) return false;
-          if (s.cityId && s.cityId !== annonce.cityId) return false;
           if (s.keyword && !annonce.title.toLowerCase().includes(s.keyword.toLowerCase())) return false;
           if (s.minPrice !== null && annonce.price !== null && annonce.price < s.minPrice) return false;
           if (s.maxPrice !== null && annonce.price !== null && annonce.price > s.maxPrice) return false;

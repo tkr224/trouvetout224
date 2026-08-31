@@ -46,7 +46,7 @@ router.get('/mes-restaurants', authenticate, async (req: any, res) => {
       },
     });
     res.json({ data: restaurants });
-  } catch { res.status(500).json({ error: 'Erreur.' }); }
+  } catch (e) { console.error('Erreur liste mes restaurants:', e); res.status(500).json({ error: 'Erreur.' }); }
 });
 
 // ─── Détail d'un restaurant ───────────────────────────────────────────────────
@@ -157,7 +157,7 @@ router.put('/:id', authenticate, async (req: any, res) => {
       data,
     });
     res.json({ data: updated });
-  } catch { res.status(500).json({ error: 'Erreur.' }); }
+  } catch (e) { console.error('Erreur mise à jour restaurant:', e); res.status(500).json({ error: 'Erreur.' }); }
 });
 
 // ─── Ajouter une image au restaurant ─────────────────────────────────────────
@@ -172,7 +172,7 @@ router.post('/:id/images', authenticate, async (req: any, res) => {
       data: { url, publicId, restaurantId: req.params.id, order: order ?? 0 },
     });
     res.status(201).json({ data: image });
-  } catch { res.status(500).json({ error: 'Erreur.' }); }
+  } catch (e) { console.error('Erreur ajout image restaurant:', e); res.status(500).json({ error: 'Erreur.' }); }
 });
 
 // ─── Supprimer une image ──────────────────────────────────────────────────────
@@ -184,7 +184,7 @@ router.delete('/:id/images/:imageId', authenticate, async (req: any, res) => {
     }
     await prisma.restaurantImage.delete({ where: { id: req.params.imageId } });
     res.json({ message: 'Image supprimée.' });
-  } catch { res.status(500).json({ error: 'Erreur.' }); }
+  } catch (e) { console.error('Erreur suppression image restaurant:', e); res.status(500).json({ error: 'Erreur.' }); }
 });
 
 // ─── Ajouter un plat au menu ──────────────────────────────────────────────────
@@ -208,7 +208,7 @@ router.post('/:id/menu', authenticate, async (req: any, res) => {
       },
     });
     res.status(201).json({ data: item });
-  } catch { res.status(500).json({ error: 'Erreur.' }); }
+  } catch (e) { console.error('Erreur ajout plat menu:', e); res.status(500).json({ error: 'Erreur.' }); }
 });
 
 // ─── Modifier un plat ─────────────────────────────────────────────────────────
@@ -223,7 +223,7 @@ router.put('/:id/menu/:itemId', authenticate, async (req: any, res) => {
       data: req.body,
     });
     res.json({ data: item });
-  } catch { res.status(500).json({ error: 'Erreur.' }); }
+  } catch (e) { console.error('Erreur modification plat menu:', e); res.status(500).json({ error: 'Erreur.' }); }
 });
 
 // ─── Supprimer un plat ────────────────────────────────────────────────────────
@@ -235,7 +235,7 @@ router.delete('/:id/menu/:itemId', authenticate, async (req: any, res) => {
     }
     await prisma.menuItem.delete({ where: { id: req.params.itemId } });
     res.json({ message: 'Plat supprimé.' });
-  } catch { res.status(500).json({ error: 'Erreur.' }); }
+  } catch (e) { console.error('Erreur suppression plat menu:', e); res.status(500).json({ error: 'Erreur.' }); }
 });
 
 export default router;

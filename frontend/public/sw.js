@@ -5,7 +5,7 @@
 // réseau sans interception, exactement comme avant — pour ne jamais risquer
 // de servir un token périmé ou une réponse mutée depuis le cache.
 
-const CACHE_VERSION = 'tt224-v3';
+const CACHE_VERSION = 'tt224-v4';
 const ANNONCES_CACHE = `${CACHE_VERSION}-annonces`;
 const IMAGES_CACHE = `${CACHE_VERSION}-images`;
 const MAX_ANNONCES_ENTRIES = 60;
@@ -65,11 +65,19 @@ async function networkFirst(request, cacheName, maxEntries) {
 
 // Cache d'abord pour les images (contenu immuable par URL) : évite de
 // retélécharger, et reste disponible hors-ligne dès la première vue.
+//
+// Les <img> vers Cloudinary n'ont pas d'attribut crossOrigin (et ne doivent pas
+// en avoir — voir plus bas) : le navigateur les requête en mode no-cors, donc la
+// réponse interceptée ici est OPAQUE (response.status vaut toujours 0, response.ok
+// vaut donc toujours false, même quand le fetch a réellement réussi). Se fier à
+// response.ok revient à ne JAMAIS mettre les images en cache — on se fie plutôt à
+// l'absence d'exception de fetch(), et on traite explicitement le cas opaque comme
+// un succès à mettre en cache.
 async function cacheFirst(request, cacheName, maxEntries) {
   const cached = await caches.match(request);
   if (cached) return cached;
   const response = await fetch(request);
-  if (response && response.ok) {
+  if (response && (response.ok || response.type === 'opaque')) {
     const cache = await caches.open(cacheName);
     cache.put(request, response.clone());
     trimCache(cacheName, maxEntries);

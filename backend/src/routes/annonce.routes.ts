@@ -50,7 +50,7 @@ router.get('/banner', async (req, res) => {
       });
     }
     res.json({ data: annonces });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur bannière annonces:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // Suggestions de hashtags pour le formulaire de publication (titre/description/catégorie)
@@ -72,7 +72,7 @@ router.get('/hashtag-suggestions', async (req, res) => {
       categoryName,
     });
     res.json({ data: suggestions });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur suggestions hashtags:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // optionalAuthenticate permet de savoir si c'est le propriétaire sans bloquer les visiteurs
@@ -119,7 +119,7 @@ router.put('/:id/promo', authenticate, async (req: any, res) => {
       },
     });
     res.json({ message: 'Promo activée.', data: updated });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur activation promo:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.delete('/:id/promo', authenticate, async (req: any, res) => {
@@ -132,7 +132,7 @@ router.delete('/:id/promo', authenticate, async (req: any, res) => {
       data: { promoPrice: null, promoEndsAt: null },
     });
     res.json({ message: 'Promo supprimée.' });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur suppression promo:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // ── Épinglage vendeur ──────────────────────────────────────────────────────────
@@ -146,7 +146,7 @@ router.put('/:id/pin', authenticate, async (req: any, res) => {
     await prisma.annonce.updateMany({ where: { userId: req.userId, isPinned: true }, data: { isPinned: false } });
     const updated = await prisma.annonce.update({ where: { id: req.params.id }, data: { isPinned: true } });
     res.json({ message: 'Annonce épinglée.', data: updated });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur épinglage annonce:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.delete('/:id/pin', authenticate, async (req: any, res) => {
@@ -156,7 +156,7 @@ router.delete('/:id/pin', authenticate, async (req: any, res) => {
     if (annonce.userId !== req.userId) return res.status(403).json({ error: 'Non autorisé.' });
     await prisma.annonce.update({ where: { id: req.params.id }, data: { isPinned: false } });
     res.json({ message: 'Épinglage retiré.' });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur suppression épinglage:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // ── Suivi des ventes ─────────────────────────────────────────────────────────
@@ -180,7 +180,7 @@ router.put('/:id/mark-sold', authenticate, async (req: any, res) => {
       },
     });
     res.json({ message: 'Annonce marquée comme vendue.', data: updated });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur marquage vendu:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 router.put('/:id/reactivate', authenticate, async (req: any, res) => {
@@ -196,7 +196,7 @@ router.put('/:id/reactivate', authenticate, async (req: any, res) => {
       data: { status: 'ACTIVE', soldPrice: null, soldAt: null, expiresAt: newExpiresAt },
     });
     res.json({ message: 'Annonce réactivée avec succès.', data: updated });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur réactivation annonce:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 export default router;

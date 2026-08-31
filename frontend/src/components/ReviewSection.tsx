@@ -6,6 +6,7 @@ import { Star, MessageCircle, Send, X, CornerDownRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import toast from 'react-hot-toast';
+import { cloudinaryThumb } from '@/lib/cloudinary';
 
 export default function ReviewSection({ sellerId }: { sellerId: string }) {
   const { user, isAuthenticated } = useAuthStore();
@@ -121,7 +122,7 @@ export default function ReviewSection({ sellerId }: { sellerId: string }) {
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-sm font-bold text-primary-700 shrink-0 overflow-hidden">
                   {r.rater?.avatar
-                    ? <img src={r.rater.avatar} alt="" className="w-full h-full object-cover" />
+                    ? <img src={cloudinaryThumb(r.rater.avatar, 80)} alt="" className="w-full h-full object-cover" />
                     : <>{r.rater?.firstName?.[0]}</>}
                 </div>
                 <div className="flex-1">

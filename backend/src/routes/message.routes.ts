@@ -207,7 +207,7 @@ router.post('/conversations/:id/messages', authenticate, async (req: any, res) =
             data: { conversationId: req.params.id },
           },
         });
-      } catch {}
+      } catch (e) { console.error('Erreur création notification nouveau message:', e); }
     }
 
     res.status(201).json({ data: message });
@@ -234,6 +234,15 @@ router.delete('/msg/:id', authenticate, async (req: any, res) => {
       });
       io.to(`conversation:${message.conversationId}`).emit('message_deleted', { messageId: req.params.id });
     } else {
+      // Suppression "pour moi" : le message doit appartenir à une conversation dont
+      // req.userId fait bien partie (sinon n'importe quel utilisateur connecté pourrait
+      // masquer un message d'une conversation à laquelle il n'a jamais participé).
+      const membership = await prisma.conversation.findFirst({
+        where: { id: message.conversationId, participants: { some: { id: req.userId } } },
+        select: { id: true },
+      });
+      if (!membership) return res.status(403).json({ error: 'Accès refusé.' });
+
       await prisma.message.update({
         where: { id: req.params.id },
         data: { deletedFor: { push: req.userId } },

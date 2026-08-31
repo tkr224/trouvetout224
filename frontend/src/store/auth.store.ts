@@ -98,13 +98,10 @@ export const useAuthStore = create<AuthStore>()(
         if (isNewAccount && accounts.length >= MAX_ACCOUNTS) {
           return { ok: false, reason: 'limit' };
         }
-        set({
-          user,
-          accessToken,
-          refreshToken,
-          isAuthenticated: true,
-          accounts: upsertAccount(accounts, { user, accessToken, refreshToken }),
-        });
+        // N'active PAS ce compte : "Ajouter un compte" l'enregistre dans la liste
+        // sans changer la session en cours (le texte UI dit "ajouter", pas "passer
+        // à ce compte") — l'utilisateur bascule explicitement via switchAccount().
+        set({ accounts: upsertAccount(accounts, { user, accessToken, refreshToken }) });
         return { ok: true };
       },
       switchAccount: (userId) => {

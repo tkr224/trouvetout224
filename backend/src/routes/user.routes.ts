@@ -59,7 +59,7 @@ router.get('/shops', async (req, res) => {
     })));
 
     res.json({ data: shopsWithBadge, pagination: { total, page: parseInt(page as string, 10), pages: Math.ceil(total / take) } });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur liste boutiques:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 // Profil public d'un utilisateur (+ infos boutique si active)
@@ -82,7 +82,7 @@ router.get('/profile/:id', async (req, res) => {
     const avgResponseMinutes = await computeAvgResponseTimeMinutes(user.id);
     const responsiveBadge = computeResponsiveBadge(avgResponseMinutes);
     res.json({ data: { ...user, averageRating: avg, responsiveBadge } });
-  } catch { res.status(500).json({ error: 'Erreur.' }); }
+  } catch (e) { console.error('Erreur profil public:', e); res.status(500).json({ error: 'Erreur.' }); }
 });
 
 // Mon profil complet
@@ -92,7 +92,7 @@ router.get('/me', authenticate, async (req: any, res) => {
     if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé.' });
     const { password, ...rest } = user;
     res.json({ data: { ...rest, hasPassword: !!password } });
-  } catch { res.status(500).json({ error: 'Erreur.' }); }
+  } catch (e) { console.error('Erreur GET /me:', e); res.status(500).json({ error: 'Erreur.' }); }
 });
 
 // Onboarding gamifié : liste des tâches "bien démarrer" + % de complétion.
@@ -144,7 +144,7 @@ router.get('/username-available', authenticate, async (req: any, res) => {
     const existing = await prisma.user.findUnique({ where: { username: normalized } });
     const available = !existing || existing.id === req.userId;
     res.json({ available, reason: available ? null : 'taken' });
-  } catch { res.status(500).json({ error: 'Erreur.' }); }
+  } catch (e) { console.error('Erreur vérification username:', e); res.status(500).json({ error: 'Erreur.' }); }
 });
 
 // Mettre à jour mon profil
@@ -283,7 +283,7 @@ router.get('/me/security-questions', authenticate, async (req: any, res) => {
       label: SECURITY_QUESTIONS.find(q => q.id === r.questionId)?.label || r.questionId,
     }));
     res.json({ data });
-  } catch { res.status(500).json({ error: 'Erreur.' }); }
+  } catch (e) { console.error('Erreur GET questions de sécurité:', e); res.status(500).json({ error: 'Erreur.' }); }
 });
 
 // Configurer / remplacer mes questions de sécurité (2 ou 3 obligatoirement)
@@ -349,7 +349,7 @@ router.put('/me/security-questions', authenticate, async (req: any, res) => {
     }
 
     res.json({ message: 'Questions de sécurité enregistrées.' });
-  } catch { res.status(500).json({ error: "Erreur lors de l'enregistrement." }); }
+  } catch (e) { console.error('Erreur PUT questions de sécurité:', e); res.status(500).json({ error: "Erreur lors de l'enregistrement." }); }
 });
 
 // Mettre à jour / créer ma boutique
@@ -388,7 +388,7 @@ router.put('/me/shop', authenticate, async (req: any, res) => {
       omit: { password: true },
     });
     res.json({ message: 'Boutique mise à jour.', data: user });
-  } catch { res.status(500).json({ error: 'Erreur.' }); }
+  } catch (e) { console.error('Erreur mise à jour boutique:', e); res.status(500).json({ error: 'Erreur.' }); }
 });
 
 // Supprimer ma boutique (et toutes ses annonces)
@@ -681,7 +681,7 @@ router.get('/me/sales-stats', authenticate, async (req: any, res) => {
         topProducts,
       },
     });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur stats de ventes:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 export default router;

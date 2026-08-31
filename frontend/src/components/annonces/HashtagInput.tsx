@@ -57,9 +57,9 @@ export default function HashtagInput({ value, onChange, title, description, cate
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-2 border border-dark-200 rounded-xl px-3 py-2.5 bg-white focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
+      <div className="flex flex-wrap items-center gap-2 border border-dark-200 dark:border-dark-600 rounded-xl px-3 py-2.5 bg-white dark:bg-dark-800 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
         {value.map(tag => (
-          <span key={tag} className="inline-flex items-center gap-1 bg-primary-50 text-primary-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+          <span key={tag} className="inline-flex items-center gap-1 bg-primary-50 dark:bg-primary-900/20 text-primary-700 text-xs font-semibold px-2.5 py-1 rounded-full">
             <Hash size={11} />{tag}
             <button type="button" onClick={() => removeTag(tag)} className="text-primary-400 hover:text-primary-700">
               <X size={12} />
@@ -84,7 +84,7 @@ export default function HashtagInput({ value, onChange, title, description, cate
               key={s}
               type="button"
               onClick={() => addTag(s)}
-              className="inline-flex items-center gap-1 text-xs font-medium text-dark-500 border border-dark-200 hover:border-primary-400 hover:text-primary-700 px-2.5 py-1 rounded-full transition-colors"
+              className="inline-flex items-center gap-1 text-xs font-medium text-dark-500 border border-dark-200 dark:border-dark-600 hover:border-primary-400 hover:text-primary-700 px-2.5 py-1 rounded-full transition-colors"
             >
               <Hash size={11} />{s}
             </button>

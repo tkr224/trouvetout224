@@ -54,7 +54,7 @@ router.get('/mes-offres', authenticate, async (req: any, res) => {
       },
     });
     res.json({ data: jobs });
-  } catch { res.status(500).json({ error: 'Erreur.' }); }
+  } catch (e) { console.error('Erreur liste mes offres:', e); res.status(500).json({ error: 'Erreur.' }); }
 });
 
 // ─── Détail d'une offre ───────────────────────────────────────────────────────
@@ -91,7 +91,7 @@ router.get('/:id/candidatures', authenticate, async (req: any, res) => {
       },
     });
     res.json({ data: applications });
-  } catch { res.status(500).json({ error: 'Erreur.' }); }
+  } catch (e) { console.error('Erreur liste candidatures:', e); res.status(500).json({ error: 'Erreur.' }); }
 });
 
 // ─── Publier une offre ────────────────────────────────────────────────────────
@@ -198,7 +198,7 @@ router.put('/:jobId/candidatures/:appId/status', authenticate, async (req: any, 
     }
     const app = await prisma.jobApplication.findUnique({ where: { id: req.params.appId } });
     res.json({ data: app });
-  } catch { res.status(500).json({ error: 'Erreur.' }); }
+  } catch (e) { console.error('Erreur mise à jour statut candidature:', e); res.status(500).json({ error: 'Erreur.' }); }
 });
 
 export default router;

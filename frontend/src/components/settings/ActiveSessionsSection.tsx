@@ -66,10 +66,10 @@ export default function ActiveSessionsSection() {
       ) : (
         <div className="space-y-2">
           {sessions.map(s => (
-            <div key={s.id} className="flex items-center justify-between gap-3 bg-dark-50 rounded-xl px-3.5 py-3">
+            <div key={s.id} className="flex items-center justify-between gap-3 bg-dark-50 dark:bg-dark-700/50 rounded-xl px-3.5 py-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-sm font-semibold text-dark-800 truncate">{s.device}</p>
+                  <p className="text-sm font-semibold text-dark-800 dark:text-dark-100 truncate">{s.device}</p>
                   {s.current && (
                     <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 shrink-0">
                       {t('sessionCurrent')}
@@ -85,7 +85,7 @@ export default function ActiveSessionsSection() {
                   onClick={() => revoke(s.id)}
                   disabled={revokingId === s.id}
                   title={t('sessionRevokeBtn')}
-                  className="w-9 h-9 shrink-0 flex items-center justify-center rounded-lg text-guinea-500 hover:bg-guinea-50 disabled:opacity-50"
+                  className="w-9 h-9 shrink-0 flex items-center justify-center rounded-lg text-guinea-500 hover:bg-guinea-50 dark:hover:bg-guinea-900/20 disabled:opacity-50"
                 >
                   {revokingId === s.id ? <Loader2 size={15} className="animate-spin" /> : <LogOut size={15} />}
                 </button>

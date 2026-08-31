@@ -50,7 +50,7 @@ router.get('/theme', async (req, res) => {
           });
           userSpecialThemes = accesses.map(a => a.themeId);
         }
-      } catch {}
+      } catch (e) { console.error('Erreur décodage token (accès thèmes utilisateur ignoré):', e); }
     }
 
     res.json({

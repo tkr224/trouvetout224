@@ -118,8 +118,11 @@ export const refreshSession = async (token: string): Promise<{ accessToken: stri
     const newRefreshToken = signRefreshToken(decoded.userId, refreshExpiresIn);
     const accessToken = signAccessToken(decoded.userId, user.role);
 
-    await prisma.refreshToken.update({
-      where: { id: stored.id },
+    // Garde sur la valeur de `token` lue au findFirst : si un appel VRAIMENT
+    // simultané a déjà tourné ce jeton entre-temps (fenêtre de quelques ms),
+    // ce updateMany ne touche aucune ligne au lieu d'écraser sa rotation.
+    const rotated = await prisma.refreshToken.updateMany({
+      where: { id: stored.id, token: stored.token },
       data: {
         previousToken: stored.token,
         previousTokenAt: new Date(),
@@ -128,6 +131,14 @@ export const refreshSession = async (token: string): Promise<{ accessToken: stri
         lastUsedAt: new Date(),
       },
     });
+
+    if (rotated.count === 0) {
+      // Course perdue : renvoie le jeton déjà tourné par l'appel concurrent
+      // gagnant, plutôt que d'échouer ou d'écraser sa rotation.
+      const winner = await prisma.refreshToken.findUnique({ where: { id: stored.id } });
+      if (!winner) return null;
+      return { accessToken, refreshToken: winner.token };
+    }
 
     return { accessToken, refreshToken: newRefreshToken };
   } catch {

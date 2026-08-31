@@ -173,6 +173,7 @@ model RefreshToken {
   // pour une décision de sécurité.
   userAgent       String?
 
+  @@index([userId])
   @@map("refresh_tokens")
 }
 
@@ -324,6 +325,10 @@ model Annonce {
   @@index([isFeatured])
   @@index([aiHandled, aiVerdict])
   @@index([status, priorityReview])
+  // GIN : accélère les filtres where.hashtags = { has: ... } (recherche par hashtag,
+  // voir annonce.controller.ts) — un index B-tree classique ne sait pas indexer un
+  // tableau Postgres. Type "Gin" stable depuis Prisma 4 (pas de previewFeatures requis).
+  @@index([hashtags], type: Gin)
   @@map("annonces")
 }
 

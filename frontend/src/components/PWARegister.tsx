@@ -11,9 +11,16 @@ export default function PWARegister() {
     // vieux JS/état pendant que les futures requêtes passent déjà par le
     // nouveau SW — source d'incohérences. On force donc un seul rechargement
     // dès que le SW qui contrôle la page change.
+    //
+    // ATTENTION : 'controllerchange' se déclenche aussi lors de la toute
+    // première installation d'un SW sur cet onglet (transition "aucun
+    // contrôleur" -> "contrôlé"), pas seulement lors d'une vraie mise à jour.
+    // On ne reload donc QUE si un contrôleur existait déjà avant ce
+    // changement — jamais au tout premier chargement d'un nouveau visiteur.
+    const hadControllerBefore = !!navigator.serviceWorker.controller;
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (refreshing) return;
+      if (!hadControllerBefore || refreshing) return;
       refreshing = true;
       window.location.reload();
     });

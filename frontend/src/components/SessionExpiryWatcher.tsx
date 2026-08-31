@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import { Clock } from 'lucide-react';
-import { api } from '@/lib/api';
+import { ensureFreshAccessToken } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 
 // Le token d'accès (15 min) se rafraîchit tout seul en silence à chaque requête API
@@ -57,7 +57,7 @@ export default function SessionExpiryWatcher() {
               <button
                 onClick={async () => {
                   try {
-                    await api.get('/users/me'); // force un aller-retour, déclenche le refresh si besoin
+                    await ensureFreshAccessToken(); // vrai /auth/refresh, prolonge réellement la session
                     toast.dismiss(tt.id);
                     toast.success(t('sessionExtended'));
                     warnedRef.current = false;

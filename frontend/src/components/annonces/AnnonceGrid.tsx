@@ -4,6 +4,7 @@ import { Heart, Eye, MapPin, BadgeCheck, ImageIcon, Star, Sparkles, Tag, ShieldC
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import ErrorState from '@/components/ui/ErrorState';
+import { cloudinaryThumb } from '@/lib/cloudinary';
 
 interface Annonce {
   id: string; slug: string; title: string; price?: number; currency?: string;
@@ -28,7 +29,7 @@ export function AnnonceCard({ annonce }: { annonce: Annonce }) {
     <Link href={`/annonces/${annonce.slug || annonce.id}`} className="card annonce-card block group overflow-hidden">
       <div className="relative aspect-[4/3] overflow-hidden bg-dark-100">
         {img ? (
-          <img src={img} alt={annonce.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img src={cloudinaryThumb(img)} alt={annonce.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-50 to-dark-100">
             <ImageIcon size={36} className="text-dark-300" />
@@ -36,7 +37,7 @@ export function AnnonceCard({ annonce }: { annonce: Annonce }) {
         )}
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1">
           {annonce.status === 'SOLD' && (
-            <div className="bg-blue-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+            <div className="bg-dark-700 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
               <CheckCircle2 size={10} /> Vendu
             </div>
           )}
@@ -93,12 +94,12 @@ export function AnnonceCard({ annonce }: { annonce: Annonce }) {
         {(annonce.user?.isVerified || annonce.user?.isShopVerified || isNewSeller) && (
           <div className="flex gap-1 mt-1.5 flex-wrap">
             {annonce.user?.isShopVerified && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-gold-600 bg-yellow-50 px-1.5 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-gold-600 bg-gold-50 px-1.5 py-0.5 rounded-full">
                 <ShieldCheck size={9} /> Boutique vérifiée
               </span>
             )}
             {annonce.user?.isVerified && !annonce.user?.isShopVerified && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-primary-700 bg-primary-50 px-1.5 py-0.5 rounded-full">
                 <BadgeCheck size={9} /> Vérifié
               </span>
             )}
@@ -221,7 +222,7 @@ export default function AnnonceGrid({
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (!disabled) onToggleCompare(a); }}
               disabled={disabled}
               aria-pressed={checked}
-              className={`absolute bottom-2.5 left-2.5 z-10 w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-colors shadow-md ${
+              className={`absolute bottom-2.5 left-2.5 z-10 w-11 h-11 rounded-lg border-2 flex items-center justify-center transition-colors shadow-md ${
                 checked
                   ? 'bg-primary-700 border-primary-700 text-white'
                   : disabled

@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
       orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
     });
     res.json({ data: pubs });
-  } catch { res.status(500).json({ error: 'Erreur serveur.' }); }
+  } catch (e) { console.error('Erreur liste publications:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
 export default router;

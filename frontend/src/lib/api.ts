@@ -44,6 +44,20 @@ async function refreshAccessToken(): Promise<string> {
   return accessToken;
 }
 
+// Exporté pour SessionExpiryWatcher : "Prolonger la session" doit déclencher un
+// VRAI /auth/refresh (seul appel qui prolonge l'expiration du refresh token côté
+// serveur), pas une requête quelconque en espérant tomber sur un 401. Partage le
+// même `refreshPromise` que l'intercepteur pour ne jamais déclencher deux
+// rotations concurrentes si un 401 survient au même moment ailleurs.
+export function ensureFreshAccessToken(): Promise<string> {
+  if (!refreshPromise) {
+    refreshPromise = refreshAccessToken().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+}
+
 // Intercepteur : refresh token automatique quand le token expire (401)
 api.interceptors.response.use(
   (response) => response,
@@ -52,12 +66,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && original && !original._retry) {
       original._retry = true;
       try {
-        if (!refreshPromise) {
-          refreshPromise = refreshAccessToken().finally(() => {
-            refreshPromise = null;
-          });
-        }
-        const accessToken = await refreshPromise;
+        const accessToken = await ensureFreshAccessToken();
 
         original.headers.Authorization = `Bearer ${accessToken}`;
         return api(original);

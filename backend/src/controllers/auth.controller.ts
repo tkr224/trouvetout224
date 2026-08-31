@@ -14,6 +14,15 @@ import { normalizeGuineaPhone, GUINEA_PHONE_FORMAT_HINT } from '../utils/phone';
 
 const AUTH_LOG = '[auth]';
 
+// Masque un email dans les logs (jamais en clair) : garde les 2 premiers caractères
+// de la partie locale + le domaine complet, ex: "je***@gmail.com".
+function maskEmail(email?: string | null): string {
+  if (!email) return 'none';
+  const [local, domain] = email.split('@');
+  if (!domain) return '***';
+  return `${local.slice(0, 2)}***@${domain}`;
+}
+
 // .trim() : une valeur Railway copiée-collée avec un espace ou un retour à la ligne en trop
 // suffit à faire échouer la vérification "audience" ci-dessous (le Client ID ne matcherait
 // plus exactement celui envoyé par le frontend), avec le message trompeur "token expiré".
@@ -58,7 +67,7 @@ async function verifyGoogleToken(idToken: string): Promise<VerifiedOAuthProfile>
     throw new Error('Token Google invalide.');
   }
 
-  console.log(`${GOOGLE_LOG} Token valide pour ${payload.email} (email_verified=${payload.email_verified === true})`);
+  console.log(`${GOOGLE_LOG} Token valide pour ${maskEmail(payload.email)} (email_verified=${payload.email_verified === true})`);
   return {
     providerId: payload.sub,
     email: payload.email,
@@ -111,7 +120,7 @@ async function verifyFacebookToken(accessToken: string): Promise<VerifiedOAuthPr
 export const register = async (req: Request, res: Response) => {
   try {
     const { email, phone, password, firstName, lastName, dateOfBirth, gender, cityId, accountType, preferredLanguage } = req.body;
-    console.log(`${AUTH_LOG} register — tentative reçue (email=${email || 'none'}, phone=${phone || 'none'})`);
+    console.log(`${AUTH_LOG} register — tentative reçue (email=${maskEmail(email)}, phone=${phone || 'none'})`);
 
     if (dateOfBirth) {
       const age = (Date.now() - new Date(dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365);
@@ -193,14 +202,14 @@ export const register = async (req: Request, res: Response) => {
     }
 
     const { accessToken, refreshToken } = await generateTokens(user.id, { userAgent: req.headers['user-agent'] });
-    console.log(`${AUTH_LOG} register — compte créé avec succès (id=${user.id}, email=${normalizedEmail || 'none'}, phone=${normalizedPhone || 'none'})`);
+    console.log(`${AUTH_LOG} register — compte créé avec succès (id=${user.id}, email=${maskEmail(normalizedEmail)}, phone=${normalizedPhone || 'none'})`);
 
     res.status(201).json({
       message: 'Compte créé avec succès !',
       user, accessToken, refreshToken,
     });
   } catch (error: any) {
-    console.error(`${AUTH_LOG} register — ERREUR (email=${req.body?.email || 'none'}, phone=${req.body?.phone || 'none'}) :`, error);
+    console.error(`${AUTH_LOG} register — ERREUR (email=${maskEmail(req.body?.email)}, phone=${req.body?.phone || 'none'}) :`, error);
     if (error.code === 'P2002') {
       const field = error.meta?.target?.[0] ?? '';
       if (field === 'email') return res.status(409).json({
@@ -349,7 +358,7 @@ export const oauthLogin = async (req: Request, res: Response) => {
     // fournisseur confirme explicitement qu'il est vérifié — sinon on ignore ce champ,
     // le compte est alors identifié uniquement par providerId (googleId/facebookId).
     const email = verified.email && verified.emailVerified ? verified.email.toLowerCase().trim() : undefined;
-    console.log(`${AUTH_LOG} oauth — token ${provider} vérifié (providerId=${providerId}, email=${email || 'none'}).`);
+    console.log(`${AUTH_LOG} oauth — token ${provider} vérifié (providerId=${providerId}, email=${maskEmail(email)}).`);
 
     let user = await prisma.user.findFirst({
       where: {

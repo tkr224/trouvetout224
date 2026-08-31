@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Store, ShieldCheck, Package, ArrowRight, Plus, MapPin } from 'lucide-react';
 import { useShops, type Shop } from '@/hooks/useShops';
 import ErrorState from '@/components/ui/ErrorState';
+import { cloudinaryThumb } from '@/lib/cloudinary';
 
 function ShopCard({ shop }: { shop: Shop }) {
   const t = useTranslations('accueil.boutiquesSection');
@@ -18,7 +19,7 @@ function ShopCard({ shop }: { shop: Shop }) {
       {/* Bannière */}
       <div className="relative h-20 shrink-0">
         {shop.shopBanner ? (
-          <img src={shop.shopBanner} alt="" className="w-full h-full object-cover" loading="lazy" />
+          <img src={cloudinaryThumb(shop.shopBanner, 400)} alt="" className="w-full h-full object-cover" loading="lazy" />
         ) : (
           <div className="w-full h-full bg-gradient-to-r from-primary-700 via-primary-600 to-guinea-600" />
         )}
@@ -30,7 +31,7 @@ function ShopCard({ shop }: { shop: Shop }) {
             non positionné, même s'il vient après elle dans le DOM. */}
         <div className="-mt-7 mb-2.5 relative z-10">
           {shop.shopLogo ? (
-            <img src={shop.shopLogo} alt={displayName} className="w-14 h-14 shrink-0 rounded-xl object-cover border-2 border-white dark:border-dark-900 shadow-sm" />
+            <img src={cloudinaryThumb(shop.shopLogo, 120)} alt={displayName} className="w-14 h-14 shrink-0 rounded-xl object-cover border-2 border-white dark:border-dark-900 shadow-sm" />
           ) : (
             <div className="w-14 h-14 shrink-0 rounded-xl bg-primary-100 dark:bg-primary-900/40 border-2 border-white dark:border-dark-900 shadow-sm flex items-center justify-center text-primary-700 dark:text-primary-300 font-bold">
               {initials}

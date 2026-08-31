@@ -45,7 +45,7 @@ router.post('/', authenticate, async (req: any, res) => {
             data: { raterId: req.userId },
           },
         });
-      } catch {}
+      } catch (e) { console.error('Erreur création notification nouvel avis:', e); }
     }
 
     res.json({ message: 'Avis envoyé !', data: rating });

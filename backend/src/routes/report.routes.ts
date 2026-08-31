@@ -10,7 +10,7 @@ router.post('/', authenticate, async (req: any, res) => {
       data: { reason, description, reportedById: req.userId, reportedUserId, annonceId },
     });
     res.status(201).json({ message: 'Signalement envoyé. Notre équipe va examiner.', data: report });
-  } catch { res.status(500).json({ error: 'Erreur.' }); }
+  } catch (e) { console.error('Erreur création signalement:', e); res.status(500).json({ error: 'Erreur.' }); }
 });
 
 export default router;

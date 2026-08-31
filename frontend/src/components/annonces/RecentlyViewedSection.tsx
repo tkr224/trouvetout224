@@ -19,15 +19,22 @@ export default function RecentlyViewedSection({ excludeId }: { excludeId?: strin
     const toCheck = items.filter(a => a.id !== excludeId);
     if (toCheck.length === 0) { setValidated([]); return; }
 
-    Promise.allSettled(toCheck.map(item => api.get(`/annonces/${item.id}`))).then(results => {
+    // Un seul appel réseau pour valider tout le lot (au lieu d'un GET détail par
+    // annonce, qui rechargeait aussi ~6 annonces similaires par item pour un simple
+    // widget de vignettes). `?ids=` ne garantit pas l'ordre renvoyé, donc on retrie
+    // selon l'ordre "récemment consulté" de toCheck.
+    const idsParam = toCheck.map(item => item.id).join(',');
+    api.get(`/annonces?ids=${idsParam}`).then(res => {
+      const found: any[] = res.data?.data || [];
+      const byId = new Map(found.map((a: any) => [a.id, a]));
       const valid: any[] = [];
-      results.forEach((res, i) => {
-        const active = res.status === 'fulfilled' && res.value.data?.data?.status === 'ACTIVE';
-        if (active) valid.push(toCheck[i]);
-        else removeById(toCheck[i].id);
+      toCheck.forEach(item => {
+        const match = byId.get(item.id);
+        if (match) valid.push(match);
+        else removeById(item.id);
       });
       setValidated(valid);
-    });
+    }).catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasLoaded, items.length, excludeId]);
 

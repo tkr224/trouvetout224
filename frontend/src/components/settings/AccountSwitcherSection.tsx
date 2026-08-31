@@ -42,15 +42,15 @@ export default function AccountSwitcherSection() {
               type="button"
               onClick={() => handleSwitch(a.user.id)}
               className={`w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl text-left transition-colors ${
-                isActive ? 'bg-primary-50 border-2 border-primary-600' : 'bg-dark-50 border-2 border-transparent hover:border-dark-200'
+                isActive ? 'bg-primary-50 dark:bg-primary-900/20 border-2 border-primary-600' : 'bg-dark-50 dark:bg-dark-700/50 border-2 border-transparent hover:border-dark-200 dark:hover:border-dark-600'
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold text-sm shrink-0">
+                <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-700 font-bold text-sm shrink-0">
                   {a.user.firstName?.[0]?.toUpperCase() || '?'}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-dark-800 truncate">{a.user.firstName} {a.user.lastName}</p>
+                  <p className="text-sm font-semibold text-dark-800 dark:text-dark-100 truncate">{a.user.firstName} {a.user.lastName}</p>
                   <p className="text-xs text-dark-500 truncate">{a.user.email || a.user.phone}</p>
                 </div>
               </div>
@@ -61,7 +61,7 @@ export default function AccountSwitcherSection() {
                 <button
                   onClick={(e) => handleRemove(a.user.id, e)}
                   aria-label={t('removeBtn')}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg text-dark-400 hover:bg-guinea-50 hover:text-guinea-600 transition-colors"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg text-dark-400 hover:bg-guinea-50 dark:hover:bg-guinea-900/20 hover:text-guinea-600 transition-colors"
                 >
                   <X size={14} />
                 </button>
