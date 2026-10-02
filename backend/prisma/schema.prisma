@@ -826,6 +826,9 @@ model SiteConfig {
   globalTheme       String? // thème imposé à tous (null = chacun son thème)
   themeEndsAt       DateTime? // expiration automatique du thème global
   siteSpecialThemes String[]  @default([]) // thèmes spéciaux débloqués pour tous
+  // Annonces de mise à jour : AUTO = l'IA publie directement ; VALIDATION = l'IA
+  // prépare un brouillon que l'admin valide en 1 clic.
+  announcementMode  String    @default("AUTO")
   updatedAt         DateTime  @default(now()) @updatedAt
 
   @@map("site_config")
@@ -1026,6 +1029,20 @@ model SystemAnnouncement {
   isActive   Boolean   @default(true)
   expiresAt  DateTime?
 
+  // Annonces de mise à jour générées par l'IA (voir services/release/) :
+  // source = qui a rédigé (ADMIN / AI), kind = MANUAL (diffusion libre) ou UPDATE
+  // (nouvelle version du site — 1 seule active à la fois), status = DRAFT tant
+  // qu'un admin n'a pas validé (mode VALIDATION), version = commit concerné.
+  source            AnnouncementSource @default(ADMIN)
+  kind              AnnouncementKind   @default(MANUAL)
+  status            AnnouncementStatus @default(PUBLISHED)
+  version           String?
+  // Messages de commit (filtrés) envoyés à l'IA — sert au bouton « Régénérer ».
+  // Jamais affiché aux utilisateurs.
+  sourceCommits     Json?
+  deactivatedReason String?
+  publishedAt       DateTime?
+
   createdById String?
   createdBy   User?   @relation("AnnouncementCreatedBy", fields: [createdById], references: [id])
 
@@ -1034,7 +1051,52 @@ model SystemAnnouncement {
 
   views SystemAnnouncementView[]
 
+  @@index([kind, isActive])
   @@map("system_announcements")
+}
+
+enum AnnouncementSource {
+  ADMIN
+  AI
+}
+
+enum AnnouncementKind {
+  MANUAL
+  UPDATE
+}
+
+enum AnnouncementStatus {
+  DRAFT
+  PUBLISHED
+}
+
+// Une ligne par version déployée détectée au démarrage du backend. La contrainte
+// d'unicité sur `version` garantit une seule annonce par version, même si le
+// serveur redémarre plusieurs fois ou si deux instances démarrent en même temps.
+model ReleaseCheck {
+  id             String        @id @default(cuid())
+  version        String        @unique
+  fromVersion    String?
+  status         ReleaseStatus @default(PENDING)
+  attempts       Int           @default(0)
+  lastError      String?
+  commitCount    Int           @default(0)
+  announcementId String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([status, createdAt])
+  @@map("release_checks")
+}
+
+enum ReleaseStatus {
+  BASELINE
+  PENDING
+  FAILED
+  ANNOUNCED
+  DRAFTED
+  NOTHING_VISIBLE
+  ROLLBACK
 }
 
 // Une ligne = "cet utilisateur a déjà vu (ou fermé) cette annonce" — empêche le
@@ -1046,6 +1108,8 @@ model SystemAnnouncementView {
   userId         String
   user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   viewedAt       DateTime           @default(now())
+  // Clic sur le bouton d'action (« Découvrir »…) — null si simplement fermé.
+  clickedAt      DateTime?
 
   @@unique([announcementId, userId])
   @@map("system_announcement_views")

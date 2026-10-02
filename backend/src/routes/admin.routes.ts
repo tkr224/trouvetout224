@@ -1070,9 +1070,19 @@ router.get('/system-announcements', async (req, res) => {
   try {
     const items = await prisma.systemAnnouncement.findMany({
       orderBy: { createdAt: 'desc' },
-      include: { _count: { select: { views: true } } },
+      include: {
+        _count: { select: { views: true } },
+        createdBy: { select: { firstName: true, lastName: true } },
+      },
     });
-    res.json({ data: items });
+    // Clics sur le bouton d'action (« Découvrir »…), par annonce
+    const clicks = await prisma.systemAnnouncementView.groupBy({
+      by: ['announcementId'],
+      where: { clickedAt: { not: null } },
+      _count: { _all: true },
+    });
+    const clicksById = new Map(clicks.map(c => [c.announcementId, c._count._all]));
+    res.json({ data: items.map(i => ({ ...i, clicks: clicksById.get(i.id) ?? 0 })) });
   } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
 
@@ -1111,6 +1121,23 @@ router.put('/system-announcements/:id', async (req: any, res) => {
     if (buttonLink !== undefined) data.buttonLink = buttonLink ? String(buttonLink).trim().slice(0, 500) : null;
     if (expiresAt !== undefined) data.expiresAt = expiresAt ? new Date(expiresAt) : null;
     if (isActive !== undefined) data.isActive = !!isActive;
+    if (isActive === false) data.deactivatedReason = 'Désactivée par un admin.';
+
+    const current = await prisma.systemAnnouncement.findUnique({ where: { id: req.params.id } });
+    if (!current) return res.status(404).json({ error: 'Annonce introuvable.' });
+    if (isActive === true) {
+      data.deactivatedReason = null;
+      data.status = 'PUBLISHED';
+      if (!current.publishedAt) data.publishedAt = new Date();
+      // Annonce de mise à jour : 1 seule active à la fois, et 7 nouveaux jours si elle avait expiré
+      if (current.kind === 'UPDATE') {
+        await prisma.systemAnnouncement.updateMany({
+          where: { kind: 'UPDATE', isActive: true, id: { not: current.id } },
+          data: { isActive: false, deactivatedReason: 'Remplacée par une annonce réactivée.' },
+        });
+        if (!current.expiresAt || current.expiresAt < new Date()) data.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      }
+    }
 
     const item = await prisma.systemAnnouncement.update({ where: { id: req.params.id }, data });
     res.json({ message: 'Annonce système mise à jour.', data: item });

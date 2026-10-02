@@ -49,6 +49,8 @@ import demandeRoutes from './routes/demande.routes';
 import scoreRoutes from './routes/score.routes';
 import adminRankingRoutes from './routes/adminRanking.routes';
 import { startRankingScheduler } from './services/ranking/jobs';
+import { startReleaseAnnouncer } from './services/release/releaseRuntime';
+import adminReleaseRoutes from './routes/adminRelease.routes';
 import { optionalAuthenticate } from './middleware/optionalAuth';
 
 dotenv.config();
@@ -209,6 +211,7 @@ app.use('/api/ratings', ratingRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRankingRoutes);
+app.use('/api/admin', adminReleaseRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/upload', uploadRoutes);
@@ -288,6 +291,8 @@ async function bootstrap() {
 
     // Recalcul périodique des scores (recommandation / bonus-malus) — toutes les 30 min
     startRankingScheduler();
+    // Annonces de mise à jour rédigées par l'IA à chaque nouveau déploiement
+    startReleaseAnnouncer();
 
     httpServer.listen(PORT, () => {
       console.log(`

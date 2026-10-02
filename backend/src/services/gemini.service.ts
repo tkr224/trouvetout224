@@ -449,3 +449,36 @@ export function classifyGeminiError(e: any): GeminiErrorInfo {
   }
   return { code: 'UNKNOWN', status, detail: message };
 }
+
+// ============================
+// ANNONCES DE MISE À JOUR (pop-up rédigé par Ibkek à chaque nouvelle version)
+// ============================
+
+export function isAiConfigured(): boolean {
+  return !!ai;
+}
+
+// Renvoie le texte brut de l'IA (JSON attendu, validé ensuite par
+// services/release/releaseCore.ts) ou null si l'IA est indisponible — ne lève
+// JAMAIS d'exception : sans réponse fiable, rien n'est publié.
+export async function generateReleaseAnnouncementRaw(prompt: string): Promise<string | null> {
+  if (!ai) return null;
+  try {
+    const response = await generateContentWithRetry({
+      model: MODEL,
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      config: {
+        temperature: 0.3,
+        maxOutputTokens: 600,
+        responseMimeType: 'application/json',
+        thinkingConfig: { thinkingBudget: 0 },
+      },
+    });
+    const text = response.text?.trim();
+    return text || null;
+  } catch (e: any) {
+    const { code, detail } = classifyGeminiError(e);
+    console.error(`[gemini.service] annonce de mise à jour : ${code} — ${String(detail).slice(0, 200)}`);
+    return null;
+  }
+}

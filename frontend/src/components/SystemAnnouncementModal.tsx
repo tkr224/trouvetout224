@@ -45,7 +45,8 @@ export default function SystemAnnouncementModal() {
   const opensChat = announcement.buttonLink === '#chat';
 
   const handleAction = () => {
-    markSeen();
+    // Clic sur « Découvrir »… : compté dans les statistiques admin (vaut aussi « vu »)
+    api.post(`/system-announcements/${announcement.id}/click`).catch(() => {});
     setAnnouncement(null);
     if (opensChat) {
       window.dispatchEvent(new CustomEvent('tt224:open-chat'));

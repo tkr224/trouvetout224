@@ -12,10 +12,12 @@ router.get('/active', authenticate, async (req: any, res) => {
     const item = await prisma.systemAnnouncement.findFirst({
       where: {
         isActive: true,
+        status: 'PUBLISHED', // jamais un brouillon en attente de validation
         OR: [{ expiresAt: null }, { expiresAt: { gte: new Date() } }],
         views: { none: { userId: req.userId } },
       },
       orderBy: { createdAt: 'desc' },
+      select: { id: true, title: true, message: true, buttonText: true, buttonLink: true },
     });
     res.json({ data: item });
   } catch (error) {
@@ -36,6 +38,21 @@ router.post('/:id/seen', authenticate, async (req: any, res) => {
     res.json({ message: 'OK' });
   } catch (error) {
     console.error('Erreur POST /system-announcements/:id/seen:', error);
+    res.status(500).json({ error: 'Erreur lors de la mise à jour.' });
+  }
+});
+
+// Clic sur le bouton d'action : compte pour les statistiques admin et vaut « vu ».
+router.post('/:id/click', authenticate, async (req: any, res) => {
+  try {
+    await prisma.systemAnnouncementView.upsert({
+      where: { announcementId_userId: { announcementId: req.params.id, userId: req.userId } },
+      update: { clickedAt: new Date() },
+      create: { announcementId: req.params.id, userId: req.userId, clickedAt: new Date() },
+    });
+    res.json({ message: 'OK' });
+  } catch (error) {
+    console.error('Erreur POST /system-announcements/:id/click:', error);
     res.status(500).json({ error: 'Erreur lors de la mise à jour.' });
   }
 });

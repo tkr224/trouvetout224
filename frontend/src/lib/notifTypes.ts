@@ -37,6 +37,7 @@ export function getNotifLink(notif: { type: string; data?: any }): string | null
     case 'ANNONCE_EXPIRED':
     case 'ANNONCE_APPROVED':
     case 'SYSTEM':
+      if (typeof data?.link === 'string' && data.link.startsWith('/')) return data.link;
       if (data?.demandeId) return `/je-cherche/${data.demandeId}`;
       return data?.annonceId ? `/annonces/${data.annonceId}` : null;
     case 'ANNONCE_REJECTED':
