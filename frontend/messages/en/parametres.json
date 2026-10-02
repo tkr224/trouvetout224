@@ -13,7 +13,8 @@
     "langue": "Language",
     "aide": "Help & Support",
     "conditions": "Terms of use",
-    "apropos": "About"
+    "apropos": "About",
+    "personnalisation": "Personalization"
   },
   "tabGroups": {
     "compte": "Account",
@@ -179,24 +180,54 @@
   },
   "notifications": {
     "title": "Notification preferences",
-    "newMessages": { "label": "New messages", "sub": "Be notified when you receive a message" },
-    "annonceExpiry": { "label": "Listing expiry", "sub": "Reminder before your listing expires" },
-    "newViews": { "label": "New views", "sub": "When someone views your listings" },
-    "sound": { "label": "Notification sound", "sub": "Short sound when a notification appears on screen" }
+    "newMessages": {
+      "label": "New messages",
+      "sub": "Be notified when you receive a message"
+    },
+    "annonceExpiry": {
+      "label": "Listing expiry",
+      "sub": "Reminder before your listing expires"
+    },
+    "newViews": {
+      "label": "New views",
+      "sub": "When someone views your listings"
+    },
+    "sound": {
+      "label": "Notification sound",
+      "sub": "Short sound when a notification appears on screen"
+    }
   },
   "confidentialite": {
     "title": "Privacy",
-    "publicProfile": { "label": "Public profile", "sub": "Your profile is visible to all users" },
-    "showPhone": { "label": "Show my number", "sub": "Your number is visible on your listings" },
-    "acceptMessages": { "label": "Receive messages", "sub": "Other users can contact you" }
+    "publicProfile": {
+      "label": "Public profile",
+      "sub": "Your profile is visible to all users"
+    },
+    "showPhone": {
+      "label": "Show my number",
+      "sub": "Your number is visible on your listings"
+    },
+    "acceptMessages": {
+      "label": "Receive messages",
+      "sub": "Other users can contact you"
+    }
   },
   "apparence": {
     "title": "Appearance",
     "subtitle": "Choose how TrouveTout224 looks on your device.",
     "modes": {
-      "light": { "label": "Light", "desc": "Always light" },
-      "dark": { "label": "Dark", "desc": "Always dark" },
-      "system": { "label": "Automatic", "desc": "Follows your device" }
+      "light": {
+        "label": "Light",
+        "desc": "Always light"
+      },
+      "dark": {
+        "label": "Dark",
+        "desc": "Always dark"
+      },
+      "system": {
+        "label": "Automatic",
+        "desc": "Follows your device"
+      }
     },
     "textSize": {
       "title": "Text size",
@@ -242,9 +273,18 @@
   "conditions": {
     "title": "Terms of use",
     "intro": "By using TrouveTout224, you accept these terms.",
-    "section1": { "title": "1. Use of the service", "text": "TrouveTout224 is a listings platform intended for residents of Guinea. The minimum age is 13." },
-    "section2": { "title": "2. Prohibited content", "text": "It is strictly forbidden to post illegal, offensive content, scams, nudity or violence." },
-    "section3": { "title": "3. Liability", "text": "TrouveTout224 is not responsible for transactions between users. Be careful and meet sellers in public places." }
+    "section1": {
+      "title": "1. Use of the service",
+      "text": "TrouveTout224 is a listings platform intended for residents of Guinea. The minimum age is 13."
+    },
+    "section2": {
+      "title": "2. Prohibited content",
+      "text": "It is strictly forbidden to post illegal, offensive content, scams, nudity or violence."
+    },
+    "section3": {
+      "title": "3. Liability",
+      "text": "TrouveTout224 is not responsible for transactions between users. Be careful and meet sellers in public places."
+    }
   },
   "apropos": {
     "version": "Version 1.0.0 · Conakry, Republic of Guinea",

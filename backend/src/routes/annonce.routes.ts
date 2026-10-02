@@ -20,7 +20,8 @@ import {
 
 const router = Router();
 
-router.get('/', getAnnonces);
+// optionalAuthenticate : sert uniquement à l'apprentissage des goûts (recherches)
+router.get('/', optionalAuthenticate, getAnnonces);
 router.get('/me', authenticate, getMyAnnonces);
 router.get('/saved', authenticate, getSavedAnnonces);
 
@@ -78,7 +79,7 @@ router.get('/hashtag-suggestions', async (req, res) => {
 // optionalAuthenticate permet de savoir si c'est le propriétaire sans bloquer les visiteurs
 router.get('/:id', optionalAuthenticate, getAnnonceById);
 router.get('/:id/saved', authenticate, checkSaved);
-router.get('/:id/similaires', getSimilarAnnonces);
+router.get('/:id/similaires', optionalAuthenticate, getSimilarAnnonces);
 router.post(
   '/',
   authenticate,

@@ -4,6 +4,9 @@ import slugify from 'slugify';
 import { v4 as uuidv4 } from 'uuid';
 import { moderateAnnonce } from '../services/gemini.service';
 import { normalizeHashtags, canonicalizeTag } from '../utils/hashtags';
+import { trackInteraction } from '../services/activity';
+import { refreshAnnonceSoon, notifyRecommendationSoon } from '../services/ranking/jobs';
+import { getSimilar } from '../services/ranking/feed';
 
 async function resolveCategoryId(value: string): Promise<string | null> {
   if (!value) return null;
@@ -107,6 +110,16 @@ export const getAnnonces = async (req: Request, res: Response) => {
     if (vehicleYearMax) where.vehicleYear = { ...where.vehicleYear, lte: parseInt(vehicleYearMax as string) };
     if (eventDateFrom) where.eventDate = { gte: new Date(eventDateFrom as string) };
 
+    // Apprentissage : recherches, catégories et hashtags consultés (1re page seulement,
+    // utilisateurs connectés uniquement — voir services/activity.ts)
+    const viewerId: string | undefined = (req as any).userId;
+    if (viewerId && pageNum === 1 && !req.query.userId) {
+      const catFilter = where.categoryId?.in?.[0] ?? null;
+      if (hashtagQuery) trackInteraction(viewerId, { type: 'HASHTAG', hashtag: hashtagQuery, categoryId: catFilter });
+      else if (q) trackInteraction(viewerId, { type: 'SEARCH', query: String(q), categoryId: catFilter, cityId: where.cityId ?? null });
+      else if (catFilter) trackInteraction(viewerId, { type: 'CATEGORY', categoryId: catFilter, cityId: where.cityId ?? null });
+    }
+
     let orderBy: any = { createdAt: 'desc' };
     if (sort === 'popular') orderBy = { viewCount: 'desc' };
     if (sort === 'price_asc') orderBy = { price: 'asc' };
@@ -171,6 +184,10 @@ export const getAnnonceById = async (req: Request, res: Response) => {
         where: { id: viewerId, hasViewedAnnonce: false },
         data: { hasViewedAnnonce: true },
       }).catch(() => {});
+    }
+
+    if (!isOwner && viewerId) {
+      trackInteraction(viewerId, { type: 'VIEW', annonceId: annonce.id, categoryId: annonce.categoryId, cityId: annonce.cityId });
     }
 
     let newViewCount = annonce.viewCount;
@@ -296,6 +313,7 @@ export const createAnnonce = async (req: Request, res: Response) => {
         userId,
         cityId: realCityId,
         neighborhood, phone, whatsapp, expiresAt, slug, status: initialStatus,
+        contentUpdatedAt: new Date(),
         isAgeRestricted, priorityReview,
         aiVerdict: aiResult?.verdict ?? null,
         aiReason: aiResult?.reason ?? null,
@@ -336,6 +354,11 @@ export const createAnnonce = async (req: Request, res: Response) => {
         ? 'Annonce envoyée — les produits réservés aux adultes sont vérifiés avant publication.'
         : 'Annonce envoyée — en attente de validation par notre équipe.';
     res.status(201).json({ message: responseMessage, data: annonce });
+
+    // Score naturel calculé tout de suite + notification "pour toi" aux
+    // utilisateurs dont les goûts correspondent fortement (max 3 / jour / personne)
+    refreshAnnonceSoon(annonce.id);
+    if (initialStatus === 'ACTIVE') notifyRecommendationSoon(annonce.id);
 
     // Notifications post-publication (non bloquantes)
     setImmediate(async () => {
@@ -508,11 +531,14 @@ export const updateAnnonce = async (req: Request, res: Response) => {
         vehicleFuel:  str(updates.vehicleFuel),
         vehicleTransmission: str(updates.vehicleTransmission),
         hashtags: updates.hashtags !== undefined ? normalizeHashtags(updates.hashtags) : undefined,
+        // Toute modification par le vendeur efface le malus "jamais mise à jour"
+        contentUpdatedAt: new Date(),
       },
       include: { images: true, category: true, city: true },
     });
 
     res.json({ message: 'Annonce mise à jour.', data: updatedAnnonce });
+    refreshAnnonceSoon(id);
   } catch (error) {
     res.status(500).json({ error: 'Erreur lors de la mise à jour.' });
   }
@@ -582,6 +608,8 @@ export const toggleSaveAnnonce = async (req: Request, res: Response) => {
 
     await prisma.savedAnnonce.create({ data: { userId, annonceId } });
     res.json({ saved: true, message: 'Ajouté aux favoris !' });
+    const a = await prisma.annonce.findUnique({ where: { id: annonceId }, select: { categoryId: true, cityId: true } });
+    if (a) trackInteraction(userId, { type: 'FAVORITE', annonceId, categoryId: a.categoryId, cityId: a.cityId });
   } catch (error) {
     res.status(500).json({ error: 'Erreur.' });
   }
@@ -630,53 +658,14 @@ export const checkSaved = async (req: Request, res: Response) => {
 // ============================
 // ANNONCES SIMILAIRES
 // ============================
+// Catégorie (et catégories sœurs), hashtags communs, prix proche, même ville,
+// score naturel, et comportement ("ceux qui ont vu cette annonce ont aussi vu…") —
+// voir services/ranking/feed.ts → getSimilar().
 export const getSimilarAnnonces = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-
-    const ref = await prisma.annonce.findFirst({
-      where: { OR: [{ id }, { slug: id }] },
-      select: { id: true, categoryId: true, cityId: true },
-    });
-
-    if (!ref) return res.status(404).json({ error: 'Annonce non trouvée.' });
-
-    const include = {
-      images: { orderBy: { order: 'asc' as const }, take: 1 },
-      category: true,
-      city: true,
-      user: { select: { id: true, firstName: true, lastName: true, isVerified: true } },
-    };
-
-    // Voir le commentaire équivalent dans getAnnonces() : filtre expiresAt désactivé
-    // temporairement.
-    const baseWhere = {
-      status: 'ACTIVE' as const,
-    };
-
-    // Phase 1 — même catégorie + même ville (max 4)
-    const phase1 = await prisma.annonce.findMany({
-      where: { ...baseWhere, categoryId: ref.categoryId, cityId: ref.cityId, id: { not: ref.id } },
-      take: 4,
-      orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
-      include,
-    });
-
-    let results = phase1;
-
-    // Phase 2 — même catégorie, autre ville (compléter jusqu'à 8)
-    if (results.length < 8) {
-      const exclude = [ref.id, ...results.map(a => a.id)];
-      const phase2 = await prisma.annonce.findMany({
-        where: { ...baseWhere, categoryId: ref.categoryId, id: { notIn: exclude } },
-        take: 8 - results.length,
-        orderBy: [{ isFeatured: 'desc' }, { viewCount: 'desc' }],
-        include,
-      });
-      results = [...results, ...phase2];
-    }
-
-    res.json({ data: results });
+    const data = await getSimilar(req.params.id, (req as any).userId);
+    if (!data) return res.status(404).json({ error: 'Annonce non trouvée.' });
+    res.json({ data });
   } catch (error) {
     console.error('Erreur getSimilarAnnonces:', error);
     res.status(500).json({ error: 'Erreur.' });

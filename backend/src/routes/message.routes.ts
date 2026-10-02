@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth';
 import { prisma } from '../config/database';
+import { trackInteraction } from '../services/activity';
 import { io } from '../index';
 
 const router = Router();
@@ -122,6 +123,12 @@ router.get('/conversations/:id/messages', authenticate, async (req: any, res) =>
 router.post('/conversations', authenticate, async (req: any, res) => {
   try {
     const { recipientId, annonceId } = req.body;
+    if (annonceId) {
+      // Apprentissage : contacter un vendeur = signal d'intérêt le plus fort
+      prisma.annonce.findUnique({ where: { id: annonceId }, select: { categoryId: true, cityId: true, userId: true } })
+        .then(a => { if (a && a.userId !== req.userId) trackInteraction(req.userId, { type: 'CONTACT', annonceId, categoryId: a.categoryId, cityId: a.cityId }); })
+        .catch(() => {});
+    }
     if (recipientId === req.userId) {
       return res.status(400).json({ error: 'Vous ne pouvez pas vous envoyer un message.' });
     }

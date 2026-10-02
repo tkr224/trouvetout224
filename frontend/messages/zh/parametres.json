@@ -13,7 +13,8 @@
     "langue": "语言",
     "aide": "帮助与支持",
     "conditions": "使用条款",
-    "apropos": "关于我们"
+    "apropos": "关于我们",
+    "personnalisation": "个性化"
   },
   "tabGroups": {
     "compte": "账户",
@@ -179,24 +180,54 @@
   },
   "notifications": {
     "title": "通知偏好设置",
-    "newMessages": { "label": "新消息", "sub": "收到消息时通知我" },
-    "annonceExpiry": { "label": "广告到期", "sub": "广告到期前提醒" },
-    "newViews": { "label": "新浏览记录", "sub": "有人查看您的广告时通知我" },
-    "sound": { "label": "通知提示音", "sub": "通知出现时播放简短提示音" }
+    "newMessages": {
+      "label": "新消息",
+      "sub": "收到消息时通知我"
+    },
+    "annonceExpiry": {
+      "label": "广告到期",
+      "sub": "广告到期前提醒"
+    },
+    "newViews": {
+      "label": "新浏览记录",
+      "sub": "有人查看您的广告时通知我"
+    },
+    "sound": {
+      "label": "通知提示音",
+      "sub": "通知出现时播放简短提示音"
+    }
   },
   "confidentialite": {
     "title": "隐私",
-    "publicProfile": { "label": "公开主页", "sub": "所有用户都可以查看您的主页" },
-    "showPhone": { "label": "显示我的号码", "sub": "您的号码将显示在您的广告上" },
-    "acceptMessages": { "label": "接收消息", "sub": "其他用户可以联系您" }
+    "publicProfile": {
+      "label": "公开主页",
+      "sub": "所有用户都可以查看您的主页"
+    },
+    "showPhone": {
+      "label": "显示我的号码",
+      "sub": "您的号码将显示在您的广告上"
+    },
+    "acceptMessages": {
+      "label": "接收消息",
+      "sub": "其他用户可以联系您"
+    }
   },
   "apparence": {
     "title": "外观",
     "subtitle": "选择 TrouveTout224 在您设备上的显示方式。",
     "modes": {
-      "light": { "label": "浅色", "desc": "始终浅色" },
-      "dark": { "label": "深色", "desc": "始终深色" },
-      "system": { "label": "自动", "desc": "跟随设备设置" }
+      "light": {
+        "label": "浅色",
+        "desc": "始终浅色"
+      },
+      "dark": {
+        "label": "深色",
+        "desc": "始终深色"
+      },
+      "system": {
+        "label": "自动",
+        "desc": "跟随设备设置"
+      }
     },
     "textSize": {
       "title": "文字大小",
@@ -242,9 +273,18 @@
   "conditions": {
     "title": "使用条款",
     "intro": "使用 TrouveTout224 即表示您接受本条款。",
-    "section1": { "title": "1. 服务的使用", "text": "TrouveTout224 是一个面向几内亚居民的广告平台。最低使用年龄为 13 岁。" },
-    "section2": { "title": "2. 禁止内容", "text": "严禁发布非法、冒犯性内容、诈骗信息、裸露内容或暴力内容。" },
-    "section3": { "title": "3. 责任声明", "text": "TrouveTout224 对用户之间的交易不承担责任。请保持警惕，并在公共场所与卖家见面。" }
+    "section1": {
+      "title": "1. 服务的使用",
+      "text": "TrouveTout224 是一个面向几内亚居民的广告平台。最低使用年龄为 13 岁。"
+    },
+    "section2": {
+      "title": "2. 禁止内容",
+      "text": "严禁发布非法、冒犯性内容、诈骗信息、裸露内容或暴力内容。"
+    },
+    "section3": {
+      "title": "3. 责任声明",
+      "text": "TrouveTout224 对用户之间的交易不承担责任。请保持警惕，并在公共场所与卖家见面。"
+    }
   },
   "apropos": {
     "version": "版本 1.0.0 · 几内亚科纳克里",

@@ -43,6 +43,12 @@ import voiceRoutes from './routes/voice.routes';
 import chatbotPrefsRoutes from './routes/chatbotPrefs.routes';
 import systemAnnouncementRoutes from './routes/systemAnnouncement.routes';
 import savedAddressRoutes from './routes/savedAddress.routes';
+import feedRoutes from './routes/feed.routes';
+import activityRoutes from './routes/activity.routes';
+import demandeRoutes from './routes/demande.routes';
+import scoreRoutes from './routes/score.routes';
+import adminRankingRoutes from './routes/adminRanking.routes';
+import { startRankingScheduler } from './services/ranking/jobs';
 import { optionalAuthenticate } from './middleware/optionalAuth';
 
 dotenv.config();
@@ -202,6 +208,7 @@ app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/admin', adminRankingRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/upload', uploadRoutes);
@@ -217,6 +224,10 @@ app.use('/api/voice',        voiceRoutes);
 app.use('/api/chatbot-prefs', chatbotPrefsRoutes);
 app.use('/api/system-announcements', systemAnnouncementRoutes);
 app.use('/api/saved-addresses', savedAddressRoutes);
+app.use('/api/feed',         feedRoutes);
+app.use('/api/activity',     activityRoutes);
+app.use('/api/demandes',     demandeRoutes);
+app.use('/api/scores',       scoreRoutes);
 
 // Health check
 app.get('/api/health', (req: Request, res: Response) => {
@@ -274,6 +285,9 @@ async function bootstrap() {
   try {
     await prisma.$connect();
     console.log('✅ Base de données connectée');
+
+    // Recalcul périodique des scores (recommandation / bonus-malus) — toutes les 30 min
+    startRankingScheduler();
 
     httpServer.listen(PORT, () => {
       console.log(`

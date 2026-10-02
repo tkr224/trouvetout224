@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../config/database';
+import { touchUserActivity } from '../services/activity';
 
 interface JwtPayload { userId: string; role: string; }
 
@@ -14,6 +15,8 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
     (req as any).userId = decoded.userId;
     (req as any).userRole = decoded.role;
+    // Présence du vendeur (malus "peu présent") — throttlé, jamais bloquant
+    touchUserActivity(decoded.userId);
     next();
   } catch {
     return res.status(401).json({ error: 'Token invalide ou expiré.' });

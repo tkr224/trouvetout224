@@ -121,6 +121,19 @@ model User {
 
   onboardingDone Boolean @default(false)
 
+  // Recommandation / score vendeur (voir backend/src/services/ranking/) —
+  // lastActiveAt : dernière requête authentifiée (mise à jour au plus 1x / 15 min),
+  // sert au malus "vendeur peu présent" qui s'efface dès qu'il redevient actif.
+  lastActiveAt           DateTime?
+  // L'utilisateur peut couper la personnalisation (Paramètres > Personnalisation) :
+  // plus aucune interaction enregistrée et fil non personnalisé.
+  personalizationEnabled Boolean   @default(true)
+  interactions           UserInteraction[]
+  tasteProfile           UserTasteProfile?
+  sellerScore            SellerScore?
+  demandes               Demande[]
+  demandeResponses       DemandeResponse[]
+
   // Questions de sécurité — anti brute-force sur la récupération de compte
   securityQuestionsFailedAttempts Int       @default(0)
   securityQuestionsLockedUntil    DateTime?
@@ -194,6 +207,7 @@ model City {
   jobs        Job[]
   restaurants Restaurant[]
   savedAddresses SavedAddress[]
+  demandes    Demande[]
 
   @@map("cities")
 }
@@ -215,6 +229,7 @@ model Category {
   parent   Category?  @relation("SubCategories", fields: [parentId], references: [id])
   children Category[] @relation("SubCategories")
   annonces Annonce[]
+  demandes Demande[]
   isActive Boolean    @default(true)
   order    Int        @default(0)
 
@@ -309,6 +324,18 @@ model Annonce {
   isPinned         Boolean        @default(false)
   soldPrice        Float?
   soldAt           DateTime?
+  // Date de la dernière modification FAITE PAR LE VENDEUR (création / édition) —
+  // updatedAt ne convient pas : il bouge aussi à chaque incrément de viewCount.
+  // Sert au malus "annonce ancienne jamais mise à jour".
+  contentUpdatedAt DateTime?
+  // Masquage automatique (trop de signalements distincts) en attente de
+  // vérification admin — l'annonce passe aussi en SUSPENDED pour disparaître du site.
+  autoHidden       Boolean        @default(false)
+  autoHiddenAt     DateTime?
+  autoHiddenReason String?
+  // Future mise en avant payante (Pack Mansa) : toujours affichée "Sponsorisé",
+  // dans un emplacement séparé, JAMAIS mélangée au score naturel.
+  sponsoredUntil   DateTime?
   slug             String         @unique
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
@@ -317,6 +344,8 @@ model Annonce {
   savedBy       SavedAnnonce[]
   reports       Report[]
   conversations Conversation[]
+  score         AnnonceScore?
+  demandeResponses DemandeResponse[]
 
   @@index([status, expiresAt])
   @@index([categoryId])
@@ -325,6 +354,7 @@ model Annonce {
   @@index([isFeatured])
   @@index([aiHandled, aiVerdict])
   @@index([status, priorityReview])
+  @@index([autoHidden])
   // GIN : accélère les filtres where.hashtags = { has: ... } (recherche par hashtag,
   // voir annonce.controller.ts) — un index B-tree classique ne sait pas indexer un
   // tableau Postgres. Type "Gin" stable depuis Prisma 4 (pas de previewFeatures requis).
@@ -637,10 +667,16 @@ model Report {
   reportedUser   User?        @relation("ReportedUser", fields: [reportedUserId], references: [id])
   annonceId      String?
   annonce        Annonce?     @relation(fields: [annonceId], references: [id])
+  demandeId         String?
+  demande           Demande?         @relation(fields: [demandeId], references: [id], onDelete: SetNull)
+  demandeResponseId String?
+  demandeResponse   DemandeResponse? @relation(fields: [demandeResponseId], references: [id], onDelete: SetNull)
   status         ReportStatus @default(PENDING)
   createdAt      DateTime     @default(now())
 
   @@index([status])
+  @@index([annonceId, status])
+  @@index([demandeId])
   @@map("reports")
 }
 
@@ -713,6 +749,9 @@ enum NotificationType {
   SYSTEM
   NEW_VENDOR_PRODUCT
   ANNONCE_AI_FLAGGED
+  DEMANDE_RESPONSE
+  RECOMMENDATION
+  ANNONCE_AUTO_HIDDEN
 }
 
 // =============================================
@@ -1116,4 +1155,172 @@ model PageView {
   @@index([page])
   @@index([createdAt])
   @@map("page_views")
+}
+
+// =============================================
+// "JE CHERCHE" — demandes publiques d'acheteurs
+// =============================================
+
+model Demande {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  description   String
+  categoryId    String?
+  category      Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  budgetMin     Float?
+  budgetMax     Float?
+  cityId        String?
+  city          City?         @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  neighborhood  String?
+  imageUrl      String?
+  imagePublicId String?
+  status        DemandeStatus @default(OPEN)
+  // Raison du masquage (IA / signalements / admin) — visible par l'auteur et l'admin.
+  hiddenReason  String?
+  autoHidden    Boolean       @default(false)
+  foundAt       DateTime?
+  responseCount Int           @default(0)
+  viewCount     Int           @default(0)
+  expiresAt     DateTime
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  responses DemandeResponse[]
+  reports   Report[]
+
+  @@index([status, createdAt])
+  @@index([categoryId])
+  @@index([cityId])
+  @@index([userId])
+  @@map("demandes")
+}
+
+enum DemandeStatus {
+  OPEN
+  FOUND
+  PENDING_REVIEW
+  HIDDEN
+}
+
+// Réponse PUBLIQUE d'un vendeur sous une demande (visible par tous).
+model DemandeResponse {
+  id        String   @id @default(cuid())
+  demandeId String
+  demande   Demande  @relation(fields: [demandeId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   String
+  annonceId String?
+  annonce   Annonce? @relation(fields: [annonceId], references: [id], onDelete: SetNull)
+  isHidden  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  reports Report[]
+
+  @@index([demandeId, createdAt])
+  @@index([userId, createdAt])
+  @@map("demande_responses")
+}
+
+// =============================================
+// RECOMMANDATION — interactions, profil de goûts, scores en cache
+// (voir backend/src/services/ranking/)
+// =============================================
+
+// Une ligne = une interaction légère d'un utilisateur CONNECTÉ (jamais d'IP,
+// d'User-Agent ni de contenu de message). Purgée après 180 jours, effaçable par
+// l'utilisateur, et plus rien n'est enregistré s'il désactive la personnalisation.
+model UserInteraction {
+  id         String          @id @default(cuid())
+  userId     String
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       InteractionType
+  annonceId  String?
+  demandeId  String?
+  categoryId String?
+  cityId     String?
+  hashtag    String?
+  query      String?
+  // Durée en secondes pour DWELL.
+  value      Int?
+  createdAt  DateTime        @default(now())
+
+  @@index([userId, createdAt])
+  @@index([annonceId, type])
+  @@index([createdAt])
+  @@map("user_interactions")
+}
+
+enum InteractionType {
+  SEARCH
+  CATEGORY
+  HASHTAG
+  VIEW
+  DWELL
+  FAVORITE
+  CONTACT
+  DEMANDE_CREATE
+  DEMANDE_RESPONSE
+}
+
+// Profil de goûts agrégé (cache) — reconstruit à partir des interactions au plus
+// toutes les quelques minutes, jamais à chaque affichage de page.
+model UserTasteProfile {
+  userId           String   @id
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categories       Json     @default("{}")
+  hashtags         Json     @default("{}")
+  cities           Json     @default("{}")
+  keywords         Json     @default("{}")
+  priceMedian      Float?
+  recentAnnonceIds String[] @default([])
+  // Catégories principales (index GIN) — retrouve vite les utilisateurs
+  // intéressés par une nouvelle annonce (notifications de recommandation).
+  topCategoryIds   String[] @default([])
+  interactionCount Int      @default(0)
+  builtAt          DateTime @default(now())
+
+  @@index([topCategoryIds], type: Gin)
+  @@map("user_taste_profiles")
+}
+
+// Score vendeur (cache, recalcul périodique). breakdown/tips sont exposés tels
+// quels au vendeur et à l'admin — aucun ajustement manuel possible.
+model SellerScore {
+  userId     String   @id
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score      Float
+  multiplier Float
+  strikes    Int      @default(0)
+  breakdown  Json     @default("[]")
+  tips       Json     @default("[]")
+  metrics    Json     @default("{}")
+  // "YYYY-MM" si le vendeur fait partie des Top vendeurs de ce mois.
+  topOfMonth String?
+  computedAt DateTime @default(now())
+
+  @@index([score])
+  @@index([topOfMonth])
+  @@map("seller_scores")
+}
+
+// Score naturel d'une annonce (cache) — table séparée pour ne pas toucher
+// Annonce.updatedAt à chaque recalcul.
+model AnnonceScore {
+  annonceId    String   @id
+  annonce      Annonce  @relation(fields: [annonceId], references: [id], onDelete: Cascade)
+  rankScore    Float
+  quality      Float
+  popularity   Float
+  freshness    Float
+  sellerFactor Float
+  malusFactor  Float
+  breakdown    Json     @default("[]")
+  tips         Json     @default("[]")
+  computedAt   DateTime @default(now())
+
+  @@index([rankScore])
+  @@map("annonce_scores")
 }

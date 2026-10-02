@@ -13,6 +13,8 @@ type Report = {
   reportedBy?: { firstName: string; lastName: string };
   reportedUser?: { id: string; firstName: string; lastName: string };
   annonce?: { id: string; title: string };
+  demande?: { id: string; title: string };
+  demandeResponse?: { id: string; message: string; demandeId: string };
 };
 
 const REASON_LABEL: Record<string, string> = {
@@ -195,6 +197,18 @@ export default function AdminSignalements() {
                       <span>
                         Annonce :{' '}
                         <strong className="text-dark-700">{r.annonce.title}</strong>
+                      </span>
+                    )}
+                    {r.demande && (
+                      <span>
+                        Demande « Je cherche » :{' '}
+                        <a href={`/je-cherche/${r.demande.id}`} target="_blank" rel="noreferrer" className="font-bold text-dark-700 hover:text-primary-700">{r.demande.title}</a>
+                      </span>
+                    )}
+                    {r.demandeResponse && (
+                      <span>
+                        Réponse :{' '}
+                        <a href={`/je-cherche/${r.demandeResponse.demandeId}`} target="_blank" rel="noreferrer" className="font-bold text-dark-700 hover:text-primary-700">« {r.demandeResponse.message.slice(0, 60)} »</a>
                       </span>
                     )}
                     {r.reportedUser && (

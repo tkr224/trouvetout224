@@ -28,6 +28,10 @@ const FaqSection       = dynamicImport(() => import('@/components/home/FaqSectio
 
 export default function HomePage() {
   const [selectedCity, setSelectedCity]   = useState('Conakry');
+  // Le fil n'utilise la ville que si l'utilisateur l'a réellement choisie
+  // (la valeur par défaut « Conakry » ne dit rien sur lui).
+  const [cityChosen, setCityChosen]       = useState(false);
+  const chooseCity = (c: string) => { setSelectedCity(c); setCityChosen(true); };
   const [publications, setPublications]   = useState<Publication[]>([]);
 
   useEffect(() => {
@@ -39,13 +43,13 @@ export default function HomePage() {
       <PageViewTracker page="HOME" />
 
       {/* ══ NAVBAR ════════════════════════════════════════════════════ */}
-      <Navbar selectedCity={selectedCity} onCityChange={setSelectedCity} />
+      <Navbar selectedCity={selectedCity} onCityChange={chooseCity} />
 
       {/* ══ 1. HERO ═══════════════════════════════════════════════════ */}
       <HeroSection />
 
       {/* ══ 2. BARRE DE RECHERCHE CHEVAUCHANTE ═══════════════════════ */}
-      <SearchOverlayBar selectedCity={selectedCity} onCityChange={setSelectedCity} />
+      <SearchOverlayBar selectedCity={selectedCity} onCityChange={chooseCity} />
 
       {/* ══ BANDEAU DE CHIFFRES RÉELS ═════════════════════════════════ */}
       <StatsStrip />
@@ -70,7 +74,7 @@ export default function HomePage() {
 
         {/* ══ 4. ANNONCES À LA UNE ═════════════════════════════════════ */}
         <ScrollReveal>
-          <LatestAnnoncesSection />
+          <LatestAnnoncesSection city={cityChosen ? selectedCity : undefined} />
         </ScrollReveal>
 
         {/* ══ 7. TOUTE LA GUINÉE ═══════════════════════════════════════ */}

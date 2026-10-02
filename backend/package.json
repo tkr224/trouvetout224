@@ -11,6 +11,7 @@
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
     "seed": "ts-node src/seeds/seed.ts",
+    "test:ranking": "ts-node --transpile-only tests/ranking.test.ts",
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {

@@ -10,7 +10,7 @@ import ErrorState from '@/components/ui/ErrorState';
 import EmptyState from '@/components/ui/EmptyState';
 import ReviewSection from '@/components/ReviewSection';
 import { api } from '@/lib/api';
-import { MapPin, Star, MessageCircle, ShoppingBag, Eye, Award, CheckCircle, Calendar, TrendingUp, Store, User, Package, Sparkles, Flag, AlertTriangle, AlertCircle, HelpCircle, X, Loader2, Users, Mail, Crown, Zap } from 'lucide-react';
+import { MapPin, Star, MessageCircle, ShoppingBag, Eye, Award, CheckCircle, Calendar, TrendingUp, Store, User, Package, Sparkles, Flag, AlertTriangle, AlertCircle, HelpCircle, X, Loader2, Users, Mail, Crown, Zap, Trophy } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useAuthStore } from '@/store/auth.store';
@@ -41,6 +41,7 @@ const USER_REPORT_REASON_HREFS = [
 
 export default function PublicProfilPage() {
   const t = useTranslations('profil');
+  const tReco = useTranslations('reco');
   const USER_REPORT_REASONS = USER_REPORT_REASON_HREFS.map(r => ({ ...r, label: t(`public.reportReasons.${r.value}`) }));
   const { id } = useParams();
   const [profile, setProfile] = useState<any>(null);
@@ -159,6 +160,8 @@ export default function PublicProfilPage() {
 
   const badges = [];
   if (isAdmin) badges.push({ icon: Crown, label: t('public.badges.admin'), color: 'admin-official-badge' });
+  // Calculé automatiquement chaque mois (meilleurs scores vendeur) — voir backend ranking/jobs.ts
+  if (profile.topSellerOfMonth) badges.push({ icon: Trophy, label: tReco('badges.topSellerOfMonth'), color: 'bg-gold-500 text-white' });
   if (profile.isVerified) badges.push({ icon: CheckCircle, label: t('public.badges.verifiedSeller'), color: 'bg-blue-100 text-blue-700' });
   if (profile.emailVerified) badges.push({ icon: Mail, label: t('public.badges.emailVerified'), color: 'bg-sky-100 text-sky-700' });
   if ((profile._count?.annonces || 0) >= 10 && avgRating >= 4.0) badges.push({ icon: Award, label: t('public.badges.topSeller'), color: 'bg-yellow-100 text-yellow-700' });

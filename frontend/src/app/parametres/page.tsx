@@ -10,7 +10,7 @@ import {
   User, Lock, Bell, Shield, Globe, HelpCircle, FileText, Info, LogOut,
   Settings, CheckCircle, ArrowRight, Mail, CreditCard, ShieldCheck, Link2,
   Palette, Sun, Moon, Monitor, Eye, EyeOff, Loader2, KeyRound,
-  Camera, AtSign, XCircle, Phone, Type, Clock, MessageCircle, MapPin,
+  Camera, AtSign, XCircle, Phone, Type, Clock, MessageCircle, MapPin, Wand2,
 } from 'lucide-react';
 import { useTheme, COLOR_THEMES, SPECIAL_THEMES } from '@/components/providers/ThemeProvider';
 import { useLanguageSwitch } from '@/hooks/useLanguageSwitch';
@@ -20,6 +20,7 @@ import { isNotificationSoundEnabled, setNotificationSoundEnabled } from '@/lib/n
 import SavedAddressesSection from '@/components/settings/SavedAddressesSection';
 import ActiveSessionsSection from '@/components/settings/ActiveSessionsSection';
 import AccountSwitcherSection from '@/components/settings/AccountSwitcherSection';
+import PersonalizationSection from '@/components/settings/PersonalizationSection';
 import Link from 'next/link';
 
 const TAB_HREFS = [
@@ -28,6 +29,7 @@ const TAB_HREFS = [
   { key: 'securite',        icon: Lock },
   { key: 'notifications',   icon: Bell },
   { key: 'confidentialite', icon: Shield },
+  { key: 'personnalisation', icon: Wand2 },
   { key: 'apparence',       icon: Palette },
   { key: 'langue',          icon: Globe },
   { key: 'aide',            icon: HelpCircle },
@@ -37,7 +39,7 @@ const TAB_HREFS = [
 
 // Regroupement visuel de la sidebar (desktop) — ne change ni les clés ni la logique des onglets
 const TAB_GROUP_HREFS: { key: string; keys: string[] }[] = [
-  { key: 'compte',      keys: ['profil', 'adresses', 'securite', 'confidentialite', 'notifications'] },
+  { key: 'compte',      keys: ['profil', 'adresses', 'securite', 'confidentialite', 'personnalisation', 'notifications'] },
   { key: 'preferences', keys: ['apparence', 'langue'] },
   { key: 'support',     keys: ['aide', 'conditions', 'apropos'] },
 ];
@@ -55,7 +57,7 @@ const LANGS = [
   { code: 'zh', flag: '🇨🇳', label: '中文',      badge: 'ZH' },
 ] as const;
 
-const PROTECTED_TABS = ['profil', 'adresses', 'securite', 'notifications', 'confidentialite'];
+const PROTECTED_TABS = ['profil', 'adresses', 'securite', 'notifications', 'confidentialite', 'personnalisation'];
 
 // Doit correspondre à SENSITIVE_CHANGE_COOLDOWN_DAYS côté backend
 // (backend/src/config/security.ts) — purement informatif ici, le backend reste
@@ -82,6 +84,11 @@ export default function ParametresPage() {
   const TAB_GROUPS = TAB_GROUP_HREFS.map(g => ({ ...g, label: t(`tabGroups.${g.key}`) }));
   const HELP_ITEMS = HELP_ITEM_HREFS.map(h => ({ ...h, text: t(`aide.items.${h.key}`) }));
   const [tab, setTab] = useState('profil');
+  // Lien direct vers un onglet (ex : « Gérer » sous le fil d'accueil → ?tab=personnalisation)
+  useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get('tab');
+    if (wanted && TAB_HREFS.some(tb => tb.key === wanted)) setTab(wanted);
+  }, []);
 
   // Si l'utilisateur non connecté arrive sur un onglet protégé, rediriger vers Apparence
   useEffect(() => {
@@ -1067,6 +1074,8 @@ export default function ParametresPage() {
                 </div>
               </div>
             )}
+
+            {!showGate && tab === 'personnalisation' && <PersonalizationSection />}
 
             {tab === 'apparence' && (
               <div className="space-y-8">

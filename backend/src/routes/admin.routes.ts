@@ -3,6 +3,7 @@ import { authenticate, requireAdmin } from '../middleware/auth';
 import { prisma } from '../config/database';
 import { sendNewProductEmail } from '../services/email.service';
 import { resolveEmailLocale } from '../i18n/emailLocales';
+import { refreshAnnonceSoon, notifyRecommendationSoon } from '../services/ranking/jobs';
 
 const router = Router();
 router.use(authenticate, requireAdmin);
@@ -336,6 +337,8 @@ router.post('/annonces/:id/approve', async (req, res) => {
       void Promise.all(emailJobs);
     }
 
+    refreshAnnonceSoon(annonce.id);
+    notifyRecommendationSoon(annonce.id);
     res.json({ message: 'Annonce approuvée.', data: annonce });
   } catch (e) { console.error('Erreur admin route:', e); res.status(500).json({ error: 'Erreur serveur.' }); }
 });
@@ -524,6 +527,8 @@ router.get('/reports', async (req, res) => {
         reportedBy: { select: { firstName: true, lastName: true } },
         reportedUser: { select: { id: true, firstName: true, lastName: true } },
         annonce: { select: { id: true, title: true } },
+        demande: { select: { id: true, title: true } },
+        demandeResponse: { select: { id: true, message: true, demandeId: true } },
       },
     });
     res.json({ data: reports });

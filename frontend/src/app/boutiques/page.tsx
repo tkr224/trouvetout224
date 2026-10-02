@@ -15,6 +15,7 @@ import { api } from '@/lib/api';
 import {
   Search, Store, MapPin, ShieldCheck, Users, Package,
   ChevronRight, X, SlidersHorizontal,
+  Trophy,
 } from 'lucide-react';
 
 interface Shop {
@@ -31,6 +32,7 @@ interface Shop {
   city: { id: string; name: string } | null;
   _count: { annonces: number; subscribers: number };
   responsiveBadge: { label: string; color: string; emoji: string } | null;
+  topSellerOfMonth?: boolean;
 }
 
 interface City {
@@ -250,6 +252,7 @@ export default function BoutiquesPage() {
 
 function ShopCard({ shop }: { shop: Shop }) {
   const t = useTranslations('boutiques.card');
+  const tReco = useTranslations('reco.badges');
   const displayName = shop.shopName || `${shop.firstName} ${shop.lastName}`;
   const initials = displayName.slice(0, 2).toUpperCase();
 
@@ -289,6 +292,12 @@ function ShopCard({ shop }: { shop: Shop }) {
       {/* Description */}
       {shop.shopDescription && (
         <p className="text-dark-600 text-xs leading-relaxed line-clamp-2">{shop.shopDescription}</p>
+      )}
+
+      {shop.topSellerOfMonth && (
+        <span className="inline-flex items-center gap-1 self-start px-2 py-0.5 text-[10px] font-bold rounded-full bg-gold-500 text-white">
+          <Trophy size={10} /> {tReco('topSellerOfMonth')}
+        </span>
       )}
 
       {/* Badge réactivité */}

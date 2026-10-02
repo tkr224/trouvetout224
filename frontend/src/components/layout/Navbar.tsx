@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Logo from '@/components/Logo';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { MapPin, ChevronDown, Bell, MessageCircle, User, Plus, Menu, X, LogOut, Shield, Settings, Store, Users, Wrench, Calendar, Building2, Car } from 'lucide-react';
+import { MapPin, ChevronDown, Bell, MessageCircle, User, Plus, Menu, X, LogOut, Shield, Settings, Store, Users, Wrench, Calendar, Building2, Car, Hotel } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { useVoiceCallStore } from '@/store/voiceCall.store';
 import { useUnreadNotifCount } from '@/hooks/useNotifications';
@@ -17,6 +17,7 @@ const CITIES = ['Conakry', 'Labé', 'Kindia', 'Kankan', 'Mamou', 'Boké', 'Faran
 
 const NAV_LINK_HREFS = [
   { href: '/annonces/lister', key: 'annonces' },
+  { href: '/je-cherche',      key: 'jeCherche' },
   { href: '/boutiques',       key: 'boutiques' },
   { href: '/emplois',         key: 'emplois' },
   { href: '/restaurants',     key: 'restaurants' },
@@ -99,7 +100,9 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
               <Link
                 key={link.href}
                 href={link.href}
-                className="nav-link px-3 py-2 rounded-xl text-sm font-medium transition-colors"
+                // « Hôtels » passe dans le menu « Plus » entre lg et xl pour laisser la
+                // place à « Je cherche » sans faire déborder la barre.
+                className={`nav-link px-3 py-2 rounded-xl text-sm font-medium transition-colors ${link.href === '/hotels' ? 'hidden xl:block' : ''}`}
               >
                 {link.label}
               </Link>
@@ -115,6 +118,11 @@ export default function Navbar({ selectedCity = 'Conakry', onCityChange }: Navba
               </button>
               {moreOpen && (
                 <div className="absolute top-full mt-1 left-0 bg-white rounded-xl border border-dark-100 shadow-card-hover py-1.5 min-w-[180px] z-50">
+                  <Link href="/hotels"
+                    className="xl:hidden flex items-center gap-2.5 px-4 py-2.5 hover:bg-dark-50 transition-colors text-sm text-dark-700 hover:text-dark-900"
+                    onClick={() => setMoreOpen(false)}>
+                    <Hotel size={15} className="text-rose-600" /> {t('links.hotels')}
+                  </Link>
                   {MORE_LINKS.map(({ href, label, icon: Icon, color }) => (
                     <Link key={href} href={href}
                       className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-dark-50 transition-colors text-sm text-dark-700 hover:text-dark-900"

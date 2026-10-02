@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   LayoutDashboard, Users, ShoppingBag, AlertTriangle,
   Tag, LogOut, Home, Shield, ClipboardCheck, Megaphone, BarChart2, Palette, Trash2,
-  Briefcase, Utensils, Globe, Bot, ChevronLeft, Phone, Radio,
+  Briefcase, Utensils, Globe, Bot, ChevronLeft, Phone, Radio, EyeOff, Gauge,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { api } from '@/lib/api';
@@ -18,6 +18,8 @@ const NAV = [
   { href: '/admin/utilisateurs', label: 'Utilisateurs', icon: Users },
   { href: '/admin/annonces', label: 'Annonces', icon: ShoppingBag },
   { href: '/admin/signalements', label: 'Signalements', icon: AlertTriangle },
+  { href: '/admin/masquees',     label: 'Masqués auto',  icon: EyeOff, badgeMod: true },
+  { href: '/admin/scores',       label: 'Scores & algo', icon: Gauge },
   { href: '/admin/categories', label: 'Catégories', icon: Tag },
   { href: '/admin/publications', label: 'Publications', icon: Megaphone },
   { href: '/admin/onboarding',   label: 'Sondage',       icon: BarChart2 },
@@ -36,6 +38,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const [pendingCount, setPendingCount] = useState(0);
   const [iaCount, setIaCount] = useState(0);
+  const [modCount, setModCount] = useState(0);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const isRoot = pathname === '/admin';
   const goBack = useSmartBack(isRoot ? '/' : '/admin');
@@ -78,6 +81,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const fetchCount = () => {
       api.get('/admin/annonces/pending-count').then(r => setPendingCount(r.data.count || 0)).catch(() => {});
       api.get('/admin/annonces/signalees-ia/count').then(r => setIaCount(r.data.count || 0)).catch(() => {});
+      api.get('/admin/moderation/count').then(r => setModCount(r.data.count || 0)).catch(() => {});
     };
     fetchCount();
     const t = setInterval(fetchCount, 30000);
@@ -116,9 +120,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {NAV.map(({ href, label, icon: Icon, exact, badge, badgeIA }: any) => {
+          {NAV.map(({ href, label, icon: Icon, exact, badge, badgeIA, badgeMod }: any) => {
             const active = exact ? pathname === href : pathname.startsWith(href);
-            const count = badge ? pendingCount : badgeIA ? iaCount : 0;
+            const count = badge ? pendingCount : badgeIA ? iaCount : badgeMod ? modCount : 0;
             return (
               <Link
                 key={href}
@@ -132,7 +136,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Icon size={18} className={active ? 'text-white' : 'text-dark-500'} />
                 <span className="flex-1">{label}</span>
                 {count > 0 && (
-                  <span className={`min-w-[20px] h-5 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1.5 leading-none ${badgeIA ? 'bg-guinea-500' : 'bg-gold-500'}`}>
+                  <span className={`min-w-[20px] h-5 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1.5 leading-none ${badgeIA || badgeMod ? 'bg-guinea-500' : 'bg-gold-500'}`}>
                     {count > 99 ? '99+' : count}
                   </span>
                 )}

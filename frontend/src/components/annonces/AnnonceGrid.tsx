@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
-import { Heart, Eye, MapPin, BadgeCheck, ImageIcon, Star, Sparkles, Tag, ShieldCheck, ShieldAlert, CheckCircle2, Plus, PartyPopper, Check } from 'lucide-react';
+import { Heart, Eye, MapPin, BadgeCheck, ImageIcon, Star, Sparkles, Tag, ShieldCheck, ShieldAlert, CheckCircle2, Plus, PartyPopper, Check, Megaphone, Compass } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import ErrorState from '@/components/ui/ErrorState';
@@ -13,9 +14,14 @@ interface Annonce {
   viewCount: number; createdAt: string; isPremium: boolean; isPinned?: boolean; neighborhood?: string;
   user: { firstName: string; lastName: string; isVerified: boolean; isShopVerified?: boolean; createdAt?: string };
   categoryId?: string;
+  /** Emplacement payant (futur Pack Mansa) — toujours signalé « Sponsorisé ». */
+  isSponsored?: boolean;
+  /** Raison de présence dans le fil recommandé (voir backend services/ranking). */
+  feedReason?: 'pour_toi' | 'decouverte' | 'populaire' | 'nouveau' | 'pres_de_toi';
 }
 
 export function AnnonceCard({ annonce }: { annonce: Annonce }) {
+  const tReco = useTranslations('reco.feed');
   const img = annonce.images?.[0]?.url;
   const timeAgo = formatDistanceToNow(new Date(annonce.createdAt), { addSuffix: true, locale: fr });
   const isNewSeller = annonce.user?.createdAt
@@ -36,6 +42,16 @@ export function AnnonceCard({ annonce }: { annonce: Annonce }) {
           </div>
         )}
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1">
+          {annonce.isSponsored && (
+            <div className="bg-dark-900/85 backdrop-blur text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+              <Megaphone size={10} /> {tReco('sponsored')}
+            </div>
+          )}
+          {annonce.feedReason === 'decouverte' && !annonce.isSponsored && (
+            <div className="bg-white/90 backdrop-blur text-primary-700 text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+              <Compass size={10} /> {tReco('discovery')}
+            </div>
+          )}
           {annonce.status === 'SOLD' && (
             <div className="bg-dark-700 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
               <CheckCircle2 size={10} /> Vendu

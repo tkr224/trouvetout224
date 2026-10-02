@@ -8,7 +8,7 @@ interface AnnonceFilters {
   condition?: string; listingType?: string; bedrooms?: number; hashtag?: string;
 }
 
-export const useAnnonces = (filters: AnnonceFilters = {}) => {
+export const useAnnonces = (filters: AnnonceFilters = {}, opts: { enabled?: boolean } = {}) => {
   return useQuery(
     ['annonces', filters],
     async () => {
@@ -17,7 +17,7 @@ export const useAnnonces = (filters: AnnonceFilters = {}) => {
       const res = await api.get(`/annonces?${params}`);
       return res.data;
     },
-    { keepPreviousData: true, staleTime: 60000 }
+    { keepPreviousData: true, staleTime: 60000, enabled: opts.enabled ?? true }
   );
 };
 

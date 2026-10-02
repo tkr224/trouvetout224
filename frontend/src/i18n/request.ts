@@ -13,6 +13,7 @@ const NAMESPACES = [
   'apropos', 'aide', 'confidentialite', 'chatbot', 'onboarding', 'security',
   'emplois', 'restaurants', 'hotels', 'listings', 'premium', 'messages',
   'notifications', 'vendeur', 'legal', 'notFound', 'voiceCall', 'chatbotCustomize',
+  'demandes', 'reco',
 ] as const;
 
 async function loadMessages(locale: AppLocale) {

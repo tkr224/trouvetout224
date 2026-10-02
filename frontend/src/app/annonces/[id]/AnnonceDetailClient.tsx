@@ -27,6 +27,7 @@ import BackButton from '@/components/BackButton';
 import ImageLightbox from '@/components/ImageLightbox';
 import CulturalPattern from '@/components/CulturalPattern';
 import ErrorState from '@/components/ui/ErrorState';
+import { trackDwell, trackContact } from '@/lib/activity';
 
 const REPORT_REASON_KEYS = [
   { value: 'SCAM',                  key: 'scam',                  Icon: AlertTriangle },
@@ -112,6 +113,28 @@ export default function AnnonceDetailPage() {
       .catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [annonce?.id]);
+
+  // Apprentissage : temps passé sur l'annonce (onglet visible uniquement),
+  // envoyé quand on quitte la page ou change d'onglet. Jamais pour le propriétaire.
+  const ownerId = annonce?.user?.id;
+  useEffect(() => {
+    if (!annonce?.id || !isAuthenticated || ownerId === user?.id) return;
+    const annonceId = annonce.id;
+    let visibleSince: number | null = document.visibilityState === 'visible' ? Date.now() : null;
+    let total = 0;
+    const flush = () => {
+      if (visibleSince != null) { total += (Date.now() - visibleSince) / 1000; visibleSince = null; }
+      if (total >= 3) trackDwell(annonceId, total);
+      total = 0;
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') flush();
+      else visibleSince = Date.now();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => { document.removeEventListener('visibilitychange', onVisibility); flush(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [annonce?.id, isAuthenticated, ownerId, user?.id]);
 
   /* ── Loading skeleton ─────────────────────────────────────────
      Reproduit la vraie structure de la page (galerie + vignettes,
@@ -720,6 +743,7 @@ export default function AnnonceDetailPage() {
                     {annonce.phone && (
                       <a
                         href={`tel:+224${annonce.phone}`}
+                        onClick={() => trackContact(annonce.id)}
                         className="flex items-center justify-center gap-2 w-full border border-dark-200 text-dark-700 font-semibold py-2.5 rounded-xl hover:bg-dark-50 hover:border-dark-300 transition-colors text-sm"
                       >
                         <Phone size={15} /> {annonce.phone}
@@ -728,6 +752,7 @@ export default function AnnonceDetailPage() {
                     {annonce.whatsapp && (
                       <a
                         href={`https://wa.me/224${annonce.whatsapp}?text=${encodeURIComponent(t('seller.contactMessage', { title: annonce.title }))}`}
+                        onClick={() => trackContact(annonce.id)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center justify-center gap-2 w-full bg-[#25D366] hover:bg-[#1fbb58] text-white font-semibold py-2.5 rounded-xl transition-colors text-sm shadow-sm"

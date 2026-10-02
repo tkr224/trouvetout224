@@ -13,7 +13,8 @@
     "langue": "Langue",
     "aide": "Aide & Support",
     "conditions": "Conditions d'utilisation",
-    "apropos": "À propos"
+    "apropos": "À propos",
+    "personnalisation": "Personnalisation"
   },
   "tabGroups": {
     "compte": "Compte",
@@ -179,24 +180,54 @@
   },
   "notifications": {
     "title": "Préférences de notifications",
-    "newMessages": { "label": "Nouveaux messages", "sub": "Être notifié quand vous recevez un message" },
-    "annonceExpiry": { "label": "Expiration d'annonce", "sub": "Rappel avant que votre annonce expire" },
-    "newViews": { "label": "Nouvelles vues", "sub": "Quand quelqu'un consulte vos annonces" },
-    "sound": { "label": "Son des notifications", "sub": "Petit son quand une notification apparaît à l'écran" }
+    "newMessages": {
+      "label": "Nouveaux messages",
+      "sub": "Être notifié quand vous recevez un message"
+    },
+    "annonceExpiry": {
+      "label": "Expiration d'annonce",
+      "sub": "Rappel avant que votre annonce expire"
+    },
+    "newViews": {
+      "label": "Nouvelles vues",
+      "sub": "Quand quelqu'un consulte vos annonces"
+    },
+    "sound": {
+      "label": "Son des notifications",
+      "sub": "Petit son quand une notification apparaît à l'écran"
+    }
   },
   "confidentialite": {
     "title": "Confidentialité",
-    "publicProfile": { "label": "Profil public", "sub": "Votre profil est visible par tous les utilisateurs" },
-    "showPhone": { "label": "Afficher mon numéro", "sub": "Votre numéro est visible sur vos annonces" },
-    "acceptMessages": { "label": "Recevoir des messages", "sub": "Les autres utilisateurs peuvent vous contacter" }
+    "publicProfile": {
+      "label": "Profil public",
+      "sub": "Votre profil est visible par tous les utilisateurs"
+    },
+    "showPhone": {
+      "label": "Afficher mon numéro",
+      "sub": "Votre numéro est visible sur vos annonces"
+    },
+    "acceptMessages": {
+      "label": "Recevoir des messages",
+      "sub": "Les autres utilisateurs peuvent vous contacter"
+    }
   },
   "apparence": {
     "title": "Apparence",
     "subtitle": "Choisissez comment TrouveTout224 s'affiche sur votre appareil.",
     "modes": {
-      "light": { "label": "Clair", "desc": "Toujours clair" },
-      "dark": { "label": "Sombre", "desc": "Toujours sombre" },
-      "system": { "label": "Automatique", "desc": "Suit votre appareil" }
+      "light": {
+        "label": "Clair",
+        "desc": "Toujours clair"
+      },
+      "dark": {
+        "label": "Sombre",
+        "desc": "Toujours sombre"
+      },
+      "system": {
+        "label": "Automatique",
+        "desc": "Suit votre appareil"
+      }
     },
     "textSize": {
       "title": "Taille du texte",
@@ -242,9 +273,18 @@
   "conditions": {
     "title": "Conditions d'utilisation",
     "intro": "En utilisant TrouveTout224, vous acceptez les présentes conditions.",
-    "section1": { "title": "1. Utilisation du service", "text": "TrouveTout224 est une plateforme d'annonces destinée aux résidents de Guinée. L'âge minimum est de 13 ans." },
-    "section2": { "title": "2. Contenu interdit", "text": "Il est strictement interdit de publier du contenu illégal, offensant, des arnaques, de la nudité ou de la violence." },
-    "section3": { "title": "3. Responsabilité", "text": "TrouveTout224 n'est pas responsable des transactions entre utilisateurs. Soyez vigilants et rencontrez les vendeurs dans des lieux publics." }
+    "section1": {
+      "title": "1. Utilisation du service",
+      "text": "TrouveTout224 est une plateforme d'annonces destinée aux résidents de Guinée. L'âge minimum est de 13 ans."
+    },
+    "section2": {
+      "title": "2. Contenu interdit",
+      "text": "Il est strictement interdit de publier du contenu illégal, offensant, des arnaques, de la nudité ou de la violence."
+    },
+    "section3": {
+      "title": "3. Responsabilité",
+      "text": "TrouveTout224 n'est pas responsable des transactions entre utilisateurs. Soyez vigilants et rencontrez les vendeurs dans des lieux publics."
+    }
   },
   "apropos": {
     "version": "Version 1.0.0 · Conakry, République de Guinée",

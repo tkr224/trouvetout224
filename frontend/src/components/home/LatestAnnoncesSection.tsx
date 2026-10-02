@@ -2,11 +2,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { TrendingUp, Clock, Eye, ArrowRight, Star, ChevronDown, Plus, Sparkles } from 'lucide-react';
+import { TrendingUp, Clock, Eye, ArrowRight, Star, ChevronDown, Plus, Sparkles, Wand2, RefreshCw, Search, Settings2 } from 'lucide-react';
 import AnnonceGrid, { AnnonceCard } from '@/components/annonces/AnnonceGrid';
 import { useAnnonces } from '@/hooks/useAnnonces';
+import { useFeed } from '@/hooks/useFeed';
+import { useAuthStore } from '@/store/auth.store';
 
 const SORT_KEYS = [
+  { key: 'foryou',      sortKey: 'forYou',    icon: Wand2 },
   { key: 'recent',      sortKey: 'recent',    icon: Clock },
   { key: 'popular',     sortKey: 'popular',   icon: TrendingUp },
   { key: 'views',       sortKey: 'views',     icon: Eye },
@@ -32,12 +35,45 @@ function FillerCard({ label, cta }: { label: string; cta: string }) {
   );
 }
 
-export default function LatestAnnoncesSection() {
+/** Mention de transparence obligatoire sous le fil recommandé. */
+function FeedNotice({ personalized, disabled, onRefresh }: { personalized: boolean; disabled: boolean; onRefresh: () => void }) {
+  const t = useTranslations('reco.feed');
+  const loggedIn = useAuthStore(s => s._hasHydrated && s.isAuthenticated);
+  const text = disabled ? t('disabledNotice')
+    : personalized ? t('personalizedNotice')
+    : loggedIn ? t('learningNotice')
+    : t('anonNotice');
+  return (
+    <div className="flex items-center justify-between gap-2 flex-wrap mb-4 px-3 py-2 rounded-xl bg-primary-50/70 dark:bg-primary-900/15 border border-primary-100 dark:border-primary-900/40">
+      <p className="text-xs text-primary-800 dark:text-primary-300 flex items-center gap-1.5">
+        <Wand2 size={13} className="shrink-0" /> {text}
+        {loggedIn && (
+          <Link href="/parametres?tab=personnalisation" className="inline-flex items-center gap-0.5 font-semibold underline underline-offset-2 hover:text-primary-900 ml-1">
+            <Settings2 size={11} /> {t('manage')}
+          </Link>
+        )}
+      </p>
+      <button
+        onClick={onRefresh}
+        className="text-xs font-semibold text-primary-700 dark:text-primary-400 flex items-center gap-1 hover:text-primary-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded"
+      >
+        <RefreshCw size={12} /> {t('refresh')}
+      </button>
+    </div>
+  );
+}
+
+export default function LatestAnnoncesSection({ city }: { city?: string }) {
   const t = useTranslations('accueil');
-  const SORTS = SORT_KEYS.map(s => ({ key: s.key, label: t(`sorts.${s.sortKey}`), icon: s.icon }));
-  const [sort, setSort] = useState('recent');
+  const tReco = useTranslations('reco.feed');
+  const SORTS = SORT_KEYS.map(s => ({ key: s.key, label: s.key === 'foryou' ? tReco('forYou') : t(`sorts.${s.sortKey}`), icon: s.icon }));
+  const [sort, setSort] = useState('foryou');
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
-  const { data: annonces, isLoading, isError, error, refetch } = useAnnonces({ sort, limit: 12 });
+  const isFeed = sort === 'foryou';
+  const feed = useFeed({ limit: 12, city, enabled: isFeed });
+  const classic = useAnnonces({ sort, limit: 12 }, { enabled: !isFeed });
+  const { data: annonces, isLoading, isError, error, refetch } = isFeed ? feed : classic;
+  const sponsored = isFeed ? (feed.data?.sponsored ?? []) : [];
 
   const list = annonces?.data as any[] | undefined;
   const fillerCount = !isError && list && list.length > 0 && list.length < 4 ? 4 - list.length : 0;
@@ -110,6 +146,17 @@ export default function LatestAnnoncesSection() {
         </div>
       </div>
 
+      {isFeed && feed.data && (
+        <FeedNotice personalized={feed.data.personalized} disabled={feed.data.personalizationDisabled} onRefresh={feed.reshuffle} />
+      )}
+
+      {/* Emplacement « Sponsorisé » séparé du fil naturel (futur Pack Mansa) */}
+      {sponsored.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
+          {sponsored.map((a: any) => <AnnonceCard key={`sp-${a.id}`} annonce={{ ...a, isSponsored: true }} />)}
+        </div>
+      )}
+
       {fillerCount > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {list!.map(a => <AnnonceCard key={a.id} annonce={a} />)}
@@ -129,6 +176,21 @@ export default function LatestAnnoncesSection() {
           emptySubtitle={t('latestSection.emptySubtitle')}
         />
       )}
+
+      {/* Passerelle vers « Je cherche » */}
+      <Link
+        href="/je-cherche"
+        className="mt-5 flex items-center gap-3 p-3.5 rounded-2xl border border-gold-200 dark:border-gold-800/50 bg-gold-50/70 dark:bg-gold-900/10 hover:bg-gold-50 transition-colors group"
+      >
+        <div className="w-10 h-10 rounded-xl bg-gold-100 dark:bg-gold-900/40 flex items-center justify-center shrink-0">
+          <Search size={18} className="text-gold-700 dark:text-gold-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-dark-900 dark:text-white text-sm">{tReco('jeChercheCta')}</p>
+          <p className="text-dark-500 text-xs">{tReco('jeChercheSub')}</p>
+        </div>
+        <ArrowRight size={16} className="text-gold-700 group-hover:translate-x-0.5 transition-transform shrink-0" />
+      </Link>
 
       {/* Le lien « voir tout » n'a pas de sens si la liste n'a pas pu charger */}
       <div className={`mt-5 text-center ${isError ? 'hidden' : ''}`}>

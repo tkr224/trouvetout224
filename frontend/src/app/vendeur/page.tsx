@@ -7,6 +7,7 @@ import Navbar from '@/components/layout/Navbar';
 import BackButton from '@/components/BackButton';
 import CulturalPattern from '@/components/CulturalPattern';
 import ErrorState from '@/components/ui/ErrorState';
+import SellerScoreCard from '@/components/seller/SellerScoreCard';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import {
@@ -214,6 +215,9 @@ export default function VendeurDashboard() {
             )}
           </div>
         )}
+
+        {/* ── Score de visibilité (bonus / malus, conseils) ── */}
+        <SellerScoreCard />
 
         {/* ── Cartes stats ────────────────────────────────── */}
         {loading ? (

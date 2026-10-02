@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { touchUserActivity } from '../services/activity';
 
 interface JwtPayload { userId: string; role: string; }
 
@@ -11,6 +12,7 @@ export const optionalAuthenticate = (req: Request, _res: Response, next: NextFun
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
       (req as any).userId = decoded.userId;
       (req as any).userRole = decoded.role;
+      touchUserActivity(decoded.userId);
     }
   } catch {
     // Token invalide → on continue sans userId (visiteur anonyme)
