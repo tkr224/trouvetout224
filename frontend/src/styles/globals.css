@@ -41,6 +41,16 @@ html[data-text-size="sm"] { --base-font-size: 14px; }
 html[data-text-size="lg"] { --base-font-size: 18px; }
 html { font-size: var(--base-font-size); }
 
+/* Filet de sécurité anti-défilement horizontal (les vraies causes sont corrigées à
+   la source : navbar, barre de recherche). `clip` et non `hidden` : `hidden` sur
+   body en ferait un conteneur de défilement et casserait le `position: sticky`
+   de la navbar. Repli `hidden` sur html seul pour les vieux navigateurs (propagé au
+   viewport, sans effet sur sticky). */
+html { overflow-x: hidden; }
+@supports (overflow-x: clip) {
+  html, body { overflow-x: clip; }
+}
+
 /* ── Thème Bleu Océan ──────────────────────────────────────────────── */
 :root[data-color="blue"] {
   --bg-page: #eff4ff;

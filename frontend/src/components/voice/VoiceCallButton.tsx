@@ -19,7 +19,7 @@ export default function VoiceCallButton({ variant = 'pill', className = '' }: Vo
         onClick={open}
         aria-label={t('button')}
         title={t('button')}
-        className={`nav-icon-btn w-9 h-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl border border-dark-200 text-primary-700 hover:border-primary-400 hover:bg-primary-50 transition-colors ${className}`}
+        className={`nav-icon-btn relative w-9 h-9 flex items-center before:absolute before:-inset-1 before:content-['']  justify-center rounded-xl border border-dark-200 text-primary-700 hover:border-primary-400 hover:bg-primary-50 transition-colors ${className}`}
       >
         <Phone size={16} />
       </button>

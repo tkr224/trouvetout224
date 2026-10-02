@@ -36,10 +36,10 @@ export default function SearchOverlayBar({ selectedCity, onCityChange }: Props) 
   };
 
   return (
-    <div className="relative z-10 max-w-5xl mx-auto px-4 -mt-9 sm:-mt-11 mb-6 sm:mb-8">
+    <div className="relative z-10 w-full min-w-0 max-w-5xl mx-auto px-4 -mt-9 sm:-mt-11 mb-6 sm:mb-8">
       <div className="rounded-3xl border border-white/40 dark:border-dark-700 bg-white/95 dark:bg-dark-900/95 backdrop-blur-md shadow-2xl p-4 sm:p-5">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2.5">
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-0">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-dark-400 pointer-events-none" />
             <input
               value={query}
@@ -51,7 +51,7 @@ export default function SearchOverlayBar({ selectedCity, onCityChange }: Props) 
           <select
             value={categorySlug}
             onChange={e => setCategorySlug(e.target.value)}
-            className="border border-dark-200 dark:border-dark-600 rounded-xl px-3 py-3 text-sm bg-dark-50 dark:bg-dark-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all max-w-full sm:max-w-[180px]"
+            className="border border-dark-200 dark:border-dark-600 rounded-xl px-3 py-3 text-sm bg-dark-50 dark:bg-dark-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all max-w-full sm:max-w-[180px] min-w-0"
           >
             <option value="">{t('searchOverlay.categoryAll')}</option>
             {categories?.map(c => (
@@ -61,7 +61,7 @@ export default function SearchOverlayBar({ selectedCity, onCityChange }: Props) 
           <select
             value={selectedCity}
             onChange={e => onCityChange(e.target.value)}
-            className="border border-dark-200 dark:border-dark-600 rounded-xl px-3 py-3 text-sm bg-dark-50 dark:bg-dark-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all max-w-full sm:max-w-[160px]"
+            className="border border-dark-200 dark:border-dark-600 rounded-xl px-3 py-3 text-sm bg-dark-50 dark:bg-dark-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all max-w-full sm:max-w-[160px] min-w-0"
           >
             <option value="">{t('search.cityAll')}</option>
             {cities?.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}

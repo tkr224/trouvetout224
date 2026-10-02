@@ -50,7 +50,7 @@ export default function LanguageSwitcher({ variant = 'icon' }: LanguageSwitcherP
         onClick={() => setOpen(!open)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         disabled={isPending}
-        className="nav-icon-btn w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 transition-colors disabled:opacity-60"
+        className="nav-icon-btn relative w-9 h-9 flex items-center justify-center rounded-xl border border-dark-200 text-dark-500 transition-colors disabled:opacity-60 before:absolute before:-inset-1 before:content-['']"
         title="Langue / Language / 语言"
         aria-label="Changer de langue"
       >
