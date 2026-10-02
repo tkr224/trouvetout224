@@ -2612,3 +2612,64 @@ html.dark {
   30%           { transform: translateY(-3px); opacity: 1; }
 }
 .chat-typing-dot { animation: chat-typing-dot 1.2s ease-in-out infinite; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   PAGE PARAMÈTRES — même langage visuel que le menu de l'avatar (Navbar) :
+   surfaces sobres, bordures fines, états actifs légers (pas de gros blocs pleins)
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Champs : même hauteur partout, focus = bordure verte + halo léger */
+.settings-ui input.input,
+.settings-ui select.input { height: 2.75rem; padding-top: 0; padding-bottom: 0; }
+.settings-ui .input { border-width: 1px; border-radius: 0.625rem; }
+.settings-ui .input:focus {
+  border-color: rgb(var(--p-600)) !important;
+  box-shadow: 0 0 0 3px rgb(var(--p-600) / 0.15) !important;
+}
+.settings-ui .input:disabled { opacity: 0.75; }
+
+/* Menu latéral */
+.settings-nav-item { color: #475569; }
+.settings-nav-item:hover { background-color: rgba(15, 23, 42, 0.05); color: #0f172a; }
+.settings-nav-item[aria-current="page"] {
+  background-color: rgb(var(--p-600) / 0.10);
+  color: rgb(var(--p-700));
+  font-weight: 600;
+}
+.settings-nav-item[aria-current="page"]::before {
+  content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px;
+  border-radius: 9999px; background-color: rgb(var(--p-600));
+}
+html.dark .settings-nav-item { color: #b1bac4; }
+html.dark .settings-nav-item:hover { background-color: rgba(255, 255, 255, 0.05); color: #e6edf3; }
+html.dark .settings-nav-item[aria-current="page"] { background-color: rgb(var(--p-500) / 0.12); color: rgb(var(--p-500)); }
+html.dark .settings-nav-item[aria-current="page"]::before { background-color: rgb(var(--p-500)); }
+
+/* Lignes de liste (réglages, comptes, sessions, adresses) */
+.settings-row { transition: background-color .15s; }
+.settings-row:hover { background-color: rgba(15, 23, 42, 0.03); }
+html.dark .settings-row:hover { background-color: rgba(255, 255, 255, 0.04); }
+
+/* Tuiles de choix (thème, taille, couleur, langue) */
+.settings-tile { border-color: #e2e8f0; color: #334155; }
+.settings-tile:hover { border-color: #cbd5e1; background-color: rgba(15, 23, 42, 0.03); }
+.settings-tile.is-active { border-color: rgb(var(--p-600)); background-color: rgb(var(--p-600) / 0.08); color: rgb(var(--p-700)); }
+html.dark .settings-tile { border-color: #30363d; color: #b1bac4; }
+html.dark .settings-tile:hover { border-color: #484f58; background-color: rgba(255, 255, 255, 0.04); }
+html.dark .settings-tile.is-active { border-color: rgb(var(--p-500)); background-color: rgb(var(--p-500) / 0.12); color: rgb(var(--p-500)); }
+
+/* Bouton secondaire */
+.settings-btn-secondary:hover { background-color: rgba(15, 23, 42, 0.05); }
+html.dark .settings-btn-secondary:hover { background-color: rgba(255, 255, 255, 0.05); }
+
+/* Badges discrets (« Actif », « Par défaut », « Cet appareil ») */
+.settings-badge {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  font-size: 11px; font-weight: 600; line-height: 1; padding: 0.25rem 0.5rem; border-radius: 9999px;
+  color: rgb(var(--p-700)); background-color: rgb(var(--p-600) / 0.10);
+}
+html.dark .settings-badge { color: rgb(var(--p-500)); background-color: rgb(var(--p-500) / 0.14); }
+
+/* Séparateurs de listes (divide-*) en mode sombre — absents des overrides globaux */
+html.dark .divide-dark-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-dark-200 > :not([hidden]) ~ :not([hidden]) { border-color: #30363d; }

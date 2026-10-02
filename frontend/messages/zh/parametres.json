@@ -6,7 +6,7 @@
   "tabs": {
     "profil": "个人资料",
     "adresses": "我的地址",
-    "securite": "安全与密码",
+    "securite": "安全",
     "notifications": "通知",
     "confidentialite": "隐私",
     "apparence": "外观",
@@ -59,7 +59,7 @@
     "email": "邮箱",
     "emailNotSet": "未填写",
     "emailChangeHintPrefix": "如需更改邮箱地址，请前往",
-    "emailChangeHintBold": "安全与密码",
+    "emailChangeHintBold": "安全",
     "emailChangeHintSuffix": "标签页。",
     "phone": "电话",
     "phoneHint": "该号码用于您广告中的 WhatsApp 联系方式。",
@@ -308,5 +308,34 @@
     "phoneVerified": "电话号码验证成功！",
     "emailLinkSent": "确认链接已发送！",
     "sqSaved": "安全问题已保存！"
+  },
+  "cards": {
+    "profil": {
+      "title": "个人资料",
+      "desc": "您在 TrouveTout224 上显示的照片、姓名和联系方式。"
+    },
+    "password": {
+      "desc": "请使用一个较长且未在其他地方使用过的密码。"
+    },
+    "notifications": {
+      "desc": "选择您希望接收的提醒。"
+    },
+    "confidentialite": {
+      "desc": "控制其他人能看到您的哪些信息。"
+    },
+    "langue": {
+      "title": "界面语言",
+      "desc": "保存在您的账户中，每次访问时自动应用。"
+    },
+    "aide": {
+      "desc": "指南、举报与联系方式。"
+    },
+    "conditions": {
+      "desc": "TrouveTout224 的使用规则。"
+    },
+    "apropos": {
+      "title": "关于"
+    },
+    "mobileBack": "设置"
   }
 }

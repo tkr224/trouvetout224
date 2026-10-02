@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { MapPin, Plus, Pencil, Trash2, Star, X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSavedAddresses, SavedAddress } from '@/hooks/useSavedAddresses';
+import { SettingsCard, secondaryBtn } from './SettingsUI';
 
 type CityOption = { id: string; name: string };
 
@@ -65,71 +66,56 @@ export default function SavedAddressesSection({ cities }: { cities: CityOption[]
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <h3 className="font-semibold text-dark-900 flex items-center gap-2">
-            <MapPin size={16} className="text-primary-600" /> {t('title')}
-          </h3>
-          <p className="text-xs text-dark-500 mt-0.5">{t('hint')}</p>
-        </div>
-        <button onClick={openCreate} className="text-sm font-semibold text-primary-700 flex items-center gap-1.5 shrink-0">
+    <>
+    <SettingsCard
+      icon={MapPin}
+      title={t('title')}
+      description={t('hint')}
+      bodyClassName="divide-y divide-dark-100"
+      actions={
+        <button onClick={openCreate} className={secondaryBtn}>
           <Plus size={15} /> {t('addBtn')}
         </button>
-      </div>
-
+      }
+    >
       {!loaded ? (
         <div className="flex justify-center py-6"><Loader2 className="animate-spin text-dark-300" size={20} /></div>
       ) : addresses.length === 0 ? (
-        <p className="text-sm text-dark-400 py-3">{t('empty')}</p>
+        <p className="text-sm text-dark-400 px-4 sm:px-5 py-4">{t('empty')}</p>
       ) : (
-        <div className="space-y-2">
-          {addresses.map(a => (
-            <div key={a.id} className="flex items-center justify-between gap-3 bg-dark-50 dark:bg-dark-700/50 rounded-xl px-3.5 py-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-sm font-semibold text-dark-800 dark:text-dark-100 truncate">
-                    {a.label || `${a.city.name}${a.neighborhood ? ` · ${a.neighborhood}` : ''}`}
-                  </p>
-                  {a.isDefault && (
-                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 shrink-0">{t('defaultBadge')}</span>
-                  )}
-                </div>
-                <p className="text-xs text-dark-500 truncate">
-                  {a.phone} · {a.city.name}{a.neighborhood ? ` · ${a.neighborhood}` : ''}
+        addresses.map(a => (
+          <div key={a.id} className="settings-row flex items-center justify-between gap-3 px-4 sm:px-5 py-2.5 min-h-[56px]">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-sm font-medium text-dark-900 truncate">
+                  {a.label || `${a.city.name}${a.neighborhood ? ` · ${a.neighborhood}` : ''}`}
                 </p>
+                {a.isDefault && <span className="settings-badge shrink-0">{t('defaultBadge')}</span>}
               </div>
-              <div className="flex items-center gap-1 shrink-0">
-                {!a.isDefault && (
-                  <button
-                    onClick={() => handleSetDefault(a.id)}
-                    disabled={busyId === a.id}
-                    title={t('setDefaultBtn')}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg text-dark-400 hover:bg-dark-100 dark:hover:bg-dark-600 disabled:opacity-50"
-                  >
-                    <Star size={14} />
-                  </button>
-                )}
-                <button
-                  onClick={() => openEdit(a)}
-                  title={t('editBtn')}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-dark-400 hover:bg-dark-100 dark:hover:bg-dark-600"
-                >
-                  <Pencil size={14} />
-                </button>
-                <button
-                  onClick={() => handleRemove(a.id)}
-                  disabled={busyId === a.id}
-                  title={t('deleteBtn')}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-guinea-500 hover:bg-guinea-50 dark:hover:bg-guinea-900/20 disabled:opacity-50"
-                >
-                  {busyId === a.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                </button>
-              </div>
+              <p className="text-xs text-dark-500 truncate mt-0.5">
+                {a.phone} · {a.city.name}{a.neighborhood ? ` · ${a.neighborhood}` : ''}
+              </p>
             </div>
-          ))}
-        </div>
+            <div className="flex items-center gap-0.5 shrink-0">
+              {!a.isDefault && (
+                <button onClick={() => handleSetDefault(a.id)} disabled={busyId === a.id} title={t('setDefaultBtn')} aria-label={t('setDefaultBtn')}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-dark-400 hover:text-dark-700 hover:bg-dark-100 disabled:opacity-50">
+                  <Star size={14} />
+                </button>
+              )}
+              <button onClick={() => openEdit(a)} title={t('editBtn')} aria-label={t('editBtn')}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-dark-400 hover:text-dark-700 hover:bg-dark-100">
+                <Pencil size={14} />
+              </button>
+              <button onClick={() => handleRemove(a.id)} disabled={busyId === a.id} title={t('deleteBtn')} aria-label={t('deleteBtn')}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-guinea-500 hover:bg-guinea-50 disabled:opacity-50">
+                {busyId === a.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+              </button>
+            </div>
+          </div>
+        ))
       )}
+    </SettingsCard>
 
       {showForm && (
         <div className="fixed inset-0 z-[70] bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowForm(false)}>
@@ -189,6 +175,6 @@ export default function SavedAddressesSection({ cities }: { cities: CityOption[]
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

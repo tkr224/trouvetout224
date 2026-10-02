@@ -6,7 +6,7 @@
   "tabs": {
     "profil": "Profil",
     "adresses": "Mes adresses",
-    "securite": "Sécurité & Mot de passe",
+    "securite": "Sécurité",
     "notifications": "Notifications",
     "confidentialite": "Confidentialité",
     "apparence": "Apparence",
@@ -59,7 +59,7 @@
     "email": "Email",
     "emailNotSet": "Non renseigné",
     "emailChangeHintPrefix": "Pour changer d'adresse email, rendez-vous dans l'onglet ",
-    "emailChangeHintBold": "Sécurité & Mot de passe",
+    "emailChangeHintBold": "Sécurité",
     "emailChangeHintSuffix": ".",
     "phone": "Téléphone",
     "phoneHint": "Ce numéro sert au contact WhatsApp sur vos annonces.",
@@ -308,5 +308,34 @@
     "phoneVerified": "Numéro vérifié avec succès !",
     "emailLinkSent": "Lien de confirmation envoyé !",
     "sqSaved": "Questions de sécurité enregistrées !"
+  },
+  "cards": {
+    "profil": {
+      "title": "Profil",
+      "desc": "Votre photo, votre nom et vos coordonnées visibles sur TrouveTout224."
+    },
+    "password": {
+      "desc": "Utilisez un mot de passe long, que vous n’utilisez nulle part ailleurs."
+    },
+    "notifications": {
+      "desc": "Choisissez ce qui vous est signalé."
+    },
+    "confidentialite": {
+      "desc": "Contrôlez ce que les autres voient de vous."
+    },
+    "langue": {
+      "title": "Langue de l'interface",
+      "desc": "Enregistrée sur votre compte et réappliquée à chaque visite."
+    },
+    "aide": {
+      "desc": "Guides, signalement et contact."
+    },
+    "conditions": {
+      "desc": "Les règles d’utilisation de TrouveTout224."
+    },
+    "apropos": {
+      "title": "À propos"
+    },
+    "mobileBack": "Paramètres"
   }
 }

@@ -11,6 +11,7 @@ import {
   Settings, CheckCircle, ArrowRight, Mail, CreditCard, ShieldCheck, Link2,
   Palette, Sun, Moon, Monitor, Eye, EyeOff, Loader2, KeyRound,
   Camera, AtSign, XCircle, Phone, Type, Clock, MessageCircle, MapPin, Wand2,
+  ChevronLeft, ChevronRight, Sparkles, PartyPopper,
 } from 'lucide-react';
 import { useTheme, COLOR_THEMES, SPECIAL_THEMES } from '@/components/providers/ThemeProvider';
 import { useLanguageSwitch } from '@/hooks/useLanguageSwitch';
@@ -21,6 +22,7 @@ import SavedAddressesSection from '@/components/settings/SavedAddressesSection';
 import ActiveSessionsSection from '@/components/settings/ActiveSessionsSection';
 import AccountSwitcherSection from '@/components/settings/AccountSwitcherSection';
 import PersonalizationSection from '@/components/settings/PersonalizationSection';
+import { SettingsCard, ToggleRow, tileClass, primaryBtn, secondaryBtn, linkBtn } from '@/components/settings/SettingsUI';
 import Link from 'next/link';
 
 const TAB_HREFS = [
@@ -84,10 +86,18 @@ export default function ParametresPage() {
   const TAB_GROUPS = TAB_GROUP_HREFS.map(g => ({ ...g, label: t(`tabGroups.${g.key}`) }));
   const HELP_ITEMS = HELP_ITEM_HREFS.map(h => ({ ...h, text: t(`aide.items.${h.key}`) }));
   const [tab, setTab] = useState('profil');
+  // Mobile : liste des sections (comme les réglages d'un téléphone) puis une section
+  // ouverte en « page » avec bouton retour. Sans effet sur desktop.
+  const [mobileDetail, setMobileDetail] = useState(false);
+  const openTab = (key: string) => {
+    setTab(key);
+    setMobileDetail(true);
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) window.scrollTo({ top: 0 });
+  };
   // Lien direct vers un onglet (ex : « Gérer » sous le fil d'accueil → ?tab=personnalisation)
   useEffect(() => {
     const wanted = new URLSearchParams(window.location.search).get('tab');
-    if (wanted && TAB_HREFS.some(tb => tb.key === wanted)) setTab(wanted);
+    if (wanted && TAB_HREFS.some(tb => tb.key === wanted)) { setTab(wanted); setMobileDetail(true); }
   }, []);
 
   // Si l'utilisateur non connecté arrive sur un onglet protégé, rediriger vers Apparence
@@ -419,749 +429,609 @@ export default function ParametresPage() {
     }
   };
 
-  // Purement visuel — le clic est géré par la ligne entière qui l'entoure (cible tactile ≥ 44px)
-  const Toggle = ({ value }: { value: boolean }) => (
-    <span aria-hidden className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${value ? 'bg-primary-700' : 'bg-dark-300'}`}>
-      <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${value ? 'translate-x-5' : 'translate-x-0.5'}`} />
-    </span>
-  );
-
   const phoneCooldown = cooldownInfo(meData?.phoneChangedAt);
   const emailCooldown = cooldownInfo(meData?.emailChangedAt);
   const pwdCooldown   = cooldownInfo(meData?.passwordChangedAt);
   const sqCooldown    = cooldownInfo(meData?.securityQuestionsChangedAt);
 
+  const currentTab = TABS.find(tb => tb.key === tab) ?? TABS[0];
+  const L = 'block text-sm font-medium text-dark-700 mb-1.5';
+
+  // Élément de menu (sidebar desktop) — même style que le menu de l'avatar
+  const navItem = (tb: (typeof TABS)[number]) => {
+    const isProtected = PROTECTED_TABS.includes(tb.key);
+    return (
+      <button key={tb.key} onClick={() => openTab(tb.key)}
+        aria-current={tab === tb.key ? 'page' : undefined}
+        className="settings-nav-item relative w-full flex items-center gap-2.5 h-10 px-3 rounded-lg text-sm text-left whitespace-nowrap transition-colors">
+        <tb.icon size={16} strokeWidth={1.75} className="shrink-0" />
+        <span className="flex-1 truncate">{tb.label}</span>
+        {isProtected && !loggedIn && <Lock size={11} className="shrink-0 opacity-40" />}
+      </button>
+    );
+  };
+
+  const logoutOrLogin = (mobile: boolean) => loggedIn ? (
+    <button onClick={logout}
+      className={`w-full flex items-center gap-2.5 px-3 rounded-lg text-sm text-guinea-600 hover:bg-guinea-50 transition-colors ${mobile ? 'h-12 px-4' : 'h-10'}`}>
+      <LogOut size={16} strokeWidth={1.75} className="shrink-0" /> {t('logout')}
+    </button>
+  ) : (
+    <Link href="/auth/connexion"
+      className={`w-full flex items-center gap-2.5 px-3 rounded-lg text-sm text-primary-700 hover:bg-primary-50 transition-colors ${mobile ? 'h-12 px-4' : 'h-10'}`}>
+      <User size={16} strokeWidth={1.75} className="shrink-0" /> {t('login')}
+    </Link>
+  );
+
   return (
-    <div className="min-h-screen bg-dark-50">
+    <div className="settings-ui min-h-screen bg-dark-50 overflow-x-clip">
       <Navbar />
 
-      {/* ══ EN-TÊTE ═══════════════════════════════════════════════════ */}
-      <section
-        className="relative overflow-hidden py-8 sm:py-10"
-        style={{ background: 'linear-gradient(135deg, rgb(var(--p-900)) 0%, rgb(var(--p-800)) 55%, rgb(var(--p-900)) 100%)' }}
-      >
-        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
-        <div className="relative max-w-5xl mx-auto px-4" style={{ zIndex: 2 }}>
-          <BackButton label={t('header.title')} fallbackHref="/profil" className="text-white/80 hover:bg-white/10 hover:text-white mb-3" />
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center shrink-0">
-              <Settings size={20} className="text-gold-300" />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-display font-bold text-white" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.6)' }}>{t('header.title')}</h1>
-              <p className="text-white/75 text-xs sm:text-sm">{t('header.subtitle')}</p>
-            </div>
+      <div className="max-w-6xl mx-auto px-4">
+
+        {/* ══ EN-TÊTE COMPACT ════════════════════════════════════════ */}
+        <header className={`${mobileDetail ? 'hidden lg:flex' : 'flex'} items-center gap-2 pt-3 pb-4 sm:pt-4 sm:pb-5`}>
+          <BackButton fallbackHref="/profil" className="!min-h-[40px] !min-w-[40px] !pr-2 !text-dark-400" />
+          <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center shrink-0">
+            <Settings size={18} strokeWidth={1.75} className="text-primary-700" />
           </div>
-        </div>
-      </section>
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-display font-semibold text-dark-900 leading-tight">{t('header.title')}</h1>
+            <p className="text-dark-500 text-xs sm:text-sm truncate">{t('header.subtitle')}</p>
+          </div>
+        </header>
 
-      <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
+        {/* En-tête d'une section ouverte (mobile uniquement) */}
+        {mobileDetail && (
+          <header className="lg:hidden flex items-center gap-1 pt-2 pb-3">
+            <button onClick={() => setMobileDetail(false)}
+              className="inline-flex items-center gap-1 -ml-2 pl-1 pr-2 h-10 rounded-lg text-dark-500 hover:bg-dark-100 text-sm font-medium">
+              <ChevronLeft size={18} /> {t('cards.mobileBack')}
+            </button>
+            <h1 className="ml-auto text-base font-semibold text-dark-900 truncate flex items-center gap-2">
+              <currentTab.icon size={16} strokeWidth={1.75} className="text-primary-700 shrink-0" /> {currentTab.label}
+            </h1>
+          </header>
+        )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:grid lg:grid-cols-[232px_minmax(0,1fr)] lg:gap-6 lg:items-start pb-10">
 
-          {/* Sidebar navigation — barre d'onglets défilante sur mobile, colonne verticale sur desktop */}
-          <div className="bg-white rounded-2xl border border-dark-100 shadow-card h-fit overflow-hidden">
+          {/* ══ MENU LATÉRAL (desktop) — collant au défilement ══════════════ */}
+          <aside className="hidden lg:block sticky top-20 self-start">
+            <nav className="bg-white border border-dark-200 rounded-2xl p-2">
+              {TAB_GROUPS.map((group, gi) => (
+                <div key={group.key} className={gi > 0 ? 'mt-3' : ''}>
+                  <p className="px-3 pt-1.5 pb-1 text-[11px] font-semibold text-dark-400 uppercase tracking-[0.08em]">{group.label}</p>
+                  {TABS.filter(tb => group.keys.includes(tb.key)).map(navItem)}
+                </div>
+              ))}
+              <div className="mt-2 pt-2 border-t border-dark-100">{logoutOrLogin(false)}</div>
+            </nav>
+          </aside>
 
-            {/* Mobile : onglets en ligne défilante horizontalement, cibles tactiles ≥ 44px */}
-            <div className="lg:hidden flex items-center gap-2 overflow-x-auto px-3 py-3 snap-x">
-              {TABS.map(tb => {
-                const isProtected = PROTECTED_TABS.includes(tb.key);
-                return (
-                  <button key={tb.key} onClick={() => setTab(tb.key)}
-                    className={`flex-shrink-0 flex items-center gap-2 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold whitespace-nowrap transition-colors snap-start
-                      ${tab === tb.key ? 'bg-primary-700 text-white shadow-sm' : 'bg-dark-50 text-dark-600'}`}>
-                    <tb.icon size={15} className="shrink-0" />
-                    {tb.label}
-                    {isProtected && !loggedIn && (
-                      <Lock size={10} className="shrink-0 opacity-50" />
-                    )}
-                  </button>
-                );
-              })}
-              {loggedIn ? (
-                <button onClick={logout}
-                  className="flex-shrink-0 flex items-center gap-2 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold text-red-600 bg-red-50 whitespace-nowrap snap-start">
-                  <LogOut size={15} className="shrink-0" /> {t('logout')}
-                </button>
-              ) : (
-                <Link href="/auth/connexion"
-                  className="flex-shrink-0 flex items-center gap-2 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold text-primary-700 bg-primary-50 whitespace-nowrap snap-start">
-                  <User size={15} className="shrink-0" /> {t('login')}
-                </Link>
-              )}
-            </div>
-
-            {/* Desktop : colonne verticale groupée en sections claires */}
-            <div className="hidden lg:block p-3 space-y-4">
+          {/* ══ LISTE DES SECTIONS (mobile) — comme les réglages d'un téléphone ══ */}
+          {!mobileDetail && (
+            <div className="lg:hidden space-y-4">
               {TAB_GROUPS.map(group => (
                 <div key={group.key}>
-                  <p className="px-3 mb-1.5 text-[11px] font-bold text-dark-400 uppercase tracking-wider">{group.label}</p>
-                  <div className="space-y-0.5">
-                    {TABS.filter(tb => group.keys.includes(tb.key)).map(tb => {
-                      const isProtected = PROTECTED_TABS.includes(tb.key);
-                      return (
-                        <button key={tb.key} onClick={() => setTab(tb.key)}
-                          className={`w-full flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-xl text-sm font-medium transition-colors
-                            ${tab === tb.key ? 'bg-primary-700 text-white shadow-sm' : 'text-dark-600 hover:bg-dark-50'}`}>
-                          <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${tab === tb.key ? 'bg-white/20' : 'bg-primary-50'}`}>
-                            <tb.icon size={14} className={tab === tb.key ? 'text-white' : 'text-primary-700'} />
-                          </span>
-                          <span className="flex-1 text-left">{tb.label}</span>
-                          {isProtected && !loggedIn && (
-                            <Lock size={11} className="shrink-0 opacity-40" />
-                          )}
-                        </button>
-                      );
-                    })}
+                  <p className="px-1 pb-1.5 text-[11px] font-semibold text-dark-400 uppercase tracking-[0.08em]">{group.label}</p>
+                  <div className="bg-white border border-dark-200 rounded-2xl divide-y divide-dark-100 overflow-hidden">
+                    {TABS.filter(tb => group.keys.includes(tb.key)).map(tb => (
+                      <button key={tb.key} onClick={() => openTab(tb.key)}
+                        className="settings-row w-full flex items-center gap-3 h-12 px-4 text-left">
+                        <tb.icon size={17} strokeWidth={1.75} className="text-primary-700 shrink-0" />
+                        <span className="flex-1 text-sm text-dark-900 truncate">{tb.label}</span>
+                        {PROTECTED_TABS.includes(tb.key) && !loggedIn && <Lock size={12} className="text-dark-400 shrink-0" />}
+                        <ChevronRight size={16} className="text-dark-400 shrink-0" />
+                      </button>
+                    ))}
                   </div>
                 </div>
               ))}
-              <div className="pt-3 border-t border-dark-100">
-                {loggedIn ? (
-                  <button onClick={logout}
-                    className="w-full flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
-                    <LogOut size={15} className="shrink-0" /> {t('logout')}
-                  </button>
-                ) : (
-                  <Link href="/auth/connexion"
-                    className="w-full flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-xl text-sm font-medium text-primary-700 hover:bg-primary-50 transition-colors">
-                    <User size={15} className="shrink-0" /> {t('login')}
-                  </Link>
-                )}
-              </div>
+              <div className="bg-white border border-dark-200 rounded-2xl overflow-hidden">{logoutOrLogin(true)}</div>
             </div>
-          </div>
+          )}
 
-          {/* Content */}
-          <div className="lg:col-span-3 bg-white rounded-2xl border border-dark-100 shadow-card p-4 sm:p-6">
+          {/* ══ CONTENU ════════════════════════════════════════════════ */}
+          <main className={`${mobileDetail ? 'block' : 'hidden lg:block'} min-w-0 space-y-4`}>
 
             {/* Gate : onglets protégés sans compte */}
-            {showGate ? (
-              <div className="flex flex-col items-center justify-center py-14 text-center">
-                <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mb-4">
-                  <Lock size={26} className="text-primary-700" />
+            {showGate && (
+              <SettingsCard bodyClassName="flex flex-col items-center justify-center py-12 px-5 text-center">
+                <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center mb-4">
+                  <Lock size={22} className="text-primary-700" />
                 </div>
-                <h3 className="font-bold text-dark-900 text-lg mb-2">{t('gate.title')}</h3>
-                <p className="text-dark-500 text-sm mb-6 max-w-xs leading-relaxed">
-                  {t('gate.text')}
-                </p>
-                <div className="flex gap-3 flex-wrap justify-center">
-                  <Link href="/auth/connexion" className="btn-primary">{t('gate.login')}</Link>
-                  <Link href="/auth/inscription" className="btn-outline">{t('gate.createAccount')}</Link>
+                <h3 className="font-semibold text-dark-900 text-base mb-1.5">{t('gate.title')}</h3>
+                <p className="text-dark-500 text-sm mb-5 max-w-xs leading-relaxed">{t('gate.text')}</p>
+                <div className="flex gap-2 flex-wrap justify-center">
+                  <Link href="/auth/connexion" className={primaryBtn}>{t('gate.login')}</Link>
+                  <Link href="/auth/inscription" className={secondaryBtn}>{t('gate.createAccount')}</Link>
                 </div>
                 <p className="text-dark-400 text-xs mt-5">
                   {t('gate.appearanceNotePrefix')}<strong>{t('gate.appearanceNoteBold')}</strong>{t('gate.appearanceNoteSuffix')}
                 </p>
-              </div>
-            ) : null}
+              </SettingsCard>
+            )}
 
+            {/* ── PROFIL ─────────────────────────────────────────── */}
             {!showGate && tab === 'profil' && (
-              <div className="space-y-5">
-                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-1">{t('profil.title')}</h2>
-
-                <AccountSwitcherSection />
-
-                {/* Photo de profil — bien visible en haut */}
-                <div className="flex items-center gap-4 p-4 bg-dark-50 rounded-2xl">
-                  <div
-                    className="relative group cursor-pointer shrink-0"
-                    onClick={() => avatarInputRef.current?.click()}
-                  >
-                    <div className="w-20 h-20 rounded-2xl bg-primary-100 flex items-center justify-center font-bold text-primary-700 text-2xl overflow-hidden shadow-sm">
-                      {avatarUploading
-                        ? <Loader2 size={24} className="animate-spin text-primary-700" />
-                        : (localAvatar || meData?.avatar)
-                          ? <img src={localAvatar || meData.avatar} alt="" className="w-full h-full object-cover" />
-                          : `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`}
-                    </div>
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 rounded-2xl transition-all flex items-center justify-center">
-                      <Camera size={18} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                    <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-dark-900">{user?.firstName} {user?.lastName}</p>
-                    {meData?.username && <p className="text-dark-400 text-xs mt-0.5">@{meData.username}</p>}
-                    <button
-                      type="button"
-                      onClick={() => avatarInputRef.current?.click()}
-                      className="text-primary-700 text-sm hover:underline mt-1.5 inline-flex items-center gap-1.5"
-                    >
-                      <Camera size={13} /> {t('profil.changePhoto')}
+              <>
+                <SettingsCard
+                  icon={User}
+                  title={t('cards.profil.title')}
+                  description={t('cards.profil.desc')}
+                  footer={
+                    <button onClick={saveProfile} disabled={profileLoading} className={primaryBtn}>
+                      {profileLoading && <Loader2 size={15} className="animate-spin" />}
+                      {t('profil.save')}
                     </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('profil.firstName')}</label>
-                    <input value={firstName} onChange={e => setFirstName(e.target.value)} className="input" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('profil.lastName')}</label>
-                    <input value={lastName} onChange={e => setLastName(e.target.value)} className="input" />
-                  </div>
-                </div>
-
-                {/* Nom d'utilisateur — pseudo unique */}
-                <div>
-                  <label className="text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
-                    <AtSign size={13} className="text-primary-700" /> {t('profil.username')}
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-400 text-sm font-semibold pointer-events-none">@</span>
-                    <input
-                      value={username}
-                      onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                      placeholder={t('profil.usernamePlaceholder')}
-                      className="input pl-8 pr-9"
-                      maxLength={20}
-                    />
-                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2">
-                      {usernameStatus === 'checking' && <Loader2 size={15} className="animate-spin text-dark-400" />}
-                      {usernameStatus === 'available' && <CheckCircle size={15} className="text-primary-600" />}
-                      {usernameStatus === 'taken' && <XCircle size={15} className="text-guinea-500" />}
-                    </span>
-                  </div>
-                  {usernameStatus === 'taken' && <p className="text-xs text-guinea-600 mt-1.5">{t('profil.usernameTaken')}</p>}
-                  {usernameStatus === 'invalid' && <p className="text-xs text-guinea-600 mt-1.5">{t('profil.usernameInvalid')}</p>}
-                  {usernameStatus === 'available' && <p className="text-xs text-primary-600 mt-1.5">{t('profil.usernameAvailable')}</p>}
-                  {usernameStatus === 'idle' && <p className="text-xs text-dark-400 mt-1.5">{t('profil.usernameHint')}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('profil.bio')}</label>
-                  <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3}
-                    placeholder={t('profil.bioPlaceholder')} className="input resize-none" />
-                </div>
-
-                {/* Email (lecture seule ici — le changement se fait dans l'onglet Sécurité) */}
-                <div>
-                  <label className="text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
-                    <Mail size={13} className="text-dark-400" /> {t('profil.email')}
-                  </label>
-                  <input
-                    value={meData?.email || t('profil.emailNotSet')}
-                    disabled
-                    className="input bg-dark-50 text-dark-500 cursor-not-allowed"
-                  />
-                  <p className="text-xs text-dark-400 mt-1">
-                    {t('profil.emailChangeHintPrefix')}<strong>{t('profil.emailChangeHintBold')}</strong>{t('profil.emailChangeHintSuffix')}
-                  </p>
-                </div>
-
-                {/* Téléphone — vérifié par un code envoyé sur WhatsApp avant d'être enregistré */}
-                <div>
-                  <label className="text-sm font-semibold text-dark-700 mb-1.5 flex items-center gap-1.5">
-                    <Phone size={13} className="text-dark-400" /> {t('profil.phone')}
-                  </label>
-                  <p className="text-xs text-dark-500 mb-2">{t('profil.phoneHint')}</p>
-
-                  {phoneCooldown ? (
-                    <>
-                      <input value={meData?.phone || ''} disabled className="input bg-dark-50 text-dark-500 cursor-not-allowed" />
-                      <p className="text-xs text-gold-700 bg-gold-50 border border-gold-200 rounded-xl px-3 py-2 mt-2 flex items-center gap-1.5">
-                        <Clock size={12} className="shrink-0" /> {t('profil.cooldownGeneric', { days: phoneCooldown.days, plural: phoneCooldown.days > 1 ? 's' : '', date: phoneCooldown.dateStr })}
-                      </p>
-                    </>
-                  ) : phoneStep === 'code' ? (
-                    <>
-                      <p className="text-sm text-dark-600 mb-3 flex items-start gap-1.5">
-                        <MessageCircle size={14} className="text-green-600 shrink-0 mt-0.5" />
-                        {t('profil.phoneCodeSentTo', { phone: phoneInput })}
-                      </p>
-                      <input
-                        value={phoneCode}
-                        onChange={e => setPhoneCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        placeholder={t('profil.phoneCodePlaceholder')}
-                        inputMode="numeric"
-                        autoFocus
-                        className="input text-center text-lg tracking-[0.3em] font-semibold"
-                      />
-                      {phoneError && <p className="text-xs text-guinea-600 mt-1.5">{phoneError}</p>}
-                      <div className="flex items-center gap-3 mt-2 flex-wrap">
-                        <button
-                          onClick={verifyPhoneCode}
-                          disabled={phoneVerifying || !/^\d{4,6}$/.test(phoneCode)}
-                          className="text-primary-700 text-sm font-semibold hover:underline disabled:opacity-50 disabled:no-underline flex items-center gap-1.5"
-                        >
-                          {phoneVerifying && <Loader2 size={13} className="animate-spin" />}
-                          {t('profil.phoneVerifyCode')}
-                        </button>
-                        <button
-                          onClick={sendPhoneCode}
-                          disabled={phoneSaving || phoneResendSecondsLeft > 0}
-                          className="text-dark-500 text-sm font-medium hover:underline disabled:opacity-50 disabled:no-underline"
-                        >
-                          {phoneResendSecondsLeft > 0
-                            ? t('profil.phoneResendCodeIn', { seconds: phoneResendSecondsLeft })
-                            : t('profil.phoneResendCode')}
-                        </button>
-                        <button onClick={cancelPhoneVerification} className="text-dark-400 text-sm hover:underline">
-                          {t('profil.phoneChangeNumber')}
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      {meData?.phone && (
-                        <p className="text-sm text-dark-600 mb-2 flex items-center gap-2 flex-wrap">
-                          {t('profil.phoneCurrent', { phone: '' })}<strong>{meData.phone}</strong>
-                          {meData.phoneVerified ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary-700 bg-primary-50 px-2 py-0.5 rounded-full">
-                              <ShieldCheck size={12} /> {t('profil.phoneVerifiedBadge')}
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-gold-700 bg-gold-50 px-2 py-0.5 rounded-full">
-                              <XCircle size={12} /> {t('profil.phoneUnverifiedBadge')}
-                            </span>
-                          )}
-                        </p>
-                      )}
-                      <div className="relative">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-dark-400 text-sm font-semibold pointer-events-none">+224</span>
-                        <input
-                          value={phoneInput}
-                          onChange={e => setPhoneInput(e.target.value.replace(/\D/g, '').slice(0, 9))}
-                          placeholder={t('profil.phonePlaceholder')}
-                          className="input pl-14"
-                        />
-                      </div>
-                      {phoneError && <p className="text-xs text-guinea-600 mt-1.5">{phoneError}</p>}
-                      <button
-                        onClick={sendPhoneCode}
-                        disabled={phoneSaving || phoneInput.length !== 9}
-                        className="mt-2 text-primary-700 text-sm font-semibold hover:underline disabled:opacity-50 disabled:no-underline flex items-center gap-1.5"
-                      >
-                        {phoneSaving ? <Loader2 size={13} className="animate-spin" /> : <MessageCircle size={13} />}
-                        {t('profil.phoneSendCode')}
+                  }
+                >
+                  {/* Photo + identité — en premier */}
+                  <div className="flex items-center gap-4">
+                    <button type="button" className="relative group shrink-0 rounded-full" onClick={() => avatarInputRef.current?.click()} aria-label={t('profil.changePhoto')}>
+                      <span className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center font-semibold text-primary-700 text-xl overflow-hidden">
+                        {avatarUploading
+                          ? <Loader2 size={22} className="animate-spin text-primary-700" />
+                          : (localAvatar || meData?.avatar)
+                            ? <img src={localAvatar || meData.avatar} alt="" className="w-full h-full object-cover" />
+                            : `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`}
+                      </span>
+                      <span className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                        <Camera size={16} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </span>
+                    </button>
+                    <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                    <div className="min-w-0">
+                      <p className="font-semibold text-dark-900 truncate">{user?.firstName} {user?.lastName}</p>
+                      {meData?.username && <p className="text-dark-500 text-xs truncate">@{meData.username}</p>}
+                      <button type="button" onClick={() => avatarInputRef.current?.click()} className={`${linkBtn} mt-1`}>
+                        <Camera size={13} /> {t('profil.changePhoto')}
                       </button>
-                    </>
-                  )}
-                </div>
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('profil.city')}</label>
-                  <select value={cityId} onChange={e => setCityId(e.target.value)} className="input">
-                    <option value="">{t('profil.cityNotSet')}</option>
-                    {cities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </div>
+                  <div className="border-t border-dark-100 -mx-4 sm:-mx-5" />
 
-                <button onClick={saveProfile} disabled={profileLoading} className="btn-primary px-8 flex items-center gap-2 disabled:opacity-60">
-                  {profileLoading && <Loader2 size={15} className="animate-spin" />}
-                  {t('profil.save')}
-                </button>
-              </div>
-            )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className={L}>{t('profil.firstName')}</label>
+                      <input value={firstName} onChange={e => setFirstName(e.target.value)} className="input" />
+                    </div>
+                    <div>
+                      <label className={L}>{t('profil.lastName')}</label>
+                      <input value={lastName} onChange={e => setLastName(e.target.value)} className="input" />
+                    </div>
+                  </div>
 
-            {!showGate && tab === 'adresses' && (
-              <div className="space-y-5">
-                <SavedAddressesSection cities={cities} />
-              </div>
-            )}
+                  <div>
+                    <label className={`${L} flex items-center gap-1.5`}>
+                      <AtSign size={13} className="text-dark-400" /> {t('profil.username')}
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-dark-400 text-sm pointer-events-none">@</span>
+                      <input
+                        value={username}
+                        onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                        placeholder={t('profil.usernamePlaceholder')}
+                        className="input pl-8 pr-9"
+                        maxLength={20}
+                      />
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                        {usernameStatus === 'checking' && <Loader2 size={15} className="animate-spin text-dark-400" />}
+                        {usernameStatus === 'available' && <CheckCircle size={15} className="text-primary-600" />}
+                        {usernameStatus === 'taken' && <XCircle size={15} className="text-guinea-500" />}
+                      </span>
+                    </div>
+                    {usernameStatus === 'taken' && <p className="text-xs text-guinea-600 mt-1.5">{t('profil.usernameTaken')}</p>}
+                    {usernameStatus === 'invalid' && <p className="text-xs text-guinea-600 mt-1.5">{t('profil.usernameInvalid')}</p>}
+                    {usernameStatus === 'available' && <p className="text-xs text-primary-600 mt-1.5">{t('profil.usernameAvailable')}</p>}
+                    {usernameStatus === 'idle' && <p className="text-xs text-dark-400 mt-1.5">{t('profil.usernameHint')}</p>}
+                  </div>
 
-            {!showGate && tab === 'securite' && (
-              <div className="space-y-5">
-                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">{t('securite.title')}</h2>
-                <div className="flex items-center gap-3 p-4 bg-primary-50 rounded-2xl border border-primary-200 mb-4">
-                  <ShieldCheck size={18} className="text-primary-700 shrink-0" />
-                  <p className="text-primary-800 text-sm font-medium">{t('securite.accountSecure')}</p>
-                </div>
+                  <div>
+                    <label className={L}>{t('profil.bio')}</label>
+                    <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3}
+                      placeholder={t('profil.bioPlaceholder')} className="input resize-none" />
+                  </div>
 
-                {hasPassword === null ? (
-                  <p className="text-dark-400 text-sm flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> {t('securite.loading')}</p>
-                ) : (
-                  <>
-                    <h3 className="font-semibold text-dark-900 flex items-center gap-2">
-                      <KeyRound size={16} className="text-primary-700" />
-                      {hasPassword ? t('securite.changePassword') : t('securite.setPassword')}
-                    </h3>
-
-                    {!hasPassword && (
-                      <p className="text-dark-500 text-sm bg-dark-50 rounded-2xl p-4">
-                        {t('securite.googleAccountHint')}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className={`${L} flex items-center gap-1.5`}>
+                        <Mail size={13} className="text-dark-400" /> {t('profil.email')}
+                      </label>
+                      <input value={meData?.email || t('profil.emailNotSet')} disabled className="input cursor-not-allowed" />
+                      <p className="text-xs text-dark-400 mt-1.5">
+                        {t('profil.emailChangeHintPrefix')}<strong>{t('profil.emailChangeHintBold')}</strong>{t('profil.emailChangeHintSuffix')}
                       </p>
-                    )}
+                    </div>
+                    <div>
+                      <label className={L}>{t('profil.city')}</label>
+                      <select value={cityId} onChange={e => setCityId(e.target.value)} className="input">
+                        <option value="">{t('profil.cityNotSet')}</option>
+                        {cities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      </select>
+                    </div>
+                  </div>
 
-                    {hasPassword && pwdCooldown ? (
-                      <p className="text-sm text-gold-700 bg-gold-50 border border-gold-200 rounded-xl px-4 py-3 flex items-center gap-2">
-                        <Clock size={14} className="shrink-0" />
-                        {t('profil.cooldownPassword', { days: pwdCooldown.days, plural: pwdCooldown.days > 1 ? 's' : '', date: pwdCooldown.dateStr })}
-                      </p>
+                  {/* Téléphone — vérifié par un code envoyé sur WhatsApp avant d'être enregistré */}
+                  <div>
+                    <label className={`${L} flex items-center gap-1.5`}>
+                      <Phone size={13} className="text-dark-400" /> {t('profil.phone')}
+                    </label>
+                    <p className="text-xs text-dark-500 mb-2">{t('profil.phoneHint')}</p>
+
+                    {phoneCooldown ? (
+                      <>
+                        <input value={meData?.phone || ''} disabled className="input cursor-not-allowed" />
+                        <p className="text-xs text-gold-700 bg-gold-50 border border-gold-200 rounded-lg px-3 py-2 mt-2 flex items-center gap-1.5">
+                          <Clock size={12} className="shrink-0" /> {t('profil.cooldownGeneric', { days: phoneCooldown.days, plural: phoneCooldown.days > 1 ? 's' : '', date: phoneCooldown.dateStr })}
+                        </p>
+                      </>
+                    ) : phoneStep === 'code' ? (
+                      <>
+                        <p className="text-sm text-dark-600 mb-3 flex items-start gap-1.5">
+                          <MessageCircle size={14} className="text-green-600 shrink-0 mt-0.5" />
+                          {t('profil.phoneCodeSentTo', { phone: phoneInput })}
+                        </p>
+                        <input
+                          value={phoneCode}
+                          onChange={e => setPhoneCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          placeholder={t('profil.phoneCodePlaceholder')}
+                          inputMode="numeric"
+                          autoFocus
+                          className="input text-center text-lg tracking-[0.3em] font-semibold"
+                        />
+                        {phoneError && <p className="text-xs text-guinea-600 mt-1.5">{phoneError}</p>}
+                        <div className="flex items-center gap-4 mt-2.5 flex-wrap">
+                          <button onClick={verifyPhoneCode} disabled={phoneVerifying || !/^\d{4,6}$/.test(phoneCode)} className={linkBtn}>
+                            {phoneVerifying && <Loader2 size={13} className="animate-spin" />}
+                            {t('profil.phoneVerifyCode')}
+                          </button>
+                          <button onClick={sendPhoneCode} disabled={phoneSaving || phoneResendSecondsLeft > 0}
+                            className="text-dark-500 text-sm hover:underline disabled:opacity-50 disabled:no-underline">
+                            {phoneResendSecondsLeft > 0 ? t('profil.phoneResendCodeIn', { seconds: phoneResendSecondsLeft }) : t('profil.phoneResendCode')}
+                          </button>
+                          <button onClick={cancelPhoneVerification} className="text-dark-400 text-sm hover:underline">
+                            {t('profil.phoneChangeNumber')}
+                          </button>
+                        </div>
+                      </>
                     ) : (
                       <>
-                        {hasPassword && (
-                          <div>
-                            <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('securite.currentPassword')}</label>
-                            <div className="relative">
-                              <input
-                                type={showPwdFields ? 'text' : 'password'}
-                                value={currentPwd}
-                                onChange={e => setCurrentPwd(e.target.value)}
-                                placeholder="••••••••"
-                                className="input pr-11" />
-                              <button type="button" tabIndex={-1} onClick={() => setShowPwdFields(v => !v)}
-                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-600">
-                                {showPwdFields ? <EyeOff size={16} /> : <Eye size={16} />}
-                              </button>
-                            </div>
-                          </div>
+                        {meData?.phone && (
+                          <p className="text-sm text-dark-600 mb-2 flex items-center gap-2 flex-wrap">
+                            {t('profil.phoneCurrent', { phone: '' })}<strong className="text-dark-900 font-medium">{meData.phone}</strong>
+                            {meData.phoneVerified ? (
+                              <span className="settings-badge"><ShieldCheck size={11} /> {t('profil.phoneVerifiedBadge')}</span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gold-700 bg-gold-50 px-2 py-1 rounded-full leading-none">
+                                <XCircle size={11} /> {t('profil.phoneUnverifiedBadge')}
+                              </span>
+                            )}
+                          </p>
                         )}
-
-                        <div>
-                          <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('securite.newPassword')}</label>
-                          <div className="relative">
+                        <div className="flex gap-2 flex-col sm:flex-row">
+                          <div className="relative flex-1 min-w-0">
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-dark-400 text-sm pointer-events-none">+224</span>
                             <input
-                              type={showPwdFields ? 'text' : 'password'}
-                              value={newPwd}
-                              onChange={e => setNewPwd(e.target.value)}
-                              placeholder={t('securite.newPasswordPlaceholder')}
-                              className="input pr-11" />
+                              value={phoneInput}
+                              onChange={e => setPhoneInput(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                              placeholder={t('profil.phonePlaceholder')}
+                              className="input pl-14"
+                            />
+                          </div>
+                          <button onClick={sendPhoneCode} disabled={phoneSaving || phoneInput.length !== 9} className={`${secondaryBtn} !h-11 justify-center shrink-0`}>
+                            {phoneSaving ? <Loader2 size={14} className="animate-spin" /> : <MessageCircle size={14} />}
+                            {t('profil.phoneSendCode')}
+                          </button>
+                        </div>
+                        {phoneError && <p className="text-xs text-guinea-600 mt-1.5">{phoneError}</p>}
+                      </>
+                    )}
+                  </div>
+                </SettingsCard>
+
+                <AccountSwitcherSection />
+              </>
+            )}
+
+            {/* ── ADRESSES ───────────────────────────────────────── */}
+            {!showGate && tab === 'adresses' && <SavedAddressesSection cities={cities} />}
+
+            {/* ── SÉCURITÉ ───────────────────────────────────────── */}
+            {!showGate && tab === 'securite' && (
+              <>
+                <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-primary-200 bg-primary-50">
+                  <ShieldCheck size={16} className="text-primary-700 shrink-0" />
+                  <p className="text-primary-800 text-sm">{t('securite.accountSecure')}</p>
+                </div>
+
+                <SettingsCard
+                  icon={KeyRound}
+                  title={hasPassword === false ? t('securite.setPassword') : t('securite.changePassword')}
+                  description={hasPassword === false ? t('securite.googleAccountHint') : t('cards.password.desc')}
+                  footer={hasPassword !== null && !(hasPassword && pwdCooldown) ? (
+                    <div className="w-full flex items-center justify-between gap-3 flex-wrap">
+                      {hasPassword ? (
+                        <Link href="/auth/mot-de-passe-oublie" className="text-sm text-dark-500 hover:text-primary-700 hover:underline">
+                          {t('securite.forgotPassword')}
+                        </Link>
+                      ) : <span />}
+                      <button onClick={changePwd} disabled={pwdLoading} className={primaryBtn}>
+                        {pwdLoading && <Loader2 size={15} className="animate-spin" />}
+                        {hasPassword ? t('securite.changePassword') : t('securite.setPassword')}
+                      </button>
+                    </div>
+                  ) : undefined}
+                >
+                  {hasPassword === null ? (
+                    <p className="text-dark-400 text-sm flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> {t('securite.loading')}</p>
+                  ) : hasPassword && pwdCooldown ? (
+                    <p className="text-sm text-gold-700 bg-gold-50 border border-gold-200 rounded-lg px-3.5 py-2.5 flex items-center gap-2">
+                      <Clock size={14} className="shrink-0" />
+                      {t('profil.cooldownPassword', { days: pwdCooldown.days, plural: pwdCooldown.days > 1 ? 's' : '', date: pwdCooldown.dateStr })}
+                    </p>
+                  ) : (
+                    <>
+                      {hasPassword && (
+                        <div>
+                          <label className={L}>{t('securite.currentPassword')}</label>
+                          <div className="relative">
+                            <input type={showPwdFields ? 'text' : 'password'} value={currentPwd} onChange={e => setCurrentPwd(e.target.value)}
+                              placeholder="••••••••" className="input pr-11" />
                             <button type="button" tabIndex={-1} onClick={() => setShowPwdFields(v => !v)}
                               className="absolute right-3.5 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-600">
                               {showPwdFields ? <EyeOff size={16} /> : <Eye size={16} />}
                             </button>
                           </div>
-                          {newPwd && (
-                            <div className="mt-2">
-                              <div className="flex gap-1 mb-1.5">
-                                {[0, 1, 2, 3].map(i => (
-                                  <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${
-                                    i < pwdScore
-                                      ? ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-primary-500'][pwdScore - 1]
-                                      : 'bg-dark-200'
-                                  }`} />
-                                ))}
-                              </div>
-                              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
-                                {pwdCriteriaState.map((c, i) => (
-                                  <span key={i} className={`flex items-center gap-1 text-[11px] font-medium ${c.met ? 'text-primary-600' : 'text-dark-400'}`}>
-                                    <CheckCircle size={10} className={c.met ? 'text-primary-500' : 'text-dark-300'} /> {c.text}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
                         </div>
-
+                      )}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('securite.confirmPassword')}</label>
-                          <input
-                            type={showPwdFields ? 'text' : 'password'}
-                            value={confirmPwd}
-                            onChange={e => setConfirmPwd(e.target.value)}
-                            placeholder={t('securite.confirmPasswordPlaceholder')}
-                            className="input" />
+                          <label className={L}>{t('securite.newPassword')}</label>
+                          <div className="relative">
+                            <input type={showPwdFields ? 'text' : 'password'} value={newPwd} onChange={e => setNewPwd(e.target.value)}
+                              placeholder={t('securite.newPasswordPlaceholder')} className="input pr-11" />
+                            <button type="button" tabIndex={-1} onClick={() => setShowPwdFields(v => !v)}
+                              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-600">
+                              {showPwdFields ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                          </div>
                         </div>
-
-                        {pwdError && (
-                          <p className="text-sm text-guinea-600 bg-guinea-50 rounded-xl px-4 py-3">{pwdError}</p>
-                        )}
-
-                        <button onClick={changePwd} disabled={pwdLoading} className="btn-primary px-8 flex items-center gap-2 disabled:opacity-60">
-                          {pwdLoading && <Loader2 size={15} className="animate-spin" />}
-                          {hasPassword ? t('securite.changePassword') : t('securite.setPassword')}
-                        </button>
-                      </>
-                    )}
-
-                    {hasPassword && (
-                      <Link href="/auth/mot-de-passe-oublie" className="block text-sm text-primary-700 hover:underline pt-1">
-                        {t('securite.forgotPassword')}
-                      </Link>
-                    )}
-                  </>
-                )}
+                        <div>
+                          <label className={L}>{t('securite.confirmPassword')}</label>
+                          <input type={showPwdFields ? 'text' : 'password'} value={confirmPwd} onChange={e => setConfirmPwd(e.target.value)}
+                            placeholder={t('securite.confirmPasswordPlaceholder')} className="input" />
+                        </div>
+                      </div>
+                      {newPwd && (
+                        <div>
+                          <div className="flex gap-1 mb-1.5">
+                            {[0, 1, 2, 3].map(i => (
+                              <div key={i} className={`h-1 flex-1 rounded-full transition-all ${
+                                i < pwdScore ? ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-primary-500'][pwdScore - 1] : 'bg-dark-200'
+                              }`} />
+                            ))}
+                          </div>
+                          <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+                            {pwdCriteriaState.map((c, i) => (
+                              <span key={i} className={`flex items-center gap-1 text-[11px] ${c.met ? 'text-primary-600' : 'text-dark-400'}`}>
+                                <CheckCircle size={10} className={c.met ? 'text-primary-500' : 'text-dark-300'} /> {c.text}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {pwdError && <p className="text-sm text-guinea-600 bg-guinea-50 rounded-lg px-3.5 py-2.5">{pwdError}</p>}
+                    </>
+                  )}
+                </SettingsCard>
 
                 {/* ── Adresse email ── */}
-                <div className="pt-6 mt-6 border-t border-dark-100">
-                  <h3 className="font-semibold text-dark-900 flex items-center gap-2 mb-1">
-                    <Mail size={16} className="text-primary-700" /> {t('securite.emailTitle')}
-                  </h3>
-                  <p className="text-dark-500 text-sm mb-4">
-                    {meData?.email ? <>{t('securite.emailCurrent', { email: '' })}<strong>{meData.email}</strong></> : t('securite.emailNone')}
-                  </p>
-
+                <SettingsCard
+                  icon={Mail}
+                  title={t('securite.emailTitle')}
+                  description={meData?.email ? <>{t('securite.emailCurrent', { email: '' })}<strong className="text-dark-700">{meData.email}</strong></> : t('securite.emailNone')}
+                  footer={!emailCooldown && !emailChangeSent ? (
+                    <button onClick={requestEmailChange} disabled={emailChangeLoading || !newEmailInput.trim()} className={primaryBtn}>
+                      {emailChangeLoading && <Loader2 size={15} className="animate-spin" />}
+                      {meData?.email ? t('securite.changeEmail') : t('securite.addEmail')}
+                    </button>
+                  ) : undefined}
+                >
                   {emailCooldown ? (
-                    <p className="text-sm text-gold-700 bg-gold-50 border border-gold-200 rounded-xl px-4 py-3 flex items-center gap-2">
+                    <p className="text-sm text-gold-700 bg-gold-50 border border-gold-200 rounded-lg px-3.5 py-2.5 flex items-center gap-2">
                       <Clock size={14} className="shrink-0" />
                       {t('profil.cooldownGeneric', { days: emailCooldown.days, plural: emailCooldown.days > 1 ? 's' : '', date: emailCooldown.dateStr })}
                     </p>
                   ) : emailChangeSent ? (
-                    <p className="text-sm text-primary-700 bg-primary-50 border border-primary-200 rounded-xl px-4 py-3">
+                    <p className="text-sm text-primary-700 bg-primary-50 border border-primary-200 rounded-lg px-3.5 py-2.5">
                       {t('securite.emailSent', { email: newEmailInput.trim() })}
                     </p>
                   ) : (
-                    <div className="space-y-3 max-w-md">
-                      <div>
-                        <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('securite.newEmail')}</label>
-                        <input
-                          type="email"
-                          value={newEmailInput}
-                          onChange={e => setNewEmailInput(e.target.value)}
-                          placeholder={t('securite.newEmailPlaceholder')}
-                          className="input"
-                        />
-                      </div>
-                      {hasPassword && (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-semibold text-dark-700 mb-1.5">{t('securite.currentPassword')}</label>
-                          <input
-                            type="password"
-                            value={emailPwd}
-                            onChange={e => setEmailPwd(e.target.value)}
-                            placeholder="••••••••"
-                            className="input"
-                          />
+                          <label className={L}>{t('securite.newEmail')}</label>
+                          <input type="email" value={newEmailInput} onChange={e => setNewEmailInput(e.target.value)}
+                            placeholder={t('securite.newEmailPlaceholder')} className="input" />
                         </div>
-                      )}
-                      {emailChangeError && (
-                        <p className="text-sm text-guinea-600 bg-guinea-50 rounded-xl px-4 py-3">{emailChangeError}</p>
-                      )}
-                      <button
-                        onClick={requestEmailChange}
-                        disabled={emailChangeLoading || !newEmailInput.trim()}
-                        className="btn-primary px-6 flex items-center gap-2 disabled:opacity-60"
-                      >
-                        {emailChangeLoading && <Loader2 size={15} className="animate-spin" />}
-                        {meData?.email ? t('securite.changeEmail') : t('securite.addEmail')}
-                      </button>
-                      <p className="text-xs text-dark-400">
-                        {t('securite.emailChangeHint')}
-                      </p>
-                    </div>
+                        {hasPassword && (
+                          <div>
+                            <label className={L}>{t('securite.currentPassword')}</label>
+                            <input type="password" value={emailPwd} onChange={e => setEmailPwd(e.target.value)} placeholder="••••••••" className="input" />
+                          </div>
+                        )}
+                      </div>
+                      {emailChangeError && <p className="text-sm text-guinea-600 bg-guinea-50 rounded-lg px-3.5 py-2.5">{emailChangeError}</p>}
+                      <p className="text-xs text-dark-400">{t('securite.emailChangeHint')}</p>
+                    </>
                   )}
-                </div>
+                </SettingsCard>
 
                 {/* ── Questions de sécurité ── */}
-                <div className="pt-6 mt-6 border-t border-dark-100">
-                  <h3 className="font-semibold text-dark-900 flex items-center gap-2 mb-1">
-                    <HelpCircle size={16} className="text-primary-700" /> {t('securite.sqTitle')}
-                  </h3>
-                  <p className="text-dark-500 text-sm mb-4">
-                    {t('securite.sqHint')}
-                  </p>
-
+                <SettingsCard
+                  icon={HelpCircle}
+                  title={t('securite.sqTitle')}
+                  description={t('securite.sqHint')}
+                  footer={sqEditing ? (
+                    <>
+                      <button onClick={() => setSqEditing(false)} className={secondaryBtn}>{t('securite.sqCancel')}</button>
+                      <button onClick={saveSq} disabled={sqSaving} className={primaryBtn}>
+                        {sqSaving && <Loader2 size={15} className="animate-spin" />} {t('securite.sqSave')}
+                      </button>
+                    </>
+                  ) : undefined}
+                >
                   {sqConfigured === null ? (
                     <p className="text-dark-400 text-sm flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> {t('securite.loading')}</p>
                   ) : !sqEditing ? (
                     sqConfigured.length >= 2 ? (
-                      <div className="bg-primary-50 border border-primary-200 rounded-2xl p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <ShieldCheck size={16} className="text-primary-700" />
-                          <p className="text-primary-800 text-sm font-semibold">{t('securite.sqConfiguredCount', { count: sqConfigured.length })}</p>
-                        </div>
+                      <div>
+                        <p className="text-sm font-medium text-dark-900 flex items-center gap-2 mb-2">
+                          <ShieldCheck size={15} className="text-primary-700" /> {t('securite.sqConfiguredCount', { count: sqConfigured.length })}
+                        </p>
                         <ul className="text-dark-600 text-sm space-y-1 mb-3 list-disc list-inside">
                           {sqConfigured.map(q => <li key={q.questionId}>{tSecurity(`questions.${q.questionId}`)}</li>)}
                         </ul>
                         {sqCooldown ? (
-                          <p className="text-xs text-gold-700 bg-gold-50 border border-gold-200 rounded-xl px-3 py-2 flex items-center gap-1.5">
+                          <p className="text-xs text-gold-700 bg-gold-50 border border-gold-200 rounded-lg px-3 py-2 flex items-center gap-1.5">
                             <Clock size={12} className="shrink-0" /> {t('profil.cooldownGeneric', { days: sqCooldown.days, plural: sqCooldown.days > 1 ? 's' : '', date: sqCooldown.dateStr })}
                           </p>
                         ) : (
-                          <button onClick={startEditSq} className="text-primary-700 text-sm font-semibold hover:underline">
-                            {t('securite.sqEdit')}
-                          </button>
+                          <button onClick={startEditSq} className={secondaryBtn}>{t('securite.sqEdit')}</button>
                         )}
                       </div>
                     ) : (
-                      <div className="bg-gold-50 border border-gold-200 rounded-2xl p-4 flex items-start gap-3">
-                        <Shield size={18} className="text-gold-600 shrink-0 mt-0.5" />
+                      <div className="flex items-start gap-3 p-3.5 rounded-xl border border-gold-200 bg-gold-50">
+                        <Shield size={16} className="text-gold-600 shrink-0 mt-0.5" />
                         <div className="flex-1">
-                          <p className="text-gold-800 text-sm font-semibold mb-1">{t('securite.sqNoneTitle')}</p>
-                          <p className="text-gold-700 text-xs mb-3">
-                            {t('securite.sqNoneHint')}
-                          </p>
-                          <button onClick={startEditSq} className="btn-gold text-sm px-4 py-2">{t('securite.sqConfigureNow')}</button>
+                          <p className="text-gold-800 text-sm font-medium mb-0.5">{t('securite.sqNoneTitle')}</p>
+                          <p className="text-gold-700 text-xs mb-3">{t('securite.sqNoneHint')}</p>
+                          <button onClick={startEditSq} className={primaryBtn}>{t('securite.sqConfigureNow')}</button>
                         </div>
                       </div>
                     )
                   ) : (
-                    <div className="space-y-4">
+                    <>
                       {sqRows.map((row, i) => (
-                        <div key={i} className="bg-dark-50 rounded-2xl p-4 space-y-3">
+                        <div key={i} className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <label className="text-sm font-semibold text-dark-700">{t('securite.sqQuestionLabel', { n: i + 1 })}</label>
+                            <label className="text-sm font-medium text-dark-700">{t('securite.sqQuestionLabel', { n: i + 1 })}</label>
                             {sqRows.length > 2 && (
-                              <button onClick={() => removeSqRow(i)} className="text-guinea-500 text-xs font-semibold hover:underline">{t('securite.sqRemove')}</button>
+                              <button onClick={() => removeSqRow(i)} className="text-guinea-500 text-xs font-medium hover:underline">{t('securite.sqRemove')}</button>
                             )}
                           </div>
-                          <select value={row.questionId} onChange={e => updateSqRow(i, 'questionId', e.target.value)} className="input">
-                            <option value="">{t('securite.sqChoosePlaceholder')}</option>
-                            {sqMaster
-                              .filter(q => q.id === row.questionId || !sqRows.some(r => r.questionId === q.id))
-                              .map(q => <option key={q.id} value={q.id}>{tSecurity(`questions.${q.id}`)}</option>)}
-                          </select>
-                          <input
-                            value={row.answer}
-                            onChange={e => updateSqRow(i, 'answer', e.target.value)}
-                            placeholder={t('securite.sqAnswerPlaceholder')}
-                            className="input" />
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <select value={row.questionId} onChange={e => updateSqRow(i, 'questionId', e.target.value)} className="input">
+                              <option value="">{t('securite.sqChoosePlaceholder')}</option>
+                              {sqMaster
+                                .filter(q => q.id === row.questionId || !sqRows.some(r => r.questionId === q.id))
+                                .map(q => <option key={q.id} value={q.id}>{tSecurity(`questions.${q.id}`)}</option>)}
+                            </select>
+                            <input value={row.answer} onChange={e => updateSqRow(i, 'answer', e.target.value)}
+                              placeholder={t('securite.sqAnswerPlaceholder')} className="input" />
+                          </div>
                         </div>
                       ))}
-
-                      {sqRows.length < 3 && (
-                        <button onClick={addSqRow} className="text-primary-700 text-sm font-semibold hover:underline">
-                          {t('securite.sqAddThird')}
-                        </button>
-                      )}
-
-                      {sqError && (
-                        <p className="text-sm text-guinea-600 bg-guinea-50 rounded-xl px-4 py-3">{sqError}</p>
-                      )}
-
-                      <div className="flex items-center gap-4">
-                        <button onClick={saveSq} disabled={sqSaving} className="btn-primary px-6 flex items-center gap-2 disabled:opacity-60">
-                          {sqSaving && <Loader2 size={15} className="animate-spin" />} {t('securite.sqSave')}
-                        </button>
-                        <button onClick={() => setSqEditing(false)} className="text-dark-500 text-sm font-semibold hover:text-dark-700">
-                          {t('securite.sqCancel')}
-                        </button>
-                      </div>
-                      <p className="text-xs text-dark-400">
-                        {t('securite.sqFooterHint')}
-                      </p>
-                    </div>
+                      {sqRows.length < 3 && <button onClick={addSqRow} className={linkBtn}>{t('securite.sqAddThird')}</button>}
+                      {sqError && <p className="text-sm text-guinea-600 bg-guinea-50 rounded-lg px-3.5 py-2.5">{sqError}</p>}
+                      <p className="text-xs text-dark-400">{t('securite.sqFooterHint')}</p>
+                    </>
                   )}
+                </SettingsCard>
 
-                  <div className="pt-2 border-t border-dark-100">
-                    <ActiveSessionsSection />
-                  </div>
-                </div>
-              </div>
+                <ActiveSessionsSection />
+              </>
             )}
 
+            {/* ── NOTIFICATIONS ──────────────────────────────────── */}
             {!showGate && tab === 'notifications' && (
-              <div className="space-y-4">
-                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">{t('notifications.title')}</h2>
+              <SettingsCard icon={Bell} title={t('notifications.title')} description={t('cards.notifications.desc')} bodyClassName="divide-y divide-dark-100">
                 {[
                   { label: t('notifications.newMessages.label'),    sub: t('notifications.newMessages.sub'),    value: notifMsg,     fn: () => setNotifMsg(!notifMsg) },
                   { label: t('notifications.annonceExpiry.label'),  sub: t('notifications.annonceExpiry.sub'),  value: notifAnnonce, fn: () => setNotifAnnonce(!notifAnnonce) },
                   { label: t('notifications.newViews.label'),       sub: t('notifications.newViews.sub'),       value: notifVue,     fn: () => setNotifVue(!notifVue) },
                   { label: t('notifications.sound.label'),          sub: t('notifications.sound.sub'),          value: notifSound,   fn: () => { const v = !notifSound; setNotifSound(v); setNotificationSoundEnabled(v); } },
-                ].map((n, i) => (
-                  <button key={i} type="button" onClick={n.fn} role="switch" aria-checked={n.value}
-                    className="w-full flex items-center justify-between gap-3 p-4 min-h-[44px] bg-dark-50 rounded-2xl text-left hover:bg-dark-100 transition-colors">
-                    <div>
-                      <p className="font-semibold text-dark-900 text-sm">{n.label}</p>
-                      <p className="text-dark-500 text-xs mt-0.5">{n.sub}</p>
-                    </div>
-                    <Toggle value={n.value} />
-                  </button>
-                ))}
-              </div>
+                ].map((n, i) => <ToggleRow key={i} label={n.label} sub={n.sub} value={n.value} onClick={n.fn} />)}
+              </SettingsCard>
             )}
 
+            {/* ── CONFIDENTIALITÉ ────────────────────────────────── */}
             {!showGate && tab === 'confidentialite' && (
-              <div>
-                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">{t('confidentialite.title')}</h2>
-                <div className="space-y-4">
-                  {[
-                    { label: t('confidentialite.publicProfile.label'),   sub: t('confidentialite.publicProfile.sub'),   value: privPublic,   onChange: () => { const v = !privPublic;   setPrivPublic(v);   savePrivacy('profPublic', v); } },
-                    { label: t('confidentialite.showPhone.label'),       sub: t('confidentialite.showPhone.sub'),       value: privPhone,    onChange: () => { const v = !privPhone;    setPrivPhone(v);    savePrivacy('showPhone', v); } },
-                    { label: t('confidentialite.acceptMessages.label'), sub: t('confidentialite.acceptMessages.sub'), value: privMessages, onChange: () => { const v = !privMessages; setPrivMessages(v); savePrivacy('acceptMessages', v); } },
-                  ].map((item, i) => (
-                    <button key={i} type="button" onClick={item.onChange} role="switch" aria-checked={item.value}
-                      className="w-full flex items-center justify-between gap-3 p-4 min-h-[44px] bg-dark-50 rounded-2xl text-left hover:bg-dark-100 transition-colors">
-                      <div>
-                        <p className="font-semibold text-dark-900 text-sm">{item.label}</p>
-                        <p className="text-dark-500 text-xs mt-0.5">{item.sub}</p>
-                      </div>
-                      <Toggle value={item.value} />
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <SettingsCard icon={Shield} title={t('confidentialite.title')} description={t('cards.confidentialite.desc')} bodyClassName="divide-y divide-dark-100">
+                {[
+                  { label: t('confidentialite.publicProfile.label'),   sub: t('confidentialite.publicProfile.sub'),   value: privPublic,   onChange: () => { const v = !privPublic;   setPrivPublic(v);   savePrivacy('profPublic', v); } },
+                  { label: t('confidentialite.showPhone.label'),       sub: t('confidentialite.showPhone.sub'),       value: privPhone,    onChange: () => { const v = !privPhone;    setPrivPhone(v);    savePrivacy('showPhone', v); } },
+                  { label: t('confidentialite.acceptMessages.label'), sub: t('confidentialite.acceptMessages.sub'), value: privMessages, onChange: () => { const v = !privMessages; setPrivMessages(v); savePrivacy('acceptMessages', v); } },
+                ].map((item, i) => <ToggleRow key={i} label={item.label} sub={item.sub} value={item.value} onClick={item.onChange} />)}
+              </SettingsCard>
             )}
 
+            {/* ── PERSONNALISATION ───────────────────────────────── */}
             {!showGate && tab === 'personnalisation' && <PersonalizationSection />}
 
+            {/* ── APPARENCE ──────────────────────────────────────── */}
             {tab === 'apparence' && (
-              <div className="space-y-8">
-
-                {/* ── Mode clair / sombre ── */}
-                <div>
-                  <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-2">{t('apparence.title')}</h2>
-                  <p className="text-dark-500 text-sm mb-5">{t('apparence.subtitle')}</p>
-                  <div className="grid grid-cols-3 gap-3">
+              <>
+                <SettingsCard icon={Monitor} title={t('apparence.title')} description={t('apparence.subtitle')}>
+                  <div className="grid grid-cols-3 gap-2.5">
                     {([
-                      { value: 'light',  label: t('apparence.modes.light.label'),  icon: Sun,     desc: t('apparence.modes.light.desc'),  bg: 'bg-white border-dark-200' },
-                      { value: 'dark',   label: t('apparence.modes.dark.label'),   icon: Moon,    desc: t('apparence.modes.dark.desc'),   bg: 'bg-dark-900 border-dark-700' },
-                      { value: 'system', label: t('apparence.modes.system.label'), icon: Monitor, desc: t('apparence.modes.system.desc'), bg: 'bg-gradient-to-br from-white to-dark-800 border-dark-300' },
+                      // Aperçus en couleurs fixes (inline) : sinon le mode sombre global
+                      // repeindrait aussi l'aperçu « Clair » en sombre.
+                      { value: 'light',  label: t('apparence.modes.light.label'),  icon: Sun,     desc: t('apparence.modes.light.desc'),  preview: { background: '#ffffff', borderColor: '#e2e8f0', color: '#64748b' } },
+                      { value: 'dark',   label: t('apparence.modes.dark.label'),   icon: Moon,    desc: t('apparence.modes.dark.desc'),   preview: { background: '#0f172a', borderColor: '#334155', color: '#94a3b8' } },
+                      { value: 'system', label: t('apparence.modes.system.label'), icon: Monitor, desc: t('apparence.modes.system.desc'), preview: { background: 'linear-gradient(135deg, #ffffff 0%, #ffffff 48%, #0f172a 52%, #0f172a 100%)', borderColor: '#94a3b8', color: '#64748b' } },
                     ] as const).map(opt => {
                       const Icon = opt.icon;
                       const active = theme === opt.value;
                       return (
-                        <button key={opt.value} onClick={() => setTheme(opt.value)}
-                          className={`flex flex-col items-center gap-2.5 p-4 rounded-2xl border-2 transition-all ${
-                            active ? 'border-primary-700 bg-primary-50' : 'border-dark-200 hover:border-primary-400 hover:bg-dark-50'
-                          }`}>
-                          <div className={`w-full h-12 rounded-xl border ${opt.bg} flex items-center justify-center`}>
-                            <Icon size={20} className={active ? 'text-primary-700' : 'text-dark-400'} />
-                          </div>
-                          <p className={`font-semibold text-sm ${active ? 'text-primary-700' : 'text-dark-700'}`}>{opt.label}</p>
-                          <p className="text-dark-400 text-xs text-center leading-tight">{opt.desc}</p>
-                          {active && <CheckCircle size={15} className="text-primary-700" />}
+                        <button key={opt.value} onClick={() => setTheme(opt.value)} aria-pressed={active} className={tileClass(active)}>
+                          <span className="w-full h-10 rounded-lg border flex items-center justify-center" style={opt.preview}>
+                            <Icon size={17} strokeWidth={1.75} />
+                          </span>
+                          <span className="font-medium text-sm">{opt.label}</span>
+                          <span className="text-dark-400 text-[11px] text-center leading-tight hidden sm:block">{opt.desc}</span>
                         </button>
                       );
                     })}
                   </div>
-                </div>
+                </SettingsCard>
 
-                {/* ── Taille du texte ── */}
-                <div>
-                  <h3 className="font-semibold text-dark-900 mb-1 flex items-center gap-2">
-                    <Type size={15} className="text-primary-700" /> {t('apparence.textSize.title')}
-                  </h3>
-                  <p className="text-dark-500 text-xs mb-4">{t('apparence.textSize.subtitle')}</p>
-                  <div className="grid grid-cols-3 gap-3">
+                <SettingsCard icon={Type} title={t('apparence.textSize.title')} description={t('apparence.textSize.subtitle')}>
+                  <div className="grid grid-cols-3 gap-2.5">
                     {([
-                      { value: 'sm',   label: t('apparence.textSize.sm'),   px: 16 },
-                      { value: 'base', label: t('apparence.textSize.base'), px: 21 },
-                      { value: 'lg',   label: t('apparence.textSize.lg'),   px: 26 },
+                      { value: 'sm',   label: t('apparence.textSize.sm'),   px: 15 },
+                      { value: 'base', label: t('apparence.textSize.base'), px: 19 },
+                      { value: 'lg',   label: t('apparence.textSize.lg'),   px: 24 },
                     ] as const).map(opt => {
                       const active = textSize === opt.value;
                       return (
-                        <button key={opt.value} onClick={() => setTextSize(opt.value)}
-                          className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
-                            active ? 'border-primary-700 bg-primary-50' : 'border-dark-200 hover:border-primary-400 hover:bg-dark-50'
-                          }`}>
-                          <span className={`font-bold leading-none ${active ? 'text-primary-700' : 'text-dark-700'}`} style={{ fontSize: opt.px }}>Aa</span>
-                          <p className={`font-semibold text-sm ${active ? 'text-primary-700' : 'text-dark-700'}`}>{opt.label}</p>
-                          {active && <CheckCircle size={14} className="text-primary-700" />}
+                        <button key={opt.value} onClick={() => setTextSize(opt.value)} aria-pressed={active} className={tileClass(active)}>
+                          <span className="font-semibold leading-none h-7 flex items-end" style={{ fontSize: opt.px }}>Aa</span>
+                          <span className="font-medium text-sm">{opt.label}</span>
                         </button>
                       );
                     })}
                   </div>
-                </div>
+                </SettingsCard>
 
-                {/* ── Couleur d'accent (base, libres) ── */}
-                <div>
-                  <h3 className="font-semibold text-dark-900 mb-1 flex items-center gap-2">
-                    <Palette size={15} className="text-primary-700" /> {t('apparence.accentColor.title')}
-                  </h3>
-                  <p className="text-dark-500 text-xs mb-4">{t('apparence.accentColor.subtitle')}</p>
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                <SettingsCard icon={Palette} title={t('apparence.accentColor.title')} description={t('apparence.accentColor.subtitle')}>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
                     {COLOR_THEMES.filter(ct => !ct.isSpecial).map(ct => {
                       const active = colorAccent === ct.id && !specialTheme;
                       return (
-                        <button key={ct.id} onClick={() => setColorAccent(ct.id)}
-                          className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${
-                            active ? 'border-primary-700 bg-primary-50' : 'border-dark-200 hover:border-dark-400 hover:bg-dark-50'
-                          }`}>
-                          <div className="w-8 h-8 rounded-full shadow-sm" style={{ backgroundColor: ct.hex }} />
-                          <p className={`text-xs font-semibold text-center leading-tight ${active ? 'text-primary-700' : 'text-dark-600'}`}>
-                            {ct.emoji} {ct.label}
-                          </p>
-                          {active && <CheckCircle size={12} className="text-primary-700" />}
+                        <button key={ct.id} onClick={() => setColorAccent(ct.id)} aria-pressed={active} className={tileClass(active)}>
+                          <span className="w-7 h-7 rounded-full shadow-sm ring-2 ring-white/20" style={{ backgroundColor: ct.hex }} />
+                          <span className="text-xs font-medium text-center leading-tight">{ct.emoji} {ct.label}</span>
                         </button>
                       );
                     })}
                   </div>
-                </div>
+                </SettingsCard>
 
-                {/* ── Thèmes spéciaux animés (visibles seulement si débloqués) ── */}
+                {/* Thèmes spéciaux animés (visibles seulement si débloqués) */}
                 {(() => {
                   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
                   const visibleSpecial = COLOR_THEMES.filter(ct =>
@@ -1172,187 +1042,134 @@ export default function ParametresPage() {
                   );
                   if (visibleSpecial.length === 0) return null;
                   return (
-                    <div>
-                      <h3 className="font-semibold text-dark-900 mb-1 flex items-center gap-2">
-                        <span className="text-base">🎨</span> {t('apparence.specialThemes.title')}
-                      </h3>
-                      <p className="text-dark-500 text-xs mb-4">
-                        {t('apparence.specialThemes.subtitle')}
-                      </p>
-                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    <SettingsCard icon={Sparkles} title={t('apparence.specialThemes.title')} description={t('apparence.specialThemes.subtitle')}>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
                         {visibleSpecial.map(ct => {
                           const active = colorAccent === ct.id && !specialTheme;
                           return (
-                            <button
-                              key={ct.id}
-                              onClick={() => setColorAccent(ct.id)}
-                              className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${
-                                active
-                                  ? 'border-primary-700 bg-primary-50'
-                                  : 'border-dark-200 hover:border-dark-400 hover:bg-dark-50'
-                              }`}>
-                              <div className="w-8 h-8 rounded-full shadow-sm" style={{ backgroundColor: ct.hex }} />
-                              <p className={`text-xs font-semibold text-center leading-tight ${active ? 'text-primary-700' : 'text-dark-600'}`}>
-                                {ct.emoji} {ct.label}
-                              </p>
-                              {active && <CheckCircle size={12} className="text-primary-700" />}
+                            <button key={ct.id} onClick={() => setColorAccent(ct.id)} aria-pressed={active} className={tileClass(active)}>
+                              <span className="w-7 h-7 rounded-full shadow-sm" style={{ backgroundColor: ct.hex }} />
+                              <span className="text-xs font-medium text-center leading-tight">{ct.emoji} {ct.label}</span>
                             </button>
                           );
                         })}
                       </div>
-                    </div>
+                    </SettingsCard>
                   );
                 })()}
 
-                {/* ── Thèmes événementiels ── */}
+                {/* Thèmes événementiels */}
                 {(() => {
                   const visibleEvents = SPECIAL_THEMES.filter(st => !isThemeLocked(st.id));
                   if (visibleEvents.length === 0) return null;
                   return (
-                    <div>
-                      <h3 className="font-semibold text-dark-900 mb-1 flex items-center gap-2">
-                        <span className="text-base">✨</span> {t('apparence.eventThemes.title')}
-                      </h3>
-                      <p className="text-dark-500 text-xs mb-4">{t('apparence.eventThemes.subtitle')}</p>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <SettingsCard
+                      icon={PartyPopper}
+                      title={t('apparence.eventThemes.title')}
+                      description={t('apparence.eventThemes.subtitle')}
+                      footer={specialTheme ? (
+                        <button onClick={() => setSpecialTheme(null)} className={secondaryBtn}>{t('apparence.eventThemes.reset')}</button>
+                      ) : undefined}
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                         {visibleEvents.map(st => {
                           const active = specialTheme === st.id;
                           return (
-                            <button
-                              key={st.id}
-                              onClick={() => setSpecialTheme(active ? null : st.id as any)}
-                              className={`flex items-center gap-3 p-3 rounded-2xl border-2 transition-all text-left ${
-                                active
-                                  ? 'border-primary-700 bg-primary-50'
-                                  : 'border-dark-200 hover:border-dark-400 hover:bg-dark-50'
-                              }`}>
-                              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl shrink-0"
-                                style={{ backgroundColor: st.hex + '22' }}>
+                            <button key={st.id} onClick={() => setSpecialTheme(active ? null : st.id as any)} aria-pressed={active}
+                              className={`${tileClass(active)} !flex-row !items-center !gap-3 text-left`}>
+                              <span className="w-9 h-9 rounded-lg flex items-center justify-center text-xl shrink-0" style={{ backgroundColor: st.hex + '22' }}>
                                 {st.emoji}
-                              </div>
-                              <div className="min-w-0">
-                                <p className={`text-sm font-semibold ${active ? 'text-primary-700' : 'text-dark-800'}`}>{st.label}</p>
-                                <p className="text-dark-400 text-xs leading-tight mt-0.5">{st.description}</p>
-                              </div>
-                              {active && <CheckCircle size={14} className="text-primary-700 ml-auto shrink-0" />}
+                              </span>
+                              <span className="min-w-0">
+                                <span className="block text-sm font-medium">{st.label}</span>
+                                <span className="block text-dark-400 text-xs leading-tight mt-0.5">{st.description}</span>
+                              </span>
                             </button>
                           );
                         })}
                       </div>
-                      {specialTheme && (
-                        <button onClick={() => setSpecialTheme(null)}
-                          className="mt-3 text-xs text-dark-500 hover:text-dark-700 underline">
-                          {t('apparence.eventThemes.reset')}
-                        </button>
-                      )}
-                    </div>
+                    </SettingsCard>
                   );
                 })()}
 
-                {/* ── Voix de l'assistant vocal ── */}
                 <VoiceSettingsSection />
-
-              </div>
+              </>
             )}
 
+            {/* ── LANGUE ─────────────────────────────────────────── */}
             {tab === 'langue' && (
-              <div>
-                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">Langue de l'interface</h2>
-                <div className="space-y-2">
-                  {LANGS.map(({ code, flag, label, badge }) => (
-                    <label key={code}
-                      className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-colors ${
-                        locale === code
-                          ? 'border-primary-700 bg-primary-50'
-                          : 'border-dark-200 hover:border-primary-400'
-                      } ${localePending ? 'opacity-60 pointer-events-none' : ''}`}>
-                      <input
-                        type="radio"
-                        name="lang"
-                        checked={locale === code}
-                        onChange={() => switchLocale(code)}
-                        className="accent-primary-700"
-                      />
-                      <span className="text-lg leading-none">{flag}</span>
-                      <span className="w-8 h-6 rounded bg-primary-100 flex items-center justify-center text-xs font-bold text-primary-700">{badge}</span>
-                      <span className="font-medium text-dark-700">{label}</span>
-                      {locale === code && <CheckCircle size={16} className="ml-auto text-primary-700" />}
-                    </label>
-                  ))}
-                </div>
-                <p className="text-dark-400 text-xs mt-4">La langue choisie est enregistrée sur votre compte et réappliquée à chaque visite.</p>
-              </div>
+              <SettingsCard icon={Globe} title={t('cards.langue.title')} description={t('cards.langue.desc')} bodyClassName="divide-y divide-dark-100">
+                {LANGS.map(({ code, label, badge }) => (
+                  <label key={code}
+                    className={`settings-row flex items-center gap-3 px-4 sm:px-5 h-12 cursor-pointer ${localePending ? 'opacity-60 pointer-events-none' : ''}`}>
+                    <input type="radio" name="lang" checked={locale === code} onChange={() => switchLocale(code)} className="accent-primary-700 w-4 h-4" />
+                    <span className="w-8 text-center text-xs font-semibold text-dark-500">{badge}</span>
+                    <span className={`text-sm ${locale === code ? 'font-semibold text-primary-700' : 'text-dark-800'}`}>{label}</span>
+                    {locale === code && <CheckCircle size={15} className="ml-auto text-primary-700" />}
+                  </label>
+                ))}
+              </SettingsCard>
             )}
 
+            {/* ── AIDE ───────────────────────────────────────────── */}
             {tab === 'aide' && (
-              <div>
-                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">Aide & Support</h2>
-                <div className="space-y-3">
-                  {HELP_ITEMS.map(({ Icon, text, href }) => (
-                    <Link key={href} href={href}
-                      className="flex items-center gap-3 p-4 rounded-xl border border-dark-200 hover:border-primary-400 hover:bg-primary-50 transition-colors group">
-                      <div className="w-9 h-9 bg-dark-50 group-hover:bg-primary-100 rounded-xl flex items-center justify-center transition-colors shrink-0">
-                        <Icon size={16} className="text-dark-500 group-hover:text-primary-700 transition-colors" />
-                      </div>
-                      <span className="font-medium text-dark-700 flex-1">{text}</span>
-                      <ArrowRight size={15} className="text-dark-300 group-hover:text-primary-700 transition-colors shrink-0" />
-                    </Link>
-                  ))}
-                </div>
-              </div>
+              <SettingsCard icon={HelpCircle} title={t('tabs.aide')} description={t('cards.aide.desc')} bodyClassName="divide-y divide-dark-100">
+                {HELP_ITEMS.map(({ Icon, text, href }) => (
+                  <Link key={href} href={href} className="settings-row flex items-center gap-3 px-4 sm:px-5 h-12 group">
+                    <Icon size={16} strokeWidth={1.75} className="text-primary-700 shrink-0" />
+                    <span className="text-sm text-dark-800 flex-1">{text}</span>
+                    <ChevronRight size={15} className="text-dark-400 group-hover:text-primary-700 transition-colors shrink-0" />
+                  </Link>
+                ))}
+              </SettingsCard>
             )}
 
+            {/* ── CONDITIONS ─────────────────────────────────────── */}
             {tab === 'conditions' && (
-              <div>
-                <h2 className="font-display font-bold text-dark-900 text-lg pl-2.5 border-l-2 border-primary-500 mb-5">Conditions d'utilisation</h2>
-                <div className="prose prose-sm text-dark-600 space-y-4">
+              <SettingsCard icon={FileText} title={t('tabs.conditions')} description={t('cards.conditions.desc')}>
+                <div className="text-sm text-dark-600 space-y-4 leading-relaxed">
                   <p>En utilisant TrouveTout224, vous acceptez les présentes conditions.</p>
                   <div>
-                    <h3 className="font-semibold text-dark-800">1. Utilisation du service</h3>
+                    <h3 className="font-semibold text-dark-900 mb-1">1. Utilisation du service</h3>
                     <p>TrouveTout224 est une plateforme d'annonces destinée aux résidents de Guinée. L'âge minimum est de 13 ans.</p>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-dark-800">2. Contenu interdit</h3>
+                    <h3 className="font-semibold text-dark-900 mb-1">2. Contenu interdit</h3>
                     <p>Il est strictement interdit de publier du contenu illégal, offensant, des arnaques, de la nudité ou de la violence.</p>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-dark-800">3. Responsabilité</h3>
+                    <h3 className="font-semibold text-dark-900 mb-1">3. Responsabilité</h3>
                     <p>TrouveTout224 n'est pas responsable des transactions entre utilisateurs. Soyez vigilants et rencontrez les vendeurs dans des lieux publics.</p>
                   </div>
                 </div>
-              </div>
+              </SettingsCard>
             )}
 
+            {/* ── À PROPOS ───────────────────────────────────────── */}
             {tab === 'apropos' && (
-              <div className="text-center py-8">
-                <div className="w-20 h-20 bg-primary-700 rounded-3xl flex items-center justify-center mx-auto mb-5 shadow-premium">
-                  <span className="text-white font-display font-bold text-2xl">TT</span>
+              <SettingsCard icon={Info} title={t('cards.apropos.title')} bodyClassName="text-center py-8 px-5">
+                <div className="w-16 h-16 bg-primary-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <span className="text-white font-display font-bold text-xl">TT</span>
                 </div>
-                <h2 className="text-2xl font-display font-bold mb-1">
+                <h2 className="text-xl font-display font-bold mb-1">
                   <span className="text-primary-700">TrouveTout</span><span className="text-yellow-500">224</span>
                 </h2>
-                <p className="text-dark-400 text-sm mb-6">Version 1.0.0 · Conakry, République de Guinée</p>
+                <p className="text-dark-400 text-sm mb-5">Version 1.0.0 · Conakry, République de Guinée</p>
                 <p className="text-dark-600 max-w-md mx-auto text-sm leading-relaxed mb-6">
                   La plus grande plateforme d'annonces et marketplace de Guinée. Notre mission est de connecter acheteurs et vendeurs partout en Guinée.
                 </p>
-                <div className="grid grid-cols-3 gap-3 max-w-sm mx-auto mb-6 text-center">
-                  <div className="bg-primary-50 rounded-xl p-3">
-                    <p className="text-xl font-bold text-primary-700">21</p>
-                    <p className="text-xs text-dark-500">Catégories</p>
-                  </div>
-                  <div className="bg-primary-50 rounded-xl p-3">
-                    <p className="text-xl font-bold text-primary-700">8</p>
-                    <p className="text-xs text-dark-500">Villes</p>
-                  </div>
-                  <div className="bg-primary-50 rounded-xl p-3">
-                    <p className="text-xl font-bold text-primary-700">GN</p>
-                    <p className="text-xs text-dark-500">Guinée</p>
-                  </div>
+                <div className="grid grid-cols-3 gap-2.5 max-w-sm mx-auto mb-6 text-center">
+                  {[['21', 'Catégories'], ['8', 'Villes'], ['GN', 'Guinée']].map(([v, l]) => (
+                    <div key={l} className="border border-dark-200 rounded-xl p-3">
+                      <p className="text-lg font-semibold text-primary-700">{v}</p>
+                      <p className="text-xs text-dark-500">{l}</p>
+                    </div>
+                  ))}
                 </div>
                 <p className="text-dark-400 text-xs">© {new Date().getFullYear()} TrouveTout224 · Tous droits réservés</p>
-              </div>
+              </SettingsCard>
             )}
-          </div>
+          </main>
         </div>
       </div>
     </div>

@@ -6,7 +6,7 @@
   "tabs": {
     "profil": "Profile",
     "adresses": "My addresses",
-    "securite": "Security & Password",
+    "securite": "Security",
     "notifications": "Notifications",
     "confidentialite": "Privacy",
     "apparence": "Appearance",
@@ -59,7 +59,7 @@
     "email": "Email",
     "emailNotSet": "Not provided",
     "emailChangeHintPrefix": "To change your email address, go to the ",
-    "emailChangeHintBold": "Security & Password",
+    "emailChangeHintBold": "Security",
     "emailChangeHintSuffix": " tab.",
     "phone": "Phone",
     "phoneHint": "This number is used for WhatsApp contact on your listings.",
@@ -308,5 +308,34 @@
     "phoneVerified": "Phone number verified successfully!",
     "emailLinkSent": "Confirmation link sent!",
     "sqSaved": "Security questions saved!"
+  },
+  "cards": {
+    "profil": {
+      "title": "Profile",
+      "desc": "Your photo, name and contact details shown on TrouveTout224."
+    },
+    "password": {
+      "desc": "Use a long password you don’t use anywhere else."
+    },
+    "notifications": {
+      "desc": "Choose what you get notified about."
+    },
+    "confidentialite": {
+      "desc": "Control what others can see about you."
+    },
+    "langue": {
+      "title": "Interface language",
+      "desc": "Saved to your account and applied on every visit."
+    },
+    "aide": {
+      "desc": "Guides, reporting and contact."
+    },
+    "conditions": {
+      "desc": "The rules for using TrouveTout224."
+    },
+    "apropos": {
+      "title": "About"
+    },
+    "mobileBack": "Settings"
   }
 }

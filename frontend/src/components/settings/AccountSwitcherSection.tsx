@@ -2,9 +2,11 @@
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Plus, X, UserCircle2 } from 'lucide-react';
+import { Plus, X, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore, MAX_ACCOUNTS } from '@/store/auth.store';
+import { cloudinaryThumb } from '@/lib/cloudinary';
+import { SettingsCard, secondaryBtn } from './SettingsUI';
 
 export default function AccountSwitcherSection() {
   const t = useTranslations('parametres.profil.accounts');
@@ -18,8 +20,7 @@ export default function AccountSwitcherSection() {
     router.refresh();
   };
 
-  const handleRemove = (userId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleRemove = (userId: string) => {
     if (!window.confirm(t('removeConfirm'))) return;
     removeAccount(userId);
     toast.success(t('removed'));
@@ -27,60 +28,55 @@ export default function AccountSwitcherSection() {
   };
 
   return (
-    <div className="mb-5">
-      <h3 className="font-semibold text-dark-900 flex items-center gap-2 mb-1">
-        <UserCircle2 size={16} className="text-primary-700" /> {t('title')}
-      </h3>
-      <p className="text-xs text-dark-500 mb-3">{t('hint', { max: MAX_ACCOUNTS })}</p>
-
-      <div className="space-y-2">
-        {accounts.map((a) => {
-          const isActive = a.user.id === user?.id;
-          return (
-            <button
-              key={a.user.id}
-              type="button"
-              onClick={() => handleSwitch(a.user.id)}
-              className={`w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl text-left transition-colors ${
-                isActive ? 'bg-primary-50 dark:bg-primary-900/20 border-2 border-primary-600' : 'bg-dark-50 dark:bg-dark-700/50 border-2 border-transparent hover:border-dark-200 dark:hover:border-dark-600'
-              }`}
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-700 font-bold text-sm shrink-0">
-                  {a.user.firstName?.[0]?.toUpperCase() || '?'}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-dark-800 dark:text-dark-100 truncate">{a.user.firstName} {a.user.lastName}</p>
-                  <p className="text-xs text-dark-500 truncate">{a.user.email || a.user.phone}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                {isActive && (
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary-600 text-white">{t('active')}</span>
-                )}
-                <button
-                  onClick={(e) => handleRemove(a.user.id, e)}
-                  aria-label={t('removeBtn')}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg text-dark-400 hover:bg-guinea-50 dark:hover:bg-guinea-900/20 hover:text-guinea-600 transition-colors"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {accounts.length < MAX_ACCOUNTS ? (
-        <Link
-          href="/auth/connexion?mode=add"
-          className="mt-3 flex items-center gap-2 text-sm font-semibold text-primary-700 hover:underline"
-        >
+    <SettingsCard
+      icon={Users}
+      title={t('title')}
+      description={t('hint', { max: MAX_ACCOUNTS })}
+      bodyClassName="divide-y divide-dark-100"
+      footer={accounts.length < MAX_ACCOUNTS ? (
+        <Link href="/auth/connexion?mode=add" className={secondaryBtn}>
           <Plus size={15} /> {t('addBtn')}
         </Link>
       ) : (
-        <p className="text-xs text-dark-400 mt-3">{t('limitReached', { max: MAX_ACCOUNTS })}</p>
+        <p className="text-xs text-dark-400">{t('limitReached', { max: MAX_ACCOUNTS })}</p>
       )}
-    </div>
+    >
+      {accounts.map((a) => {
+        const isActive = a.user.id === user?.id;
+        return (
+          <div key={a.user.id} className="settings-row group flex items-center gap-2 pr-2 sm:pr-3">
+            <button
+              type="button"
+              onClick={() => handleSwitch(a.user.id)}
+              aria-current={isActive ? 'true' : undefined}
+              className="flex-1 min-w-0 flex items-center gap-3 pl-4 sm:pl-5 py-2.5 text-left"
+            >
+              {a.user.avatar ? (
+                <img src={cloudinaryThumb(a.user.avatar, 80)} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+              ) : (
+                <span className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-semibold text-xs shrink-0">
+                  {a.user.firstName?.[0]?.toUpperCase() || '?'}{a.user.lastName?.[0]?.toUpperCase() || ''}
+                </span>
+              )}
+              <span className="min-w-0">
+                <span className="block text-sm font-medium text-dark-900 truncate">{a.user.firstName} {a.user.lastName}</span>
+                <span className="block text-xs text-dark-500 truncate">{a.user.email || a.user.phone}</span>
+              </span>
+              {isActive && <span className="settings-badge shrink-0 ml-auto">{t('active')}</span>}
+            </button>
+            {/* Croix visible au survol (souris) ; toujours visible sur écran tactile */}
+            <button
+              type="button"
+              onClick={() => handleRemove(a.user.id)}
+              aria-label={t('removeBtn')}
+              title={t('removeBtn')}
+              className="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg text-dark-400 hover:text-guinea-600 hover:bg-guinea-50 transition-opacity [@media(hover:hover)_and_(min-width:1024px)]:opacity-0 [@media(hover:hover)_and_(min-width:1024px)]:group-hover:opacity-100 focus-visible:opacity-100"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        );
+      })}
+    </SettingsCard>
   );
 }
