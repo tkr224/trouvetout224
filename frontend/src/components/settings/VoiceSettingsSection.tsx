@@ -76,7 +76,7 @@ export default function VoiceSettingsSection() {
           const key = opt.uri || 'auto';
           const isPlaying = playingKey === key;
           return (
-            <div key={key} className={`settings-tile !flex-row !items-center !gap-2 !p-0 justify-between ${active ? 'is-active' : ''}`}>
+            <div key={key} className={`settings-tile flex items-center gap-2 justify-between rounded-xl border ${active ? 'is-active' : ''}`}>
               <button
                 onClick={() => setVoiceURI(opt.uri)}
                 aria-pressed={active}
