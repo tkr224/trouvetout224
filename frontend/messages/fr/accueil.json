@@ -61,18 +61,39 @@
     "allCategories": "Toutes catégories"
   },
   "trust": {
-    "sell": { "title": "Vends en quelques minutes", "desc": "Annonce gratuite, publiée sans limite" },
-    "buy": { "title": "Achète en toute confiance", "desc": "Vendeurs vérifiés par notre équipe" },
-    "contact": { "title": "Contact direct sur WhatsApp", "desc": "Parle au vendeur tout de suite" },
-    "shop": { "title": "Ta boutique en ligne", "desc": "Visible par toute la Guinée 🇬🇳" }
+    "sell": {
+      "title": "Vends en quelques minutes",
+      "desc": "Annonce gratuite, publiée sans limite"
+    },
+    "buy": {
+      "title": "Achète en toute confiance",
+      "desc": "Vendeurs vérifiés par notre équipe"
+    },
+    "contact": {
+      "title": "Contact direct sur WhatsApp",
+      "desc": "Parle au vendeur tout de suite"
+    },
+    "shop": {
+      "title": "Ta boutique en ligne",
+      "desc": "Visible par toute la Guinée 🇬🇳"
+    }
   },
   "howItWorks": {
     "kicker": "Comment ça marche",
     "title": "Vendre en 3 étapes, sans complication",
     "subtitle": "Pas de frais caché, pas d'attente — juste toi et l'acheteur.",
-    "step1": { "title": "Publie ton annonce gratuitement", "desc": "Ajoute des photos, un prix et une description en quelques minutes." },
-    "step2": { "title": "Les acheteurs te contactent sur WhatsApp", "desc": "Directement, sans intermédiaire ni frais de mise en relation." },
-    "step3": { "title": "Tu vends, sans commission", "desc": "Visible par toute la Guinée, sans limite de durée." }
+    "step1": {
+      "title": "Publie ton annonce gratuitement",
+      "desc": "Ajoute des photos, un prix et une description en quelques minutes."
+    },
+    "step2": {
+      "title": "Les acheteurs te contactent sur WhatsApp",
+      "desc": "Directement, sans intermédiaire ni frais de mise en relation."
+    },
+    "step3": {
+      "title": "Tu vends, sans commission",
+      "desc": "Visible par toute la Guinée, sans limite de durée."
+    }
   },
   "boutiquesSection": {
     "kicker": "Boutiques",
@@ -104,5 +125,59 @@
     "slogan": "Trouvez tout. Vendez tout. En Guinée.",
     "ctaPublish": "Publier une annonce",
     "ctaBrowse": "Voir les annonces"
+  },
+  "v2": {
+    "kicker": "100% guinéen · gratuit · contact direct",
+    "title1": "Tout ce que tu cherches, ",
+    "title2": "près de chez toi.",
+    "subtitle": "Achète et vends partout en Guinée. Les acheteurs te contactent directement sur WhatsApp.",
+    "searchPlaceholder": "iPhone, Toyota, villa à Kipé…",
+    "allCategories": "Toutes catégories",
+    "allCities": "Toute la Guinée",
+    "search": "Rechercher",
+    "popular": "Populaire :",
+    "cat": {
+      "telephones": "Téléphones",
+      "informatique": "Informatique",
+      "vehicules": "Véhicules",
+      "immobilier": "Immobilier",
+      "mode": "Mode",
+      "emplois": "Emplois",
+      "restaurants": "Restaurants",
+      "all": "Tout voir"
+    },
+    "forYou": {
+      "title": "Pour toi",
+      "subtitle": "Ton fil s’adapte à ce que tu regardes.",
+      "manage": "Gérer",
+      "tabForYou": "Pour toi",
+      "tabRecent": "Récents",
+      "tabPopular": "Populaires",
+      "seeAll": "Voir tout",
+      "emptyTitle": "Pas encore d’annonces",
+      "emptySubtitle": "Publie la première, elle sera vue ici."
+    },
+    "demandes": {
+      "title": "Je cherche",
+      "subtitle": "Des acheteurs attendent. Réponds si tu as ce qu’ils cherchent.",
+      "seeAll": "Toutes les demandes",
+      "seeAllShort": "Voir tout",
+      "budget": "Budget",
+      "freeBudget": "Libre",
+      "reply": "Répondre",
+      "emptyTitle": "Tu cherches quelque chose ?",
+      "emptyText": "Publie une demande, les vendeurs te répondent.",
+      "emptyCta": "Publier une demande"
+    },
+    "shops": {
+      "title": "Boutiques en vedette",
+      "seeAll": "Toutes les boutiques",
+      "createTitle": "Crée ta boutique",
+      "createText": "Gratuit, en 2 minutes",
+      "verified": "Boutique vérifiée"
+    },
+    "cities": {
+      "title": "Par ville"
+    }
   }
 }

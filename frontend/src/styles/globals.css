@@ -2673,3 +2673,139 @@ html.dark .settings-badge { color: rgb(var(--p-500)); background-color: rgb(var(
 /* Séparateurs de listes (divide-*) en mode sombre — absents des overrides globaux */
 html.dark .divide-dark-100 > :not([hidden]) ~ :not([hidden]),
 html.dark .divide-dark-200 > :not([hidden]) ~ :not([hidden]) { border-color: #30363d; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   REFONTE 2026-10 — MAQUETTE VALIDÉE
+   Jetons de design (--tt-*) : valeurs exactes de la maquette en mode sombre
+   (mode par défaut), équivalents clairs en mode clair. Exposés à Tailwind
+   sous `tt-*` (bg-tt-card, text-tt-muted, border-tt-border…).
+   ══════════════════════════════════════════════════════════════════════ */
+:root {
+  --tt-bg: #FAFAF8;            --tt-footer: #F3F3F0;
+  --tt-card: #FFFFFF;          --tt-field: #FFFFFF;
+  --tt-img: #EEF0F2;           --tt-img2: #E8EBEE;
+  --tt-border: #E6E8EA;        --tt-border-strong: #DCE0E3;   --tt-dashed: #C8CED4;
+  --tt-text: #14181C;          --tt-title: #1A1F24;
+  --tt-sec: #4B5560;           --tt-sec2: #39424B;
+  --tt-muted: #6B7480;         --tt-faint: #8C949D;           --tt-kicker: #6B7480;
+  --tt-gold: #F5C518;          --tt-price: #B8860B;           --tt-gnf: #8A7430;
+  --tt-btn: #187A34;           --tt-on-gold: #14110A;
+  --tt-link: #187A34;          --tt-link-hover: #1B8B3B;
+  --tt-green-light: #187A34;   --tt-green-icon: #1B8B3B;      --tt-green-soft: #E8F5EC;  --tt-green: #1B8B3B;
+  --tt-red: #CE1126;
+  --tt-active: #EEF1F3;
+  --tt-overlay: rgba(13, 16, 19, 0.82);   --tt-overlay-soft: rgba(13, 16, 19, 0.72);
+  --tt-bottombar: #FFFFFF;
+  --tt-warn-bg: #FFF9E6;       --tt-warn-border: #F0DFA0;     --tt-warn-title: #6B5300;  --tt-warn-text: #7A6A2E;
+}
+html.dark {
+  --tt-bg: #0D1013;            --tt-footer: #0A0D10;
+  --tt-card: #13181D;          --tt-field: #151A1F;
+  --tt-img: #171D23;           --tt-img2: #1A2027;
+  --tt-border: #1F262D;        --tt-border-strong: #262E36;   --tt-dashed: #2E3740;
+  --tt-text: #F2F4F5;          --tt-title: #E4E8EB;
+  --tt-sec: #AEB7BF;           --tt-sec2: #C9D0D6;
+  --tt-muted: #8B959F;         --tt-faint: #6E7882;           --tt-kicker: #9AA4AE;
+  --tt-gold: #F5C518;          --tt-price: #F5C518;           --tt-gnf: #B8A35A;
+  --tt-btn: #187A34;           --tt-on-gold: #14110A;
+  --tt-link: #3DBE6A;          --tt-link-hover: #5FD186;
+  --tt-green-light: #8FE0AA;   --tt-green-icon: #6FD493;      --tt-green-soft: #17311F;  --tt-green: #1B8B3B;
+  --tt-red: #CE1126;
+  --tt-active: #161C21;
+  --tt-overlay: rgba(13, 16, 19, 0.82);   --tt-overlay-soft: rgba(13, 16, 19, 0.72);
+  --tt-bottombar: #0F1316;
+  --tt-warn-bg: #17150D;       --tt-warn-border: #3A3418;     --tt-warn-title: #F2E4A8;  --tt-warn-text: #C8BC8A;
+}
+
+/* Texte de base 15px / 1.5, DM Sans */
+body {
+  font-family: var(--font-dmsans), system-ui, sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+/* ── Thème de base (guinéen) : tout le site prend la palette de la maquette ──
+   Les thèmes événementiels (fête nationale, Noël, Ramadan) gardent leur bandeau et
+   leurs animations mais plus leurs couleurs : la palette de la maquette reste la règle. */
+html[data-color="independence"], html.dark[data-color="independence"],
+html[data-color="noel"], html.dark[data-color="noel"],
+html[data-color="ramadan"], html.dark[data-color="ramadan"] {
+  --p-50: 240 253 244; --p-100: 220 252 231; --p-200: 187 247 208; --p-300: 134 239 172; --p-400: 74 222 128;
+  --p-500: 34 197 94;  --p-600: 22 163 74;   --p-700: 27 139 59;   --p-800: 22 101 52;   --p-900: 20 83 45;
+}
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) { --bg-page: var(--tt-bg); --card-bg: var(--tt-card); }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) body { background-color: var(--tt-bg); color: var(--tt-text); }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .bg-dark-50 { background-color: var(--tt-bg); }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .bg-white { background-color: var(--tt-card); }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .card { background-color: var(--tt-card); border: 1px solid var(--tt-border); box-shadow: none; }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .card:hover { box-shadow: none; }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .border-dark-50,
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .border-dark-100,
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .border-dark-200 { border-color: var(--tt-border); }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .border-dark-300 { border-color: var(--tt-border-strong); }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .divide-dark-100 > :not([hidden]) ~ :not([hidden]),
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .divide-dark-200 > :not([hidden]) ~ :not([hidden]) { border-color: var(--tt-border); }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .text-dark-900 { color: var(--tt-text); }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .text-dark-800 { color: var(--tt-title); }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .text-dark-700 { color: var(--tt-sec2); }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .text-dark-600 { color: var(--tt-sec); }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .text-dark-500 { color: var(--tt-muted); }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .text-dark-400 { color: var(--tt-faint); }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .text-gold-600,
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .text-gold-700 { color: var(--tt-price); }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .btn-primary { background-color: var(--tt-btn); box-shadow: none; }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .btn-primary:hover { background-color: #136A2C; }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .input,
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) textarea,
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) select { background-color: var(--tt-field); border-color: var(--tt-border-strong); color: var(--tt-text); }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .shadow-card { box-shadow: none; }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .skeleton { background: linear-gradient(90deg, var(--tt-img) 25%, var(--tt-img2) 50%, var(--tt-img) 75%); background-size: 200% 100%; }
+/* Liens et accents verts : vert lumineux de la maquette en sombre */
+html.dark:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .text-primary-500,
+html.dark:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .text-primary-600,
+html.dark:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .text-primary-700,
+html.dark:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .text-primary-800 { color: var(--tt-link); }
+html.dark:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .bg-primary-50,
+html.dark:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .bg-primary-100 { background-color: var(--tt-green-soft); }
+html.dark:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .border-primary-100,
+html.dark:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .border-primary-200 { border-color: rgba(27, 139, 59, 0.45); }
+html.dark:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .bg-dark-100 { background-color: var(--tt-img); }
+
+/* Bande tricolore — signature du site, sous la navbar de toutes les pages */
+.tt-tricolor { height: 3px; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+.tt-tricolor > span:nth-child(1) { background: #CE1126; }
+.tt-tricolor > span:nth-child(2) { background: #F5C518; }
+.tt-tricolor > span:nth-child(3) { background: #1B8B3B; }
+
+/* Conteneur de la maquette : 1240px, 32px de marge (16px mobile) */
+.tt-container { width: 100%; max-width: 1240px; margin-left: auto; margin-right: auto; padding-left: 16px; padding-right: 16px; }
+@media (min-width: 768px) { .tt-container { padding-left: 32px; padding-right: 32px; } }
+
+/* Liens verts de la maquette */
+.tt-link { color: var(--tt-link); font-weight: 500; transition: color .15s; }
+.tt-link:hover { color: var(--tt-link-hover); }
+
+/* Espace réservé à la barre de navigation mobile (voir BottomNav) */
+@media (max-width: 1023px) {
+  body.has-bottom-nav { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+}
+
+/* Boutons secondaires historiques (btn-outline / btn-gold) alignés sur la maquette */
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .btn-outline {
+  border-width: 1px; border-color: var(--tt-green); color: var(--tt-green-light); background: transparent;
+}
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .btn-outline:hover { background-color: var(--tt-green-soft); }
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .btn-gold { background-color: var(--tt-gold); color: var(--tt-on-gold); }
+/* Titres de page : Outfit */
+h1, h2, h3, .section-title { font-family: var(--font-outfit), var(--font-dmsans), system-ui, sans-serif; }
+
+/* Pastilles / onglets actifs (bg-primary-700 + border-primary-700) : style « pastille
+   active » de la maquette — fond vert doux, bordure verte, texte vert clair. */
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) [class~="bg-primary-700"][class~="border-primary-700"] {
+  background-color: var(--tt-green-soft); border-color: var(--tt-green); color: var(--tt-green-light); box-shadow: none;
+}
+/* Panneaux « verre » historiques → cartes de la maquette */
+html:is(:not([data-color]), [data-color="independence"], [data-color="noel"], [data-color="ramadan"]) .glass-light {
+  background: var(--tt-card); border: 1px solid var(--tt-border); border-radius: 18px; box-shadow: none; backdrop-filter: none;
+}

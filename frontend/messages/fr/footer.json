@@ -32,6 +32,21 @@
     "credits": "Crédits photos"
   },
   "copyright": "© {year} TrouveTout224 · Conakry, République de Guinée 🇬🇳",
-  "madeWith": "Fait avec"  ,
-  "madeFor": "pour la Guinée"
+  "madeWith": "Fait avec",
+  "madeFor": "pour la Guinée",
+  "v2": {
+    "tagline": "La marketplace 100% guinéenne. Achète, vends, retrouve.",
+    "discover": "Découvrir",
+    "help": "Aide",
+    "legal": "Légal",
+    "annonces": "Annonces",
+    "jeCherche": "Je cherche",
+    "boutiques": "Boutiques",
+    "safety": "Acheter en sécurité",
+    "contact": "Contact",
+    "faq": "FAQ",
+    "terms": "Conditions",
+    "privacy": "Confidentialité",
+    "madeIn": "Fait en Guinée"
+  }
 }

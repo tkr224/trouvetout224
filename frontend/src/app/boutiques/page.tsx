@@ -278,7 +278,7 @@ function ShopCard({ shop }: { shop: Shop }) {
           <div className="flex items-center gap-1.5 flex-wrap">
             <p className="font-semibold text-dark-900 truncate">{displayName}</p>
             {shop.isVerified && (
-              <ShieldCheck size={14} className="text-primary-700 shrink-0" title={t('verifiedShop')} />
+              <span title={t('verifiedShop')} className="shrink-0 inline-flex"><ShieldCheck size={14} className="text-primary-700" /></span>
             )}
           </div>
           {shop.city && (

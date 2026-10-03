@@ -61,18 +61,39 @@
     "allCategories": "所有分类"
   },
   "trust": {
-    "sell": { "title": "几分钟内售出", "desc": "免费发布，不限数量" },
-    "buy": { "title": "放心购买", "desc": "卖家经过我们团队验证" },
-    "contact": { "title": "通过 WhatsApp 直接联系", "desc": "立即与卖家沟通" },
-    "shop": { "title": "您的在线店铺", "desc": "面向全几内亚展示 🇬🇳" }
+    "sell": {
+      "title": "几分钟内售出",
+      "desc": "免费发布，不限数量"
+    },
+    "buy": {
+      "title": "放心购买",
+      "desc": "卖家经过我们团队验证"
+    },
+    "contact": {
+      "title": "通过 WhatsApp 直接联系",
+      "desc": "立即与卖家沟通"
+    },
+    "shop": {
+      "title": "您的在线店铺",
+      "desc": "面向全几内亚展示 🇬🇳"
+    }
   },
   "howItWorks": {
     "kicker": "运作方式",
     "title": "3 步轻松出售",
     "subtitle": "没有隐藏费用，无需等待——只有您和买家。",
-    "step1": { "title": "免费发布您的广告", "desc": "几分钟内添加照片、价格和描述。" },
-    "step2": { "title": "买家通过 WhatsApp 联系您", "desc": "直接联系，没有中间商，也没有撮合费用。" },
-    "step3": { "title": "成交，无需支付佣金", "desc": "面向全几内亚展示，没有时间限制。" }
+    "step1": {
+      "title": "免费发布您的广告",
+      "desc": "几分钟内添加照片、价格和描述。"
+    },
+    "step2": {
+      "title": "买家通过 WhatsApp 联系您",
+      "desc": "直接联系，没有中间商，也没有撮合费用。"
+    },
+    "step3": {
+      "title": "成交，无需支付佣金",
+      "desc": "面向全几内亚展示，没有时间限制。"
+    }
   },
   "boutiquesSection": {
     "kicker": "店铺",
@@ -104,5 +125,59 @@
     "slogan": "在几内亚，找到一切，卖出一切。",
     "ctaPublish": "发布广告",
     "ctaBrowse": "浏览广告"
+  },
+  "v2": {
+    "kicker": "100% 几内亚 · 免费 · 直接联系",
+    "title1": "你想找的一切，",
+    "title2": "就在你身边。",
+    "subtitle": "在几内亚各地买卖。买家直接通过 WhatsApp 联系你。",
+    "searchPlaceholder": "iPhone、丰田、Kipé 的别墅…",
+    "allCategories": "所有类别",
+    "allCities": "全几内亚",
+    "search": "搜索",
+    "popular": "热门：",
+    "cat": {
+      "telephones": "手机",
+      "informatique": "电脑",
+      "vehicules": "车辆",
+      "immobilier": "房产",
+      "mode": "时尚",
+      "emplois": "招聘",
+      "restaurants": "餐厅",
+      "all": "查看全部"
+    },
+    "forYou": {
+      "title": "为你推荐",
+      "subtitle": "推荐流会根据你浏览的内容调整。",
+      "manage": "管理",
+      "tabForYou": "为你推荐",
+      "tabRecent": "最新",
+      "tabPopular": "热门",
+      "seeAll": "查看全部",
+      "emptyTitle": "暂无广告",
+      "emptySubtitle": "发布第一条，它会显示在这里。"
+    },
+    "demandes": {
+      "title": "我在找",
+      "subtitle": "买家正在等待。如果你有他们要找的，就回复吧。",
+      "seeAll": "所有需求",
+      "seeAllShort": "查看全部",
+      "budget": "预算",
+      "freeBudget": "不限",
+      "reply": "回复",
+      "emptyTitle": "在找什么吗？",
+      "emptyText": "发布需求，卖家会回复你。",
+      "emptyCta": "发布需求"
+    },
+    "shops": {
+      "title": "精选店铺",
+      "seeAll": "所有店铺",
+      "createTitle": "创建你的店铺",
+      "createText": "免费，只需 2 分钟",
+      "verified": "已认证店铺"
+    },
+    "cities": {
+      "title": "按城市"
+    }
   }
 }

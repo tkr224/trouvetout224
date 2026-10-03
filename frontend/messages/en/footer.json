@@ -33,5 +33,20 @@
   },
   "copyright": "© {year} TrouveTout224 · Conakry, Republic of Guinea 🇬🇳",
   "madeWith": "Made with",
-  "madeFor": "for Guinea"
+  "madeFor": "for Guinea",
+  "v2": {
+    "tagline": "The 100% Guinean marketplace. Buy, sell, find.",
+    "discover": "Discover",
+    "help": "Help",
+    "legal": "Legal",
+    "annonces": "Listings",
+    "jeCherche": "Wanted",
+    "boutiques": "Shops",
+    "safety": "Buy safely",
+    "contact": "Contact",
+    "faq": "FAQ",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "madeIn": "Made in Guinea"
+  }
 }

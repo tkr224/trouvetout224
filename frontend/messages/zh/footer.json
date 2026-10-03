@@ -33,5 +33,20 @@
   },
   "copyright": "© {year} TrouveTout224 · 几内亚共和国科纳克里 🇬🇳",
   "madeWith": "用心制作",
-  "madeFor": "为几内亚"
+  "madeFor": "为几内亚",
+  "v2": {
+    "tagline": "100% 几内亚本土交易平台。买、卖、找。",
+    "discover": "发现",
+    "help": "帮助",
+    "legal": "法律",
+    "annonces": "广告",
+    "jeCherche": "我在找",
+    "boutiques": "店铺",
+    "safety": "安全购物",
+    "contact": "联系我们",
+    "faq": "常见问题",
+    "terms": "使用条款",
+    "privacy": "隐私政策",
+    "madeIn": "几内亚制造"
+  }
 }

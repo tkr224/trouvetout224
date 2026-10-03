@@ -345,7 +345,7 @@ export function useVoiceCall() {
       const access = await requestMicAccess();
       setMicDiagnostics(access.diagnostics);
       if (!access.ok) {
-        setMicErrorKind(access.kind);
+        setMicErrorKind('kind' in access ? access.kind : 'unknown');
         setState('mic-denied');
         return;
       }

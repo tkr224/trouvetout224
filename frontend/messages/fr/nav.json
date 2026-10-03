@@ -26,5 +26,10 @@
   "sellerSpace": "Espace vendeur",
   "myProfile": "Mon profil",
   "changeLanguage": "Changer de langue",
-  "accountMenu": "Menu du compte"
+  "accountMenu": "Menu du compte",
+  "bottom": {
+    "home": "Accueil",
+    "profile": "Profil",
+    "label": "Navigation principale"
+  }
 }

@@ -7,3 +7,9 @@ export function cloudinaryThumb(url: string, width = 480): string {
   if (!url || !url.includes('res.cloudinary.com') || !url.includes('/upload/')) return url;
   return url.replace('/upload/', `/upload/w_${width},q_auto,f_auto,c_fill/`);
 }
+
+/** Loader `next/image` : redimensionne via Cloudinary (w_ adapté, q_auto, f_auto). */
+export function cloudinaryLoader({ src, width }: { src: string; width: number; quality?: number }): string {
+  if (!src || !src.includes('res.cloudinary.com') || !src.includes('/upload/')) return src;
+  return src.replace('/upload/', `/upload/w_${width},q_auto,f_auto,c_fill/`);
+}

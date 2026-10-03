@@ -141,7 +141,7 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'system', setTheme: () => {},
+  theme: 'dark', setTheme: () => {},
   colorAccent: 'green', setColorAccent: () => {},
   specialTheme: null,   setSpecialTheme: () => {},
   globalTheme: null,
@@ -153,7 +153,7 @@ const ThemeContext = createContext<ThemeContextType>({
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState]               = useState<Theme>('system');
+  const [theme, setThemeState]               = useState<Theme>('dark');
   const [colorAccent, setColorAccentState]   = useState<ColorAccent>('green');
   const [specialTheme, setSpecialThemeState] = useState<SpecialTheme>(null);
   const [globalTheme, setGlobalTheme]        = useState<string | null>(null);

@@ -307,7 +307,7 @@ export default function AdminThemesPage() {
                       {isSiteWide && <p className="text-[10px] text-dark-400">Global</p>}
                     </div>
                     {isSiteWide ? (
-                      <UserCheck size={13} className="text-primary-700 shrink-0" title="Accessible car débloqué pour tout le site" />
+                      <span title="Accessible car débloqué pour tout le site" className="shrink-0 inline-flex"><UserCheck size={13} className="text-primary-700" /></span>
                     ) : (
                       <button
                         onClick={() => isPersonal

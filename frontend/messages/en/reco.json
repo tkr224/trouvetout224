@@ -61,5 +61,14 @@
   },
   "badges": {
     "topSellerOfMonth": "Top seller of the month"
+  },
+  "card": {
+    "sold": "Sold",
+    "sponsored": "Sponsored",
+    "verified": "Verified",
+    "new": "New",
+    "save": "Add to favorites",
+    "unsave": "Remove from favorites",
+    "priceOnRequest": "Price on request"
   }
 }

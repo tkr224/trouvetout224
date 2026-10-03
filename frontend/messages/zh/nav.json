@@ -26,5 +26,10 @@
   "sellerSpace": "卖家空间",
   "myProfile": "我的资料",
   "changeLanguage": "更改语言",
-  "accountMenu": "账户菜单"
+  "accountMenu": "账户菜单",
+  "bottom": {
+    "home": "首页",
+    "profile": "我的",
+    "label": "主导航"
+  }
 }

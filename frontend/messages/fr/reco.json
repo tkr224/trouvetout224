@@ -61,5 +61,14 @@
   },
   "badges": {
     "topSellerOfMonth": "Top vendeur du mois"
+  },
+  "card": {
+    "sold": "Vendu",
+    "sponsored": "Sponsorisé",
+    "verified": "Vérifié",
+    "new": "Nouveau",
+    "save": "Ajouter aux favoris",
+    "unsave": "Retirer des favoris",
+    "priceOnRequest": "Prix sur demande"
   }
 }

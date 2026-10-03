@@ -24,7 +24,7 @@ export default function SystemAnnouncementModal() {
   useEffect(() => {
     if (!_hasHydrated || !isAuthenticated) return;
     api.get('/system-announcements/active')
-      .then(r => { if (r.data.data) setAnnouncement(r.data.data); })
+      .then(r => { const a = r.data?.data; if (a && typeof a.title === 'string' && a.title.trim()) setAnnouncement(a); })
       .catch(() => {});
   }, [_hasHydrated, isAuthenticated]);
 

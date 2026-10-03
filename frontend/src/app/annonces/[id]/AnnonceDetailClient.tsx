@@ -27,6 +27,11 @@ import BackButton from '@/components/BackButton';
 import ImageLightbox from '@/components/ImageLightbox';
 import CulturalPattern from '@/components/CulturalPattern';
 import ErrorState from '@/components/ui/ErrorState';
+import Image from 'next/image';
+import { useQuery } from 'react-query';
+import AnnonceGrid from '@/components/annonces/AnnonceGrid';
+import { cloudinaryLoader, cloudinaryThumb } from '@/lib/cloudinary';
+import { timeAgoShort, formatGnf } from '@/lib/format';
 import { trackDwell, trackContact } from '@/lib/activity';
 
 const REPORT_REASON_KEYS = [
@@ -64,6 +69,8 @@ export default function AnnonceDetailPage() {
   const { addViewed } = useRecentlyViewed();
 
   const annonce = data?.data;
+  const sellerId: string | undefined = annonce?.user?.id;
+  const { data: sellerProfile } = useQuery(['seller-profile', sellerId], async () => (await api.get(`/users/profile/${sellerId}`)).data.data, { enabled: !!sellerId, staleTime: 5 * 60 * 1000 });
 
   useEffect(() => {
     if (annonce?.id && isAuthenticated) {
@@ -142,41 +149,22 @@ export default function AnnonceDetailPage() {
      que le contenu réel se pose sans décalage. */
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-dark-50">
-        <Navbar />
-        <div className="max-w-5xl mx-auto px-4 py-8">
-          <div className="skeleton h-5 w-28 rounded mb-4" />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-4">
-              <div className="skeleton aspect-[4/3] rounded-2xl" />
-              <div className="flex gap-2">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="skeleton w-16 h-16 rounded-xl" />
-                ))}
-              </div>
-              <div className="card p-6">
-                <div className="skeleton h-7 w-3/4 rounded" />
-                <div className="skeleton h-9 w-1/3 rounded mt-3" />
-                <div className="skeleton h-4 w-1/2 rounded mt-3" />
-                <div className="h-px bg-dark-100 dark:bg-dark-700 my-5" />
-                <div className="skeleton h-4 w-full rounded" />
-                <div className="skeleton h-4 w-full rounded mt-2" />
-                <div className="skeleton h-4 w-2/3 rounded mt-2" />
-              </div>
+      <div className="min-h-screen bg-tt-bg">
+        <Navbar variant="page" />
+        <div className="tt-container pt-6 pb-14">
+          <div className="skeleton h-4 w-64 rounded mb-5" />
+          <div className="grid grid-cols-1 lg:grid-cols-[1.55fr_1fr] gap-8 lg:gap-10">
+            <div>
+              <div className="skeleton aspect-[4/3] rounded-[20px]" />
+              <div className="flex gap-2.5 mt-3">{[0, 1, 2, 3].map(i => <div key={i} className="skeleton w-[88px] h-[70px] rounded-xl" />)}</div>
             </div>
             <div className="space-y-4">
-              <div className="card p-5">
-                <div className="flex items-center gap-3">
-                  <div className="skeleton w-14 h-14 rounded-2xl shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <div className="skeleton h-4 w-3/4 rounded" />
-                    <div className="skeleton h-3 w-1/2 rounded" />
-                  </div>
-                </div>
-                <div className="skeleton h-11 w-full rounded-xl mt-5" />
-                <div className="skeleton h-11 w-full rounded-xl mt-2.5" />
-              </div>
-              <div className="skeleton h-32 rounded-2xl" />
+              <div className="skeleton h-5 w-40 rounded" />
+              <div className="skeleton h-9 w-full rounded" />
+              <div className="skeleton h-8 w-1/2 rounded" />
+              <div className="skeleton h-[52px] w-full rounded-[14px]" />
+              <div className="grid grid-cols-2 gap-2.5"><div className="skeleton h-[46px] rounded-xl" /><div className="skeleton h-[46px] rounded-xl" /></div>
+              <div className="skeleton h-[90px] w-full rounded-[18px]" />
             </div>
           </div>
         </div>
@@ -379,462 +367,249 @@ export default function AnnonceDetailPage() {
     a.eventDate         != null && { label: t('specs.eventDate'),         value: new Date(a.eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) },
   ].filter(Boolean) as { label: string; value: string }[];
 
+  const v2 = (k: string, values?: Record<string, any>) => t(`v2.${k}`, values);
+  const a2 = annonce as any;
+  const promoActiveDetail = a2.promoPrice != null && (!a2.promoEndsAt || new Date(a2.promoEndsAt) > new Date());
+  const displayPrice: number | null = promoActiveDetail ? a2.promoPrice : annonce.price;
+  const sellerVerified = !!(annonce.user?.isVerified || (annonce.user as any)?.isShopVerified);
+  const sellerName = sellerProfile?.shopActive && sellerProfile?.shopName
+    ? sellerProfile.shopName
+    : `${annonce.user.firstName} ${annonce.user.lastName}`;
+  const sellerLogo = (sellerProfile?.shopActive && sellerProfile?.shopLogo) || annonce.user.avatar;
+  const waText = encodeURIComponent(t('seller.contactMessage', { title: annonce.title }));
+  const place = [annonce.neighborhood, annonce.city?.name].filter(Boolean).join(', ');
+  const SW = 1.75;
+  const secondaryBtn = 'h-[46px] rounded-xl border border-tt-border-strong text-tt-sec2 font-medium text-[15px] inline-flex items-center justify-center gap-2 hover:text-tt-text hover:bg-tt-active transition-colors';
+  const quietBtn = 'h-11 rounded-xl bg-tt-card text-tt-sec font-medium text-sm inline-flex items-center justify-center gap-2 hover:text-tt-text transition-colors';
+
   return (
-    <div className="min-h-screen bg-dark-50">
-      <Navbar />
+    <div className="min-h-screen bg-tt-bg">
+      <Navbar variant="page" />
 
-      <div className="relative isolate overflow-hidden max-w-5xl mx-auto px-4 py-6">
-        <CulturalPattern />
-        <BackButton label={annonce.title} fallbackHref="/annonces/lister" className="mb-2 -mt-1" />
-
+      <div className="tt-container pt-5 pb-14 md:pt-6">
         {/* Fil d'Ariane */}
-        <nav className="flex items-center gap-1.5 text-sm text-dark-400 mb-5">
-          <Link href="/" className="hover:text-primary-700 transition-colors">{t('breadcrumb.home')}</Link>
-          <ChevronRight size={13} />
-          <Link href="/annonces/lister" className="hover:text-primary-700 transition-colors">{t('breadcrumb.annonces')}</Link>
-          <ChevronRight size={13} />
-          <span className="text-dark-700 font-medium">{annonce.category.nameFr}</span>
+        <nav className="flex items-center gap-1.5 text-sm text-tt-muted mb-5 min-w-0" aria-label="Fil d'Ariane">
+          <Link href="/" className="hover:text-tt-text transition-colors shrink-0">{t('breadcrumb.home')}</Link>
+          <span className="shrink-0">/</span>
+          <Link href={`/annonces/lister?cat=${encodeURIComponent(a2.category?.slug || '')}`} className="hover:text-tt-text transition-colors shrink-0">{annonce.category.nameFr}</Link>
+          <span className="shrink-0">/</span>
+          <span className="text-tt-title truncate">{annonce.title}</span>
         </nav>
 
-        {/* Bannière propriétaire */}
+        {/* Outils du propriétaire */}
         {isOwner && (
-          <div className="bg-primary-50 border border-primary-200 rounded-2xl p-4 mb-5 flex items-center justify-between flex-wrap gap-3 shadow-sm">
-            <p className="text-sm font-semibold text-primary-800 flex items-center gap-2">
-              <div className="w-7 h-7 bg-primary-100 rounded-lg flex items-center justify-center shrink-0">
-                <User size={14} className="text-primary-700" />
-              </div>
-              {t('owner.yourListing')}
-              {annonce.status === 'SUSPENDED' && (
-                <span className="bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-semibold">{t('owner.hidden')}</span>
-              )}
-              {annonce.status === 'SOLD' && (
-                <span className="bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1">
-                  <CheckCircle2 size={11} /> {t('owner.sold')}
-                </span>
-              )}
+          <div className="rounded-2xl border border-tt-border bg-tt-card p-4 mb-6 flex items-center justify-between flex-wrap gap-3">
+            <p className="text-sm font-medium text-tt-text flex items-center gap-2 flex-wrap">
+              <User size={16} strokeWidth={SW} className="text-tt-green-icon" /> {t('owner.yourListing')}
+              {annonce.status === 'SUSPENDED' && <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#2A1E0C] text-[#F5B84A]">{t('owner.hidden')}</span>}
+              {annonce.status === 'SOLD' && <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-tt-green-soft text-tt-green-light">{t('owner.sold')}</span>}
             </p>
             <div className="flex gap-2 flex-wrap">
-              {annonce.status !== 'SOLD' && (
-                <button onClick={handleEdit} className="flex items-center gap-1.5 bg-white border border-dark-200 text-dark-700 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-primary-50 hover:border-primary-300 transition-all shadow-sm">
-                  <Edit size={14} /> {t('owner.edit')}
-                </button>
-              )}
-              {annonce.status !== 'SOLD' && (
-                <button onClick={handleHide} className="flex items-center gap-1.5 bg-white border border-dark-200 text-dark-700 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-dark-50 transition-all shadow-sm">
-                  <EyeOff size={14} /> {annonce.status === 'ACTIVE' ? t('owner.hide') : t('owner.unhide')}
-                </button>
-              )}
-              {annonce.status !== 'SOLD' && (
-                <button onClick={openSoldModal} className="flex items-center gap-1.5 bg-white border border-blue-200 text-blue-700 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-blue-50 transition-all shadow-sm">
-                  <CheckCircle2 size={14} /> {t('owner.markSold')}
-                </button>
-              )}
-              {annonce.status === 'SOLD' && (
-                <button onClick={handleReactivate} className="flex items-center gap-1.5 bg-white border border-primary-200 text-primary-700 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-primary-50 transition-all shadow-sm">
-                  <RotateCcw size={14} /> {t('owner.reactivate')}
-                </button>
-              )}
-              <button onClick={handleDeleteAnnonce} className="flex items-center gap-1.5 bg-white border border-guinea-200 text-guinea-600 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-guinea-50 transition-all shadow-sm">
-                <Trash2 size={14} /> {t('owner.delete')}
-              </button>
+              {annonce.status !== 'SOLD' && <button onClick={handleEdit} className={`${secondaryBtn} !h-10 px-3.5 text-sm`}><Edit size={15} strokeWidth={SW} /> {t('owner.edit')}</button>}
+              {annonce.status !== 'SOLD' && <button onClick={handleHide} className={`${secondaryBtn} !h-10 px-3.5 text-sm`}><EyeOff size={15} strokeWidth={SW} /> {annonce.status === 'ACTIVE' ? t('owner.hide') : t('owner.unhide')}</button>}
+              {annonce.status !== 'SOLD' && <button onClick={openSoldModal} className={`${secondaryBtn} !h-10 px-3.5 text-sm`}><CheckCircle2 size={15} strokeWidth={SW} /> {t('owner.markSold')}</button>}
+              {annonce.status === 'SOLD' && <button onClick={handleReactivate} className={`${secondaryBtn} !h-10 px-3.5 text-sm`}><RotateCcw size={15} strokeWidth={SW} /> {t('owner.reactivate')}</button>}
+              <button onClick={handleDeleteAnnonce} className={`${secondaryBtn} !h-10 px-3.5 text-sm !text-[#E5484D]`}><Trash2 size={15} strokeWidth={SW} /> {t('owner.delete')}</button>
             </div>
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.55fr_1fr] gap-8 lg:gap-10">
 
-          {/* ── Colonne gauche ──────────────────────────── */}
-          <div className="lg:col-span-2 space-y-5">
-
-            {/* Galerie */}
-            <div className="bg-white rounded-2xl border border-dark-100 overflow-hidden">
-              <div className="relative aspect-[4/3] bg-dark-100">
-                {images.length > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => setLightboxOpen(true)}
-                    className="w-full h-full cursor-zoom-in"
-                    aria-label={t('gallery.viewFullscreen')}
-                  >
-                    <img
-                      src={images[imgIndex]?.url}
-                      alt={annonce.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-dark-50 to-dark-100">
-                    <ImageIcon size={64} className="text-dark-200" />
-                  </div>
-                )}
-
-                {/* Flèches navigation */}
-                {images.length > 1 && (
-                  <>
-                    <button
-                      onClick={() => setImgIndex(i => (i - 1 + images.length) % images.length)}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center transition-colors backdrop-blur-sm"
-                    >
-                      <ChevronLeft size={20} />
-                    </button>
-                    <button
-                      onClick={() => setImgIndex(i => (i + 1) % images.length)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center transition-colors backdrop-blur-sm"
-                    >
-                      <ChevronRight size={20} />
-                    </button>
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                      {images.map((_: any, i: number) => (
-                        <button
-                          key={i}
-                          onClick={() => setImgIndex(i)}
-                          className={`rounded-full transition-all ${i === imgIndex ? 'w-5 h-2 bg-white' : 'w-2 h-2 bg-white/50 hover:bg-white/80'}`}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                {/* Boutons flottants */}
-                <div className="absolute top-3 right-3 flex gap-2">
-                  <button
-                    onClick={handleSave}
-                    className="w-9 h-9 bg-white/95 backdrop-blur rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-all"
-                    title={saved ? t('gallery.removeFavorite') : t('gallery.addFavorite')}
-                  >
-                    <Heart size={16} className={saved ? 'text-guinea-500 fill-guinea-500' : 'text-dark-400'} />
-                  </button>
-                  <button
-                    onClick={() => setShowShare(true)}
-                    className="w-9 h-9 bg-white/95 backdrop-blur rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-all"
-                    title={t('gallery.share')}
-                  >
-                    <Share2 size={16} className="text-dark-400" />
-                  </button>
-                </div>
-
-                {/* Badges premium / 18+ */}
-                {(annonce.isPremium || annonce.isAgeRestricted) && (
-                  <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-                    {annonce.isPremium && (
-                      <span className="flex items-center gap-1 bg-gold-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md">
-                        <Star size={10} className="fill-white" /> {t('badges.featured')}
-                      </span>
-                    )}
-                    {annonce.isAgeRestricted && (
-                      <span className="flex items-center gap-1 bg-dark-900 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md">
-                        <ShieldAlert size={10} /> 18+
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Compteur d'images */}
-                {images.length > 1 && (
-                  <div className="absolute bottom-3 right-3 bg-black/55 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full">
-                    {imgIndex + 1} / {images.length}
-                  </div>
-                )}
-              </div>
-
-              {/* Miniatures */}
-              {images.length > 1 && (
-                <div className="flex gap-2 p-3 overflow-x-auto border-t border-dark-100 bg-dark-50/50">
-                  {images.map((img: any, i: number) => (
-                    <button
-                      key={i}
-                      onClick={() => setImgIndex(i)}
-                      className={`shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${
-                        i === imgIndex
-                          ? 'border-primary-700 opacity-100 shadow-md scale-105'
-                          : 'border-transparent opacity-50 hover:opacity-80 hover:scale-102'
-                      }`}
-                    >
-                      <img src={img.url} alt="" className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {lightboxOpen && images.length > 0 && (
-              <ImageLightbox
-                images={images.map((img: any) => img.url)}
-                index={imgIndex}
-                onClose={() => setLightboxOpen(false)}
-                onIndexChange={setImgIndex}
-                alt={annonce.title}
-              />
-            )}
-
-            {/* Infos annonce */}
-            <div className="bg-white rounded-2xl border border-dark-100 p-6">
-              {/* Titre */}
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <h1 className="text-2xl font-display font-bold text-dark-900 leading-tight">{annonce.title}</h1>
-              </div>
-
-              {/* Hashtags — cliquables vers une recherche filtrée */}
-              {(annonce as any).hashtags?.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-4 -mt-2">
-                  {(annonce as any).hashtags.map((tag: string) => (
-                    <Link
-                      key={tag}
-                      href={`/annonces/lister?hashtag=${encodeURIComponent(tag)}`}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-primary-700 bg-primary-50 hover:bg-primary-100 px-2.5 py-1 rounded-full transition-colors"
-                    >
-                      #{tag}
-                    </Link>
-                  ))}
-                </div>
-              )}
-
-              {/* Prix */}
-              {(() => {
-                const a2 = annonce as any;
-                const promoActive = a2.promoPrice != null
-                  && (!a2.promoEndsAt || new Date(a2.promoEndsAt) > new Date());
-                return (
-                  <div className="mb-5 bg-gradient-to-r from-primary-50 to-transparent border border-primary-100 rounded-2xl px-5 py-4">
-                    {promoActive ? (
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="flex items-center gap-1 bg-guinea-100 text-guinea-700 text-xs font-bold px-2.5 py-1 rounded-full">
-                            <Tag size={11} /> {t('price.promo')}
-                          </span>
-                          {a2.promoEndsAt && (
-                            <span className="text-dark-400 text-xs">
-                              {t('price.promoUntil', { date: new Date(a2.promoEndsAt).toLocaleDateString('fr-FR') })}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-baseline gap-3 flex-wrap">
-                          <p className="text-3xl font-bold text-guinea-600">
-                            {a2.promoPrice.toLocaleString('fr-GN')}
-                            <span className="text-lg ml-1.5 font-semibold text-guinea-500">GNF</span>
-                          </p>
-                          {annonce.price != null && (
-                            <span className="text-xl text-dark-400 line-through">
-                              {annonce.price.toLocaleString('fr-GN')} GNF
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ) : annonce.price != null ? (
-                      <div className="flex items-baseline gap-3 flex-wrap">
-                        <p className="text-3xl font-bold text-gold-600">
-                          {annonce.price.toLocaleString('fr-GN')}
-                          <span className="text-lg ml-1.5 font-semibold text-gold-600">GNF</span>
-                        </p>
-                        {annonce.isNegotiable && (
-                          <span className="text-sm text-primary-700 bg-primary-100 font-semibold px-3 py-1 rounded-full">{t('price.negotiable')}</span>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="text-xl text-dark-500 italic">{t('price.onRequest')}</p>
-                    )}
-                  </div>
-                );
-              })()}
-
-              {/* Méta : lieu, vues, date */}
-              <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-dark-500 pb-5 border-b border-dark-100">
-                <span className="flex items-center gap-1.5">
-                  <MapPin size={14} className="text-primary-600" />
-                  {annonce.city.name}{annonce.neighborhood && ` · ${annonce.neighborhood}`}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Eye size={14} />
-                  {t('meta.views', { count: annonce.viewCount })}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Clock size={14} />
-                  {timeAgo}
-                </span>
-              </div>
-
-              {/* Caractéristiques dynamiques */}
-              {specs.length > 0 && (
-                <div className="py-5 border-b border-dark-100">
-                  <h3 className="pl-2.5 border-l-2 border-primary-500 text-[10px] font-bold text-dark-600 uppercase tracking-widest mb-3">{t('specs.title')}</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {specs.map(({ label, value }) => (
-                      <div key={label} className="bg-primary-50/60 border border-primary-100/70 rounded-xl px-4 py-3">
-                        <p className="text-xs text-primary-600 mb-0.5 font-medium">{label}</p>
-                        <p className="text-sm font-bold text-dark-900">{value}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Description */}
-              <div className="pt-5">
-                <h3 className="pl-2.5 border-l-2 border-primary-500 text-[10px] font-bold text-dark-600 uppercase tracking-widest mb-3">{t('description.title')}</h3>
-                <p className="text-dark-600 leading-relaxed whitespace-pre-wrap text-sm">{annonce.description}</p>
-              </div>
-
-              {/* Signaler */}
-              {!isOwner && (
-                <button
-                  onClick={() => setShowReport(true)}
-                  className="flex items-center gap-2 mt-6 text-dark-400 hover:text-guinea-500 text-sm transition-colors"
-                >
-                  <Flag size={13} /> {t('report.link')}
+          {/* ── Galerie ─────────────────────────────────────── */}
+          <div className="lg:col-start-1 lg:row-start-1 min-w-0">
+            <div className="relative aspect-[4/3] rounded-[20px] overflow-hidden bg-tt-img">
+              {images.length > 0 ? (
+                <button type="button" onClick={() => setLightboxOpen(true)} className="absolute inset-0 cursor-zoom-in" aria-label={t('gallery.viewFullscreen')}>
+                  <Image loader={cloudinaryLoader} src={images[imgIndex]?.url} alt={annonce.title} fill priority sizes="(max-width: 1024px) 100vw, 720px" className="object-cover" />
                 </button>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center"><ImageIcon size={56} strokeWidth={SW} className="text-tt-faint" /></div>
+              )}
+              {images.length > 1 && (
+                <>
+                  <button onClick={() => setImgIndex(i => (i - 1 + images.length) % images.length)} aria-label={v2('prev')}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-[rgba(13,16,19,0.75)] text-white flex items-center justify-center backdrop-blur-sm hover:bg-[rgba(13,16,19,0.9)]">
+                    <ChevronLeft size={22} strokeWidth={SW} />
+                  </button>
+                  <button onClick={() => setImgIndex(i => (i + 1) % images.length)} aria-label={v2('next')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-[rgba(13,16,19,0.75)] text-white flex items-center justify-center backdrop-blur-sm hover:bg-[rgba(13,16,19,0.9)]">
+                    <ChevronRight size={22} strokeWidth={SW} />
+                  </button>
+                  <span className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-tt-overlay text-white text-xs font-medium">
+                    {imgIndex + 1} / {images.length}
+                  </span>
+                </>
+              )}
+              {annonce.status === 'SOLD' && (
+                <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-tt-overlay text-white text-xs font-medium">{t('owner.sold')}</span>
               )}
             </div>
-
-            {/* Avis vendeur */}
-            {!isOwner && annonce.user?.id && (
-              <ReviewSection sellerId={annonce.user.id} />
+            {images.length > 1 && (
+              <div className="flex gap-2.5 mt-3 overflow-x-auto pb-1">
+                {images.map((img: any, i: number) => (
+                  <button key={i} onClick={() => setImgIndex(i)} aria-label={`${i + 1}`} aria-current={i === imgIndex ? 'true' : undefined}
+                    className={`relative shrink-0 w-[88px] h-[70px] rounded-xl overflow-hidden border-2 transition-colors ${i === imgIndex ? 'border-[#3DBE6A]' : 'border-transparent opacity-70 hover:opacity-100'}`}>
+                    <Image loader={cloudinaryLoader} src={img.url} alt="" fill sizes="88px" className="object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+            {lightboxOpen && images.length > 0 && (
+              <ImageLightbox images={images.map((img: any) => img.url)} index={imgIndex} onClose={() => setLightboxOpen(false)} onIndexChange={setImgIndex} alt={annonce.title} />
             )}
           </div>
 
-          {/* ── Colonne droite ──────────────────────────── */}
-          <div className="space-y-4">
+          {/* ── Colonne droite : infos + contact ─────────────── */}
+          <aside className="lg:col-start-2 lg:row-start-1 lg:row-span-2 min-w-0">
+            <div className="lg:sticky lg:top-[100px] space-y-5">
+              <div>
+                <div className="flex items-center gap-2.5 flex-wrap text-[13px] text-tt-muted">
+                  {sellerVerified && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-tt-green-soft text-tt-green-light text-xs font-medium">
+                      <BadgeCheck size={13} strokeWidth={SW} /> {v2('verified')}
+                    </span>
+                  )}
+                  <span>{v2('published', { ago: timeAgoShort(annonce.createdAt) })} · {t('meta.views', { count: annonce.viewCount })}</span>
+                </div>
+                <h1 className="font-display font-bold text-[28px] md:text-[34px] leading-[1.15] tracking-[-0.02em] text-tt-text mt-3 break-words">{annonce.title}</h1>
+                <p className="mt-3 leading-none">
+                  {displayPrice != null ? (
+                    <>
+                      <span className="font-display font-bold text-[30px] text-tt-price">{formatGnf(displayPrice)}</span>
+                      <span className="text-base text-tt-gnf"> GNF</span>
+                      {promoActiveDetail && annonce.price != null && (
+                        <span className="ml-2 text-sm text-tt-muted line-through">{formatGnf(annonce.price)} GNF</span>
+                      )}
+                      {annonce.isNegotiable && <span className="ml-2 text-xs font-medium text-tt-green-light">{t('price.negotiable')}</span>}
+                    </>
+                  ) : (
+                    <span className="font-display font-semibold text-xl text-tt-sec">{t('price.onRequest')}</span>
+                  )}
+                </p>
+                {place && (
+                  <p className="mt-3 text-sm text-tt-sec flex items-center gap-1.5"><MapPin size={14} strokeWidth={SW} className="text-tt-green-icon shrink-0" /> {place}</p>
+                )}
+              </div>
 
-            {/* Carte vendeur */}
-            {!isOwner && (
-              <div className="halo-behind sticky top-20">
-              <div className="glass-light overflow-hidden">
-                {/* Barre d'accent vert */}
-                <div className="h-1.5 bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700" />
-                <div className="p-5">
-                  <h3 className="pl-2.5 border-l-2 border-primary-500 text-[10px] font-bold text-dark-600 uppercase tracking-widest mb-4">{t('seller.title')}</h3>
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="relative shrink-0">
-                      {annonce.user.avatar ? (
-                        <img src={annonce.user.avatar} alt="" className="w-14 h-14 rounded-full object-cover ring-2 ring-primary-200 ring-offset-1" />
-                      ) : (
-                        <div className="w-14 h-14 bg-primary-100 rounded-full flex items-center justify-center ring-2 ring-primary-200 ring-offset-1">
-                          <span className="text-primary-700 font-bold text-lg">
-                            {annonce.user.firstName[0]}{annonce.user.lastName[0]}
-                          </span>
-                        </div>
-                      )}
-                      {annonce.user.isVerified && (
-                        <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-sm">
-                          <BadgeCheck size={14} className="text-primary-700" />
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-bold text-dark-900">
-                        {annonce.user.firstName} {annonce.user.lastName}
-                      </p>
-                      {(annonce.user as any).isShopVerified && (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gold-600 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full mt-0.5">
-                          <ShieldCheck size={10} /> {t('seller.verifiedShop')}
-                        </span>
-                      )}
-                      <Link href={`/profil/${annonce.user.id}`} className="text-primary-700 text-sm font-medium hover:underline flex items-center gap-1 mt-1">
-                        {t('seller.viewProfile')}
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="space-y-2.5">
-                    <button
-                      onClick={openContactModal}
-                      className="btn-primary btn-glow w-full flex items-center justify-center gap-2 py-3 text-sm"
-                    >
-                      <MessageCircle size={17} /> {t('seller.sendMessage')}
+              {!isOwner && (
+                <div className="space-y-2.5">
+                  {annonce.whatsapp ? (
+                    <a href={`https://wa.me/224${annonce.whatsapp}?text=${waText}`} target="_blank" rel="noopener noreferrer" onClick={() => trackContact(annonce.id)}
+                      className="w-full h-[52px] rounded-[14px] bg-tt-btn text-white font-semibold text-base inline-flex items-center justify-center gap-2 hover:brightness-110 transition">
+                      <MessageCircle size={20} strokeWidth={SW} /> {v2('whatsapp')}
+                    </a>
+                  ) : (
+                    <button onClick={openContactModal}
+                      className="w-full h-[52px] rounded-[14px] bg-tt-btn text-white font-semibold text-base inline-flex items-center justify-center gap-2 hover:brightness-110 transition">
+                      <MessageCircle size={20} strokeWidth={SW} /> {t('seller.sendMessage')}
                     </button>
+                  )}
+                  <div className={`grid gap-2.5 ${annonce.phone ? 'grid-cols-2' : 'grid-cols-1'}`}>
                     {annonce.phone && (
-                      <a
-                        href={`tel:+224${annonce.phone}`}
-                        onClick={() => trackContact(annonce.id)}
-                        className="flex items-center justify-center gap-2 w-full border border-dark-200 text-dark-700 font-semibold py-2.5 rounded-xl hover:bg-dark-50 hover:border-dark-300 transition-colors text-sm"
-                      >
-                        <Phone size={15} /> {annonce.phone}
+                      <a href={`tel:+224${annonce.phone}`} onClick={() => trackContact(annonce.id)} className={secondaryBtn}>
+                        <Phone size={18} strokeWidth={SW} /> {v2('call')}
                       </a>
                     )}
-                    {annonce.whatsapp && (
-                      <a
-                        href={`https://wa.me/224${annonce.whatsapp}?text=${encodeURIComponent(t('seller.contactMessage', { title: annonce.title }))}`}
-                        onClick={() => trackContact(annonce.id)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 w-full bg-[#25D366] hover:bg-[#1fbb58] text-white font-semibold py-2.5 rounded-xl transition-colors text-sm shadow-sm"
-                      >
-                        <MessageCircle size={15} /> {t('seller.whatsapp')}
-                      </a>
-                    )}
+                    <button onClick={openContactModal} className={secondaryBtn}>
+                      <Send size={18} strokeWidth={SW} /> {v2('message')}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button onClick={handleSave} aria-pressed={saved} className={quietBtn}>
+                      <Heart size={17} strokeWidth={SW} className={saved ? 'fill-[#E5484D] text-[#E5484D]' : ''} /> {saved ? v2('favoriteOn') : v2('favorite')}
+                    </button>
+                    <button onClick={() => setShowShare(true)} className={quietBtn}>
+                      <Share2 size={17} strokeWidth={SW} /> {v2('share')}
+                    </button>
                   </div>
                 </div>
+              )}
+
+              {/* Carte vendeur */}
+              {!isOwner && (
+                <Link href={`/profil/${annonce.user.id}`} className="flex items-center gap-3.5 p-[18px] rounded-[18px] bg-tt-card border border-tt-border hover:border-tt-border-strong transition-colors">
+                  <span className="relative w-[52px] h-[52px] rounded-[14px] bg-tt-img2 flex items-center justify-center shrink-0 overflow-hidden font-display font-bold text-xl text-tt-gold">
+                    {sellerLogo ? <img src={cloudinaryThumb(sellerLogo, 104)} alt="" className="w-full h-full object-cover" /> : sellerName[0]?.toUpperCase()}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-1.5 min-w-0">
+                      <span className="font-semibold text-tt-text truncate">{sellerName}</span>
+                      {sellerVerified && <BadgeCheck size={16} strokeWidth={SW} className="text-tt-green-icon shrink-0" />}
+                    </span>
+                    <span className="block text-[13px] text-tt-muted truncate">
+                      {v2('seller')}{sellerProfile?.responsiveBadge ? ` · ${v2('responsive')}` : ''}
+                    </span>
+                  </span>
+                  <ChevronRight size={18} strokeWidth={SW} className="text-tt-muted shrink-0" />
+                </Link>
+              )}
+
+              {/* Sécurité */}
+              <div className="rounded-2xl border border-tt-warn-border bg-tt-warn-bg p-4 flex gap-3">
+                <ShieldCheck size={20} strokeWidth={SW} className="text-tt-gold shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="font-semibold text-tt-warn-title text-[15px]">{v2('safetyTitle')}</p>
+                  <p className="text-[13px] text-tt-warn-text mt-0.5">{v2('safetyText')}</p>
+                  <Link href="/aide" className="tt-link text-[13px] inline-block mt-1.5">{v2('safetyLink')}</Link>
+                </div>
               </div>
+            </div>
+          </aside>
+
+          {/* ── Description, caractéristiques, hashtags, avis ── */}
+          <div className="lg:col-start-1 lg:row-start-2 min-w-0 space-y-8">
+            <section>
+              <h2 className="font-display font-semibold text-[22px] text-tt-text mb-3">{t('description.title')}</h2>
+              <p className="text-tt-sec2 leading-relaxed whitespace-pre-wrap max-w-[640px] break-words">{annonce.description}</p>
+            </section>
+
+            {specs.length > 0 && (
+              <section>
+                <h2 className="font-display font-semibold text-[22px] text-tt-text mb-3">{t('specs.title')}</h2>
+                <div className="grid grid-cols-2 rounded-2xl border border-tt-border overflow-hidden">
+                  {specs.map(({ label, value }, i) => (
+                    <div key={label} className={`px-[18px] py-3.5 border-tt-border ${i >= 2 ? 'border-t' : ''} ${i % 2 === 0 && i === specs.length - 1 ? 'col-span-2' : i % 2 === 0 ? 'border-r' : ''}`}>
+                      <p className="text-[13px] text-tt-muted">{label}</p>
+                      <p className="font-medium text-tt-text mt-0.5 break-words">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {a2.hashtags?.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {a2.hashtags.map((tag: string) => (
+                  <Link key={tag} href={`/annonces/lister?hashtag=${encodeURIComponent(tag)}`}
+                    className="px-3 py-1.5 rounded-full bg-tt-card border border-tt-border text-[13px] text-tt-green-light hover:border-tt-green transition-colors">
+                    #{tag}
+                  </Link>
+                ))}
               </div>
             )}
 
-            {/* Conseils anti-arnaque */}
-            <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4">
-              <h4 className="font-bold text-amber-800 text-sm mb-3 flex items-center gap-1.5">
-                <ShieldAlert size={16} className="text-amber-600 shrink-0" />
-                {t('scamTips.title')}
-              </h4>
-              <ul className="text-xs text-amber-800 space-y-2">
-                <li className="flex items-start gap-2">
-                  <span className="text-amber-500 mt-0.5 shrink-0 font-bold">!</span>
-                  {t('scamTips.tip1')}
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-amber-500 mt-0.5 shrink-0 font-bold">!</span>
-                  {t('scamTips.tip2')}
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-amber-500 mt-0.5 shrink-0 font-bold">!</span>
-                  {t('scamTips.tip3')}
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-amber-500 mt-0.5 shrink-0 font-bold">!</span>
-                  {t('scamTips.tip4')}
-                </li>
-              </ul>
-            </div>
+            {!isOwner && (
+              <button onClick={() => setShowReport(true)} className="flex items-center gap-2 text-tt-muted hover:text-[#E5484D] text-sm transition-colors">
+                <Flag size={14} strokeWidth={SW} /> {t('report.link')}
+              </button>
+            )}
+
+            {!isOwner && annonce.user?.id && <ReviewSection sellerId={annonce.user.id} />}
           </div>
         </div>
 
-        {/* ── Annonces similaires ─────────────────────────────── */}
+        {/* ── Annonces similaires ─────────────────────────── */}
         {similar.length > 0 && (
-          <section className="mt-12 pb-2">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-primary-100 rounded-xl flex items-center justify-center">
-                  <Sparkles size={17} className="text-primary-700" />
-                </div>
-                <div>
-                  <h2 className="font-display font-bold text-dark-900 text-lg leading-tight">
-                    {t('similar.title')}
-                  </h2>
-                  <p className="text-dark-400 text-xs">{t('similar.subtitle', { category: annonce.category.nameFr })}</p>
-                </div>
-              </div>
-              <Link
-                href={`/annonces?categoryId=${annonce.categoryId}`}
-                className="hidden sm:flex items-center gap-1 text-primary-700 hover:text-primary-800 text-sm font-semibold transition-colors"
-              >
-                {t('similar.seeAll')} <ArrowRight size={14} />
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {similar.slice(0, 8).map((a: any) => (
-                <AnnonceCard key={a.id} annonce={a} />
-              ))}
-            </div>
-            <Link
-              href={`/annonces?categoryId=${annonce.categoryId}`}
-              className="sm:hidden mt-4 flex items-center justify-center gap-1 text-primary-700 text-sm font-semibold"
-            >
-              {t('similar.seeAll')} <ArrowRight size={14} />
-            </Link>
+          <section className="mt-14">
+            <h2 className="font-display font-semibold text-[22px] md:text-2xl text-tt-text mb-5">{v2('similar')}</h2>
+            <AnnonceGrid annonces={similar.slice(0, 4)} cols={4} />
           </section>
         )}
 
-        {/* ── Vues récemment (validées contre la BDD) ─────────── */}
-        <div className="mt-10 pb-8">
+        <div className="mt-12">
           <RecentlyViewedSection excludeId={annonce.id} />
         </div>
-
       </div>
 
       <Footer />

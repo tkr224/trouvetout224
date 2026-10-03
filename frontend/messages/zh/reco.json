@@ -61,5 +61,14 @@
   },
   "badges": {
     "topSellerOfMonth": "本月最佳卖家"
+  },
+  "card": {
+    "sold": "已售",
+    "sponsored": "赞助",
+    "verified": "已认证",
+    "new": "新",
+    "save": "加入收藏",
+    "unsave": "取消收藏",
+    "priceOnRequest": "价格面议"
   }
 }

@@ -237,6 +237,24 @@
       "reportSent": "举报已提交，我们的团队将进行审核。",
       "reportError": "举报时出错"
     },
-    "browseOther": "浏览其他信息"
+    "browseOther": "浏览其他信息",
+    "v2": {
+      "verified": "已认证",
+      "published": "发布于 {ago}",
+      "whatsapp": "通过 WhatsApp 联系",
+      "call": "打电话",
+      "message": "发消息",
+      "favorite": "收藏",
+      "favoriteOn": "已收藏",
+      "share": "分享",
+      "seller": "卖家",
+      "responsive": "回复迅速",
+      "safetyTitle": "安全购物",
+      "safetyText": "付款前，请在公共场所当面检查商品。",
+      "safetyLink": "所有建议",
+      "prev": "上一张",
+      "next": "下一张",
+      "similar": "相似广告"
+    }
   }
 }

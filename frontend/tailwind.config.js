@@ -5,6 +5,45 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Jetons de la maquette 2026-10 (voir styles/globals.css, section REFONTE)
+        tt: {
+          'bg': 'var(--tt-bg)',
+          'footer': 'var(--tt-footer)',
+          'card': 'var(--tt-card)',
+          'field': 'var(--tt-field)',
+          'img': 'var(--tt-img)',
+          'img2': 'var(--tt-img2)',
+          'border': 'var(--tt-border)',
+          'border-strong': 'var(--tt-border-strong)',
+          'dashed': 'var(--tt-dashed)',
+          'text': 'var(--tt-text)',
+          'title': 'var(--tt-title)',
+          'sec': 'var(--tt-sec)',
+          'sec2': 'var(--tt-sec2)',
+          'muted': 'var(--tt-muted)',
+          'faint': 'var(--tt-faint)',
+          'kicker': 'var(--tt-kicker)',
+          'gold': 'var(--tt-gold)',
+          'price': 'var(--tt-price)',
+          'gnf': 'var(--tt-gnf)',
+          'btn': 'var(--tt-btn)',
+          'on-gold': 'var(--tt-on-gold)',
+          'link': 'var(--tt-link)',
+          'link-hover': 'var(--tt-link-hover)',
+          'green-light': 'var(--tt-green-light)',
+          'green-icon': 'var(--tt-green-icon)',
+          'green-soft': 'var(--tt-green-soft)',
+          'green': 'var(--tt-green)',
+          'red': 'var(--tt-red)',
+          'active': 'var(--tt-active)',
+          'overlay': 'var(--tt-overlay)',
+          'overlay-soft': 'var(--tt-overlay-soft)',
+          'bottombar': 'var(--tt-bottombar)',
+          'warn-bg': 'var(--tt-warn-bg)',
+          'warn-border': 'var(--tt-warn-border)',
+          'warn-title': 'var(--tt-warn-title)',
+          'warn-text': 'var(--tt-warn-text)',
+        },
         // Couleurs primaires — pilotées par variables CSS (theming dynamique)
         // Format : 'rgb(var(--p-NNN) / <alpha-value>)' permet bg-primary-700/50 etc.
         primary: {
@@ -52,8 +91,8 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans:    ['var(--font-jakarta)', 'system-ui', 'sans-serif'],
-        display: ['var(--font-outfit)', 'var(--font-jakarta)', 'system-ui', 'sans-serif'],
+        sans:    ['var(--font-dmsans)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-outfit)', 'var(--font-dmsans)', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         card:        '0 2px 12px rgba(0,0,0,0.07)',

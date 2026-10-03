@@ -237,6 +237,24 @@
       "reportSent": "Signalement envoyé. Notre équipe va examiner.",
       "reportError": "Erreur lors du signalement"
     },
-    "browseOther": "Parcourir les autres annonces"
+    "browseOther": "Parcourir les autres annonces",
+    "v2": {
+      "verified": "Vérifié",
+      "published": "Publié {ago}",
+      "whatsapp": "Contacter sur WhatsApp",
+      "call": "Appeler",
+      "message": "Message",
+      "favorite": "Favori",
+      "favoriteOn": "En favori",
+      "share": "Partager",
+      "seller": "Vendeur",
+      "responsive": "Vendeur réactif",
+      "safetyTitle": "Achète en sécurité",
+      "safetyText": "Vérifie le produit en personne, dans un lieu public, avant de payer.",
+      "safetyLink": "Tous les conseils",
+      "prev": "Photo précédente",
+      "next": "Photo suivante",
+      "similar": "Annonces similaires"
+    }
   }
 }

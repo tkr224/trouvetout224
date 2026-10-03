@@ -1,18 +1,21 @@
 'use client';
+// Carte d'annonce unique du site (maquette 2026-10) : sans cadre, image 4:3
+// (1:1 sur mobile) arrondie, UN seul badge, bouton favori, titre / prix / méta.
 import Link from 'next/link';
-import { Heart, Eye, MapPin, BadgeCheck, ImageIcon, Star, Sparkles, Tag, ShieldCheck, ShieldAlert, CheckCircle2, Plus, PartyPopper, Check, Megaphone, Compass } from 'lucide-react';
+import Image from 'next/image';
+import { Heart, ImageIcon, Plus, Check, PackageSearch } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import ErrorState from '@/components/ui/ErrorState';
-import { cloudinaryThumb } from '@/lib/cloudinary';
+import { cloudinaryLoader } from '@/lib/cloudinary';
+import { timeAgoShort, formatGnf } from '@/lib/format';
+import { useSavedIds } from '@/hooks/useSavedIds';
 
 interface Annonce {
-  id: string; slug: string; title: string; price?: number; currency?: string;
-  promoPrice?: number; promoEndsAt?: string; status?: string; isAgeRestricted?: boolean;
-  images: { url: string }[]; city: { name: string }; category: { nameFr: string; icon: string };
-  viewCount: number; createdAt: string; isPremium: boolean; isPinned?: boolean; neighborhood?: string;
-  user: { firstName: string; lastName: string; isVerified: boolean; isShopVerified?: boolean; createdAt?: string };
+  id: string; slug: string; title: string; price?: number | null; currency?: string;
+  promoPrice?: number | null; promoEndsAt?: string | null; status?: string; isAgeRestricted?: boolean;
+  images: { url: string }[]; city: { name: string }; category?: { nameFr: string; icon?: string };
+  viewCount?: number; createdAt: string; isPremium?: boolean; isPinned?: boolean; neighborhood?: string | null;
+  user?: { firstName?: string; lastName?: string; isVerified?: boolean; isShopVerified?: boolean; createdAt?: string };
   categoryId?: string;
   /** Emplacement payant (futur Pack Mansa) — toujours signalé « Sponsorisé ». */
   isSponsored?: boolean;
@@ -20,137 +23,87 @@ interface Annonce {
   feedReason?: 'pour_toi' | 'decouverte' | 'populaire' | 'nouveau' | 'pres_de_toi';
 }
 
-export function AnnonceCard({ annonce }: { annonce: Annonce }) {
-  const tReco = useTranslations('reco.feed');
-  const img = annonce.images?.[0]?.url;
-  const timeAgo = formatDistanceToNow(new Date(annonce.createdAt), { addSuffix: true, locale: fr });
-  const isNewSeller = annonce.user?.createdAt
-    ? (Date.now() - new Date(annonce.user.createdAt).getTime()) < 30 * 24 * 60 * 60 * 1000
-    : false;
+const NEW_LISTING_MS = 3 * 24 * 60 * 60 * 1000;
 
-  const promoActive = annonce.promoPrice != null
-    && (!annonce.promoEndsAt || new Date(annonce.promoEndsAt) > new Date());
+/** Un seul badge : Vendu > 18+ > Sponsorisé > Vérifié > Nouveau. */
+function badgeFor(a: Annonce, t: (k: string) => string): string | null {
+  if (a.status === 'SOLD') return t('sold');
+  if (a.isAgeRestricted) return '18+';
+  if (a.isSponsored) return t('sponsored');
+  if (a.user?.isVerified || a.user?.isShopVerified) return t('verified');
+  if (Date.now() - new Date(a.createdAt).getTime() < NEW_LISTING_MS) return t('new');
+  return null;
+}
+
+export function AnnonceCard({ annonce }: { annonce: Annonce }) {
+  const t = useTranslations('reco.card');
+  const { saved, toggle } = useSavedIds();
+  const isSaved = saved.has(annonce.id);
+  const img = annonce.images?.[0]?.url;
+  const badge = badgeFor(annonce, t);
+  const promoActive = annonce.promoPrice != null && (!annonce.promoEndsAt || new Date(annonce.promoEndsAt) > new Date());
+  const price = promoActive ? annonce.promoPrice : annonce.price;
+  const place = annonce.neighborhood || annonce.city?.name;
 
   return (
-    <Link href={`/annonces/${annonce.slug || annonce.id}`} className="card annonce-card block group overflow-hidden">
-      <div className="relative aspect-[4/3] overflow-hidden bg-dark-100">
+    <Link href={`/annonces/${annonce.slug || annonce.id}`} className="annonce-card group block min-w-0">
+      <div className="relative aspect-square sm:aspect-[4/3] rounded-[14px] sm:rounded-2xl overflow-hidden bg-tt-img">
         {img ? (
-          <img src={cloudinaryThumb(img)} alt={annonce.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <Image
+            loader={cloudinaryLoader}
+            src={img}
+            alt={annonce.title}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 290px"
+            className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
+          />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-50 to-dark-100">
-            <ImageIcon size={36} className="text-dark-300" />
+          <div className="w-full h-full flex items-center justify-center bg-tt-img2">
+            <ImageIcon size={32} strokeWidth={1.75} className="text-tt-faint" />
           </div>
         )}
-        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1">
-          {annonce.isSponsored && (
-            <div className="bg-dark-900/85 backdrop-blur text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
-              <Megaphone size={10} /> {tReco('sponsored')}
-            </div>
-          )}
-          {annonce.feedReason === 'decouverte' && !annonce.isSponsored && (
-            <div className="bg-white/90 backdrop-blur text-primary-700 text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
-              <Compass size={10} /> {tReco('discovery')}
-            </div>
-          )}
-          {annonce.status === 'SOLD' && (
-            <div className="bg-dark-700 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
-              <CheckCircle2 size={10} /> Vendu
-            </div>
-          )}
-          {annonce.isPremium && annonce.status !== 'SOLD' && (
-            <div className="bg-gold-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
-              <Star size={10} className="fill-white text-white" /> À la une
-            </div>
-          )}
-          {promoActive && annonce.status !== 'SOLD' && (
-            <div className="bg-guinea-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
-              <Tag size={10} /> Promo
-            </div>
-          )}
-          {annonce.isAgeRestricted && (
-            <div className="bg-dark-900 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
-              <ShieldAlert size={10} /> 18+
-            </div>
-          )}
-        </div>
+        {badge && (
+          <span className="absolute top-2.5 left-2.5 px-[9px] py-[3px] rounded-full bg-tt-overlay text-white text-xs font-medium leading-[18px] backdrop-blur-sm">
+            {badge}
+          </span>
+        )}
         <button
-          onClick={(e) => { e.preventDefault(); }}
-          className="absolute top-2.5 right-2.5 w-9 h-9 bg-white/95 backdrop-blur rounded-full flex items-center justify-center shadow-md hover:bg-white hover:scale-110 transition-all group/heart"
+          type="button"
+          onClick={e => { e.preventDefault(); e.stopPropagation(); toggle(annonce.id); }}
+          aria-label={isSaved ? t('unsave') : t('save')}
+          aria-pressed={isSaved}
+          className="absolute top-2 right-2 w-9 h-9 rounded-full bg-tt-overlay-soft text-white flex items-center justify-center backdrop-blur-sm hover:scale-105 transition-transform before:absolute before:-inset-1 before:content-['']"
         >
-          <Heart size={15} className="text-dark-400 group-hover/heart:text-guinea-500 transition-colors" />
+          <Heart size={16} strokeWidth={1.75} className={isSaved ? 'fill-[#E5484D] text-[#E5484D]' : ''} />
         </button>
       </div>
 
-      <div className="p-3">
-        <h3 className="font-semibold text-dark-900 text-sm line-clamp-1 group-hover:text-primary-700 transition-colors">{annonce.title}</h3>
-
-        {/* Prix : affiche promo si active, sinon prix normal */}
-        {promoActive ? (
-          <div className="mt-1">
-            <span className="text-guinea-600 font-bold text-base">
-              {annonce.promoPrice!.toLocaleString('fr-GN')} <span className="text-xs font-medium">GNF</span>
-            </span>
-            {annonce.price != null && (
-              <span className="ml-2 text-dark-400 text-sm line-through">
-                {annonce.price.toLocaleString('fr-GN')} GNF
-              </span>
-            )}
-          </div>
-        ) : annonce.price != null ? (
-          <p className="text-gold-600 font-bold text-base mt-1">{annonce.price.toLocaleString('fr-GN')} <span className="text-xs font-medium">GNF</span></p>
-        ) : (
-          <p className="text-dark-400 text-sm mt-1 italic">Prix à négocier</p>
-        )}
-
-        <div className="flex items-center gap-1 text-dark-400 text-xs mt-2">
-          <MapPin size={11} />
-          <span className="line-clamp-1">{annonce.city?.name}{annonce.neighborhood && `, ${annonce.neighborhood}`}</span>
-        </div>
-
-        {(annonce.user?.isVerified || annonce.user?.isShopVerified || isNewSeller) && (
-          <div className="flex gap-1 mt-1.5 flex-wrap">
-            {annonce.user?.isShopVerified && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-gold-600 bg-gold-50 px-1.5 py-0.5 rounded-full">
-                <ShieldCheck size={9} /> Boutique vérifiée
-              </span>
-            )}
-            {annonce.user?.isVerified && !annonce.user?.isShopVerified && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-primary-700 bg-primary-50 px-1.5 py-0.5 rounded-full">
-                <BadgeCheck size={9} /> Vérifié
-              </span>
-            )}
-            {isNewSeller && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-primary-700 bg-primary-50 px-1.5 py-0.5 rounded-full">
-                <Sparkles size={9} /> Nouveau
-              </span>
-            )}
-          </div>
-        )}
-        <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-dark-50">
-          <span className="text-dark-400 text-[11px]">{timeAgo}</span>
-          <span className="flex items-center gap-1 text-dark-400 text-[11px]"><Eye size={11} /> {annonce.viewCount}</span>
-        </div>
+      <div className="mt-3">
+        <h3 className="text-sm sm:text-[15px] font-medium text-tt-title truncate">{annonce.title}</h3>
+        <p className="mt-1 leading-none">
+          {price != null ? (
+            <>
+              <span className="font-display font-semibold text-base sm:text-lg text-tt-price">{formatGnf(price)}</span>
+              <span className="text-[13px] text-tt-gnf"> GNF</span>
+            </>
+          ) : (
+            <span className="text-[13px] text-tt-muted">{t('priceOnRequest')}</span>
+          )}
+        </p>
+        <p className="mt-1.5 text-[13px] text-tt-muted truncate">{place} · {timeAgoShort(annonce.createdAt)}</p>
       </div>
     </Link>
   );
 }
 
-/** Squelette d'une carte annonce — reprend exactement la forme d'`AnnonceCard`
- *  (image 4/3, titre, prix, ligne ville, pied de carte) pour éviter le saut de
- *  mise en page au passage chargement → contenu. */
+/** Squelette d'une carte — même forme que `AnnonceCard`. */
 export function AnnonceCardSkeleton() {
   return (
-    <div className="card overflow-hidden">
-      <div className="skeleton aspect-[4/3] rounded-none" />
-      <div className="p-3">
-        <div className="skeleton h-4 w-3/4 rounded" />
-        <div className="skeleton h-5 w-1/2 rounded mt-2" />
-        <div className="skeleton h-3 w-2/3 rounded mt-2.5" />
-        <div className="flex items-center justify-between mt-3 pt-1.5 border-t border-dark-50 dark:border-dark-700">
-          <div className="skeleton h-2.5 w-16 rounded" />
-          <div className="skeleton h-2.5 w-8 rounded" />
-        </div>
-      </div>
+    <div>
+      <div className="skeleton aspect-square sm:aspect-[4/3] rounded-[14px] sm:rounded-2xl" />
+      <div className="skeleton h-4 w-3/4 rounded mt-3" />
+      <div className="skeleton h-5 w-1/2 rounded mt-2" />
+      <div className="skeleton h-3 w-2/3 rounded mt-2" />
     </div>
   );
 }
@@ -185,47 +138,37 @@ export default function AnnonceGrid({
   compareDisabled?: (annonce: Annonce) => boolean;
 }) {
   const gridCols = cols === 4
-    ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
-    : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6';
+    ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+    : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
+  const grid = `grid ${gridCols} gap-x-3 gap-y-[18px] sm:gap-x-5 sm:gap-y-6`;
 
   if (isLoading) {
-    return (
-      <div className={`grid ${gridCols} gap-4`}>
-        {Array.from({ length: cols === 4 ? 8 : 12 }).map((_, i) => <AnnonceCardSkeleton key={i} />)}
-      </div>
-    );
+    return <div className={grid}>{Array.from({ length: 8 }).map((_, i) => <AnnonceCardSkeleton key={i} />)}</div>;
   }
 
   // L'erreur passe AVANT l'état vide : sans ça une panne réseau s'affiche
   // comme « aucune annonce », ce qui est faux et sans issue pour l'utilisateur.
   if (isError) {
-    return (
-      <div className="card">
-        <ErrorState error={error} onRetry={onRetry} />
-      </div>
-    );
+    return <div className="rounded-2xl border border-tt-border bg-tt-card"><ErrorState error={error} onRetry={onRetry} /></div>;
   }
 
   if (!annonces || annonces.length === 0) {
     return (
-      <div className="card p-10 sm:p-12 text-center bg-gradient-to-b from-primary-50/60 to-transparent dark:from-primary-900/10">
-        <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <PartyPopper size={28} className="text-primary-600 dark:text-primary-400" />
+      <div className="rounded-2xl border border-dashed border-tt-dashed p-10 sm:p-12 text-center">
+        <div className="w-14 h-14 bg-tt-green-soft rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <PackageSearch size={24} strokeWidth={1.75} className="text-tt-green-icon" />
         </div>
-        <p className="font-bold text-dark-900 dark:text-white text-base">{emptyTitle}</p>
-        <p className="text-dark-400 text-sm mt-1 max-w-xs mx-auto">{emptySubtitle}</p>
-        <Link
-          href="/annonces/publier"
-          className="inline-flex items-center gap-1.5 mt-5 px-5 py-2.5 bg-primary-700 hover:bg-primary-800 active:scale-95 text-white font-bold rounded-xl text-sm transition-all shadow-sm"
-        >
-          <Plus size={15} /> Publier une annonce
+        <p className="font-display font-semibold text-tt-text text-base">{emptyTitle}</p>
+        <p className="text-tt-muted text-sm mt-1 max-w-xs mx-auto">{emptySubtitle}</p>
+        <Link href="/annonces/publier" className="inline-flex items-center gap-1.5 mt-5 h-10 px-4 rounded-xl bg-tt-gold text-tt-on-gold font-semibold text-sm">
+          <Plus size={16} strokeWidth={2} /> Publier une annonce
         </Link>
       </div>
     );
   }
 
   return (
-    <div className={`grid ${gridCols} gap-4 animate-fadeIn`}>
+    <div className={`${grid} animate-fadeIn`}>
       {annonces.map((a) => {
         if (!onToggleCompare) return <AnnonceCard key={a.id} annonce={a} />;
         const checked = !!compareSelectedIds?.includes(a.id);
@@ -238,12 +181,12 @@ export default function AnnonceGrid({
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (!disabled) onToggleCompare(a); }}
               disabled={disabled}
               aria-pressed={checked}
-              className={`absolute bottom-2.5 left-2.5 z-10 w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-colors shadow-md before:absolute before:-inset-2 before:content-[''] ${
+              className={`absolute bottom-[86px] left-2.5 z-10 w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-colors shadow-md before:absolute before:-inset-2 before:content-[''] ${
                 checked
-                  ? 'bg-primary-700 border-primary-700 text-white'
+                  ? 'bg-tt-btn border-tt-btn text-white'
                   : disabled
-                    ? 'bg-white/70 border-dark-200 text-transparent cursor-not-allowed'
-                    : 'bg-white/95 border-dark-200 hover:border-primary-500'
+                    ? 'bg-white/60 border-tt-border text-transparent cursor-not-allowed'
+                    : 'bg-white/90 border-tt-border-strong hover:border-tt-green'
               }`}
             >
               {checked && <Check size={14} />}

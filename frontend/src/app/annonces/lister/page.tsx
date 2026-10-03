@@ -280,12 +280,12 @@ function AnnoncesList() {
       <aside className="hidden lg:block w-64 shrink-0">
         <div className="halo-behind sticky top-24">
           <div className="glass-light overflow-hidden">
-          <div className="bg-primary-700 px-4 py-3 flex items-center justify-between">
-            <h2 className="text-sm font-display font-bold text-white flex items-center gap-2">
+          <div className="border-b border-tt-border px-4 py-3 flex items-center justify-between">
+            <h2 className="text-[15px] font-display font-semibold text-tt-text flex items-center gap-2">
               <SlidersHorizontal size={15} /> {t('filters.title')}
             </h2>
             {hasFilters && (
-              <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+              <span className="bg-tt-green-soft text-tt-green-light text-[11px] font-medium px-2 py-0.5 rounded-full">
                 {activeFilters.length} {t('filters.active', { count: activeFilters.length })}
               </span>
             )}
@@ -341,11 +341,11 @@ function AnnoncesList() {
         {/* Panel filtres mobile */}
         {showFilters && (
           <div className="lg:hidden mb-4 glass-light overflow-hidden animate-fadeIn">
-            <div className="bg-primary-700 px-4 py-3 flex items-center justify-between">
-              <h2 className="text-sm font-display font-bold text-white flex items-center gap-2">
+            <div className="border-b border-tt-border px-4 py-3 flex items-center justify-between">
+              <h2 className="text-[15px] font-display font-semibold text-tt-text flex items-center gap-2">
                 <SlidersHorizontal size={15} /> {t('filters.title')}
               </h2>
-              <button onClick={() => setShowFilters(false)} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors">
+              <button onClick={() => setShowFilters(false)} className="w-7 h-7 rounded-full bg-tt-active flex items-center justify-center text-tt-sec hover:text-tt-text transition-colors">
                 <X size={14} />
               </button>
             </div>

@@ -7,7 +7,7 @@ import { QueryProvider } from '@/components/providers/QueryProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import dynamic from 'next/dynamic';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
-import { plusJakartaSans, outfit } from '@/lib/fonts';
+import { dmSans, outfit } from '@/lib/fonts';
 
 const SplashScreen        = dynamic(() => import('@/components/SplashScreen'),                    { ssr: false });
 const OnboardingGate      = dynamic(() => import('@/components/OnboardingGate'),                  { ssr: false });
@@ -25,6 +25,7 @@ const SessionExpiryWatcher    = dynamic(() => import('@/components/SessionExpiry
 const GlobalNotificationToasts = dynamic(() => import('@/components/GlobalNotificationToasts'),       { ssr: false });
 const OfflineBanner       = dynamic(() => import('@/components/OfflineBanner'),                    { ssr: false });
 const ImageAutoRetry      = dynamic(() => import('@/components/ImageAutoRetry'),                    { ssr: false });
+const BottomNav           = dynamic(() => import('@/components/layout/BottomNav'),                 { ssr: false });
 
 /* ── Métadonnées globales (SEO + Open Graph + PWA) ───────────────── */
 export const metadata: Metadata = {
@@ -100,7 +101,8 @@ export const metadata: Metadata = {
 const themeScript = `(function(){try{
   var t=localStorage.getItem('tt224-theme');
   var dark=window.matchMedia('(prefers-color-scheme:dark)').matches;
-  if(t==='dark'||(t!=='light'&&dark)){document.documentElement.classList.add('dark')}
+  var useDark=t==='light'?false:(t==='system'?dark:true);
+  document.documentElement.classList.toggle('dark',useDark);
   var s=localStorage.getItem('tt224-special');
   var c=localStorage.getItem('tt224-color');
   var validColors=['blue','purple','orange','red','teal','royal','feu','nuit','minimaliste','terre','animated','neon','valentine','halloween','luxe','retro','ocean','foret','galaxie','lave','pluie','arcenciel','glace','orliquide'];
@@ -157,14 +159,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const messages = await getMessages();
 
   return (
-    <html lang={locale} suppressHydrationWarning className={`${plusJakartaSans.variable} ${outfit.variable}`}>
+    <html lang={locale} suppressHydrationWarning className={`dark ${dmSans.variable} ${outfit.variable}`}>
       <head>
         {/* Anti-flash thème sombre — doit s'exécuter avant le premier paint */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
 
         {/* Couleur de la barre système (clair/sombre) */}
         <meta name="theme-color" media="(prefers-color-scheme: light)" content="#1B8B3B" />
-        <meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#111827" />
+        <meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#0D1013" />
 
         {/* Données structurées pour Google */}
         <script
@@ -194,6 +196,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <SessionExpiryWatcher />
               <GlobalNotificationToasts />
               <OfflineBanner />
+              <BottomNav />
             </ThemeProvider>
           </QueryProvider>
         </NextIntlClientProvider>

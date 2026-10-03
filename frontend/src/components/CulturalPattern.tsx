@@ -3,6 +3,7 @@
 import { useId } from 'react';
 
 /* ── Tile ──────────────────────────────────────────────────────────── */
+const DISABLED = true;
 const TW = 300;
 const TH = 400;
 
@@ -105,6 +106,9 @@ function Motif({ t }: { t: Mot }) {
 
 /* ── Composant principal ────────────────────────────────────────────── */
 export default function CulturalPattern() {
+  // Maquette 2026-10 : fonds unis sur tout le site — motif désactivé (composant conservé
+  // pour ne pas toucher aux 36 pages qui l'importent).
+  if (DISABLED) return null;
   const raw = useId();
   const pid = `cp${raw.replace(/[^a-z0-9]/gi, '')}`;
 

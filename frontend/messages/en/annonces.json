@@ -237,6 +237,24 @@
       "reportSent": "Report sent. Our team will review it.",
       "reportError": "Error while reporting"
     },
-    "browseOther": "Browse other listings"
+    "browseOther": "Browse other listings",
+    "v2": {
+      "verified": "Verified",
+      "published": "Posted {ago}",
+      "whatsapp": "Contact on WhatsApp",
+      "call": "Call",
+      "message": "Message",
+      "favorite": "Favorite",
+      "favoriteOn": "Saved",
+      "share": "Share",
+      "seller": "Seller",
+      "responsive": "Responsive seller",
+      "safetyTitle": "Buy safely",
+      "safetyText": "Check the item in person, in a public place, before paying.",
+      "safetyLink": "All tips",
+      "prev": "Previous photo",
+      "next": "Next photo",
+      "similar": "Similar listings"
+    }
   }
 }

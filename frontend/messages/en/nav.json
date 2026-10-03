@@ -26,5 +26,10 @@
   "sellerSpace": "Seller space",
   "myProfile": "My profile",
   "changeLanguage": "Change language",
-  "accountMenu": "Account menu"
+  "accountMenu": "Account menu",
+  "bottom": {
+    "home": "Home",
+    "profile": "Profile",
+    "label": "Main navigation"
+  }
 }

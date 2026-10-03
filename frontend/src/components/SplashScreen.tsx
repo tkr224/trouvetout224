@@ -114,7 +114,7 @@ export default function SplashScreen() {
 
   if (phase === 'hidden') return null;
 
-  const isActive = phase !== 'hidden';
+  const isActive = true; // phase « hidden » déjà écartée par le retour ci-dessus
   const isTyping = phase === 'typing' || phase === 'falling' || phase === 'impact' || phase === 'exit';
   const isFalling = phase === 'falling' || phase === 'impact' || phase === 'exit';
   const isShake = phase === 'impact';

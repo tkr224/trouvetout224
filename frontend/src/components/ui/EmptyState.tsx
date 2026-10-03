@@ -12,29 +12,22 @@ interface EmptyStateProps {
   className?: string;
 }
 
-/** État vide standard : icône dans un halo, titre, message, bouton d'action optionnel. */
+/** État vide (maquette 2026-10) : icône verte dans un carré doux, titre Outfit, action or. */
 export default function EmptyState({
   icon: Icon, title, message, actionLabel, actionHref, onAction, className = '',
 }: EmptyStateProps) {
+  const btn = 'inline-flex items-center gap-2 mt-5 h-10 px-4 rounded-xl bg-tt-gold text-tt-on-gold font-semibold text-sm';
   return (
     <div className={`text-center py-14 sm:py-16 px-4 ${className}`}>
-      <div className="relative w-16 h-16 mx-auto mb-4">
-        <div className="absolute inset-0 rounded-2xl bg-primary-100 dark:bg-primary-900/40" />
-        <div className="absolute inset-0 rounded-2xl blur-xl bg-primary-300/40 dark:bg-primary-600/20" />
-        <div className="relative w-full h-full flex items-center justify-center">
-          <Icon size={28} className="text-primary-500 dark:text-primary-300" />
-        </div>
+      <div className="w-14 h-14 rounded-2xl bg-tt-green-soft flex items-center justify-center mx-auto mb-4">
+        <Icon size={24} strokeWidth={1.75} className="text-tt-green-icon" />
       </div>
-      <h3 className="font-bold text-dark-800 dark:text-white text-lg mb-1.5">{title}</h3>
-      {message && <p className="text-dark-500 dark:text-dark-300 text-sm max-w-sm mx-auto">{message}</p>}
+      <h3 className="font-display font-semibold text-tt-text text-lg mb-1.5">{title}</h3>
+      {message && <p className="text-tt-muted text-sm max-w-sm mx-auto">{message}</p>}
       {actionLabel && (actionHref ? (
-        <Link href={actionHref} className="btn-primary inline-flex items-center gap-2 mt-5">
-          {actionLabel}
-        </Link>
+        <Link href={actionHref} className={btn}>{actionLabel}</Link>
       ) : (
-        <button onClick={onAction} className="btn-primary inline-flex items-center gap-2 mt-5">
-          {actionLabel}
-        </button>
+        <button onClick={onAction} className={btn}>{actionLabel}</button>
       ))}
     </div>
   );

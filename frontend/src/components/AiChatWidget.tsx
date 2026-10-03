@@ -135,8 +135,8 @@ export default function AiChatWidget() {
   const isLeft = prefs.bubblePosition === 'BOTTOM_LEFT';
 
   const launcherPos = isLeft
-    ? 'fixed bottom-20 left-4 sm:bottom-6 sm:left-6'
-    : 'fixed bottom-20 right-4 sm:bottom-6 sm:right-6';
+    ? 'fixed bottom-[calc(96px+env(safe-area-inset-bottom))] left-4 lg:bottom-6 lg:left-6'
+    : 'fixed bottom-[calc(96px+env(safe-area-inset-bottom))] right-4 lg:bottom-6 lg:right-6';
   const windowPos = isLeft
     ? 'fixed inset-0 sm:inset-auto sm:bottom-24 sm:left-6'
     : 'fixed inset-0 sm:inset-auto sm:bottom-24 sm:right-6';

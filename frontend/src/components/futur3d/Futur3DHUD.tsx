@@ -48,8 +48,8 @@ export default function Futur3DHUD() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0, scale: 1.04, filter: 'blur(8px)' }}
-          transition={{ duration: 0.4, exit: { duration: 0.7 } }}
+          exit={{ opacity: 0, scale: 1.04, filter: 'blur(8px)', transition: { duration: 0.7 } }}
+          transition={{ duration: 0.4 }}
           style={{
             position: 'fixed', inset: 0, zIndex: 100000,
             background: 'radial-gradient(ellipse at center, #06063a 0%, #01000f 100%)',
